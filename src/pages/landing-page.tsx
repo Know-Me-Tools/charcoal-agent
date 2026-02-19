@@ -82,15 +82,15 @@ export default function LandingPage() {
 
       <main className="flex flex-1 flex-col items-center justify-center px-6 text-center">
         <div className="mx-auto max-w-2xl">
-          <p className="section-label mb-4">// Agent Runtime Interface</p>
+          <p className="section-label mb-4">// An OS that learns you</p>
           <h1 className="font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl" style={{ letterSpacing: "-0.04em" }}>
-            Your AI agents,
+            AI that knows
             <br />
-            <span className="text-primary">orchestrated.</span>
+            <span className="text-primary">you.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-lg font-body text-base leading-relaxed text-muted-foreground sm:text-lg">
-            A structured interface for managing and interacting with AI agents
-            through persistent conversation threads.
+            Your personal agent operating system — it remembers, adapts,
+            and works the way you think.
           </p>
           <div className="mx-auto mt-10 w-full max-w-xl">
             <div className="rounded-xl border border-border bg-card p-3 shadow-lg shadow-background/50">
