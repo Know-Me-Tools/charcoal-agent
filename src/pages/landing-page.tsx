@@ -60,7 +60,7 @@ export default function LandingPage() {
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
@@ -114,7 +114,7 @@ export default function LandingPage() {
               </div>
               <div className="mt-2 flex items-center justify-between px-1">
                 <span className="font-mono text-[10px] text-muted-foreground">
-                  {"\u2318\u21B5"} to send
+                  {"\u21B5"} to send
                 </span>
                 <Link
                   to="/threads"
