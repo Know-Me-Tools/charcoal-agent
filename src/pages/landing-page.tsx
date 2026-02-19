@@ -1,5 +1,8 @@
-import { Link } from "react-router-dom";
-import { Bot, MessageSquare, Wrench, Zap } from "lucide-react";
+import { useState, useRef, useEffect, type KeyboardEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Bot, MessageSquare, Wrench, Zap, Send, ArrowRight } from "lucide-react";
+import { useAgents } from "@/hooks/use-agents";
+import { useCreateThread } from "@/hooks/use-threads";
 
 const features = [
   {
@@ -25,6 +28,43 @@ const features = [
 ];
 
 export default function LandingPage() {
+  const [message, setMessage] = useState("");
+  const navigate = useNavigate();
+  const { data: agents } = useAgents();
+  const createThread = useCreateThread();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+    }
+  }, [message]);
+
+  const handleSend = () => {
+    const trimmed = message.trim();
+    if (!trimmed) return;
+    const agent = agents?.[0];
+    if (agent) {
+      createThread.mutate(
+        { agent_id: agent.id, title: trimmed.slice(0, 60) },
+        {
+          onSuccess: (thread) => {
+            navigate(`/threads/${thread.id}`, { state: { initialMessage: trimmed } });
+          },
+        },
+      );
+    } else {
+      navigate("/threads");
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+      e.preventDefault();
+      handleSend();
+    }
+  };
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Hero */}
@@ -52,19 +92,38 @@ export default function LandingPage() {
             A structured interface for managing and interacting with AI agents
             through persistent conversation threads.
           </p>
-          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <Link
-              to="/threads"
-              className="flex h-11 w-full items-center justify-center rounded-md bg-primary px-6 font-ui text-sm font-semibold text-primary-foreground transition-hover hover:bg-primary/90 sm:w-auto"
-            >
-              Start a thread
-            </Link>
-            <Link
-              to="/agents"
-              className="flex h-11 w-full items-center justify-center rounded-md border border-border px-6 font-ui text-sm font-semibold text-muted-foreground transition-hover hover:border-primary/30 hover:text-foreground sm:w-auto"
-            >
-              Manage agents
-            </Link>
+          <div className="mx-auto mt-10 w-full max-w-xl">
+            <div className="rounded-xl border border-border bg-card p-3 shadow-lg shadow-background/50">
+              <div className="flex items-end gap-2">
+                <textarea
+                  ref={textareaRef}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="What would you like to explore?"
+                  rows={1}
+                  className="max-h-[120px] min-h-[44px] flex-1 resize-none rounded-lg bg-background px-4 py-3 font-body text-[15px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+                <button
+                  onClick={handleSend}
+                  disabled={!message.trim() || createThread.isPending}
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-hover hover:bg-primary/90 disabled:opacity-40"
+                >
+                  <Send size={18} />
+                </button>
+              </div>
+              <div className="mt-2 flex items-center justify-between px-1">
+                <span className="font-mono text-[10px] text-muted-foreground">
+                  {"\u2318\u21B5"} to send
+                </span>
+                <Link
+                  to="/threads"
+                  className="flex items-center gap-1 font-ui text-[11px] font-semibold text-muted-foreground transition-hover hover:text-primary"
+                >
+                  Browse threads <ArrowRight size={10} />
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </main>
