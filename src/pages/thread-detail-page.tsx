@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { useParams, useLocation } from "react-router-dom";
 import { useThreadDetail, useActiveThread, useStreamingMessage } from "@/hooks/use-threads";
 import { useStartRun } from "@/hooks/use-runs";
 import { MessageList } from "@/components/chat/message-list";
@@ -9,14 +9,31 @@ import { SkeletonLine } from "@/components/common/skeleton-loader";
 
 export default function ThreadDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const { setActiveThread } = useActiveThread();
   const { data: thread, isLoading } = useThreadDetail(id ?? null);
   const startRun = useStartRun();
   const { streamingMessage } = useStreamingMessage();
+  const initialMessageSent = useRef(false);
 
   useEffect(() => {
     if (id) setActiveThread(id);
   }, [id, setActiveThread]);
+
+  // Auto-send initial message passed from landing page
+  useEffect(() => {
+    const state = location.state as { initialMessage?: string } | null;
+    if (thread && state?.initialMessage && !initialMessageSent.current) {
+      initialMessageSent.current = true;
+      startRun.mutate({
+        session_id: thread.id,
+        agent_id: thread.agent_id,
+        message: state.initialMessage,
+      });
+      // Clear the state so refreshing doesn't re-send
+      window.history.replaceState({}, "");
+    }
+  }, [thread, location.state, startRun]);
 
   const handleSend = (message: string) => {
     if (!thread) return;
