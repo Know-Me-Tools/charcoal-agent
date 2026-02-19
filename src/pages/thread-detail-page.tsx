@@ -29,7 +29,7 @@ export default function ThreadDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-1 flex-col p-6">
+      <div className="flex flex-1 flex-col p-4 md:p-6">
         <div className="space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="space-y-2">
@@ -53,11 +53,11 @@ export default function ThreadDetailPage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex items-center gap-3 border-b border-border px-6 py-3">
-        <h3 className="font-display text-sm font-semibold text-foreground">
+      <div className="flex items-center gap-3 border-b border-border px-4 py-3 md:px-6">
+        <h3 className="truncate font-display text-sm font-semibold text-foreground">
           {thread.title}
         </h3>
-        <span className="font-mono text-[10px] text-muted-foreground">
+        <span className="hidden font-mono text-[10px] text-muted-foreground sm:inline">
           {thread.id.slice(0, 8)}
         </span>
       </div>

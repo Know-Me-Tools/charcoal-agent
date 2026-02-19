@@ -41,10 +41,10 @@ export default function ProvidersPage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <SectionLabel>Provider Settings</SectionLabel>
-          <h1 className="mt-1 font-display text-2xl font-bold text-foreground">
+          <h1 className="mt-1 font-display text-xl font-bold text-foreground md:text-2xl">
             Providers
           </h1>
         </div>
@@ -60,7 +60,7 @@ export default function ProvidersPage() {
       {addingNew && (
         <div className="mb-6 rounded-lg border border-border bg-card p-4 space-y-4">
           <SectionLabel>New Provider</SectionLabel>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="ui-label mb-1 block text-foreground">Display name</label>
               <input
@@ -92,7 +92,7 @@ export default function ProvidersPage() {
               placeholder="sk-..."
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <button
               onClick={handleCreateProvider}
               disabled={!newProvider.name || !newProvider.base_url}
@@ -179,22 +179,22 @@ function ProviderCard({
         onClick={onSelect}
         className="flex w-full items-center justify-between p-4 text-left transition-hover hover:bg-muted/20"
       >
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <span
-            className={`h-2.5 w-2.5 rounded-full ${
+            className={`h-2.5 w-2.5 shrink-0 rounded-full ${
               provider.enabled ? "bg-success" : "bg-destructive"
             }`}
           />
-          <div>
+          <div className="min-w-0">
             <span className="font-display text-sm font-semibold text-foreground">
               {provider.name}
             </span>
-            <span className="ml-3 font-mono text-[10px] text-muted-foreground">
+            <span className="ml-3 hidden font-mono text-[10px] text-muted-foreground sm:inline">
               {provider.base_url}
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           {provider.is_default && (
             <span className="flex items-center gap-1 font-ui text-[11px] font-semibold text-primary">
               <Star size={12} /> Default
@@ -206,7 +206,7 @@ function ProviderCard({
 
       {isSelected && (
         <div className="border-t border-border p-4 space-y-4">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={onTestConnection}
               disabled={isTesting}
@@ -217,7 +217,7 @@ function ProviderCard({
               ) : (
                 <Check size={12} />
               )}
-              Test connection
+              Test
             </button>
             {testLatency !== null && (
               <span className="font-mono text-xs text-success">{testLatency}ms</span>
@@ -233,12 +233,12 @@ function ProviderCard({
                 onClick={onSetDefault}
                 className="flex h-8 items-center rounded-md border border-border px-3 font-ui text-xs font-semibold text-muted-foreground transition-hover hover:text-primary"
               >
-                Set as default
+                Set default
               </button>
             )}
             <button
               onClick={onDelete}
-              className="ml-auto flex h-8 items-center gap-1 rounded-md border border-border px-3 font-ui text-xs font-semibold text-muted-foreground transition-hover hover:border-destructive hover:text-destructive"
+              className="flex h-8 items-center gap-1 rounded-md border border-border px-3 font-ui text-xs font-semibold text-muted-foreground transition-hover hover:border-destructive hover:text-destructive sm:ml-auto"
             >
               <Trash2 size={12} />
               Delete
@@ -265,8 +265,8 @@ function ProviderModelsTable({ providerId }: { providerId: string }) {
   }
 
   return (
-    <div className="overflow-hidden rounded-md border border-border">
-      <table className="w-full">
+    <div className="overflow-x-auto rounded-md border border-border">
+      <table className="w-full min-w-[400px]">
         <thead>
           <tr className="border-b border-border bg-muted/30">
             <th className="px-3 py-2 text-left ui-overline text-muted-foreground">Model ID</th>

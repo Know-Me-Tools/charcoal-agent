@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 import { Send } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -9,6 +10,7 @@ interface ChatInputProps {
 export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -32,9 +34,9 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   };
 
   return (
-    <div className="border-t border-border bg-card p-4">
+    <div className="border-t border-border bg-card p-3 md:p-4">
       <div className="mx-auto max-w-3xl">
-        <div className="flex items-end gap-3 rounded-lg border border-border bg-background p-3">
+        <div className="flex items-end gap-2 rounded-lg border border-border bg-background p-2 md:gap-3 md:p-3">
           <textarea
             ref={textareaRef}
             value={value}
@@ -53,9 +55,11 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
             <Send size={16} />
           </button>
         </div>
-        <p className="mt-1.5 text-right font-mono text-[10px] text-muted-foreground">
-          {"\u2318\u21B5"} to send
-        </p>
+        {!isMobile && (
+          <p className="mt-1.5 text-right font-mono text-[10px] text-muted-foreground">
+            {"\u2318\u21B5"} to send
+          </p>
+        )}
       </div>
     </div>
   );
