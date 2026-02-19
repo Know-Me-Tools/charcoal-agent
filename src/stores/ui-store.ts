@@ -5,9 +5,12 @@ type FontSize = "compact" | "default" | "comfortable";
 
 interface UiState {
   rightPanelOpen: boolean;
+  mobileSidebarOpen: boolean;
   theme: "dark" | "light";
   fontSize: FontSize;
   toggleRightPanel: () => void;
+  setMobileSidebarOpen: (open: boolean) => void;
+  toggleMobileSidebar: () => void;
   setTheme: (theme: "dark" | "light") => void;
   setFontSize: (size: FontSize) => void;
 }
@@ -15,12 +18,23 @@ interface UiState {
 export const useUiStore = create<UiState>()(
   immer((set) => ({
     rightPanelOpen: true,
+    mobileSidebarOpen: false,
     theme: "dark",
     fontSize: "default",
 
     toggleRightPanel: () =>
       set((state) => {
         state.rightPanelOpen = !state.rightPanelOpen;
+      }),
+
+    setMobileSidebarOpen: (open) =>
+      set((state) => {
+        state.mobileSidebarOpen = open;
+      }),
+
+    toggleMobileSidebar: () =>
+      set((state) => {
+        state.mobileSidebarOpen = !state.mobileSidebarOpen;
       }),
 
     setTheme: (theme) =>

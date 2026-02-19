@@ -57,7 +57,7 @@ export default function AgentDetailPage() {
   };
 
   return (
-    <div className="flex flex-1 flex-col p-6">
+    <div className="flex flex-1 flex-col p-4 md:p-6">
       <div className="mb-6">
         <button
           onClick={() => navigate("/agents")}
@@ -67,7 +67,7 @@ export default function AgentDetailPage() {
           Back to agents
         </button>
         <SectionLabel>{isNew ? "New Agent" : "Edit Agent"}</SectionLabel>
-        <h1 className="mt-1 font-display text-2xl font-bold text-foreground">
+        <h1 className="mt-1 font-display text-xl font-bold text-foreground md:text-2xl">
           {isNew ? "Create Agent" : name || "Agent"}
         </h1>
       </div>
@@ -95,7 +95,7 @@ export default function AgentDetailPage() {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="ui-label mb-1.5 block text-foreground">Provider</label>
             <select
@@ -157,7 +157,7 @@ export default function AgentDetailPage() {
         <button
           onClick={handleSave}
           disabled={!name || !providerId || !modelId}
-          className="flex h-10 items-center gap-2 rounded-md bg-primary px-5 font-ui text-sm font-semibold text-primary-foreground transition-hover hover:bg-primary/90 disabled:opacity-40"
+          className="flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-5 font-ui text-sm font-semibold text-primary-foreground transition-hover hover:bg-primary/90 disabled:opacity-40 sm:w-auto"
         >
           <Save size={16} />
           {isNew ? "Create agent" : "Save agent"}

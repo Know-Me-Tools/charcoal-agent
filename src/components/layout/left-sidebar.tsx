@@ -1,13 +1,18 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Plus, Search, MessageSquare, Trash2 } from "lucide-react";
 import { useThreads, useActiveThread, useDeleteThread, useCreateThread } from "@/hooks/use-threads";
 import { useAgents } from "@/hooks/use-agents";
+import { useUi } from "@/hooks/use-ui";
 import { SectionLabel } from "@/components/common/section-label";
 import { SkeletonLine } from "@/components/common/skeleton-loader";
 import type { Thread } from "@/types";
 
-export function LeftSidebar() {
+interface LeftSidebarProps {
+  className?: string;
+}
+
+export function LeftSidebar({ className }: LeftSidebarProps) {
   const [search, setSearch] = useState("");
   const { data: threads, isLoading } = useThreads();
   const { data: agents } = useAgents();
@@ -15,6 +20,7 @@ export function LeftSidebar() {
   const deleteThread = useDeleteThread();
   const createThread = useCreateThread();
   const navigate = useNavigate();
+  const { setMobileSidebarOpen } = useUi();
 
   const filteredThreads = (threads ?? []).filter((t) =>
     t.title.toLowerCase().includes(search.toLowerCase()),
@@ -28,6 +34,7 @@ export function LeftSidebar() {
         {
           onSuccess: (thread) => {
             navigate(`/threads/${thread.id}`);
+            setMobileSidebarOpen(false);
           },
         },
       );
@@ -37,6 +44,7 @@ export function LeftSidebar() {
   const handleSelectThread = (thread: Thread) => {
     setActiveThread(thread.id);
     navigate(`/threads/${thread.id}`);
+    setMobileSidebarOpen(false);
   };
 
   const handleDeleteThread = (e: React.MouseEvent, id: string) => {
@@ -58,7 +66,7 @@ export function LeftSidebar() {
   };
 
   return (
-    <aside className="flex h-full w-[260px] shrink-0 flex-col border-r border-border bg-card">
+    <aside className={`flex h-full flex-col bg-card ${className ?? ""}`}>
       <div className="flex items-center justify-between p-3">
         <SectionLabel>Threads</SectionLabel>
         <button

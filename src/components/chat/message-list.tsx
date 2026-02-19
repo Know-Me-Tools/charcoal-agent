@@ -18,7 +18,7 @@ export function MessageList({ messages }: MessageListProps) {
   }, [messages, streamingMessage.content]);
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-4">
+    <div className="flex-1 overflow-y-auto px-4 py-4 md:px-6">
       <div className="mx-auto max-w-3xl space-y-4">
         {messages.map((msg) => (
           <div key={msg.id}>
@@ -36,7 +36,7 @@ export function MessageList({ messages }: MessageListProps) {
             ))}
             {streamingMessage.content && (
               <div className="flex justify-start">
-                <div className="max-w-[70%] rounded-lg border border-border bg-card px-4 py-3 text-card-foreground">
+                <div className="max-w-[85%] rounded-lg border border-border bg-card px-4 py-3 text-card-foreground md:max-w-[70%]">
                   <p className="body-text whitespace-pre-wrap text-[15px]">
                     {streamingMessage.content}
                     <StreamingCursor />

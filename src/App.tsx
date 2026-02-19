@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/app-layout";
+import LandingPage from "@/pages/landing-page";
 import ThreadsPage from "@/pages/threads-page";
 import ThreadDetailPage from "@/pages/thread-detail-page";
 import AgentsPage from "@/pages/agents-page";
@@ -31,8 +32,11 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Landing page — standalone, no app chrome */}
+          <Route path="/" element={<LandingPage />} />
+
+          {/* App shell */}
           <Route element={<AppLayout />}>
-            <Route path="/" element={<Navigate to="/threads" replace />} />
             <Route path="/threads" element={<ThreadsPage />} />
             <Route path="/threads/:id" element={<ThreadDetailPage />} />
             <Route path="/agents" element={<AgentsPage />} />
