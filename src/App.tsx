@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/app-layout";
 import LandingPage from "@/pages/landing-page";
 import ThreadsPage from "@/pages/threads-page";
@@ -25,34 +25,38 @@ const queryClient = new QueryClient({
   },
 });
 
+const router = createBrowserRouter([
+  { path: "/", element: <LandingPage /> },
+  {
+    element: <AppLayout />,
+    children: [
+      { path: "/threads", element: <ThreadsPage /> },
+      { path: "/threads/:id", element: <ThreadDetailPage /> },
+      { path: "/agents", element: <AgentsPage /> },
+      { path: "/agents/new", element: <AgentDetailPage /> },
+      { path: "/agents/:id", element: <AgentDetailPage /> },
+      {
+        path: "/settings",
+        element: <SettingsPage />,
+        children: [
+          { index: true, element: <Navigate to="/settings/providers" replace /> },
+          { path: "providers", element: <ProvidersPage /> },
+          { path: "skills", element: <SkillsPage /> },
+          { path: "appearance", element: <AppearancePage /> },
+          { path: "about", element: <AboutPage /> },
+        ],
+      },
+    ],
+  },
+  { path: "*", element: <NotFound /> },
+]);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Landing page — standalone, no app chrome */}
-          <Route path="/" element={<LandingPage />} />
-
-          {/* App shell */}
-          <Route element={<AppLayout />}>
-            <Route path="/threads" element={<ThreadsPage />} />
-            <Route path="/threads/:id" element={<ThreadDetailPage />} />
-            <Route path="/agents" element={<AgentsPage />} />
-            <Route path="/agents/new" element={<AgentDetailPage />} />
-            <Route path="/agents/:id" element={<AgentDetailPage />} />
-            <Route path="/settings" element={<SettingsPage />}>
-              <Route index element={<Navigate to="/settings/providers" replace />} />
-              <Route path="providers" element={<ProvidersPage />} />
-              <Route path="skills" element={<SkillsPage />} />
-              <Route path="appearance" element={<AppearancePage />} />
-              <Route path="about" element={<AboutPage />} />
-            </Route>
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <RouterProvider router={router} />
     </TooltipProvider>
   </QueryClientProvider>
 );

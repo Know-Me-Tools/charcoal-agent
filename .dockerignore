@@ -1,0 +1,47 @@
+# ── Source control ────────────────────────────────────
+.git
+.gitignore
+
+# ── Node ─────────────────────────────────────────────
+node_modules
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+bun.lockb
+
+# ── Vite build output ────────────────────────────────
+dist
+dist-ssr
+
+# ── Tauri / Rust ──────────────────────────────────────
+# Rust build artifacts are not needed for the web build stage.
+# The native binary is compiled on the host or in a separate
+# Rust build stage — not inside the web frontend container.
+src-tauri/target/
+src-tauri/gen/
+src-tauri/WixTools/
+src-tauri/bundle/
+src-tauri/*.key
+
+# ── Environment ───────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Editor / OS ──────────────────────────────────────
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+*.suo
+*.sw?
+
+# ── Test / CI artifacts ───────────────────────────────
+coverage
+*.lcov
+.nyc_output
+
+# ── Docs / non-build assets ───────────────────────────
+*.md
+!README.md
+LICENSE

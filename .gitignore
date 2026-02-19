@@ -1,4 +1,4 @@
-# Logs
+# ── Logs ─────────────────────────────────────────────
 logs
 *.log
 npm-debug.log*
@@ -7,18 +7,47 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# ── Node ─────────────────────────────────────────────
 node_modules
 dist
 dist-ssr
 *.local
 
-# Editor directories and files
+# ── Tauri / Rust ──────────────────────────────────────
+# Cargo build artifacts (also covered by src-tauri/.gitignore)
+src-tauri/target/
+src-tauri/gen/
+
+# Tauri bundler output
+src-tauri/WixTools/
+src-tauri/bundle/
+
+# Android / iOS generated project files
+src-tauri/gen/android/
+src-tauri/gen/apple/
+
+# Tauri auto-generated updater keys (keep .pub, ignore private)
+src-tauri/*.key
+!src-tauri/*.pub.key
+
+# ── Environment ───────────────────────────────────────
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ── Editor ───────────────────────────────────────────
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# ── OS ───────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+Thumbs.db
