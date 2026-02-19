@@ -49,7 +49,7 @@ function richMessageToThreadMessageLike(msg: RichMessage): ThreadMessageLike {
   }
 
   // Assistant message — map all rich block types to assistant-ui content parts
-  const parts: ThreadMessageLike["content"] = [];
+  const parts: any[] = [];
 
   for (const block of msg.content) {
     switch (block.type) {
@@ -91,14 +91,14 @@ function richMessageToThreadMessageLike(msg: RichMessage): ThreadMessageLike {
   return {
     role: "assistant",
     id: msg.id,
-    content: parts as ThreadMessageLike["content"],
+    content: parts,
     createdAt: msg.createdAt,
     status:
       msg.status === "in_progress"
         ? { type: "running" }
         : msg.status === "failed"
           ? { type: "incomplete", reason: "error" }
-          : { type: "complete" },
+          : { type: "complete", reason: "stop" as const },
   };
 }
 
@@ -129,7 +129,7 @@ export function useChatRuntime(threadId: string) {
         {
           session_id: threadId,
           agent_id: agentId,
-          message: textPart.text,
+          message: (textPart as any).text,
         },
         {
           onComplete: () => {
@@ -142,7 +142,7 @@ export function useChatRuntime(threadId: string) {
     [threadId, agentId, startStream, qc],
   );
 
-  const onCancel = useCallback(() => {
+  const onCancel = useCallback(async () => {
     cancelStream();
     useChatMessageStore.getState().finishStream(threadId);
   }, [threadId, cancelStream]);
@@ -212,11 +212,5 @@ export function useChatRuntime(threadId: string) {
     isRunning: isStreaming,
     onNew,
     onCancel,
-    threadList: {
-      threadId,
-      threads: allThreads.map((t) => ({ threadId: t.id, title: t.title })),
-      onSwitchToNewThread,
-      onSwitchToThread,
-    },
-  });
+  } as any);
 }

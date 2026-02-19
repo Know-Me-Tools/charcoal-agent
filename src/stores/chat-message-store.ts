@@ -133,7 +133,7 @@ export const useChatMessageStore = create<ChatMessageStore>()(
         const idx = messages.findIndex((m) => m.id === msg.id);
         if (idx === -1) return;
 
-        const lastBlock = messages[idx].content.at(-1);
+        const lastBlock = messages[idx].content[messages[idx].content.length - 1];
         if (lastBlock?.type === "text") {
           (lastBlock as { type: "text"; text: string }).text += text;
         } else {
@@ -151,7 +151,7 @@ export const useChatMessageStore = create<ChatMessageStore>()(
         const idx = messages.findIndex((m) => m.id === msg.id);
         if (idx === -1) return;
 
-        const lastBlock = messages[idx].content.at(-1);
+        const lastBlock = messages[idx].content[messages[idx].content.length - 1];
         if (lastBlock?.type === "reasoning") {
           (lastBlock as { type: "reasoning"; text: string }).text += text;
         } else {
