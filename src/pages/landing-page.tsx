@@ -2,7 +2,9 @@ import {
 	ArrowRight,
 	Bot,
 	MessageSquare,
+	Moon,
 	Send,
+	Sun,
 	Wrench,
 	Zap,
 } from "lucide-react";
@@ -11,6 +13,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useChatIntentStore } from "@/stores/chat-intent-store";
 import { useThreadRegistryStore } from "@/stores/thread-registry-store";
+import { useUi } from "@/hooks/use-ui";
 
 const features = [
 	{
@@ -42,6 +45,7 @@ const features = [
 export default function LandingPage() {
 	const [message, setMessage] = useState("");
 	const navigate = useNavigate();
+	const { theme, setTheme } = useUi();
 	const setPendingPrompt = useChatIntentStore((s) => s.setPendingPrompt);
 	const registerThread = useThreadRegistryStore((s) => s.registerThread);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -83,12 +87,21 @@ export default function LandingPage() {
 				<span className="font-display text-lg font-bold tracking-tight text-foreground">
 					KnowMe
 				</span>
-				<Link
-					to="/threads"
-					className="rounded-md bg-primary px-4 py-2 font-ui text-sm font-semibold text-primary-foreground transition-hover hover:bg-primary/90"
-				>
-					Open app
-				</Link>
+				<div className="flex items-center gap-2">
+					<button
+						onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+						className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-hover hover:bg-muted hover:text-foreground"
+						title="Toggle theme"
+					>
+						{theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+					</button>
+					<Link
+						to="/threads"
+						className="rounded-md bg-primary px-4 py-2 font-ui text-sm font-semibold text-primary-foreground transition-hover hover:bg-primary/90"
+					>
+						Open app
+					</Link>
+				</div>
 			</header>
 
 			<main className="flex flex-1 flex-col items-center justify-center px-6 pb-16 text-center">
