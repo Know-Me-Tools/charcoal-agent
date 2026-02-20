@@ -1,0 +1,57 @@
+services:
+
+  # ── Charcoal Agent — Vite SPA served by nginx ─────────────────────────────
+  charcoal-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: charcoal-agent:latest
+    container_name: charcoal-agent
+    ports:
+      - "${CHARCOAL_PORT:-8080}:8080"
+    depends_on:
+      uar:
+        condition: service_healthy
+    networks:
+      - charcoal-network
+    restart: unless-stopped
+
+  # ── Universal Agent Runtime — Rust backend ─────────────────────────────────
+  uar:
+    image: knowme/universal-agent-runtime:latest
+    container_name: charcoal-uar
+    build:
+      context: ../prometheus/universal-agent-runtime
+      dockerfile: Dockerfile
+    ports:
+      - "${UAR_PORT:-6565}:6565"
+    environment:
+      PORT: "6565"
+      UAR_SERVER__PORT: "6565"
+      LLM_BASE_URL: "${LLM_BASE_URL:-https://api.openai.com}"
+      LLM_MODEL: "${LLM_MODEL:-gpt-4o}"
+      LLM_API_KEY: "${LLM_API_KEY:?LLM_API_KEY must be set}"
+      UAR_SECURITY__JWT_REQUIRED: "${UAR_SECURITY__JWT_REQUIRED:-false}"
+      UAR_PERSISTENCE__PROVIDER: "${UAR_PERSISTENCE__PROVIDER:-surreal}"
+      UAR_PERSISTENCE__DATABASE_URL: "${UAR_PERSISTENCE__DATABASE_URL:-rocksdb:///data/uar.db}"
+      UAR_PERSISTENCE__VECTOR_DIMENSION: "${UAR_PERSISTENCE__VECTOR_DIMENSION:-384}"
+      RUST_LOG: "${RUST_LOG:-info}"
+    volumes:
+      - uar_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:6565/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    networks:
+      - charcoal-network
+    restart: unless-stopped
+
+networks:
+  charcoal-network:
+    driver: bridge
+
+volumes:
+  uar_data:
+    driver: local

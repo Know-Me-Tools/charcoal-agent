@@ -36,15 +36,15 @@ export default defineConfig(({ mode }) => ({
     },
     proxy: {
       "/api": {
-        target: "http://127.0.0.1:3928",
+        target: "http://127.0.0.1:6565",
         changeOrigin: true,
       },
       "/healthz": {
-        target: "http://127.0.0.1:3928",
+        target: "http://127.0.0.1:6565",
         changeOrigin: true,
       },
       "/readyz": {
-        target: "http://127.0.0.1:3928",
+        target: "http://127.0.0.1:6565",
         changeOrigin: true,
       },
     },

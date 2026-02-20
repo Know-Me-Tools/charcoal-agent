@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { AssistantRuntimeProvider } from "@assistant-ui/react";
 import { EnhancedThread } from "@/components/assistant-ui/enhanced-thread";
+import { ChatErrorBoundary } from "@/components/error-boundary/ChatErrorBoundary";
 import { useChatRuntime } from "@/features/chat/use-chat-runtime";
 
 export default function ThreadDetailPage() {
@@ -16,10 +17,16 @@ export default function ThreadDetailPage() {
     );
   }
 
-  return <ThreadView threadId={id} />;
+  // The resetKey ensures the boundary resets whenever the user navigates to a
+  // different thread — so a crash in one thread doesn't block another.
+  return (
+    <ChatErrorBoundary resetKey={id}>
+      <ThreadView threadId={id} />
+    </ChatErrorBoundary>
+  );
 }
 
-// Separate component so hooks run after id is validated
+// Separate component so hooks only run after the thread ID is validated.
 function ThreadView({ threadId }: { threadId: string }) {
   const runtime = useChatRuntime(threadId);
 

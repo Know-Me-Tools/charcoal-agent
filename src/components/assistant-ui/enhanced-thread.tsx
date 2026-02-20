@@ -26,6 +26,7 @@ import {
 	RefreshCwIcon,
 	SparklesIcon,
 	SquareIcon,
+	UserIcon,
 } from "lucide-react";
 import { type FC, useState } from "react";
 import {
@@ -36,6 +37,8 @@ import {
 import { EnhancedMarkdownText } from "@/components/assistant-ui/enhanced-markdown-text";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
 import { Button } from "@/components/ui/button";
+import { ContextUpdateBlock } from "@/features/chat/components/context-update-block";
+import { SkillActivationBlock } from "@/features/chat/components/skill-activation-block";
 import { ToolCallBlockWrapper } from "@/features/chat/components/tool-call-block";
 import { cn } from "@/lib/utils";
 
@@ -173,23 +176,54 @@ const ComposerActionBar: FC = () => (
 	</div>
 );
 
+// ─── Avatars ──────────────────────────────────────────────────────────────────
+
+const UserAvatar: FC = () => (
+	<div className="flex flex-col items-center gap-1 pt-0.5">
+		<div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-zinc-700 text-zinc-200 ring-1 ring-zinc-600">
+			<UserIcon size={14} />
+		</div>
+		<span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground/60">
+			You
+		</span>
+	</div>
+);
+
+const AgentAvatar: FC = () => (
+	<div className="flex flex-col items-center gap-1 pt-0.5">
+		<div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary ring-1 ring-primary/30">
+			<SparklesIcon size={14} />
+		</div>
+		<span className="font-mono text-[9px] uppercase tracking-wider text-primary/70">
+			Agent
+		</span>
+	</div>
+);
+
 // ─── User Message ─────────────────────────────────────────────────────────────
 
 const UserMessage: FC = () => (
 	<MessagePrimitive.Root
-		className="fade-in slide-in-from-bottom-1 mx-auto grid w-full max-w-(--thread-max-width) animate-in auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] content-start gap-y-2 px-2 py-3 duration-150 [&:where(>*)]:col-start-2"
+		className="fade-in slide-in-from-bottom-1 mx-auto flex w-full max-w-(--thread-max-width) animate-in flex-col gap-0.5 px-4 py-2 duration-150"
 		data-role="user"
 	>
 		<UserMessageAttachments />
-		<div className="relative col-start-2 min-w-0">
-			<div className="wrap-break-word rounded-2xl bg-muted px-4 py-3 font-body text-sm text-foreground leading-relaxed">
-				<MessagePrimitive.Parts />
+		<div className="flex w-full items-start gap-3">
+			{/* Action bar takes only the space it needs; hidden when not hovered */}
+			<UserActionBar />
+			{/* Bubble expands to fill the full remaining width */}
+			<div className="min-w-0 flex-1">
+				<div className="wrap-break-word rounded-2xl rounded-tr-sm bg-zinc-800 px-4 py-3 font-body text-sm text-foreground leading-relaxed shadow-sm">
+					<MessagePrimitive.Parts
+						components={{ Text: EnhancedMarkdownText }}
+					/>
+				</div>
 			</div>
-			<div className="absolute top-1/2 left-0 -translate-x-full -translate-y-1/2 pr-2">
-				<UserActionBar />
-			</div>
+			<UserAvatar />
 		</div>
-		<BranchPicker className="col-span-full col-start-1 row-start-3 -mr-1 justify-end" />
+		<div className="pr-11">
+			<BranchPicker />
+		</div>
 	</MessagePrimitive.Root>
 );
 
@@ -197,10 +231,10 @@ const UserActionBar: FC = () => (
 	<ActionBarPrimitive.Root
 		hideWhenRunning
 		autohide="not-last"
-		className="flex flex-col items-end"
+		className="flex shrink-0 flex-col items-end pt-2"
 	>
 		<ActionBarPrimitive.Edit asChild>
-			<TooltipIconButton tooltip="Edit" className="p-4">
+			<TooltipIconButton tooltip="Edit" className="p-2">
 				<PencilIcon />
 			</TooltipIconButton>
 		</ActionBarPrimitive.Edit>
@@ -211,21 +245,26 @@ const UserActionBar: FC = () => (
 
 const AssistantMessage: FC = () => (
 	<MessagePrimitive.Root
-		className="fade-in slide-in-from-bottom-1 relative mx-auto w-full max-w-(--thread-max-width) animate-in py-3 duration-150"
+		className="fade-in slide-in-from-bottom-1 mx-auto flex w-full max-w-(--thread-max-width) animate-in flex-col gap-0.5 px-4 py-2 duration-150"
 		data-role="assistant"
 	>
-		<div className="wrap-break-word px-2 text-foreground leading-relaxed">
-			<MessagePrimitive.Parts
-				components={{
-					Text: EnhancedMarkdownText,
-					Reasoning: ReasoningPart,
-					tools: { Fallback: ToolCallPart },
-				}}
-			/>
-			<MessageError />
+		<div className="flex w-full items-start gap-3">
+			<AgentAvatar />
+			{/* Bubble expands to fill the full remaining width */}
+			<div className="min-w-0 flex-1">
+				<div className="wrap-break-word rounded-2xl rounded-tl-sm bg-muted/60 px-4 py-3 font-body text-sm text-foreground leading-relaxed shadow-sm">
+					<MessagePrimitive.Parts
+						components={{
+							Text: EnhancedMarkdownText,
+							Reasoning: ReasoningPart,
+							tools: { Fallback: ToolCallPart },
+						}}
+					/>
+					<MessageError />
+				</div>
+			</div>
 		</div>
-
-		<div className="mt-1 ml-2 flex">
+		<div className="ml-11 flex">
 			<BranchPicker />
 			<AssistantActionBar />
 		</div>
@@ -284,21 +323,61 @@ const ReasoningPart: FC = () => {
 	);
 };
 
-// ─── Tool Call Part ───────────────────────────────────────────────────────────
+// ─── Tool Call Part (routes all tool types) ───────────────────────────────────
 
 const ToolCallPart: FC<ToolCallMessagePartProps> = ({
 	toolName,
 	args,
 	result,
 	status,
-}) => (
-	<ToolCallBlockWrapper
-		toolName={toolName}
-		args={args as Record<string, unknown>}
-		result={result}
-		status={status}
-	/>
-);
+}) => {
+	// Pseudo-tool-calls injected by richMessageToThreadMessageLike for AG-UI events
+	if (toolName === "__skill__") {
+		const a = args as {
+			skillId: string;
+			skillName: string;
+			selectionMethod?: string;
+			status: "active" | "complete";
+		};
+		return (
+			<SkillActivationBlock
+				skillId={a.skillId}
+				skillName={a.skillName}
+				selectionMethod={a.selectionMethod}
+				status={a.status}
+			/>
+		);
+	}
+
+	if (toolName === "__context__") {
+		const a = args as {
+			strategy: string;
+			messagesRemoved: number;
+			tokensSaved: number;
+			wasApplied: boolean;
+			summaryGenerated: boolean;
+		};
+		return (
+			<ContextUpdateBlock
+				strategy={a.strategy}
+				messagesRemoved={a.messagesRemoved}
+				tokensSaved={a.tokensSaved}
+				wasApplied={a.wasApplied}
+				summaryGenerated={a.summaryGenerated}
+			/>
+		);
+	}
+
+	// All real MCP / native tool calls
+	return (
+		<ToolCallBlockWrapper
+			toolName={toolName}
+			args={args as Record<string, unknown>}
+			result={result}
+			status={status}
+		/>
+	);
+};
 
 // ─── Message Error ────────────────────────────────────────────────────────────
 

@@ -44,6 +44,20 @@ export interface Thread {
   updated_at: string;
 }
 
+/**
+ * A thread tracked locally in the persistent thread registry.
+ * `id` doubles as the session ID sent to the backend via `X-UAR-Session-ID`.
+ * `isEphemeral` is true until the first message has been sent; ephemeral
+ * threads are not shown in the sidebar and are not counted as "existing".
+ */
+export interface LocalThread {
+  id: string;
+  title: string;
+  isEphemeral: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Message {
   id: string;
   role: "user" | "assistant" | "system";
@@ -143,9 +157,9 @@ export interface CreateThreadPayload {
   title: string;
 }
 
+/** Payload for POST /api/chat on the Universal Agent Runtime. */
 export interface StartRunPayload {
-  session_id: string;
-  agent_id: string;
+  session_id?: string;
   message: string;
 }
 

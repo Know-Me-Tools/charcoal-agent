@@ -1,1 +1,2 @@
-export { useDbContext } from "./db-provider";
+export { useDb } from "./db-provider";
+export { getDbInstance, setDbInstance } from "./pglite";

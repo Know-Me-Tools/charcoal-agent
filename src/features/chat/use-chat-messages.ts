@@ -1,119 +1,131 @@
 import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api-client";
 import {
   useChatMessageStore,
-  selectThreadMessages,
   selectIsStreaming,
 } from "@/stores/chat-message-store";
-import {
-  getMessagesByThread,
-  upsertMessages,
-} from "@/lib/db/message-queries";
-import type { ThreadDetail, Message } from "@/types";
+import { getDbInstance } from "@/lib/db/pglite";
 import type { RichMessage } from "@/types/chat-content";
-import { textToRichMessage } from "@/types/chat-content";
 
-function serverMessageToRich(msg: Message): RichMessage {
-  // Messages from the server have a plain string content field
-  // Convert to our rich content block format
-  if (typeof msg.content === "string") {
-    const rich = textToRichMessage(msg.id, msg.role, msg.content, new Date(msg.created_at));
-    // Attach any tool_calls from the legacy format
-    if (msg.tool_calls && msg.tool_calls.length > 0) {
-      for (const tc of msg.tool_calls) {
-        rich.content.push({
-          type: "tool-call",
-          toolCallId: tc.id,
-          toolName: tc.tool_name,
-          args: tc.arguments,
-          result: tc.result,
-          status: tc.status === "calling" ? "running" : tc.status,
-        });
-      }
-    }
-    return rich;
-  }
-  // If content is already an array (future-proof)
+// Stable reference for empty thread — avoids triggering a re-render in
+// useExternalStoreRuntime when the thread hasn't been initialised yet.
+const EMPTY_MESSAGES: RichMessage[] = [];
+
+// Shape returned by GET /api/sessions/:id/messages on the UAR
+interface UarMessage {
+  role: "user" | "assistant" | "system";
+  content: string;
+}
+
+function uarMessageToRich(msg: UarMessage, index: number): RichMessage {
   return {
-    id: msg.id,
+    id: `server-${index}`,
     role: msg.role,
-    content: Array.isArray(msg.content)
-      ? msg.content
-      : [{ type: "text", text: String(msg.content) }],
-    createdAt: new Date(msg.created_at),
+    content: [{ type: "text", text: msg.content }],
+    createdAt: new Date(),
     status: "complete",
   };
 }
 
+async function fetchSessionMessages(sessionId: string): Promise<UarMessage[]> {
+  const res = await fetch(`/api/sessions/${sessionId}/messages`);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return Array.isArray(data) ? (data as UarMessage[]) : [];
+}
+
 export function useChatMessages(threadId: string | null) {
   const initThread = useChatMessageStore((s) => s.initThread);
+
+  // Use a stable selector — when the thread has no messages yet, return the
+  // module-level EMPTY_MESSAGES constant (same reference every call) so that
+  // useExternalStoreRuntime's getSnapshot doesn't see a new array each render.
   const messages = useChatMessageStore(
-    selectThreadMessages(threadId ?? "__none__"),
+    (state) =>
+      state.messagesByThread[threadId ?? "__none__"] ?? EMPTY_MESSAGES,
   );
   const isStreaming = useChatMessageStore(
     selectIsStreaming(threadId ?? "__none__"),
   );
-  const hydratedFromPglite = useRef(false);
-  const hydratedFromServer = useRef<string | null>(null);
 
-  // Step 1: hydrate from PGLite (fast, instant)
+  // Whether we've already hydrated the store for this thread in this session.
+  const hydratedRef = useRef<string | null>(null);
+
+  const localIsEmpty = messages === EMPTY_MESSAGES || messages.length === 0;
+
+  // ── 1. Load from PGLite (primary, fast, offline-capable) ─────────────────
   useEffect(() => {
-    if (!threadId || hydratedFromPglite.current) return;
-    hydratedFromPglite.current = true;
+    if (!threadId) return;
+    if (hydratedRef.current === threadId) return;
 
-    getMessagesByThread(threadId)
-      .then((cached) => {
-        if (cached.length > 0) {
-          // Only hydrate if the store is empty for this thread
+    let cancelled = false;
+    try {
+      const db = getDbInstance();
+      db.getMessages(threadId)
+        .then((dbMessages) => {
+          if (cancelled) return;
+          if (dbMessages.length === 0) return;
+
+          // Guard: don't overwrite if streaming already started
           const storeMessages =
             useChatMessageStore.getState().messagesByThread[threadId];
-          if (!storeMessages || storeMessages.length === 0) {
-            initThread(threadId, cached);
+          if (storeMessages && storeMessages.length > 0) {
+            hydratedRef.current = threadId;
+            return;
           }
-        }
-      })
-      .catch(() => {
-        // PGLite not ready yet — server data will hydrate instead
-      });
+
+          hydratedRef.current = threadId;
+          initThread(threadId, dbMessages);
+        })
+        .catch(console.error);
+    } catch {
+      // DB not ready yet — fall through to server fallback below
+    }
+
+    return () => { cancelled = true; };
   }, [threadId, initThread]);
 
-  // Step 2: fetch from server (canonical source)
-  const { data: threadDetail } = useQuery({
-    queryKey: ["threads", threadId],
-    queryFn: () => api.get<ThreadDetail>(`/api/sessions/${threadId}`),
-    enabled: !!threadId,
-    staleTime: 30_000,
+  // Reset hydration guard when thread changes.
+  useEffect(() => {
+    hydratedRef.current = null;
+  }, [threadId]);
+
+  // ── 2. Fall back to server when PGLite is also empty ─────────────────────
+  // The query is enabled whenever local store is empty AND we haven't
+  // already started hydrating from PGLite (give PGLite a tick to respond).
+  const { data: serverMessages } = useQuery({
+    queryKey: ["sessions", threadId, "messages-fallback"],
+    queryFn: () => fetchSessionMessages(threadId!),
+    enabled: !!threadId && localIsEmpty && !isStreaming,
+    staleTime: 60_000,
+    retry: false,
   });
 
-  // Step 3: hydrate store from server data when received
   useEffect(() => {
-    if (!threadId || !threadDetail?.messages) return;
-    if (hydratedFromServer.current === threadId) return;
+    if (!threadId) return;
+    if (!serverMessages || serverMessages.length === 0) return;
+    if (hydratedRef.current === threadId) return;
 
-    // Don't overwrite if we're currently streaming
     const currentlyStreaming =
       useChatMessageStore.getState().streamingByThread[threadId]?.isStreaming;
     if (currentlyStreaming) return;
 
-    hydratedFromServer.current = threadId;
-    const richMessages = threadDetail.messages.map(serverMessageToRich);
+    // Double-check local store was not populated between query firing and now
+    const storeMessages =
+      useChatMessageStore.getState().messagesByThread[threadId];
+    if (storeMessages && storeMessages.length > 0) {
+      hydratedRef.current = threadId;
+      return;
+    }
+
+    hydratedRef.current = threadId;
+    const richMessages = serverMessages.map(uarMessageToRich);
     initThread(threadId, richMessages);
-
-    // Sync to PGLite in background
-    void upsertMessages(threadId, richMessages);
-  }, [threadId, threadDetail, initThread]);
-
-  // Reset hydration refs when thread changes
-  useEffect(() => {
-    hydratedFromPglite.current = false;
-    hydratedFromServer.current = null;
-  }, [threadId]);
+  }, [threadId, serverMessages, initThread]);
 
   return {
     messages,
     isStreaming,
-    threadDetail,
-    isLoading: !threadDetail && messages.length === 0,
+    isLoading: localIsEmpty && !isStreaming,
   };
 }

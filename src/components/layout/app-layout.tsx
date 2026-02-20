@@ -5,8 +5,10 @@ import { RightContextPanel } from "@/components/layout/right-context-panel";
 import { MobileBottomNav } from "@/components/layout/mobile-nav";
 import { MobileSidebarDrawer } from "@/components/layout/mobile-sidebar-drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useDbHydration } from "@/hooks/use-db-hydration";
 
 export function AppLayout() {
+  useDbHydration();
   const location = useLocation();
   const isMobile = useIsMobile();
   const isThreadView = location.pathname.startsWith("/threads/");

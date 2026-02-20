@@ -29,8 +29,19 @@ export interface CitationContentBlock {
 
 export interface SkillActivationContentBlock {
   type: "skill-activation";
+  skillId: string;
   skillName: string;
+  selectionMethod?: string;
   status: "active" | "complete";
+}
+
+export interface ContextUpdateContentBlock {
+  type: "context-update";
+  strategy: string;
+  messagesRemoved: number;
+  tokensSaved: number;
+  wasApplied: boolean;
+  summaryGenerated: boolean;
 }
 
 export interface ImageContentBlock {
@@ -51,6 +62,7 @@ export type ContentBlock =
   | ToolCallContentBlock
   | CitationContentBlock
   | SkillActivationContentBlock
+  | ContextUpdateContentBlock
   | ImageContentBlock
   | ErrorContentBlock;
 

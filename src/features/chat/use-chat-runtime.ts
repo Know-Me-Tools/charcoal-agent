@@ -1,66 +1,76 @@
-import { useCallback, useEffect, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useExternalStoreRuntime,
   type AppendMessage,
   type ThreadMessageLike,
 } from "@assistant-ui/react";
-import { api } from "@/lib/api-client";
 import { useChatMessageStore } from "@/stores/chat-message-store";
-import { upsertThread } from "@/lib/db/thread-queries";
-import { useThreads } from "@/hooks/use-threads";
+import { useChatIntentStore } from "@/stores/chat-intent-store";
+import { useThreadRegistryStore } from "@/stores/thread-registry-store";
 import { useChatMessages } from "./use-chat-messages";
 import { useMessageStream } from "./use-message-stream";
+import { generateThreadTitle } from "./use-thread-naming";
 import type { RichMessage, ContentBlock } from "@/types/chat-content";
-import type { Thread } from "@/types";
 
+/**
+ * Convert our internal RichMessage to the ThreadMessageLike shape expected by
+ * @assistant-ui/react's useExternalStoreRuntime.
+ *
+ * IMPORTANT: when no `convertMessage` is provided, the library stores these
+ * objects DIRECTLY in its internal repository and later accesses
+ * `message.metadata.submittedFeedback` without an optional-chain guard. Every
+ * object we return MUST therefore have a `metadata` property, even if empty.
+ */
 function richMessageToThreadMessageLike(msg: RichMessage): ThreadMessageLike {
+  /** Minimal metadata shape that satisfies the library's internal accessor. */
+  const baseMetadata = { custom: {} };
+
+  const toDate = (d: Date | string): Date =>
+    d instanceof Date ? d : new Date(d);
+
   if (msg.role === "user") {
-    // User messages: flatten to string or content parts
     const textContent = msg.content
-      .filter((b): b is Extract<ContentBlock, { type: "text" }> =>
-        b.type === "text",
-      )
+      .filter((b): b is Extract<ContentBlock, { type: "text" }> => b.type === "text")
       .map((b) => b.text)
       .join("");
-
     return {
       role: "user",
       id: msg.id,
       content: [{ type: "text", text: textContent }],
-      createdAt: msg.createdAt,
+      createdAt: toDate(msg.createdAt),
+      // MessagePrimitive.Attachments reads .attachments.length — must be an array.
+      attachments: [],
+      metadata: baseMetadata,
     };
   }
 
   if (msg.role === "system") {
     const textContent = msg.content
-      .filter((b): b is Extract<ContentBlock, { type: "text" }> =>
-        b.type === "text",
-      )
+      .filter((b): b is Extract<ContentBlock, { type: "text" }> => b.type === "text")
       .map((b) => b.text)
       .join("");
     return {
       role: "system",
       id: msg.id,
       content: [{ type: "text", text: textContent }],
-      createdAt: msg.createdAt,
+      createdAt: toDate(msg.createdAt),
+      metadata: baseMetadata,
     };
   }
 
-  // Assistant message — map all rich block types to assistant-ui content parts
-  const parts: any[] = [];
-
+  // Assistant — map rich blocks to assistant-ui content parts.
+  // Only pass types the library's fromThreadMessageLike knows: text, reasoning, tool-call.
+  // Skip citation, error, skill-activation — they're rendered via our own UI.
+  // biome-ignore lint/suspicious/noExplicitAny: assistant-ui content-part union is not exported
+  const parts: any[] = []; // eslint-disable-line @typescript-eslint/no-explicit-any
   for (const block of msg.content) {
     switch (block.type) {
       case "text":
         parts.push({ type: "text", text: block.text });
         break;
       case "reasoning":
-        parts.push({ type: "reasoning", text: block.text } as Extract<
-          ThreadMessageLike["content"][number],
-          { type: "reasoning" }
-        >);
+        parts.push({ type: "reasoning", text: block.text });
         break;
       case "tool-call":
         parts.push({
@@ -70,20 +80,49 @@ function richMessageToThreadMessageLike(msg: RichMessage): ThreadMessageLike {
           args: block.args,
           result: block.result,
           isError: block.status === "failed",
-        } as Extract<
-          ThreadMessageLike["content"][number],
-          { type: "tool-call" }
-        >);
+        });
         break;
-      case "citation":
       case "skill-activation":
-      case "image":
-      case "error":
-        // Map to text for now — specialized renderers handle display via the store
+        // Encode as a pseudo-tool-call so assistant-ui routes it to SkillActivationPart
+        parts.push({
+          type: "tool-call",
+          toolCallId: `skill-${block.skillId}`,
+          toolName: "__skill__",
+          args: {
+            skillId: block.skillId,
+            skillName: block.skillName,
+            selectionMethod: block.selectionMethod,
+            status: block.status,
+          },
+          result: undefined,
+          isError: false,
+        });
+        break;
+      case "context-update":
+        // Encode as a pseudo-tool-call so assistant-ui routes it to ContextUpdatePart
+        parts.push({
+          type: "tool-call",
+          toolCallId: `ctx-${block.strategy}-${block.messagesRemoved}`,
+          toolName: "__context__",
+          args: {
+            strategy: block.strategy,
+            messagesRemoved: block.messagesRemoved,
+            tokensSaved: block.tokensSaved,
+            wasApplied: block.wasApplied,
+            summaryGenerated: block.summaryGenerated,
+          },
+          result: undefined,
+          isError: false,
+        });
+        break;
+      default:
+        // citation, image, error — intentionally skipped (no assistant-ui equivalent)
         break;
     }
   }
 
+  // The library filters out empty text parts; keep at least one so the message
+  // renders as a visible (even if empty) assistant turn while streaming.
   if (parts.length === 0) {
     parts.push({ type: "text", text: "" });
   }
@@ -92,54 +131,117 @@ function richMessageToThreadMessageLike(msg: RichMessage): ThreadMessageLike {
     role: "assistant",
     id: msg.id,
     content: parts,
-    createdAt: msg.createdAt,
+    createdAt: toDate(msg.createdAt),
     status:
       msg.status === "in_progress"
         ? { type: "running" }
         : msg.status === "failed"
           ? { type: "incomplete", reason: "error" }
           : { type: "complete", reason: "stop" as const },
+    metadata: {
+      ...baseMetadata,
+      unstable_state: null,
+      unstable_annotations: [],
+      unstable_data: [],
+      steps: [],
+    },
   };
 }
 
+/** Extract the plain text from all text blocks of a message. */
+function extractText(msg: RichMessage): string {
+  return msg.content
+    .filter((b): b is Extract<ContentBlock, { type: "text" }> => b.type === "text")
+    .map((b) => b.text)
+    .join("");
+}
+
 export function useChatRuntime(threadId: string) {
-  const navigate = useNavigate();
-  const location = useLocation();
   const qc = useQueryClient();
+  const consumePendingPrompt = useChatIntentStore((s) => s.consumePendingPrompt);
   const { startStream, cancelStream } = useMessageStream();
-  const { messages, isStreaming, threadDetail } = useChatMessages(threadId);
-  const { data: allThreads = [] } = useThreads();
+  const { messages, isStreaming } = useChatMessages(threadId);
   const initialMessageSent = useRef(false);
 
-  // Extract agent_id from the loaded thread
-  const agentId = threadDetail?.agent_id ?? "";
+  // Track whether we've already generated a title for this thread session
+  const titleGeneratedRef = useRef(false);
+
+  // Individual selectors — stable function references, avoid full-store re-renders
+  const setActive = useThreadRegistryStore((s) => s.setActive);
+  const registerThread = useThreadRegistryStore((s) => s.registerThread);
+  const markPersisted = useThreadRegistryStore((s) => s.markPersisted);
+  const setTitle = useThreadRegistryStore((s) => s.setTitle);
+  const touch = useThreadRegistryStore((s) => s.touch);
+
+  // Set the active thread and ensure it exists in the registry whenever
+  // the thread detail page mounts or threadId changes.
+  useEffect(() => {
+    setActive(threadId);
+    // Handle direct URL navigation — register as ephemeral if unknown
+    const existing = useThreadRegistryStore.getState().threads[threadId];
+    if (!existing) {
+      registerThread(threadId);
+    }
+  }, [threadId, setActive, registerThread]);
+
+  /**
+   * After a stream completes:
+   *  1. Mark the thread as persisted (first message was sent).
+   *  2. On the first exchange only, generate an LLM title and persist it.
+   *  3. Touch updatedAt so the thread sorts to the top of the sidebar.
+   */
+  const afterStreamComplete = useCallback(
+    async (userMsgText: string) => {
+      markPersisted(threadId);
+      touch(threadId);
+
+      // Invalidate server-side queries so the sidebar stays in sync
+      void qc.invalidateQueries({ queryKey: ["sessions", threadId] });
+
+      // Generate title only once per thread (check current title first)
+      if (titleGeneratedRef.current) return;
+      const currentThread = useThreadRegistryStore.getState().threads[threadId];
+      if (currentThread && currentThread.title !== "New conversation") return;
+
+      titleGeneratedRef.current = true;
+
+      // Find the first complete assistant message to use as context
+      const storeMessages =
+        useChatMessageStore.getState().messagesByThread[threadId] ?? [];
+      const firstAssistant = storeMessages.find(
+        (m) => m.role === "assistant" && m.status === "complete",
+      );
+      const assistantText = firstAssistant ? extractText(firstAssistant) : "";
+      if (!assistantText.trim()) return;
+
+      const title = await generateThreadTitle(userMsgText, assistantText);
+      setTitle(threadId, title);
+    },
+    [threadId, markPersisted, touch, setTitle, qc],
+  );
 
   const onNew = useCallback(
     async (msg: AppendMessage) => {
-      if (!agentId) return;
-
       const textPart = msg.content.find(
         (p): p is Extract<(typeof msg.content)[number], { type: "text" }> =>
           p.type === "text",
       );
       if (!textPart) return;
 
+      // biome-ignore lint/suspicious/noExplicitAny: text part type is not narrowed by the library
+      const userText = (textPart as any).text as string; // eslint-disable-line @typescript-eslint/no-explicit-any
+
       await startStream(
         threadId,
-        {
-          session_id: threadId,
-          agent_id: agentId,
-          message: (textPart as any).text,
-        },
+        { message: userText },
         {
           onComplete: () => {
-            void qc.invalidateQueries({ queryKey: ["threads"] });
-            void qc.invalidateQueries({ queryKey: ["threads", threadId] });
+            void afterStreamComplete(userText);
           },
         },
       );
     },
-    [threadId, agentId, startStream, qc],
+    [threadId, startStream, afterStreamComplete],
   );
 
   const onCancel = useCallback(async () => {
@@ -147,70 +249,41 @@ export function useChatRuntime(threadId: string) {
     useChatMessageStore.getState().finishStream(threadId);
   }, [threadId, cancelStream]);
 
-  const onSwitchToNewThread = useCallback(async () => {
-    // Create a new thread with the first available agent
-    try {
-      const agents = await api.get<{ id: string }[]>("/api/uar/agents");
-      const firstAgent = agents[0];
-      if (!firstAgent) {
-        navigate("/threads");
-        return;
-      }
-      const newThread = await api.post<Thread>("/api/sessions", {
-        agent_id: firstAgent.id,
-        title: "New thread",
-      });
-      void upsertThread(newThread);
-      void qc.invalidateQueries({ queryKey: ["threads"] });
-      navigate(`/threads/${newThread.id}`);
-    } catch {
-      navigate("/threads");
-    }
-  }, [navigate, qc]);
-
-  const onSwitchToThread = useCallback(
-    (id: string) => {
-      navigate(`/threads/${id}`);
-    },
-    [navigate],
-  );
-
-  // Auto-send initial message from landing page
+  // Auto-send any prompt that was queued in the intent store before navigation.
+  // consumePendingPrompt() reads and clears atomically, so a refresh or
+  // back-navigation never re-sends the same message.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally runs only on threadId change — omitting changing deps to avoid re-sending
   useEffect(() => {
-    const state = location.state as { initialMessage?: string } | null;
-    if (
-      !initialMessageSent.current &&
-      agentId &&
-      state?.initialMessage &&
-      messages.length === 0 &&
-      !isStreaming
-    ) {
-      initialMessageSent.current = true;
-      void startStream(
-        threadId,
-        {
-          session_id: threadId,
-          agent_id: agentId,
-          message: state.initialMessage,
-        },
-        {
-          onComplete: () => {
-            void qc.invalidateQueries({ queryKey: ["threads"] });
-            void qc.invalidateQueries({ queryKey: ["threads", threadId] });
-          },
-        },
-      );
-      // Clear state so refresh doesn't re-send
-      window.history.replaceState({}, "");
-    }
-  }, [agentId, threadId, messages.length, isStreaming, location.state, startStream, qc]);
+    if (initialMessageSent.current || messages.length > 0 || isStreaming) return;
 
-  const threadMessageLikes = messages.map(richMessageToThreadMessageLike);
+    const pending = consumePendingPrompt();
+    if (!pending) return;
+
+    initialMessageSent.current = true;
+    void startStream(
+      threadId,
+      { message: pending },
+      {
+        onComplete: () => {
+          void afterStreamComplete(pending);
+        },
+      },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [threadId]); // run once on mount — intentionally omit changing deps
+
+  // Memoize so useExternalStoreRuntime's getSnapshot sees a stable reference
+  // when messages haven't changed (prevents the "infinite loop" warning).
+  const threadMessageLikes = useMemo(
+    () => messages.map(richMessageToThreadMessageLike),
+    [messages],
+  );
 
   return useExternalStoreRuntime({
     messages: threadMessageLikes,
     isRunning: isStreaming,
     onNew,
     onCancel,
-  } as any);
+  // biome-ignore lint/suspicious/noExplicitAny: useExternalStoreRuntime props type is overly strict
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 }

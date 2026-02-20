@@ -2,14 +2,22 @@ import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import type {
   ContentBlock,
+  ContextUpdateContentBlock,
   RichMessage,
-  StreamingState,
+  SkillActivationContentBlock,
   ToolCallContentBlock,
 } from "@/types/chat-content";
+import { getDbInstance } from "@/lib/db/pglite";
 
 interface ChatMessageState {
   messagesByThread: Record<string, RichMessage[]>;
   streamingByThread: Record<string, StreamingState>;
+}
+
+interface StreamingState {
+  isStreaming: boolean;
+  runId: string | null;
+  streamingMessageId: string | null;
 }
 
 interface ChatMessageActions {
@@ -28,7 +36,11 @@ interface ChatMessageActions {
   ): void;
   addSkillActivation(
     threadId: string,
-    skill: { skillName: string; status: "active" | "complete" },
+    skill: { skillId: string; skillName: string; selectionMethod?: string; status: "active" | "complete" },
+  ): void;
+  addContextUpdate(
+    threadId: string,
+    update: Omit<ContextUpdateContentBlock, "type">,
   ): void;
   finishStream(threadId: string): void;
   setStreamError(threadId: string, error: string): void;
@@ -42,6 +54,10 @@ const defaultStreamingState: StreamingState = {
   runId: null,
   streamingMessageId: null,
 };
+
+function tryDb(): ReturnType<typeof getDbInstance> | null {
+  try { return getDbInstance(); } catch { return null; }
+}
 
 function ensureThread(
   state: ChatMessageState,
@@ -99,6 +115,16 @@ function getOrCreateStreamingMessage(
   };
 
   return newMsg;
+}
+
+/** Persist all complete messages in a thread to PGLite. Fire-and-forget. */
+function persistMessages(threadId: string, messages: RichMessage[]): void {
+  const db = tryDb();
+  if (!db) return;
+  const complete = messages.filter((m) => m.status !== "in_progress");
+  for (const msg of complete) {
+    db.insertMessage(threadId, msg).catch(console.error);
+  }
 }
 
 export const useChatMessageStore = create<ChatMessageStore>()(
@@ -223,9 +249,25 @@ export const useChatMessageStore = create<ChatMessageStore>()(
 
         messages[idx].content.push({
           type: "skill-activation",
+          skillId: skill.skillId,
           skillName: skill.skillName,
+          selectionMethod: skill.selectionMethod,
           status: skill.status,
         });
+      }),
+
+    addContextUpdate: (threadId, update) =>
+      set((state) => {
+        const streaming = state.streamingByThread[threadId];
+        if (!streaming?.streamingMessageId) return;
+
+        const messages = state.messagesByThread[threadId];
+        const idx = messages?.findIndex(
+          (m) => m.id === streaming.streamingMessageId,
+        );
+        if (idx === undefined || idx === -1) return;
+
+        messages[idx].content.push({ type: "context-update", ...update });
       }),
 
     finishStream: (threadId) =>
@@ -240,12 +282,21 @@ export const useChatMessageStore = create<ChatMessageStore>()(
           );
           if (idx !== -1) {
             messages[idx].status = "complete";
+            // Finalize any skill-activation blocks that are still "active"
+            for (const block of messages[idx].content) {
+              if (block.type === "skill-activation" && block.status === "active") {
+                (block as SkillActivationContentBlock).status = "complete";
+              }
+            }
           }
         }
 
-        state.streamingByThread[threadId] = {
-          ...defaultStreamingState,
-        };
+        state.streamingByThread[threadId] = { ...defaultStreamingState };
+
+        // Write-through: persist all complete messages to PGLite
+        if (messages) {
+          persistMessages(threadId, [...messages]);
+        }
       }),
 
     setStreamError: (threadId, error) =>
@@ -265,6 +316,11 @@ export const useChatMessageStore = create<ChatMessageStore>()(
         }
 
         state.streamingByThread[threadId] = { ...defaultStreamingState };
+
+        // Write-through: persist all complete messages to PGLite
+        if (messages) {
+          persistMessages(threadId, [...messages]);
+        }
       }),
 
     clearThread: (threadId) =>

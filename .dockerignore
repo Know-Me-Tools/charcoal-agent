@@ -41,7 +41,11 @@ coverage
 *.lcov
 .nyc_output
 
-# ── Docs / non-build assets ───────────────────────────
+# ── Docs / non-build assets ───────────────────────────────────────────────────
 *.md
 !README.md
 LICENSE
+
+# ── Docker / nginx — keep these in the build context ─────────────────────────
+!nginx.conf
+!docker-compose.yaml

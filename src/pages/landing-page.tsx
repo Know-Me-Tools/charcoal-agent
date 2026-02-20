@@ -9,8 +9,8 @@ import {
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useAgents } from "@/hooks/use-agents";
-import { useCreateThread } from "@/hooks/use-threads";
+import { useChatIntentStore } from "@/stores/chat-intent-store";
+import { useThreadRegistryStore } from "@/stores/thread-registry-store";
 
 const features = [
 	{
@@ -42,8 +42,8 @@ const features = [
 export default function LandingPage() {
 	const [message, setMessage] = useState("");
 	const navigate = useNavigate();
-	const { data: agents } = useAgents();
-	const createThread = useCreateThread();
+	const setPendingPrompt = useChatIntentStore((s) => s.setPendingPrompt);
+	const registerThread = useThreadRegistryStore((s) => s.registerThread);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: message change drives textarea height recalculation
@@ -57,21 +57,16 @@ export default function LandingPage() {
 	const handleSend = () => {
 		const trimmed = message.trim();
 		if (!trimmed) return;
-		const agent = agents?.[0];
-		if (agent) {
-			createThread.mutate(
-				{ agent_id: agent.id, title: trimmed.slice(0, 60) },
-				{
-					onSuccess: (thread) => {
-						navigate(`/threads/${thread.id}`, {
-							state: { initialMessage: trimmed },
-						});
-					},
-				},
-			);
-		} else {
-			navigate("/threads");
-		}
+
+		// Register the thread in the local registry as ephemeral before navigating.
+		// It will be promoted to persisted once the first message reply arrives.
+		const sessionId = crypto.randomUUID();
+		registerThread(sessionId);
+
+		// Write the prompt to the intent store BEFORE navigating so the thread
+		// page can read it synchronously on first render without any race.
+		setPendingPrompt(trimmed);
+		navigate(`/threads/${sessionId}`);
 	};
 
 	const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -80,6 +75,7 @@ export default function LandingPage() {
 			handleSend();
 		}
 	};
+
 	return (
 		<div className="flex min-h-screen flex-col bg-background">
 			{/* Hero */}
@@ -122,7 +118,7 @@ export default function LandingPage() {
 								<Button
 									type="button"
 									onClick={handleSend}
-									disabled={!message.trim() || createThread.isPending}
+									disabled={!message.trim()}
 									className="size-11 shrink-0 rounded-lg"
 								>
 									<Send size={18} />
