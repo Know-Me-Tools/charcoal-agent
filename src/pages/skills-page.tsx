@@ -6,8 +6,8 @@ import { KNOWME_SKILLS } from "@/lib/skills/knowme-skills";
 import { SectionLabel } from "@/components/common/section-label";
 import { SkeletonCard } from "@/components/common/skeleton-loader";
 import { EmptyState } from "@/components/common/empty-state";
+import { Button } from "@/components/ui/button";
 import type { Skill } from "@/types";
-
 interface SkillDetailPanelProps {
   skill: Skill | null;
   onClose: () => void;
@@ -227,12 +227,13 @@ export default function SkillsPage() {
 
         <div className="flex shrink-0 items-center gap-2">
           {/* UAR registry rescan */}
-          <button
-            type="button"
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleRefresh}
             disabled={refreshSkills.isPending}
             title="Trigger UAR to rescan its skills directory"
-            className="flex h-8 items-center gap-1.5 rounded-md border border-border bg-background px-3 font-ui text-xs font-medium text-muted-foreground hover:border-primary/30 hover:text-foreground disabled:opacity-50"
+            className="flex h-8 items-center gap-1.5"
           >
             {refreshSkills.isPending ? (
               <Loader2 size={13} className="animate-spin" />
@@ -240,15 +241,15 @@ export default function SkillsPage() {
               <RefreshCw size={13} />
             )}
             Rescan UAR
-          </button>
+          </Button>
 
           {/* Required-skills sync */}
-          <button
-            type="button"
+          <Button
+            size="sm"
             onClick={handleSync}
             disabled={syncing}
             title="Sync built-in skills to the UAR"
-            className="flex h-8 items-center gap-1.5 rounded-md bg-primary px-3 font-ui text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            className="flex h-8 items-center gap-1.5"
           >
             {syncing ? (
               <Loader2 size={13} className="animate-spin" />
@@ -256,7 +257,7 @@ export default function SkillsPage() {
               <RefreshCw size={13} />
             )}
             Sync Built-ins
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -307,11 +308,18 @@ export default function SkillsPage() {
           {skills.map((skill) => {
             const category = categorizeSkill(skill);
             return (
-              <button
+              <div
                 key={skill.id}
-                type="button"
+                role="button"
+                tabIndex={0}
                 onClick={() => handleSkillClick(skill)}
-                className={`cursor-pointer rounded-lg border bg-card p-4 text-left transition-all hover:border-primary/30 hover:shadow-sm ${
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleSkillClick(skill);
+                  }
+                }}
+                className={`cursor-pointer rounded-lg border bg-card p-4 text-left transition-all hover:border-primary/30 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                   category.type === "knowme" || category.type === "platform" 
                     ? "border-primary/20" 
                     : "border-border"
@@ -332,17 +340,18 @@ export default function SkillsPage() {
 
                   <div className="flex items-center gap-2">
                     {/* Configure button */}
-                    <button
-                      type="button"
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleSkillClick(skill);
                       }}
-                      className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                      className="h-7 w-7 rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
                       title="View configuration"
                     >
                       <Settings size={14} />
-                    </button>
+                    </Button>
 
                     {/* Toggle switch */}
                     <button
@@ -390,7 +399,7 @@ export default function SkillsPage() {
                     )}
                   </div>
                 )}
-              </button>
+              </div>
             );
           })}
         </div>

@@ -46,23 +46,33 @@ export class ApiError extends Error {
   }
 }
 
+const UAR_BASE_URL = (import.meta.env.VITE_UAR_BASE_URL as string | undefined) ?? "";
+
 /**
- * Build a relative request URL.
+ * Build a request URL.
  *
  * All API traffic is routed through the Vite dev-server proxy (or a production
- * reverse proxy), so we always use relative paths. This avoids cross-origin
- * requests in the browser — the proxy forwards server-to-server, which is not
- * subject to the Same-Origin Policy.
+ * reverse proxy) when using relative paths.
+ * If a VITE_UAR_BASE_URL is provided to the client build, it will prepend it
+ * to hit the remote server directly, which requires CORS headers on the remote.
  */
 function buildUrl(path: string): string {
+  let relativePath = path;
   if (
-    path.startsWith("/api") ||
-    path.startsWith("/health") ||
-    path.startsWith("/ready")
+    !path.startsWith("/api") &&
+    !path.startsWith("/health") &&
+    !path.startsWith("/ready")
   ) {
-    return path;
+    relativePath = `/api${path}`;
   }
-  return `/api${path}`;
+
+  if (UAR_BASE_URL) {
+    // Strip trailing slashes to accurately build the URL
+    const baseUrl = UAR_BASE_URL.replace(/\/$/, "");
+    return `${baseUrl}${relativePath}`;
+  }
+
+  return relativePath;
 }
 
 /**

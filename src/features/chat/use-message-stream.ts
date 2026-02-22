@@ -557,16 +557,18 @@ export function useMessageStream() {
                   break;
                 }
 
-                case "agui.done":
+                case "agui.done": {
                   finishStream(threadId);
                   callbacks?.onComplete?.();
                   return;
+                }
 
                 // agui.memory.update and agui.state.patch are informational only
                 case "agui.memory.update":
                 case "agui.state.patch":
-                default:
+                default: {
                   break;
+                }
               }
 
               // Handled by AG-UI path; skip OpenAI fallback

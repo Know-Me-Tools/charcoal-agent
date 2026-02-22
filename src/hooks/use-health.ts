@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import type { HealthStatus } from "@/types";
+import { buildUrl } from "@/lib/api-client";
 
 /**
  * The UAR /healthz and /readyz endpoints return HTTP 200 with an EMPTY body
@@ -9,7 +10,8 @@ import type { HealthStatus } from "@/types";
  * { status: "ok" } shape ourselves.
  */
 async function pingEndpoint(path: string): Promise<HealthStatus> {
-  const res = await fetch(path);
+  const url = buildUrl(path);
+  const res = await fetch(url);
   if (!res.ok) throw new Error(`Health check failed: ${res.status}`);
   // Body may be empty (200 + no JSON) — treat any 2xx as "ok".
   try {
