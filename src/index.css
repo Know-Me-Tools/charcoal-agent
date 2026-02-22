@@ -106,6 +106,39 @@
   }
 }
 
+/*
+ * Cursor policy — lives OUTSIDE all @layer blocks intentionally.
+ * Unlayered + !important is the highest possible cascade priority, ensuring
+ * these rules beat Tailwind utilities, Radix UI, and any component classes.
+ * (From UAR commit b6aff0c)
+ */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+a[href],
+[role="link"],
+[role="tab"],
+[role="menuitem"],
+[role="option"],
+[role="checkbox"],
+[role="radio"],
+[role="switch"],
+[role="combobox"],
+label[for],
+select:not(:disabled),
+summary,
+nav a,
+nav button,
+[data-clickable="true"] {
+  cursor: pointer !important;
+}
+
+button:disabled,
+select:disabled,
+[aria-disabled="true"],
+[data-disabled="true"] {
+  cursor: not-allowed !important;
+}
+
 @layer utilities {
   .grid-overlay {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M0 0h40v40H0z' fill='none' stroke='%23808080' stroke-width='0.5' opacity='0.04'/%3E%3C/svg%3E");

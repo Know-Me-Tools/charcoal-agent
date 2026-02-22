@@ -29,7 +29,7 @@ interface ThreadRegistryActions {
    * Add a new thread to the registry. Always starts as ephemeral.
    * Idempotent — calling with an existing id is a no-op.
    */
-  registerThread(id: string): void;
+  registerThread(id: string, agentId?: string, agentName?: string): void;
 
   /**
    * Promote an ephemeral thread to a persisted one.
@@ -73,16 +73,21 @@ export const useThreadRegistryStore = create<ThreadRegistryStore>()(
         }
       }),
 
-    registerThread: (id) =>
+    registerThread: (id, agentId, agentName) =>
       set((state) => {
         if (state.threads[id]) return;
         const now = new Date().toISOString();
         const thread: LocalThread = {
           id,
+          // sessionId mirrors id — stored explicitly so it can be read back
+          // from PGLite after a page refresh without relying on URL params.
+          sessionId: id,
           title: "New conversation",
           isEphemeral: true,
           createdAt: now,
           updatedAt: now,
+          agentId,
+          agentName,
         };
         state.threads[id] = thread;
         tryDb()?.upsertThread(thread).catch(console.error);

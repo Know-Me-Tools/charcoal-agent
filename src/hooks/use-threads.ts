@@ -18,6 +18,7 @@ export function useThreadDetail(id: string | null) {
     queryKey: threadDetailKey(id ?? ""),
     queryFn: () => api.get<ThreadDetail>(`/api/sessions/${id}`),
     enabled: !!id,
+    retry: false,
   });
 }
 

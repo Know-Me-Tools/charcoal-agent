@@ -1,8 +1,11 @@
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import type {
+  ArtifactContentBlock,
   ContentBlock,
   ContextUpdateContentBlock,
+  MemoryMutationContentBlock,
+  MemoryRecallContentBlock,
   RichMessage,
   SkillActivationContentBlock,
   ToolCallContentBlock,
@@ -18,10 +21,17 @@ interface StreamingState {
   isStreaming: boolean;
   runId: string | null;
   streamingMessageId: string | null;
+  awaitingFirstToken: boolean;
+  retryAttempt: number;
+  retryMaxAttempts: number;
+  retryDelayMs: number;
 }
 
 interface ChatMessageActions {
   initThread(threadId: string, messages: RichMessage[]): void;
+  beginStream(threadId: string, runId: string): void;
+  setAwaitingRetry(threadId: string, runId: string, attempt: number, maxAttempts: number, delayMs: number): void;
+  markStreamStarted(threadId: string, runId: string): void;
   appendTextDelta(threadId: string, runId: string, text: string): void;
   appendThinkingDelta(threadId: string, runId: string, text: string): void;
   addToolCall(threadId: string, toolCall: ToolCallContentBlock): void;
@@ -42,6 +52,18 @@ interface ChatMessageActions {
     threadId: string,
     update: Omit<ContextUpdateContentBlock, "type">,
   ): void;
+  addMemoryRecall(
+    threadId: string,
+    recall: Omit<MemoryRecallContentBlock, "type">,
+  ): void;
+  addMemoryMutation(
+    threadId: string,
+    mutation: Omit<MemoryMutationContentBlock, "type">,
+  ): void;
+  addArtifact(
+    threadId: string,
+    artifact: Omit<ArtifactContentBlock, "type">,
+  ): void;
   finishStream(threadId: string): void;
   setStreamError(threadId: string, error: string): void;
   clearThread(threadId: string): void;
@@ -53,6 +75,10 @@ const defaultStreamingState: StreamingState = {
   isStreaming: false,
   runId: null,
   streamingMessageId: null,
+  awaitingFirstToken: false,
+  retryAttempt: 0,
+  retryMaxAttempts: 0,
+  retryDelayMs: 0,
 };
 
 function tryDb(): ReturnType<typeof getDbInstance> | null {
@@ -112,6 +138,10 @@ function getOrCreateStreamingMessage(
     isStreaming: true,
     runId,
     streamingMessageId: msgId,
+    awaitingFirstToken: false,
+    retryAttempt: 0,
+    retryMaxAttempts: 0,
+    retryDelayMs: 0,
   };
 
   return newMsg;
@@ -140,6 +170,41 @@ export const useChatMessageStore = create<ChatMessageStore>()(
         }
       }),
 
+    beginStream: (threadId, runId) =>
+      set((state) => {
+        ensureThread(state, threadId);
+        state.streamingByThread[threadId] = {
+          isStreaming: true,
+          runId,
+          streamingMessageId: null,
+          awaitingFirstToken: true,
+          retryAttempt: 0,
+          retryMaxAttempts: 0,
+          retryDelayMs: 0,
+        };
+      }),
+
+    setAwaitingRetry: (threadId, runId, attempt, maxAttempts, delayMs) =>
+      set((state) => {
+        ensureThread(state, threadId);
+        const streaming = ensureStreaming(state, threadId);
+        if (streaming.runId !== runId) return;
+        streaming.awaitingFirstToken = true;
+        streaming.retryAttempt = attempt;
+        streaming.retryMaxAttempts = maxAttempts;
+        streaming.retryDelayMs = delayMs;
+      }),
+
+    markStreamStarted: (threadId, runId) =>
+      set((state) => {
+        const streaming = ensureStreaming(state, threadId);
+        if (streaming.runId !== runId) return;
+        streaming.awaitingFirstToken = false;
+        streaming.retryAttempt = 0;
+        streaming.retryMaxAttempts = 0;
+        streaming.retryDelayMs = 0;
+      }),
+
     appendTextDelta: (threadId, runId, text) =>
       set((state) => {
         ensureThread(state, threadId);
@@ -151,7 +216,17 @@ export const useChatMessageStore = create<ChatMessageStore>()(
             isStreaming: true,
             runId,
             streamingMessageId: null,
+            awaitingFirstToken: false,
+            retryAttempt: 0,
+            retryMaxAttempts: 0,
+            retryDelayMs: 0,
           };
+        } else {
+          // First token arrived — clear the loading state
+          streaming.awaitingFirstToken = false;
+          streaming.retryAttempt = 0;
+          streaming.retryMaxAttempts = 0;
+          streaming.retryDelayMs = 0;
         }
 
         const msg = getOrCreateStreamingMessage(state, threadId, runId);
@@ -170,7 +245,25 @@ export const useChatMessageStore = create<ChatMessageStore>()(
     appendThinkingDelta: (threadId, runId, text) =>
       set((state) => {
         ensureThread(state, threadId);
-        ensureStreaming(state, threadId);
+        const streaming = ensureStreaming(state, threadId);
+
+        if (!streaming.isStreaming || streaming.runId !== runId) {
+          state.streamingByThread[threadId] = {
+            isStreaming: true,
+            runId,
+            streamingMessageId: null,
+            awaitingFirstToken: false,
+            retryAttempt: 0,
+            retryMaxAttempts: 0,
+            retryDelayMs: 0,
+          };
+        } else {
+          // First token arrived — clear the loading state
+          streaming.awaitingFirstToken = false;
+          streaming.retryAttempt = 0;
+          streaming.retryMaxAttempts = 0;
+          streaming.retryDelayMs = 0;
+        }
 
         const msg = getOrCreateStreamingMessage(state, threadId, runId);
         const messages = state.messagesByThread[threadId];
@@ -190,6 +283,12 @@ export const useChatMessageStore = create<ChatMessageStore>()(
         ensureThread(state, threadId);
         const streaming = state.streamingByThread[threadId];
         if (!streaming?.streamingMessageId) return;
+
+        // First token arrived (tool call counts as first content)
+        streaming.awaitingFirstToken = false;
+        streaming.retryAttempt = 0;
+        streaming.retryMaxAttempts = 0;
+        streaming.retryDelayMs = 0;
 
         const messages = state.messagesByThread[threadId];
         const idx = messages.findIndex(
@@ -270,6 +369,48 @@ export const useChatMessageStore = create<ChatMessageStore>()(
         messages[idx].content.push({ type: "context-update", ...update });
       }),
 
+    addMemoryRecall: (threadId, recall) =>
+      set((state) => {
+        const streaming = state.streamingByThread[threadId];
+        if (!streaming?.streamingMessageId) return;
+
+        const messages = state.messagesByThread[threadId];
+        const idx = messages?.findIndex(
+          (m) => m.id === streaming.streamingMessageId,
+        );
+        if (idx === undefined || idx === -1) return;
+
+        messages[idx].content.push({ type: "memory-recall", ...recall });
+      }),
+
+    addMemoryMutation: (threadId, mutation) =>
+      set((state) => {
+        const streaming = state.streamingByThread[threadId];
+        if (!streaming?.streamingMessageId) return;
+
+        const messages = state.messagesByThread[threadId];
+        const idx = messages?.findIndex(
+          (m) => m.id === streaming.streamingMessageId,
+        );
+        if (idx === undefined || idx === -1) return;
+
+        messages[idx].content.push({ type: "memory-mutation", ...mutation });
+      }),
+
+    addArtifact: (threadId, artifact) =>
+      set((state) => {
+        const streaming = state.streamingByThread[threadId];
+        if (!streaming?.streamingMessageId) return;
+
+        const messages = state.messagesByThread[threadId];
+        const idx = messages?.findIndex(
+          (m) => m.id === streaming.streamingMessageId,
+        );
+        if (idx === undefined || idx === -1) return;
+
+        messages[idx].content.push({ type: "artifact", ...artifact });
+      }),
+
     finishStream: (threadId) =>
       set((state) => {
         const streaming = state.streamingByThread[threadId];
@@ -343,3 +484,19 @@ export const selectStreamingState =
 export const selectIsStreaming =
   (threadId: string) => (state: ChatMessageStore) =>
     state.streamingByThread[threadId]?.isStreaming ?? false;
+
+export const selectIsAwaitingFirstToken =
+  (threadId: string) => (state: ChatMessageStore) =>
+    state.streamingByThread[threadId]?.awaitingFirstToken ?? false;
+
+export const selectRetryAttempt =
+  (threadId: string) => (state: ChatMessageStore) =>
+    state.streamingByThread[threadId]?.retryAttempt ?? 0;
+
+export const selectRetryMaxAttempts =
+  (threadId: string) => (state: ChatMessageStore) =>
+    state.streamingByThread[threadId]?.retryMaxAttempts ?? 0;
+
+export const selectRetryDelayMs =
+  (threadId: string) => (state: ChatMessageStore) =>
+    state.streamingByThread[threadId]?.retryDelayMs ?? 0;

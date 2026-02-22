@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../travisjames/skills/artifact-refiner"
+		},
+		{
+			"path": "../../prometheus/universal-agent-runtime"
+		},
+		{
+			"path": "../../cherry-studio"
+		}
+	],
+	"settings": {}
+}

@@ -1,11 +1,21 @@
 import { useCallback, useRef } from "react";
 import { useChatMessageStore } from "@/stores/chat-message-store";
+import { useThreadRegistryStore } from "@/stores/thread-registry-store";
+import { buildUrl, buildHeaders } from "@/lib/api-client";
 import type { ToolCallContentBlock } from "@/types/chat-content";
 
-const UAR_URL = "/api/chat/completion";
+const UAR_PATH = "/api/chat/completion";
 
 export interface UarChatPayload {
   message: string;
+  /** Optional UAR agent ID to route this conversation to a specific agent. */
+  agent_id?: string;
+  /**
+   * Session-level prompt-caching override. When true/false, overrides user and
+   * global settings for this request. When undefined, the server falls back to
+   * user → agent → global hierarchy.
+   */
+  prompt_caching_enabled?: boolean;
 }
 
 export interface StreamCallbacks {
@@ -111,6 +121,66 @@ interface AguiMemoryUpdate {
   operation: string;
 }
 
+interface AguiMemoryRecall {
+  kind: "memory";
+  phase: "recall";
+  request_id: string;
+  items: Array<{
+    key: string;
+    value: string;
+    source: string;
+    scope?: string;
+    memory_type?: string;
+    importance?: number;
+  }>;
+  count: number;
+}
+
+interface AguiMemoryMutation {
+  kind: "memory";
+  phase: "mutation";
+  request_id: string;
+  operation: string;
+  memory_id: string;
+  content: string;
+  scope: string;
+  memory_type: string;
+}
+
+interface AguiArtifact {
+  kind: "artifact";
+  phase: "complete";
+  request_id: string;
+  artifact_id: string;
+  artifact_type: string;
+  title: string;
+  content: string;
+  language?: string;
+  metadata?: Record<string, unknown>;
+}
+
+interface AguiArtifactInputRequest {
+  kind: "artifact_input_request";
+  request_id: string;
+  artifact_id: string;
+  artifact_type: string;
+  title: string;
+  content: string;
+  metadata?: Record<string, unknown>;
+}
+
+interface AguiRaw {
+  kind: "raw";
+  event?: unknown;
+  source?: string;
+}
+interface AguiCustom {
+  kind: "custom";
+  name?: string;
+  value?: unknown;
+  data?: unknown;
+}
+
 type AguiPayload =
   | AguiStreamStart
   | AguiMessageDelta
@@ -125,7 +195,41 @@ type AguiPayload =
   | AguiStatePatch
   | AguiSkillActivated
   | AguiContextUpdate
-  | AguiMemoryUpdate;
+  | AguiMemoryUpdate
+  | AguiMemoryRecall
+  | AguiMemoryMutation
+  | AguiArtifact
+  | AguiArtifactInputRequest
+  | AguiRaw
+  | AguiCustom
+  | { kind: string; [k: string]: unknown };
+
+// ─── A2UI envelope extractor ─────────────────────────────────────────────────
+// Recursively unwraps agui.raw / agui.custom payloads to find a known A2UI
+// envelope (surfaceUpdate, dataModelUpdate, beginRendering, deleteSurface).
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function extractA2uiEnvelope(value: unknown): Record<string, unknown> | null {
+  if (!isRecord(value)) return null;
+  const directKeys = ["surfaceUpdate", "dataModelUpdate", "beginRendering", "deleteSurface"];
+  if (directKeys.some((k) => k in value)) return value;
+  if ("event" in value) {
+    const nested = extractA2uiEnvelope(value.event);
+    if (nested) return nested;
+  }
+  if ("value" in value) {
+    const nested = extractA2uiEnvelope(value.value);
+    if (nested) return nested;
+  }
+  if ("data" in value) {
+    const nested = extractA2uiEnvelope(value.data);
+    if (nested) return nested;
+  }
+  return null;
+}
 
 // ─── SSE block parser ─────────────────────────────────────────────────────────
 // SSE blocks are separated by blank lines (\n\n).
@@ -195,20 +299,28 @@ export function useMessageStream() {
       // Stable run ID for this assistant turn
       const runId = `run-${Date.now()}`;
 
+      // Mark that we're waiting for the first token (loading state)
+      useChatMessageStore.getState().beginStream(threadId, runId);
+
       // Accumulate streaming tool-call arguments keyed by tool_call_id
       const pendingArgs = new Map<string, string>();
 
+      // Resolve the agent associated with this thread (if any)
+      const threadAgent = useThreadRegistryStore.getState().threads[threadId];
+      const agentId = payload.agent_id ?? threadAgent?.agentId;
+
       try {
-        const res = await fetch(UAR_URL, {
+        const res = await fetch(buildUrl(UAR_PATH), {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-UAR-Session-ID": threadId,
-          },
+          headers: buildHeaders({ "X-UAR-Session-ID": threadId }),
           body: JSON.stringify({
             message: payload.message,
             stream: true,
             stream_mode: "dual",
+            ...(agentId ? { agent_id: agentId } : {}),
+            ...(payload.prompt_caching_enabled !== undefined
+              ? { prompt_caching_enabled: payload.prompt_caching_enabled }
+              : {}),
           }),
           signal: controller.signal,
         });
@@ -261,6 +373,9 @@ export function useMessageStream() {
                 addCitation,
                 addSkillActivation,
                 addContextUpdate,
+                addMemoryRecall,
+                addMemoryMutation,
+                addArtifact,
                 finishStream,
                 setStreamError,
               } = useChatMessageStore.getState();
@@ -368,12 +483,88 @@ export function useMessageStream() {
                   break;
                 }
 
+                case "agui.memory.recall": {
+                  const e = agui as AguiMemoryRecall;
+                  addMemoryRecall(threadId, {
+                    items: (e.items ?? []).map((item) => ({
+                      key: item.key,
+                      value: item.value,
+                      source: item.source,
+                      scope: item.scope,
+                      memoryType: item.memory_type,
+                      importance: item.importance,
+                    })),
+                    count: e.count ?? 0,
+                  });
+                  break;
+                }
+
+                case "agui.memory.mutation": {
+                  const e = agui as AguiMemoryMutation;
+                  addMemoryMutation(threadId, {
+                    operation: e.operation,
+                    memoryId: e.memory_id,
+                    content: e.content,
+                    scope: e.scope,
+                    memoryType: e.memory_type,
+                  });
+                  break;
+                }
+
+                case "agui.artifact": {
+                  const e = agui as AguiArtifact;
+                  addArtifact(threadId, {
+                    artifactId: e.artifact_id,
+                    artifactType: e.artifact_type,
+                    title: e.title,
+                    content: e.content,
+                    language: e.language,
+                    isInputRequest: false,
+                    metadata: e.metadata ?? {},
+                  });
+                  break;
+                }
+
+                case "agui.artifact_input_request": {
+                  const e = agui as AguiArtifactInputRequest;
+                  addArtifact(threadId, {
+                    artifactId: e.artifact_id,
+                    artifactType: e.artifact_type,
+                    title: e.title,
+                    content: e.content,
+                    isInputRequest: true,
+                    runId: e.request_id,
+                    metadata: e.metadata ?? {},
+                  });
+                  break;
+                }
+
+                case "agui.custom":
+                case "agui.raw": {
+                  // Extract any embedded A2UI envelope and surface as a display artifact
+                  const envelope = extractA2uiEnvelope(agui);
+                  if (envelope) {
+                    addArtifact(threadId, {
+                      artifactId: `agui-${event}-${Date.now()}`,
+                      artifactType: "display",
+                      title: event === "agui.custom" ? "Custom Event" : "Raw Event",
+                      content: JSON.stringify(envelope, null, 2),
+                      language: "json",
+                      isInputRequest: false,
+                      metadata: {},
+                    });
+                  }
+                  break;
+                }
+
                 case "agui.done":
                   finishStream(threadId);
                   callbacks?.onComplete?.();
                   return;
 
-                // agui.state.patch, agui.memory.update — informational, no UI action yet
+                // agui.memory.update and agui.state.patch are informational only
+                case "agui.memory.update":
+                case "agui.state.patch":
                 default:
                   break;
               }

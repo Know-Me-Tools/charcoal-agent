@@ -56,6 +56,49 @@ export interface ErrorContentBlock {
   code?: string;
 }
 
+export interface MemoryItem {
+  key: string;
+  value: string;
+  source: string;
+  scope?: string;
+  memoryType?: string;
+  importance?: number;
+}
+
+export interface MemoryRecallContentBlock {
+  type: "memory-recall";
+  /** Memory items that were injected into context before the model call. */
+  items: MemoryItem[];
+  count: number;
+}
+
+export interface MemoryMutationContentBlock {
+  type: "memory-mutation";
+  /** "created" | "updated" | "deleted" */
+  operation: string;
+  memoryId: string;
+  content: string;
+  scope: string;
+  memoryType: string;
+}
+
+export interface ArtifactContentBlock {
+  type: "artifact";
+  artifactId: string;
+  artifactType: string;
+  title: string;
+  /** Full artifact content (code, markdown, SVG, etc.) */
+  content: string;
+  /** Optional language hint for syntax highlighting (e.g. "tsx", "svg"). */
+  language?: string;
+  /** True when the UAR is requesting user input to continue refinement. */
+  isInputRequest: boolean;
+  /** The UAR run ID — required to POST an artifact response back to the server. */
+  runId?: string;
+  /** A2UI metadata (options list, JSON schema, prompt text, etc.) */
+  metadata?: Record<string, unknown>;
+}
+
 export type ContentBlock =
   | TextContentBlock
   | ReasoningContentBlock
@@ -64,7 +107,10 @@ export type ContentBlock =
   | SkillActivationContentBlock
   | ContextUpdateContentBlock
   | ImageContentBlock
-  | ErrorContentBlock;
+  | ErrorContentBlock
+  | MemoryRecallContentBlock
+  | MemoryMutationContentBlock
+  | ArtifactContentBlock;
 
 export interface RichMessage {
   id: string;
@@ -79,6 +125,12 @@ export interface StreamingState {
   runId: string | null;
   // The in-progress assistant message being built
   streamingMessageId: string | null;
+  // True from request submission until first token arrives
+  awaitingFirstToken: boolean;
+  // Retry state for connection failures
+  retryAttempt: number;
+  retryMaxAttempts: number;
+  retryDelayMs: number;
 }
 
 // Utility: check if a message has any text content

@@ -12,10 +12,13 @@ import {
 import { SectionLabel } from "@/components/common/section-label";
 import { StatusBadge } from "@/components/common/status-badge";
 import { SkeletonCard } from "@/components/common/skeleton-loader";
-import type { Provider, Model } from "@/types";
+import type { UarProvider, UarModel, UpdateProviderPayload } from "@/types";
 
 export default function ProvidersPage() {
-  const { data: providers, isLoading } = useProviders();
+  const { data, isLoading } = useProviders();
+  const providers = data?.providers ?? [];
+  const defaultId = data?.defaultId;
+
   const createProvider = useCreateProvider();
   const updateProvider = useUpdateProvider();
   const deleteProvider = useDeleteProvider();
@@ -24,19 +27,38 @@ export default function ProvidersPage() {
   const [addingNew, setAddingNew] = useState(false);
   const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
   const [newProvider, setNewProvider] = useState({
-    name: "",
+    id: "",
+    display_name: "",
+    protocol: "openai",
     base_url: "",
     api_key: "",
     enabled: true,
   });
 
   const handleCreateProvider = () => {
-    createProvider.mutate(newProvider, {
-      onSuccess: () => {
-        setAddingNew(false);
-        setNewProvider({ name: "", base_url: "", api_key: "", enabled: true });
+    createProvider.mutate(
+      {
+        id: newProvider.id || newProvider.display_name.toLowerCase().replace(/\s+/g, "-"),
+        display_name: newProvider.display_name,
+        protocol: newProvider.protocol,
+        base_url: newProvider.base_url || undefined,
+        api_key: newProvider.api_key || undefined,
+        enabled: newProvider.enabled,
       },
-    });
+      {
+        onSuccess: () => {
+          setAddingNew(false);
+          setNewProvider({
+            id: "",
+            display_name: "",
+            protocol: "openai",
+            base_url: "",
+            api_key: "",
+            enabled: true,
+          });
+        },
+      },
+    );
   };
 
   return (
@@ -49,6 +71,7 @@ export default function ProvidersPage() {
           </h1>
         </div>
         <button
+          type="button"
           onClick={() => setAddingNew(true)}
           className="flex h-9 items-center gap-2 rounded-md bg-primary px-4 font-ui text-sm font-semibold text-primary-foreground transition-hover hover:bg-primary/90"
         >
@@ -62,45 +85,84 @@ export default function ProvidersPage() {
           <SectionLabel>New Provider</SectionLabel>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="ui-label mb-1 block text-foreground">Display name</label>
+              <label htmlFor="np-display-name" className="ui-label mb-1 block text-foreground">
+                Display name
+              </label>
               <input
+                id="np-display-name"
                 type="text"
-                value={newProvider.name}
-                onChange={(e) => setNewProvider((p) => ({ ...p, name: e.target.value }))}
+                value={newProvider.display_name}
+                onChange={(e) =>
+                  setNewProvider((p) => ({ ...p, display_name: e.target.value }))
+                }
                 className="w-full rounded-md border border-border bg-background px-3 py-2 font-ui text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                 placeholder="OpenAI"
               />
             </div>
             <div>
-              <label className="ui-label mb-1 block text-foreground">Base URL</label>
+              <label htmlFor="np-protocol" className="ui-label mb-1 block text-foreground">
+                Protocol
+              </label>
+              <select
+                id="np-protocol"
+                title="Protocol"
+                value={newProvider.protocol}
+                onChange={(e) =>
+                  setNewProvider((p) => ({ ...p, protocol: e.target.value }))
+                }
+                className="w-full rounded-md border border-border bg-background px-3 py-2 font-ui text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              >
+                <option value="openai">openai</option>
+                <option value="anthropic">anthropic</option>
+                <option value="azure">azure</option>
+                <option value="ollama">ollama</option>
+                <option value="openai-compatible">openai-compatible</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="np-base-url" className="ui-label mb-1 block text-foreground">
+                Base URL{" "}
+                <span className="text-muted-foreground">(optional)</span>
+              </label>
               <input
+                id="np-base-url"
                 type="text"
                 value={newProvider.base_url}
-                onChange={(e) => setNewProvider((p) => ({ ...p, base_url: e.target.value }))}
+                onChange={(e) =>
+                  setNewProvider((p) => ({ ...p, base_url: e.target.value }))
+                }
                 className="w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                 placeholder="https://api.openai.com/v1"
               />
             </div>
-          </div>
-          <div>
-            <label className="ui-label mb-1 block text-foreground">API Key</label>
-            <input
-              type="password"
-              value={newProvider.api_key}
-              onChange={(e) => setNewProvider((p) => ({ ...p, api_key: e.target.value }))}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-              placeholder="sk-..."
-            />
+            <div>
+              <label htmlFor="np-api-key" className="ui-label mb-1 block text-foreground">
+                API Key{" "}
+                <span className="text-muted-foreground">(optional)</span>
+              </label>
+              <input
+                id="np-api-key"
+                type="password"
+                value={newProvider.api_key}
+                onChange={(e) =>
+                  setNewProvider((p) => ({ ...p, api_key: e.target.value }))
+                }
+                className="w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                placeholder="sk-..."
+              />
+            </div>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <button
+              type="button"
               onClick={handleCreateProvider}
-              disabled={!newProvider.name || !newProvider.base_url}
+              disabled={!newProvider.display_name}
               className="flex h-9 items-center gap-2 rounded-md bg-primary px-4 font-ui text-sm font-semibold text-primary-foreground transition-hover hover:bg-primary/90 disabled:opacity-40"
             >
               Save provider
             </button>
             <button
+              type="button"
               onClick={() => setAddingNew(false)}
               className="flex h-9 items-center rounded-md border border-border px-4 font-ui text-sm font-semibold text-muted-foreground transition-hover hover:text-foreground"
             >
@@ -112,25 +174,24 @@ export default function ProvidersPage() {
 
       {isLoading ? (
         <div className="space-y-4">
-          {Array.from({ length: 2 }).map((_, i) => (
-            <SkeletonCard key={i} />
+          {(["skeleton-1", "skeleton-2"] as const).map((id) => (
+            <SkeletonCard key={id} />
           ))}
         </div>
       ) : (
         <div className="space-y-4">
-          {providers?.map((provider) => (
+          {providers.map((provider) => (
             <ProviderCard
               key={provider.id}
               provider={provider}
+              isDefault={provider.id === defaultId}
               isSelected={selectedProviderId === provider.id}
               onSelect={() =>
                 setSelectedProviderId(
                   selectedProviderId === provider.id ? null : provider.id,
                 )
               }
-              onUpdate={(data) =>
-                updateProvider.mutate({ id: provider.id, ...data })
-              }
+              onUpdate={(data) => updateProvider.mutate({ id: provider.id, ...data })}
               onDelete={() => deleteProvider.mutate(provider.id)}
               onSetDefault={() => setDefault.mutate(provider.id)}
               onTestConnection={() => testConnection.mutate(provider.id)}
@@ -151,10 +212,11 @@ export default function ProvidersPage() {
 }
 
 interface ProviderCardProps {
-  provider: Provider;
+  provider: UarProvider;
+  isDefault: boolean;
   isSelected: boolean;
   onSelect: () => void;
-  onUpdate: (data: { name?: string; base_url?: string; api_key?: string; enabled?: boolean }) => void;
+  onUpdate: (data: Omit<UpdateProviderPayload, "id">) => void;
   onDelete: () => void;
   onSetDefault: () => void;
   onTestConnection: () => void;
@@ -164,6 +226,7 @@ interface ProviderCardProps {
 
 function ProviderCard({
   provider,
+  isDefault,
   isSelected,
   onSelect,
   onUpdate,
@@ -176,6 +239,7 @@ function ProviderCard({
   return (
     <div className="rounded-lg border border-border bg-card">
       <button
+        type="button"
         onClick={onSelect}
         className="flex w-full items-center justify-between p-4 text-left transition-hover hover:bg-muted/20"
       >
@@ -187,15 +251,20 @@ function ProviderCard({
           />
           <div className="min-w-0">
             <span className="font-display text-sm font-semibold text-foreground">
-              {provider.name}
+              {provider.display_name ?? provider.id}
             </span>
-            <span className="ml-3 hidden font-mono text-[10px] text-muted-foreground sm:inline">
-              {provider.base_url}
+            <span className="ml-2 rounded-sm bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+              {provider.protocol}
             </span>
+            {provider.base_url && (
+              <span className="ml-2 hidden font-mono text-[10px] text-muted-foreground sm:inline">
+                {provider.base_url}
+              </span>
+            )}
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {provider.is_default && (
+          {isDefault && (
             <span className="flex items-center gap-1 font-ui text-[11px] font-semibold text-primary">
               <Star size={12} /> Default
             </span>
@@ -208,6 +277,7 @@ function ProviderCard({
         <div className="border-t border-border p-4 space-y-4">
           <div className="flex flex-wrap items-center gap-2">
             <button
+              type="button"
               onClick={onTestConnection}
               disabled={isTesting}
               className="flex h-8 items-center gap-1.5 rounded-md border border-border px-3 font-ui text-xs font-semibold text-muted-foreground transition-hover hover:text-foreground disabled:opacity-50"
@@ -223,13 +293,15 @@ function ProviderCard({
               <span className="font-mono text-xs text-success">{testLatency}ms</span>
             )}
             <button
+              type="button"
               onClick={() => onUpdate({ enabled: !provider.enabled })}
               className="flex h-8 items-center rounded-md border border-border px-3 font-ui text-xs font-semibold text-muted-foreground transition-hover hover:text-foreground"
             >
               {provider.enabled ? "Disable" : "Enable"}
             </button>
-            {!provider.is_default && (
+            {!isDefault && (
               <button
+                type="button"
                 onClick={onSetDefault}
                 className="flex h-8 items-center rounded-md border border-border px-3 font-ui text-xs font-semibold text-muted-foreground transition-hover hover:text-primary"
               >
@@ -237,6 +309,7 @@ function ProviderCard({
               </button>
             )}
             <button
+              type="button"
               onClick={onDelete}
               className="flex h-8 items-center gap-1 rounded-md border border-border px-3 font-ui text-xs font-semibold text-muted-foreground transition-hover hover:border-destructive hover:text-destructive sm:ml-auto"
             >
@@ -245,43 +318,61 @@ function ProviderCard({
             </button>
           </div>
 
-          <ProviderModelsTable providerId={provider.id} />
+          <ProviderModelsTable models={provider.models} providerId={provider.id} />
         </div>
       )}
     </div>
   );
 }
 
-function ProviderModelsTable({ providerId }: { providerId: string }) {
-  const { data: models, isLoading } = useProviderModels(providerId);
+function ProviderModelsTable({
+  providerId,
+  models: embeddedModels,
+}: {
+  providerId: string;
+  models?: UarModel[];
+}) {
+  // Only fetch from the API when the provider object didn't embed models.
+  const skip = Array.isArray(embeddedModels);
+  const { data: fetchedModels, isLoading } = useProviderModels(skip ? undefined : providerId);
 
-  if (isLoading) return <div className="animate-shimmer h-20 rounded-md bg-muted" />;
-  if (!models?.length) {
-    return (
-      <p className="font-body text-sm text-muted-foreground">
-        No models available for this provider.
-      </p>
-    );
-  }
+  if (!skip && isLoading) return <div className="animate-shimmer h-20 rounded-md bg-muted" />;
+
+  const models = embeddedModels ?? fetchedModels ?? [];
+  if (!models.length) return null;
 
   return (
     <div className="overflow-x-auto rounded-md border border-border">
       <table className="w-full min-w-[400px]">
         <thead>
           <tr className="border-b border-border bg-muted/30">
-            <th className="px-3 py-2 text-left ui-overline text-muted-foreground">Model ID</th>
-            <th className="px-3 py-2 text-left ui-overline text-muted-foreground">Context</th>
-            <th className="px-3 py-2 text-left ui-overline text-muted-foreground">Capabilities</th>
+            <th className="px-3 py-2 text-left ui-overline text-muted-foreground">
+              Model ID
+            </th>
+            <th className="px-3 py-2 text-left ui-overline text-muted-foreground">
+              Display Name
+            </th>
+            <th className="px-3 py-2 text-left ui-overline text-muted-foreground">
+              Context
+            </th>
+            <th className="px-3 py-2 text-left ui-overline text-muted-foreground">
+              Capabilities
+            </th>
           </tr>
         </thead>
         <tbody>
           {models.map((model) => (
             <tr key={model.id} className="border-b border-border last:border-b-0">
               <td className="px-3 py-2 font-mono text-xs text-foreground">
-                {model.model_id}
+                {model.id}
               </td>
               <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
-                {(model.context_window / 1000).toFixed(0)}k
+                {model.display_name ?? "—"}
+              </td>
+              <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
+                {model.context_window != null
+                  ? `${(model.context_window / 1000).toFixed(0)}k`
+                  : "—"}
               </td>
               <td className="px-3 py-2">
                 <div className="flex gap-1">

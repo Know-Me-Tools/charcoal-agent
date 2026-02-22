@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { CharcoalDb, setDbInstance } from "@/lib/db/pglite";
 
+const DB_NAME = "/charcoal-db";
+
 // ---------------------------------------------------------------------------
 // Context
 // ---------------------------------------------------------------------------
@@ -10,6 +12,28 @@ type DbContextValue =
   | { ready: true; db: CharcoalDb };
 
 const DbContext = createContext<DbContextValue>({ ready: false, db: null });
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** True when the error message indicates a corrupted / stale PGLite bundle. */
+function isCorruptionError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return msg.includes("Invalid FS bundle size") || msg.includes("bundle size");
+}
+
+/** Delete the PGLite IndexedDB and return once complete (or after timeout). */
+function purgeDatabase(): Promise<void> {
+  return new Promise((resolve) => {
+    const req = indexedDB.deleteDatabase(DB_NAME);
+    req.onsuccess = () => resolve();
+    req.onerror = () => resolve(); // best-effort; proceed regardless
+    req.onblocked = () => resolve();
+    // Fallback in case the event never fires
+    setTimeout(resolve, 2000);
+  });
+}
 
 // ---------------------------------------------------------------------------
 // Provider
@@ -26,22 +50,34 @@ export function DbProvider({ children }: DbProviderProps) {
 
   useEffect(() => {
     let cancelled = false;
-    CharcoalDb.open((msg) => {
-      if (!cancelled) setStatus(msg);
-    })
-      .then((db) => {
+
+    async function init(isRetry = false) {
+      try {
+        const db = await CharcoalDb.open((msg) => {
+          if (!cancelled) setStatus(msg);
+        });
         if (!cancelled) {
           setDbInstance(db);
           setValue({ ready: true, db });
         }
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) {
-          const msg = err instanceof Error ? err.message : String(err);
-          console.error("[CharcoalDb] Failed to open database:", err);
-          setError(msg);
+      } catch (err: unknown) {
+        if (cancelled) return;
+
+        if (!isRetry && isCorruptionError(err)) {
+          // Stale / corrupt PGLite bundle — wipe and retry once.
+          console.warn("[CharcoalDb] Corrupt database detected; purging and retrying…", err);
+          setStatus("Recovering database…");
+          await purgeDatabase();
+          return init(true);
         }
-      });
+
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error("[CharcoalDb] Failed to open database:", err);
+        setError(msg);
+      }
+    }
+
+    void init();
     return () => { cancelled = true; };
   }, []);
 
@@ -61,6 +97,8 @@ export function DbProvider({ children }: DbProviderProps) {
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
+              role="presentation"
+              aria-hidden="true"
             >
               <circle
                 className="opacity-25"

@@ -4,6 +4,7 @@ import {
   useChatMessageStore,
   selectIsStreaming,
 } from "@/stores/chat-message-store";
+import { useThreadRegistryStore } from "@/stores/thread-registry-store";
 import { getDbInstance } from "@/lib/db/pglite";
 import type { RichMessage } from "@/types/chat-content";
 
@@ -48,6 +49,13 @@ export function useChatMessages(threadId: string | null) {
     selectIsStreaming(threadId ?? "__none__"),
   );
 
+  // Ephemeral threads haven't had a message sent yet and don't exist on the
+  // UAR, so calling /api/sessions/{id}/messages would always 404. Skip the
+  // server fallback until the thread has been promoted to persisted.
+  const isEphemeral = useThreadRegistryStore(
+    (s) => (threadId ? (s.threads[threadId]?.isEphemeral ?? true) : true),
+  );
+
   // Whether we've already hydrated the store for this thread in this session.
   const hydratedRef = useRef<string | null>(null);
 
@@ -86,6 +94,7 @@ export function useChatMessages(threadId: string | null) {
   }, [threadId, initThread]);
 
   // Reset hydration guard when thread changes.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — reset only on threadId change
   useEffect(() => {
     hydratedRef.current = null;
   }, [threadId]);
@@ -95,8 +104,8 @@ export function useChatMessages(threadId: string | null) {
   // already started hydrating from PGLite (give PGLite a tick to respond).
   const { data: serverMessages } = useQuery({
     queryKey: ["sessions", threadId, "messages-fallback"],
-    queryFn: () => fetchSessionMessages(threadId!),
-    enabled: !!threadId && localIsEmpty && !isStreaming,
+    queryFn: () => fetchSessionMessages(threadId ?? ""),
+    enabled: !!threadId && localIsEmpty && !isStreaming && !isEphemeral,
     staleTime: 60_000,
     retry: false,
   });

@@ -1,6 +1,42 @@
-const BASE_URL = "/api";
+/**
+ * Optional bearer token for authenticated UAR deployments.
+ * Set VITE_UAR_API_KEY in your .env file.
+ */
+const UAR_API_KEY = (import.meta.env.VITE_UAR_API_KEY as string | undefined) ?? "";
 
-class ApiError extends Error {
+// ---------------------------------------------------------------------------
+// Active session tracker
+// ---------------------------------------------------------------------------
+
+/**
+ * The UUID session ID for the currently active thread.
+ *
+ * The UAR associates all conversation state (messages, memory, tool context)
+ * with a session ID. This must be a stable UUID created once per thread and
+ * sent as `X-UAR-Session-ID` on EVERY request while that thread is active.
+ *
+ * Set by `setActiveSessionId` when a thread page mounts; cleared on unmount.
+ * Stored as a module-level variable so it is accessible to both the api helper
+ * and the raw `fetch` calls in use-message-stream / use-thread-naming.
+ */
+let _activeSessionId: string | null = null;
+
+/** Call this when the user enters a thread. The ID must be a stable UUID. */
+export function setActiveSessionId(id: string): void {
+  _activeSessionId = id;
+}
+
+/** Call this when the user leaves a thread (component unmount). */
+export function clearActiveSessionId(): void {
+  _activeSessionId = null;
+}
+
+/** Read the current session ID (e.g. for raw fetch calls outside the api helper). */
+export function getActiveSessionId(): string | null {
+  return _activeSessionId;
+}
+
+export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
@@ -10,20 +46,55 @@ class ApiError extends Error {
   }
 }
 
+/**
+ * Build a relative request URL.
+ *
+ * All API traffic is routed through the Vite dev-server proxy (or a production
+ * reverse proxy), so we always use relative paths. This avoids cross-origin
+ * requests in the browser — the proxy forwards server-to-server, which is not
+ * subject to the Same-Origin Policy.
+ */
+function buildUrl(path: string): string {
+  if (
+    path.startsWith("/api") ||
+    path.startsWith("/health") ||
+    path.startsWith("/ready")
+  ) {
+    return path;
+  }
+  return `/api${path}`;
+}
+
+/**
+ * Merge base headers (auth + content-type + session) with caller-supplied overrides.
+ *
+ * Precedence (lowest → highest):
+ *   1. Content-Type: application/json
+ *   2. X-UAR-Session-ID from _activeSessionId (when a thread is active)
+ *   3. Authorization Bearer token (from VITE_UAR_API_KEY)
+ *   4. `extra` — caller overrides (e.g. ephemeral session IDs for title gen)
+ */
+function buildHeaders(extra: HeadersInit = {}): Record<string, string> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(_activeSessionId ? { "X-UAR-Session-ID": _activeSessionId } : {}),
+    ...(extra as Record<string, string>),
+  };
+  if (UAR_API_KEY) {
+    headers["Authorization"] = `Bearer ${UAR_API_KEY}`;
+  }
+  return headers;
+}
+
 async function request<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const url = path.startsWith("/api") || path.startsWith("/health") || path.startsWith("/ready")
-    ? path
-    : `${BASE_URL}${path}`;
+  const url = buildUrl(path);
 
   const res = await fetch(url, {
     ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
+    headers: buildHeaders(options.headers),
   });
 
   if (!res.ok) {
@@ -32,16 +103,31 @@ async function request<T>(
   }
 
   if (res.status === 204) return undefined as T;
-  return res.json();
+  return res.json() as Promise<T>;
 }
 
 export const api = {
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: "POST", body: body ? JSON.stringify(body) : undefined }),
+  patch: <T>(path: string, body?: unknown) =>
+    request<T>(path, { method: "PATCH", body: body ? JSON.stringify(body) : undefined }),
   put: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: "PUT", body: body ? JSON.stringify(body) : undefined }),
   delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
 };
 
-export { ApiError };
+// ---------------------------------------------------------------------------
+// JWT detection helper
+// ---------------------------------------------------------------------------
+
+/** True when VITE_UAR_API_KEY is a JWT Bearer token (starts with "ey"). */
+export function isJwtConfigured(): boolean {
+  return UAR_API_KEY.startsWith("ey");
+}
+
+/**
+ * Exported for use outside the api helper (e.g. SSE streams that use fetch directly).
+ * Builds the full URL and injects auth headers.
+ */
+export { buildUrl, buildHeaders };

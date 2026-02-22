@@ -1,21 +1,31 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { Server, Wrench, Palette, Info } from "lucide-react";
+import { Server, Wrench, Palette, Info, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { SectionLabel } from "@/components/common/section-label";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { isJwtConfigured } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 
-const settingsNav = [
+const BASE_NAV = [
   { to: "/settings/providers", label: "Providers", icon: Server },
   { to: "/settings/skills", label: "Skills", icon: Wrench },
   { to: "/settings/appearance", label: "Appearance", icon: Palette },
   { to: "/settings/about", label: "About", icon: Info },
 ];
 
+function useSettingsNav() {
+  const items = [...BASE_NAV];
+  if (isJwtConfigured()) {
+    items.push({ to: "/settings/account", label: "Account", icon: UserCog });
+  }
+  return items;
+}
+
 export default function SettingsPage() {
   const isMobile = useIsMobile();
+  const settingsNav = useSettingsNav();
 
   return (
     <div className="flex flex-1 flex-col md:flex-row">

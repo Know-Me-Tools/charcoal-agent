@@ -1,12 +1,14 @@
-import { MessageSquare, Plus, Search, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { MessageSquare, Plus, Search, Trash2, ChevronDown, Bot, UserCog } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { SectionLabel } from "@/components/common/section-label";
 import { Button } from "@/components/ui/button";
+import { UarStatus } from "@/components/common/uar-status";
 import { useThreadRegistryStore } from "@/stores/thread-registry-store";
 import { useChatMessageStore } from "@/stores/chat-message-store";
+import { useAgents } from "@/hooks/use-agents";
 import { useUi } from "@/hooks/use-ui";
-import { api } from "@/lib/api-client";
+import { api, isJwtConfigured } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import type { LocalThread } from "@/types";
 
@@ -14,8 +16,98 @@ interface LeftSidebarProps {
   className?: string;
 }
 
+// ── Agent selector dropdown for new thread creation ──────────────────────────
+
+interface AgentSelectorProps {
+  selectedId: string;
+  selectedName: string;
+  onChange: (id: string, name: string) => void;
+}
+
+function AgentSelector({ selectedId, selectedName, onChange }: AgentSelectorProps) {
+  const { data: agents } = useAgents();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const displayName = selectedId ? selectedName : "Default agent";
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex h-6 w-full items-center justify-between gap-1 rounded border border-border bg-background px-2 font-ui text-[11px] text-muted-foreground hover:border-primary/30 hover:text-foreground"
+      >
+        <div className="flex min-w-0 items-center gap-1">
+          <Bot size={11} className="shrink-0" />
+          <span className="truncate">{displayName}</span>
+        </div>
+        <ChevronDown size={10} className="shrink-0" />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-border bg-card shadow-lg">
+          {/* Default option */}
+          <button
+            type="button"
+            onClick={() => { onChange("", "Default agent"); setOpen(false); }}
+            className={cn(
+              "w-full px-3 py-2 text-left font-ui text-[11px] hover:bg-muted",
+              !selectedId && "text-primary font-semibold",
+            )}
+          >
+            Default agent
+          </button>
+
+          {agents && agents.length > 0 && (
+            <>
+              <div className="border-t border-border" />
+              {agents.map((agent) => (
+                <button
+                  key={agent.id}
+                  type="button"
+                  onClick={() => { onChange(agent.id, agent.name); setOpen(false); }}
+                  className={cn(
+                    "w-full px-3 py-2 text-left font-ui text-[11px] hover:bg-muted",
+                    selectedId === agent.id && "text-primary font-semibold",
+                  )}
+                >
+                  <span className="block truncate">{agent.name}</span>
+                  {agent.source && (
+                    <span className="font-mono text-[9px] text-muted-foreground capitalize">
+                      {agent.source}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Main sidebar ─────────────────────────────────────────────────────────────
+
 export function LeftSidebar({ className }: LeftSidebarProps) {
   const [search, setSearch] = useState("");
+  const [selectedAgentId, setSelectedAgentId] = useState("");
+  const [selectedAgentName, setSelectedAgentName] = useState("Default agent");
+  const [showAgentPicker, setShowAgentPicker] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
   const { setMobileSidebarOpen } = useUi();
@@ -40,9 +132,14 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
 
   const handleNewThread = () => {
     const id = crypto.randomUUID();
-    registerThread(id);
+    registerThread(
+      id,
+      selectedAgentId || undefined,
+      selectedAgentId ? selectedAgentName : undefined,
+    );
     navigate(`/threads/${id}`);
     setMobileSidebarOpen(false);
+    setShowAgentPicker(false);
   };
 
   const handleSelectThread = (thread: LocalThread) => {
@@ -99,16 +196,47 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
       {/* Header */}
       <div className="flex items-center justify-between p-3">
         <SectionLabel>Threads</SectionLabel>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleNewThread}
-          className="h-7 gap-1.5 px-2.5 font-ui text-xs font-semibold text-muted-foreground hover:border-primary hover:text-primary"
-        >
-          <Plus size={14} />
-          New thread
-        </Button>
+        <div className="flex items-center gap-1.5">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowAgentPicker((v) => !v)}
+            title="Choose agent for new thread"
+            className={cn(
+              "h-7 w-7 p-0 text-muted-foreground hover:text-foreground",
+              showAgentPicker && "text-primary",
+            )}
+          >
+            <Bot size={14} />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleNewThread}
+            className="h-7 gap-1.5 px-2.5 font-ui text-xs font-semibold text-muted-foreground hover:border-primary hover:text-primary"
+          >
+            <Plus size={14} />
+            New thread
+          </Button>
+        </div>
       </div>
+
+      {/* Agent picker (shown when bot icon toggled) */}
+      {showAgentPicker && (
+        <div className="px-3 pb-2">
+          <p className="mb-1 font-mono text-[10px] text-muted-foreground">
+            Agent for new thread
+          </p>
+          <AgentSelector
+            selectedId={selectedAgentId}
+            selectedName={selectedAgentName}
+            onChange={(id, name) => {
+              setSelectedAgentId(id);
+              setSelectedAgentName(name);
+            }}
+          />
+        </div>
+      )}
 
       {/* Search */}
       <div className="px-3 pb-2">
@@ -125,7 +253,7 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
       </div>
 
       {/* Thread list */}
-      <div className="flex-1 overflow-y-auto px-1.5">
+      <div className="flex-1 overflow-y-auto px-1.5" style={{ minHeight: 0 }}>
         {visibleThreads.length === 0 ? (
           <div className="px-3 py-8 text-center">
             <p className="font-mono text-[11px] text-primary">
@@ -160,6 +288,12 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
                     <span className="font-mono text-[10px] text-muted-foreground">
                       {formatTime(thread.updatedAt)}
                     </span>
+                    {thread.agentName && (
+                      <span className="flex items-center gap-0.5 font-mono text-[10px] text-primary/70">
+                        <Bot size={9} />
+                        {thread.agentName}
+                      </span>
+                    )}
                   </div>
                 </div>
               </Button>
@@ -174,6 +308,21 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
               </Button>
             </div>
           ))
+        )}
+      </div>
+
+      {/* Footer: UAR status + account link (JWT only) */}
+      <div className="border-t border-border px-1.5 py-1.5">
+        <UarStatus />
+        {isJwtConfigured() && (
+          <button
+            type="button"
+            onClick={() => { navigate("/settings/account"); setMobileSidebarOpen(false); }}
+            className="mt-1 flex w-full items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[10px] text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+          >
+            <UserCog size={11} />
+            Account settings
+          </button>
         )}
       </div>
     </aside>

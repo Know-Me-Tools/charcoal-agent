@@ -7,7 +7,9 @@
  * not pollute the real thread's conversation history on the backend.
  */
 
-const TITLE_GEN_URL = "/api/chat/completion";
+import { buildUrl, buildHeaders } from "@/lib/api-client";
+
+const TITLE_GEN_PATH = "/api/chat/completion";
 
 const TITLE_PROMPT = (userMsg: string, assistantMsg: string) =>
   `Generate a concise 4-6 word title that captures the topic of this conversation.
@@ -35,16 +37,14 @@ export async function generateThreadTitle(
   const fallback = "New conversation";
   if (!userMsg.trim() || !assistantMsg.trim()) return fallback;
 
-  // Use an ephemeral session so this call never leaks into real thread history
-  const ephemeralSessionId = `__title_gen__${Date.now()}`;
+  // Use an ephemeral session so this call never leaks into real thread history.
+  // Must be a valid UUID — the UAR validates X-UAR-Session-ID strictly.
+  const ephemeralSessionId = crypto.randomUUID();
 
   try {
-    const res = await fetch(TITLE_GEN_URL, {
+    const res = await fetch(buildUrl(TITLE_GEN_PATH), {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-UAR-Session-ID": ephemeralSessionId,
-      },
+      headers: buildHeaders({ "X-UAR-Session-ID": ephemeralSessionId }),
       body: JSON.stringify({
         message: TITLE_PROMPT(userMsg, assistantMsg),
         stream: false,

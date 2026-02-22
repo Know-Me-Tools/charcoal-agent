@@ -1,65 +1,174 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useAgent, useCreateAgent, useUpdateAgent } from "@/hooks/use-agents";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { useAgent, useCompileAgent } from "@/hooks/use-agents";
 import { useProviders, useProviderModels } from "@/hooks/use-providers";
 import { useSkills } from "@/hooks/use-skills";
 import { SectionLabel } from "@/components/common/section-label";
-import { ArrowLeft, Save } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import type { Agent } from "@/types";
+
+// ── Markdown editor ───────────────────────────────────────────────────────────
+
+interface MarkdownEditorFieldProps {
+  id: string;
+  label: string;
+  value: string;
+  placeholder?: string;
+  rows?: number;
+  onChange: (value: string) => void;
+}
+
+function MarkdownEditorField({
+  id,
+  label,
+  value,
+  placeholder,
+  rows = 10,
+  onChange,
+}: MarkdownEditorFieldProps) {
+  return (
+    <div className="space-y-1.5">
+      <label htmlFor={id} className="ui-label block text-foreground">
+        {label}
+      </label>
+      <Tabs defaultValue="write" className="w-full">
+        <TabsList className="mb-1 h-7">
+          <TabsTrigger value="write" className="h-6 px-3 font-ui text-xs">
+            Write
+          </TabsTrigger>
+          <TabsTrigger value="preview" className="h-6 px-3 font-ui text-xs">
+            Preview
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="write" className="mt-0">
+          <textarea
+            id={id}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={placeholder}
+            rows={rows}
+            className="w-full resize-y rounded-md border border-border bg-background px-3 py-2 font-mono text-xs leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          />
+        </TabsContent>
+        <TabsContent value="preview" className="mt-0">
+          <div className="min-h-[10rem] rounded-md border border-border bg-background px-4 py-3">
+            {value.trim() ? (
+              <div className="prose prose-sm max-w-none dark:prose-invert prose-p:leading-relaxed prose-pre:bg-muted prose-pre:text-foreground">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {value}
+                </ReactMarkdown>
+              </div>
+            ) : (
+              <p className="font-body text-xs text-muted-foreground">
+                Nothing to preview yet.
+              </p>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+// ── Form state ────────────────────────────────────────────────────────────────
+
+interface FormState {
+  name: string;
+  description: string;
+  systemPrompt: string;
+  providerId: string;
+  modelId: string;
+  selectedSkills: string[];
+}
+
+const EMPTY_FORM: FormState = {
+  name: "",
+  description: "",
+  systemPrompt: "",
+  providerId: "",
+  modelId: "",
+  selectedSkills: [],
+};
+
+function formFromAgent(agent: Agent): FormState {
+  return {
+    name: agent.name,
+    description: agent.metadata?.description ?? "",
+    systemPrompt: agent.system_prompt,
+    providerId: agent.provider_id,
+    modelId: agent.model_id,
+    selectedSkills: agent.skills,
+  };
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function AgentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const isNew = id === "new";
   const navigate = useNavigate();
+
   const { data: agent } = useAgent(isNew ? undefined : id);
-  const { data: providers } = useProviders();
+  const { data: providersData } = useProviders();
+  const providers = providersData?.providers ?? [];
   const { data: skills } = useSkills();
-  const createAgent = useCreateAgent();
-  const updateAgent = useUpdateAgent();
+  const compileAgent = useCompileAgent();
 
-  const [name, setName] = useState("");
-  const [systemPrompt, setSystemPrompt] = useState("");
-  const [providerId, setProviderId] = useState("");
-  const [modelId, setModelId] = useState("");
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  // Sync form when agent data arrives (avoids setState-in-effect lint).
+  const [prevAgent, setPrevAgent] = useState<Agent | undefined>(undefined);
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
 
-  const { data: models } = useProviderModels(providerId || undefined);
+  if (agent !== prevAgent) {
+    setPrevAgent(agent);
+    if (agent) setForm(formFromAgent(agent));
+  }
 
-  useEffect(() => {
-    if (agent) {
-      setName(agent.name);
-      setSystemPrompt(agent.system_prompt);
-      setProviderId(agent.provider_id);
-      setModelId(agent.model_id);
-      setSelectedSkills(agent.skills);
-    }
-  }, [agent]);
+  const { data: models } = useProviderModels(form.providerId || undefined);
+
+  const setField = <K extends keyof FormState>(key: K, value: FormState[K]) =>
+    setForm((f) => ({ ...f, [key]: value }));
 
   const handleSave = () => {
-    const payload = {
-      name,
-      system_prompt: systemPrompt,
-      provider_id: providerId,
-      model_id: modelId,
-      skills: selectedSkills,
-    };
-
-    if (isNew) {
-      createAgent.mutate(payload, { onSuccess: () => navigate("/agents") });
-    } else if (id) {
-      updateAgent.mutate({ id, ...payload }, { onSuccess: () => navigate("/agents") });
-    }
+    compileAgent.mutate(
+      {
+        name: form.name,
+        description: form.description,
+        systemPrompt: form.systemPrompt,
+        providerId: form.providerId,
+        modelId: form.modelId,
+        skills: form.selectedSkills,
+      },
+      { onSuccess: () => navigate("/agents") },
+    );
   };
 
   const toggleSkill = (skillId: string) => {
-    setSelectedSkills((prev) =>
-      prev.includes(skillId) ? prev.filter((s) => s !== skillId) : [...prev, skillId],
+    setField(
+      "selectedSkills",
+      form.selectedSkills.includes(skillId)
+        ? form.selectedSkills.filter((s) => s !== skillId)
+        : [...form.selectedSkills, skillId],
     );
   };
+
+  const isSaving = compileAgent.isPending;
+  const saveDisabled = !form.name || !form.providerId || !form.modelId || isSaving;
 
   return (
     <div className="flex flex-1 flex-col p-4 md:p-6">
       <div className="mb-6">
         <button
+          type="button"
           onClick={() => navigate("/agents")}
           className="mb-4 flex items-center gap-1.5 font-ui text-sm text-muted-foreground transition-hover hover:text-foreground"
         >
@@ -68,81 +177,133 @@ export default function AgentDetailPage() {
         </button>
         <SectionLabel>{isNew ? "New Agent" : "Edit Agent"}</SectionLabel>
         <h1 className="mt-1 font-display text-xl font-bold text-foreground md:text-2xl">
-          {isNew ? "Create Agent" : name || "Agent"}
+          {isNew ? "Create Agent" : form.name || "Agent"}
         </h1>
+        {!isNew && id && (
+          <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
+            {id}
+          </p>
+        )}
       </div>
 
       <div className="max-w-2xl space-y-6">
+        {/* Name */}
         <div>
-          <label className="ui-label mb-1.5 block text-foreground">Name</label>
+          <label
+            htmlFor="agent-name"
+            className="ui-label mb-1.5 block text-foreground"
+          >
+            Name
+          </label>
           <input
+            id="agent-name"
             type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={form.name}
+            onChange={(e) => setField("name", e.target.value)}
             placeholder="Agent name"
             className="w-full rounded-md border border-border bg-background px-3 py-2 font-ui text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           />
         </div>
 
+        {/* Description */}
         <div>
-          <label className="ui-label mb-1.5 block text-foreground">System Prompt</label>
-          <textarea
-            value={systemPrompt}
-            onChange={(e) => setSystemPrompt(e.target.value)}
-            placeholder="Instruct the agent on how to behave..."
-            rows={8}
-            className="w-full resize-y rounded-md border border-border bg-background px-3 py-2 font-body text-sm leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <label
+            htmlFor="agent-description"
+            className="ui-label mb-1.5 block text-foreground"
+          >
+            Description
+          </label>
+          <input
+            id="agent-description"
+            type="text"
+            value={form.description}
+            onChange={(e) => setField("description", e.target.value)}
+            placeholder="What does this agent do?"
+            className="w-full rounded-md border border-border bg-background px-3 py-2 font-ui text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           />
         </div>
 
+        {/* System prompt — markdown editor */}
+        <MarkdownEditorField
+          id="agent-system-prompt"
+          label="System Prompt"
+          value={form.systemPrompt}
+          placeholder="Instruct the agent on how to behave..."
+          rows={10}
+          onChange={(v) => setField("systemPrompt", v)}
+        />
+
+        {/* Provider + Model */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="ui-label mb-1.5 block text-foreground">Provider</label>
-            <select
-              value={providerId}
-              onChange={(e) => {
-                setProviderId(e.target.value);
-                setModelId("");
-              }}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 font-ui text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            <label
+              htmlFor="agent-provider"
+              className="ui-label mb-1.5 block text-foreground"
             >
-              <option value="">Select provider</option>
-              {providers?.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
+              Provider
+            </label>
+            <Select
+              value={form.providerId}
+              onValueChange={(v) => {
+                setForm((f) => ({ ...f, providerId: v, modelId: "" }));
+              }}
+            >
+              <SelectTrigger id="agent-provider" className="w-full font-ui text-sm">
+                <SelectValue placeholder="Select provider" />
+              </SelectTrigger>
+              <SelectContent>
+                {providers.map((p) => (
+                  <SelectItem key={p.id} value={p.id} className="font-ui text-sm">
+                    {p.display_name ?? p.id}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
-            <label className="ui-label mb-1.5 block text-foreground">Model</label>
-            <select
-              value={modelId}
-              onChange={(e) => setModelId(e.target.value)}
-              disabled={!providerId}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 font-ui text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+            <label
+              htmlFor="agent-model"
+              className="ui-label mb-1.5 block text-foreground"
             >
-              <option value="">Select model</option>
-              {models?.map((m) => (
-                <option key={m.id} value={m.model_id}>
-                  {m.name || m.model_id}
-                </option>
-              ))}
-            </select>
+              Model
+            </label>
+            <Select
+              value={form.modelId}
+              onValueChange={(v) => setField("modelId", v)}
+              disabled={!form.providerId}
+            >
+              <SelectTrigger id="agent-model" className="w-full font-ui text-sm">
+                <SelectValue placeholder="Select model" />
+              </SelectTrigger>
+              <SelectContent>
+                {models?.map((m) => (
+                  <SelectItem key={m.id} value={m.id} className="font-ui text-sm">
+                    {m.display_name || m.id}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
+        {/* Skills */}
         {skills && skills.length > 0 && (
           <div>
-            <label className="ui-label mb-1.5 block text-foreground">Skills</label>
-            <div className="flex flex-wrap gap-2">
+            <label
+              htmlFor="agent-skills"
+              className="ui-label mb-1.5 block text-foreground"
+            >
+              Skills
+            </label>
+            <div id="agent-skills" className="flex flex-wrap gap-2">
               {skills.map((skill) => (
                 <button
                   key={skill.id}
+                  type="button"
                   onClick={() => toggleSkill(skill.id)}
                   className={`rounded-md border px-3 py-1.5 font-ui text-xs font-semibold transition-hover ${
-                    selectedSkills.includes(skill.id)
+                    form.selectedSkills.includes(skill.id)
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-border text-muted-foreground hover:border-primary/30"
                   }`}
@@ -154,12 +315,24 @@ export default function AgentDetailPage() {
           </div>
         )}
 
+        {/* Save */}
+        {compileAgent.isError && (
+          <p className="font-mono text-xs text-destructive">
+            {(compileAgent.error as Error).message}
+          </p>
+        )}
+
         <button
+          type="button"
           onClick={handleSave}
-          disabled={!name || !providerId || !modelId}
+          disabled={saveDisabled}
           className="flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-5 font-ui text-sm font-semibold text-primary-foreground transition-hover hover:bg-primary/90 disabled:opacity-40 sm:w-auto"
         >
-          <Save size={16} />
+          {isSaving ? (
+            <Loader2 size={16} className="animate-spin" />
+          ) : (
+            <Save size={16} />
+          )}
           {isNew ? "Create agent" : "Save agent"}
         </button>
       </div>

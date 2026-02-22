@@ -61,6 +61,47 @@ const MIGRATIONS: Migration[] = [
       );
     `,
   },
+  {
+    version: 2,
+    name: "ensure_agent_columns",
+    up: `
+      -- Add agent_id and agent_name if they were missed in v1 (idempotent ADD COLUMN IF NOT EXISTS).
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'threads' AND column_name = 'agent_id'
+        ) THEN
+          ALTER TABLE threads ADD COLUMN agent_id TEXT;
+        END IF;
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'threads' AND column_name = 'agent_name'
+        ) THEN
+          ALTER TABLE threads ADD COLUMN agent_name TEXT;
+        END IF;
+      END $$;
+    `,
+  },
+  {
+    version: 3,
+    name: "add_session_id",
+    up: `
+      -- Add an explicit session_id column so the UAR session UUID is stored
+      -- alongside the thread and is unambiguously recoverable after a restart.
+      -- For all existing threads session_id equals id (they were always the same).
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'threads' AND column_name = 'session_id'
+        ) THEN
+          ALTER TABLE threads ADD COLUMN session_id TEXT;
+          UPDATE threads SET session_id = id WHERE session_id IS NULL;
+          ALTER TABLE threads ALTER COLUMN session_id SET NOT NULL;
+          CREATE UNIQUE INDEX IF NOT EXISTS idx_threads_session_id ON threads(session_id);
+        END IF;
+      END $$;
+    `,
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -69,6 +110,7 @@ const MIGRATIONS: Migration[] = [
 
 interface ThreadRow {
   id: string;
+  session_id: string;
   title: string;
   agent_id: string | null;
   agent_name: string | null;
@@ -195,20 +237,35 @@ export class CharcoalDb {
 
   async getThreads(): Promise<LocalThread[]> {
     const { rows } = await this.db.query<ThreadRow>(
-      "SELECT id, title, agent_id, agent_name, is_ephemeral, created_at, updated_at FROM threads ORDER BY updated_at DESC",
+      "SELECT id, session_id, title, agent_id, agent_name, is_ephemeral, created_at, updated_at FROM threads ORDER BY updated_at DESC",
     );
     return rows.map(rowToThread);
   }
 
   async upsertThread(thread: LocalThread): Promise<void> {
+    // session_id is always the same UUID as id — stored explicitly so it can
+    // be read back after a restart without relying on the URL or in-memory state.
+    const sessionId = thread.sessionId ?? thread.id;
     await this.db.query(
-      `INSERT INTO threads (id, title, is_ephemeral, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO threads (id, session_id, title, agent_id, agent_name, is_ephemeral, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        ON CONFLICT (id) DO UPDATE
-         SET title        = EXCLUDED.title,
+         SET session_id   = EXCLUDED.session_id,
+             title        = EXCLUDED.title,
+             agent_id     = EXCLUDED.agent_id,
+             agent_name   = EXCLUDED.agent_name,
              is_ephemeral = EXCLUDED.is_ephemeral,
              updated_at   = EXCLUDED.updated_at`,
-      [thread.id, thread.title, thread.isEphemeral, thread.createdAt, thread.updatedAt],
+      [
+        thread.id,
+        sessionId,
+        thread.title,
+        thread.agentId ?? null,
+        thread.agentName ?? null,
+        thread.isEphemeral,
+        thread.createdAt,
+        thread.updatedAt,
+      ],
     );
   }
 
@@ -282,10 +339,15 @@ export class CharcoalDb {
 function rowToThread(row: ThreadRow): LocalThread {
   return {
     id: row.id,
+    // session_id equals id by convention; fall back to id for rows written
+    // before migration v3 (though the migration back-fills them).
+    sessionId: row.session_id ?? row.id,
     title: row.title,
     isEphemeral: row.is_ephemeral,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    agentId: row.agent_id ?? undefined,
+    agentName: row.agent_name ?? undefined,
   };
 }
 

@@ -115,8 +115,68 @@ function richMessageToThreadMessageLike(msg: RichMessage): ThreadMessageLike {
           isError: false,
         });
         break;
+      case "citation":
+        // Encode as a pseudo-tool-call so assistant-ui routes it to CitationBlock
+        parts.push({
+          type: "tool-call",
+          toolCallId: `citation-${block.source}-${parts.length}`,
+          toolName: "__citation__",
+          args: {
+            source: block.source,
+            content: block.content,
+            url: block.url,
+          },
+          result: undefined,
+          isError: false,
+        });
+        break;
+      case "memory-recall":
+        parts.push({
+          type: "tool-call",
+          toolCallId: `memory-recall-${parts.length}`,
+          toolName: "__memory_recall__",
+          args: { items: block.items, count: block.count },
+          result: undefined,
+          isError: false,
+        });
+        break;
+      case "memory-mutation":
+        parts.push({
+          type: "tool-call",
+          toolCallId: `memory-mutation-${block.memoryId}`,
+          toolName: "__memory_mutation__",
+          args: {
+            operation: block.operation,
+            memoryId: block.memoryId,
+            content: block.content,
+            scope: block.scope,
+            memoryType: block.memoryType,
+          },
+          result: undefined,
+          isError: false,
+        });
+        break;
+      case "artifact":
+        parts.push({
+          type: "tool-call",
+          toolCallId: `artifact-${block.artifactId}`,
+          toolName: block.isInputRequest ? "__artifact_input__" : "__artifact__",
+          args: {
+            artifactId: block.artifactId,
+            artifactType: block.artifactType,
+            title: block.title,
+            content: block.content,
+            language: block.language,
+            isInputRequest: block.isInputRequest,
+            runId: block.runId,
+            metadata: block.metadata ?? {},
+          },
+          result: undefined,
+          isError: false,
+        });
+        break;
       default:
-        // citation, image, error — intentionally skipped (no assistant-ui equivalent)
+        // image, error — intentionally skipped (no assistant-ui equivalent)
         break;
     }
   }
@@ -156,7 +216,12 @@ function extractText(msg: RichMessage): string {
     .join("");
 }
 
-export function useChatRuntime(threadId: string) {
+export interface ChatRuntimeOptions {
+  /** Session-level prompt-caching override forwarded to every chat request. */
+  promptCachingEnabled?: boolean;
+}
+
+export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {}) {
   const qc = useQueryClient();
   const consumePendingPrompt = useChatIntentStore((s) => s.consumePendingPrompt);
   const { startStream, cancelStream } = useMessageStream();
@@ -231,9 +296,16 @@ export function useChatRuntime(threadId: string) {
       // biome-ignore lint/suspicious/noExplicitAny: text part type is not narrowed by the library
       const userText = (textPart as any).text as string; // eslint-disable-line @typescript-eslint/no-explicit-any
 
+      // Include agent_id if this thread has one associated
+      const thread = useThreadRegistryStore.getState().threads[threadId];
+
       await startStream(
         threadId,
-        { message: userText },
+        {
+          message: userText,
+          agent_id: thread?.agentId,
+          prompt_caching_enabled: options.promptCachingEnabled,
+        },
         {
           onComplete: () => {
             void afterStreamComplete(userText);
@@ -241,7 +313,7 @@ export function useChatRuntime(threadId: string) {
         },
       );
     },
-    [threadId, startStream, afterStreamComplete],
+    [threadId, startStream, afterStreamComplete, options.promptCachingEnabled],
   );
 
   const onCancel = useCallback(async () => {
@@ -260,9 +332,14 @@ export function useChatRuntime(threadId: string) {
     if (!pending) return;
 
     initialMessageSent.current = true;
+    const threadForPending = useThreadRegistryStore.getState().threads[threadId];
     void startStream(
       threadId,
-      { message: pending },
+      {
+        message: pending,
+        agent_id: threadForPending?.agentId,
+        prompt_caching_enabled: options.promptCachingEnabled,
+      },
       {
         onComplete: () => {
           void afterStreamComplete(pending);

@@ -27,8 +27,11 @@ import {
 	SparklesIcon,
 	SquareIcon,
 	UserIcon,
+	ZapIcon,
+	ZapOffIcon,
 } from "lucide-react";
 import { type FC, useState } from "react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
 	ComposerAddAttachment,
 	ComposerAttachments,
@@ -36,15 +39,34 @@ import {
 } from "@/components/assistant-ui/attachment";
 import { EnhancedMarkdownText } from "@/components/assistant-ui/enhanced-markdown-text";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Separator } from "@/components/ui/separator";
+import { ArtifactBlock } from "@/features/chat/components/artifact-block";
+import { A2uiInputBlock, A2uiDisplayBlock } from "@/features/chat/components/a2ui-artifact-block";
 import { ContextUpdateBlock } from "@/features/chat/components/context-update-block";
+import { MemoryMutationBlock, MemoryRecallBlock } from "@/features/chat/components/memory-block";
 import { SkillActivationBlock } from "@/features/chat/components/skill-activation-block";
 import { ToolCallBlockWrapper } from "@/features/chat/components/tool-call-block";
+import { CitationBlock } from "@/features/chat/components/citation-block";
 import { cn } from "@/lib/utils";
 
 // ─── Root Thread ─────────────────────────────────────────────────────────────
 
-export const EnhancedThread: FC = () => {
+interface EnhancedThreadProps {
+	/** Current session-level prompt-caching override (undefined = inherit). */
+	promptCachingEnabled?: boolean;
+	/** Called when the user clicks the prompt-caching toggle in the toolbar. */
+	onTogglePromptCaching?: () => void;
+}
+
+export const EnhancedThread: FC<EnhancedThreadProps> = ({
+	promptCachingEnabled,
+	onTogglePromptCaching,
+}) => {
 	return (
 		<ThreadPrimitive.Root
 			className="aui-root aui-thread-root @container flex h-full flex-col bg-background"
@@ -68,7 +90,10 @@ export const EnhancedThread: FC = () => {
 
 				<ThreadPrimitive.ViewportFooter className="aui-thread-viewport-footer sticky bottom-0 mx-auto mt-auto flex w-full max-w-(--thread-max-width) flex-col gap-4 overflow-visible rounded-t-3xl bg-background pb-4 md:pb-6">
 					<ThreadScrollToBottom />
-					<EnhancedComposer />
+					<EnhancedComposer
+						promptCachingEnabled={promptCachingEnabled}
+						onTogglePromptCaching={onTogglePromptCaching}
+					/>
 				</ThreadPrimitive.ViewportFooter>
 			</ThreadPrimitive.Viewport>
 		</ThreadPrimitive.Root>
@@ -126,7 +151,12 @@ const ThreadScrollToBottom: FC = () => (
 
 // ─── Composer ────────────────────────────────────────────────────────────────
 
-const EnhancedComposer: FC = () => (
+interface ComposerProps {
+	promptCachingEnabled?: boolean;
+	onTogglePromptCaching?: () => void;
+}
+
+const EnhancedComposer: FC<ComposerProps> = ({ promptCachingEnabled, onTogglePromptCaching }) => (
 	<ComposerPrimitive.Root className="relative flex w-full flex-col">
 		<ComposerPrimitive.AttachmentDropzone className="flex w-full flex-col rounded-2xl border border-input bg-background/80 px-1 pt-2 backdrop-blur-sm outline-none transition-shadow has-[textarea:focus-visible]:border-ring has-[textarea:focus-visible]:ring-2 has-[textarea:focus-visible]:ring-ring/20 data-[dragging=true]:border-ring data-[dragging=true]:border-dashed data-[dragging=true]:bg-accent/50">
 			<ComposerAttachments />
@@ -137,52 +167,96 @@ const EnhancedComposer: FC = () => (
 				autoFocus
 				aria-label="Message input"
 			/>
-			<ComposerActionBar />
+			<ComposerActionBar
+				promptCachingEnabled={promptCachingEnabled}
+				onTogglePromptCaching={onTogglePromptCaching}
+			/>
 		</ComposerPrimitive.AttachmentDropzone>
 	</ComposerPrimitive.Root>
 );
 
-const ComposerActionBar: FC = () => (
-	<div className="relative mx-2 mb-2 flex items-center justify-between">
-		<ComposerAddAttachment />
-		<AuiIf condition={(s) => !s.thread.isRunning}>
-			<ComposerPrimitive.Send asChild>
-				<TooltipIconButton
-					tooltip="Send message"
-					side="bottom"
-					type="submit"
-					variant="default"
-					size="icon"
-					className="size-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
-					aria-label="Send message"
-				>
-					<ArrowUpIcon className="size-4" />
-				</TooltipIconButton>
-			</ComposerPrimitive.Send>
-		</AuiIf>
-		<AuiIf condition={(s) => s.thread.isRunning}>
-			<ComposerPrimitive.Cancel asChild>
-				<Button
-					type="button"
-					variant="default"
-					size="icon"
-					className="size-8 rounded-full"
-					aria-label="Stop generating"
-				>
-					<SquareIcon className="size-3 fill-current" />
-				</Button>
-			</ComposerPrimitive.Cancel>
-		</AuiIf>
-	</div>
-);
+const ComposerActionBar: FC<ComposerProps> = ({ promptCachingEnabled, onTogglePromptCaching }) => {
+	const isCachingOn = promptCachingEnabled === true;
+	const isCachingOff = promptCachingEnabled === false;
+	const label =
+		isCachingOn
+			? "Prompt caching ON (click to disable)"
+			: isCachingOff
+				? "Prompt caching OFF (click to enable)"
+				: "Prompt caching: inherit from server (click to enable)";
+
+	return (
+		<div className="relative mx-2 mb-2 flex items-center justify-between">
+			<div className="flex items-center gap-1">
+				<ComposerAddAttachment />
+				{onTogglePromptCaching && (
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<button
+								type="button"
+								onClick={onTogglePromptCaching}
+								aria-label={label}
+								className={cn(
+									"flex size-7 items-center justify-center rounded-md transition-colors",
+									isCachingOn
+										? "text-primary hover:text-primary/70"
+										: "text-muted-foreground/50 hover:text-muted-foreground",
+								)}
+							>
+								{isCachingOn ? (
+									<ZapIcon className="size-3.5 fill-current" />
+								) : (
+									<ZapOffIcon className="size-3.5" />
+								)}
+							</button>
+						</TooltipTrigger>
+						<TooltipContent side="top" className="font-mono text-[11px]">
+							{label}
+						</TooltipContent>
+					</Tooltip>
+				)}
+			</div>
+			<AuiIf condition={(s) => !s.thread.isRunning}>
+				<ComposerPrimitive.Send asChild>
+					<TooltipIconButton
+						tooltip="Send message"
+						side="bottom"
+						type="submit"
+						variant="default"
+						size="icon"
+						className="size-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
+						aria-label="Send message"
+					>
+						<ArrowUpIcon className="size-4" />
+					</TooltipIconButton>
+				</ComposerPrimitive.Send>
+			</AuiIf>
+			<AuiIf condition={(s) => s.thread.isRunning}>
+				<ComposerPrimitive.Cancel asChild>
+					<Button
+						type="button"
+						variant="default"
+						size="icon"
+						className="size-8 rounded-full"
+						aria-label="Stop generating"
+					>
+						<SquareIcon className="size-3 fill-current" />
+					</Button>
+				</ComposerPrimitive.Cancel>
+			</AuiIf>
+		</div>
+	);
+};
 
 // ─── Avatars ──────────────────────────────────────────────────────────────────
 
 const UserAvatar: FC = () => (
 	<div className="flex flex-col items-center gap-1 pt-0.5">
-		<div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-zinc-700 text-zinc-200 ring-1 ring-zinc-600">
-			<UserIcon size={14} />
-		</div>
+		<Avatar className="size-8 ring-1 ring-zinc-600">
+			<AvatarFallback className="bg-zinc-700 text-zinc-200">
+				<UserIcon size={14} />
+			</AvatarFallback>
+		</Avatar>
 		<span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground/60">
 			You
 		</span>
@@ -191,9 +265,11 @@ const UserAvatar: FC = () => (
 
 const AgentAvatar: FC = () => (
 	<div className="flex flex-col items-center gap-1 pt-0.5">
-		<div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary ring-1 ring-primary/30">
-			<SparklesIcon size={14} />
-		</div>
+		<Avatar className="size-8 ring-1 ring-primary/30">
+			<AvatarFallback className="bg-primary/15 text-primary">
+				<SparklesIcon size={14} />
+			</AvatarFallback>
+		</Avatar>
 		<span className="font-mono text-[9px] uppercase tracking-wider text-primary/70">
 			Agent
 		</span>
@@ -209,9 +285,7 @@ const UserMessage: FC = () => (
 	>
 		<UserMessageAttachments />
 		<div className="flex w-full items-start gap-3">
-			{/* Action bar takes only the space it needs; hidden when not hovered */}
 			<UserActionBar />
-			{/* Bubble expands to fill the full remaining width */}
 			<div className="min-w-0 flex-1">
 				<div className="wrap-break-word rounded-2xl rounded-tr-sm bg-zinc-800 px-4 py-3 font-body text-sm text-foreground leading-relaxed shadow-sm">
 					<MessagePrimitive.Parts
@@ -250,7 +324,6 @@ const AssistantMessage: FC = () => (
 	>
 		<div className="flex w-full items-start gap-3">
 			<AgentAvatar />
-			{/* Bubble expands to fill the full remaining width */}
 			<div className="min-w-0 flex-1">
 				<div className="wrap-break-word rounded-2xl rounded-tl-sm bg-muted/60 px-4 py-3 font-body text-sm text-foreground leading-relaxed shadow-sm">
 					<MessagePrimitive.Parts
@@ -279,47 +352,51 @@ const ReasoningPart: FC = () => {
 	const [isOpen, setIsOpen] = useState(isStreaming);
 
 	return (
-		<div className="my-2 overflow-hidden rounded-lg border border-border/50 bg-muted/20">
-			<Button
-				variant="ghost"
-				onClick={() => setIsOpen((o) => !o)}
-				className="flex h-auto w-full items-center justify-start gap-2 rounded-none px-3 py-2 hover:bg-muted/30"
-				aria-expanded={isOpen}
-			>
-				<BrainIcon size={13} className="shrink-0 text-muted-foreground" />
-				<span className="flex-1 font-mono text-[11px] text-muted-foreground">
-					{isStreaming ? (
-						<span className="flex items-center gap-2">
-							{"// Reasoning"}
-							<span className="inline-flex gap-0.5">
-								<span className="h-1 w-1 animate-pulse rounded-full bg-primary/60 [animation-delay:0s]" />
-								<span className="h-1 w-1 animate-pulse rounded-full bg-primary/60 [animation-delay:0.2s]" />
-								<span className="h-1 w-1 animate-pulse rounded-full bg-primary/60 [animation-delay:0.4s]" />
-							</span>
+		<Card className="my-2 overflow-hidden rounded-lg border-border/50 bg-muted/20 shadow-none">
+			<Collapsible open={isOpen} onOpenChange={setIsOpen}>
+				<CollapsibleTrigger asChild>
+					<Button
+						variant="ghost"
+						className="flex h-auto w-full items-center justify-start gap-2 rounded-none px-3 py-2 hover:bg-muted/30"
+						aria-expanded={isOpen}
+					>
+						<BrainIcon size={13} className="shrink-0 text-muted-foreground" />
+						<span className="flex-1 font-mono text-[11px] text-muted-foreground">
+							{isStreaming ? (
+								<span className="flex items-center gap-2">
+									{"// Reasoning"}
+									<span className="inline-flex gap-0.5">
+										<span className="h-1 w-1 animate-pulse rounded-full bg-primary/60 [animation-delay:0s]" />
+										<span className="h-1 w-1 animate-pulse rounded-full bg-primary/60 [animation-delay:0.2s]" />
+										<span className="h-1 w-1 animate-pulse rounded-full bg-primary/60 [animation-delay:0.4s]" />
+									</span>
+								</span>
+							) : (
+								"// Reasoning"
+							)}
 						</span>
-					) : (
-						"// Reasoning"
-					)}
-				</span>
-				<ChevronDownIcon
-					size={13}
-					className={cn(
-						"shrink-0 text-muted-foreground transition-transform duration-150",
-						isOpen && "rotate-180",
-					)}
-				/>
-			</Button>
-			{isOpen && (
-				<div className="border-t border-border/30 px-3 pb-3 pt-2">
-					<p className="whitespace-pre-wrap font-body text-[13px] leading-relaxed text-muted-foreground">
-						{text}
-						{isStreaming && (
-							<span className="ml-0.5 inline-block h-3.5 w-0.5 animate-[pulse_1s_step-end_infinite] bg-primary" />
-						)}
-					</p>
-				</div>
-			)}
-		</div>
+						<ChevronDownIcon
+							size={13}
+							className={cn(
+								"shrink-0 text-muted-foreground transition-transform duration-150",
+								isOpen && "rotate-180",
+							)}
+						/>
+					</Button>
+				</CollapsibleTrigger>
+				<CollapsibleContent>
+					<Separator className="opacity-30" />
+					<CardContent className="px-3 pb-3 pt-2">
+						<p className="whitespace-pre-wrap font-body text-[13px] leading-relaxed text-muted-foreground">
+							{text}
+							{isStreaming && (
+								<span className="ml-0.5 inline-block h-3.5 w-0.5 animate-[pulse_1s_step-end_infinite] bg-primary" />
+							)}
+						</p>
+					</CardContent>
+				</CollapsibleContent>
+			</Collapsible>
+		</Card>
 	);
 };
 
@@ -331,7 +408,6 @@ const ToolCallPart: FC<ToolCallMessagePartProps> = ({
 	result,
 	status,
 }) => {
-	// Pseudo-tool-calls injected by richMessageToThreadMessageLike for AG-UI events
 	if (toolName === "__skill__") {
 		const a = args as {
 			skillId: string;
@@ -368,7 +444,106 @@ const ToolCallPart: FC<ToolCallMessagePartProps> = ({
 		);
 	}
 
-	// All real MCP / native tool calls
+	if (toolName === "__citation__") {
+		const a = args as { source: string; content: string; url?: string };
+		return <CitationBlock source={a.source} content={a.content} url={a.url} />;
+	}
+
+	if (toolName === "__memory_recall__") {
+		const a = args as {
+			items: Array<{
+				key: string;
+				value: string;
+				source: string;
+				scope?: string;
+				memoryType?: string;
+				importance?: number;
+			}>;
+			count: number;
+		};
+		return <MemoryRecallBlock items={a.items} count={a.count} />;
+	}
+
+	if (toolName === "__memory_mutation__") {
+		const a = args as {
+			operation: string;
+			memoryId: string;
+			content: string;
+			scope: string;
+			memoryType: string;
+		};
+		return (
+			<MemoryMutationBlock
+				operation={a.operation}
+				memoryId={a.memoryId}
+				content={a.content}
+				scope={a.scope}
+				memoryType={a.memoryType}
+			/>
+		);
+	}
+
+	if (toolName === "__artifact_input__") {
+		const a = args as {
+			runId: string;
+			artifactId: string;
+			artifactType: string;
+			title: string;
+			content: string;
+			metadata: Record<string, unknown>;
+		};
+		const artifactStatus =
+			status.type === "running"
+				? "running"
+				: status.type === "incomplete"
+					? "failed"
+					: "complete";
+		return (
+			<A2uiInputBlock
+				runId={a.runId ?? ""}
+				artifactId={a.artifactId}
+				artifactType={a.artifactType}
+				title={a.title}
+				content={a.content}
+				metadata={a.metadata ?? {}}
+				status={artifactStatus}
+			/>
+		);
+	}
+
+	if (toolName === "__artifact__") {
+		const a = args as {
+			artifactId: string;
+			artifactType: string;
+			title: string;
+			content: string;
+			language?: string;
+			isInputRequest: boolean;
+		};
+		// Display-only: use A2uiDisplayBlock for proper rendering, fall back to
+		// ArtifactBlock for legacy persisted records that lack the new fields.
+		if (!a.isInputRequest) {
+			return (
+				<A2uiDisplayBlock
+					artifactType={a.artifactType}
+					title={a.title}
+					content={a.content}
+					language={a.language}
+				/>
+			);
+		}
+		return (
+			<ArtifactBlock
+				artifactId={a.artifactId}
+				artifactType={a.artifactType}
+				title={a.title}
+				content={a.content}
+				language={a.language}
+				isInputRequest={a.isInputRequest}
+			/>
+		);
+	}
+
 	return (
 		<ToolCallBlockWrapper
 			toolName={toolName}
@@ -383,9 +558,11 @@ const ToolCallPart: FC<ToolCallMessagePartProps> = ({
 
 const MessageError: FC = () => (
 	<MessagePrimitive.Error>
-		<ErrorPrimitive.Root className="mt-2 rounded-md border border-destructive bg-destructive/10 p-3 text-destructive text-sm dark:bg-destructive/5 dark:text-red-200">
-			<ErrorPrimitive.Message className="line-clamp-3" />
-		</ErrorPrimitive.Root>
+		<Alert variant="destructive" className="mt-2 py-2">
+			<AlertDescription>
+				<ErrorPrimitive.Message className="line-clamp-3 font-body text-sm" />
+			</AlertDescription>
+		</Alert>
 	</MessagePrimitive.Error>
 );
 
@@ -447,7 +624,7 @@ const EditComposer: FC = () => (
 				className="min-h-14 w-full resize-none bg-transparent p-4 font-body text-foreground text-sm outline-none"
 				autoFocus
 			/>
-			<div className="mx-3 mb-3 flex items-center gap-2 self-end">
+			<CardFooter className="mx-3 mb-3 flex items-center gap-2 self-end p-0">
 				<ComposerPrimitive.Cancel asChild>
 					<Button variant="ghost" size="sm">
 						Cancel
@@ -456,7 +633,7 @@ const EditComposer: FC = () => (
 				<ComposerPrimitive.Send asChild>
 					<Button size="sm">Update</Button>
 				</ComposerPrimitive.Send>
-			</div>
+			</CardFooter>
 		</ComposerPrimitive.Root>
 	</MessagePrimitive.Root>
 );
@@ -491,5 +668,5 @@ const BranchPicker: FC<BranchPickerPrimitive.Root.Props> = ({
 	</BranchPickerPrimitive.Root>
 );
 
-// Suppress unused import warning from useMessageRuntime (used for future extensions)
+// Suppress unused import warning (used for future extensions)
 void useMessageRuntime;

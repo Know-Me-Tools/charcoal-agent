@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useThreadDetail } from "@/hooks/use-threads";
+import { useThreadRegistryStore } from "@/stores/thread-registry-store";
 import { useAgents } from "@/hooks/use-agents";
 import { useUi } from "@/hooks/use-ui";
 import { SectionLabel } from "@/components/common/section-label";
@@ -8,19 +8,26 @@ import { Bot, Wrench, Brain, X } from "lucide-react";
 
 export function RightContextPanel() {
   const { id } = useParams<{ id: string }>();
-  const { data: thread } = useThreadDetail(id ?? null);
+
+  // Read agentId directly from local registry — the UAR /api/sessions route
+  // is disabled, so we never fetch from the server for thread metadata.
+  const agentId = useThreadRegistryStore(
+    (s) => (id ? s.threads[id]?.agentId : undefined),
+  );
   const { data: agents } = useAgents();
   const { rightPanelOpen, toggleRightPanel } = useUi();
 
   if (!rightPanelOpen) return null;
 
-  const activeAgent = agents?.find((a) => a.id === thread?.agent_id);
+  const activeAgent = agents?.find((a) => a.id === agentId);
 
   return (
     <aside className="flex h-full w-[320px] shrink-0 flex-col border-l border-border bg-card">
       <div className="flex items-center justify-between border-b border-border p-3">
         <SectionLabel>Context</SectionLabel>
         <button
+          type="button"
+          aria-label="Close context panel"
           onClick={toggleRightPanel}
           className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground transition-hover hover:text-foreground"
         >
