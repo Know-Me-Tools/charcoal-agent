@@ -11,6 +11,9 @@
 		},
 		{
 			"path": "../../cherry-studio"
+		},
+		{
+			"path": "../../references/openfang"
 		}
 	],
 	"settings": {}

@@ -1,7 +1,17 @@
 import { CheckCircle2Icon, Loader2Icon, PanelTopOpenIcon, SendIcon } from "lucide-react";
-import { type FC, useMemo, useState } from "react";
+import { type FC, useId, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { buildUrl, buildHeaders } from "@/lib/api-client";
 
@@ -54,6 +64,10 @@ export const A2uiInputBlock: FC<A2uiInputBlockProps> = ({
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  const baseId = useId();
+  const selectFieldId = `${baseId}-select`;
+  const textFieldId = `${baseId}-text`;
+
   const options = useMemo(() => {
     const raw = inputObj.options;
     if (!Array.isArray(raw)) return [] as Array<{ value: string; label: string }>;
@@ -103,7 +117,7 @@ export const A2uiInputBlock: FC<A2uiInputBlockProps> = ({
   const resolved = status === "complete";
 
   return (
-    <div className="my-2 rounded-lg border border-primary/25 bg-primary/5 px-3 py-2.5">
+    <Card className="my-2 border-primary/25 bg-primary/5 p-3 shadow-none">
       <div className="mb-2 flex items-center gap-2">
         <PanelTopOpenIcon size={12} className="text-primary" />
         <span className="font-mono text-[10px] uppercase tracking-widest text-primary/90">
@@ -143,23 +157,29 @@ export const A2uiInputBlock: FC<A2uiInputBlockProps> = ({
 
       {artifactType === "select" && (
         <div className="mt-2 space-y-2">
-          <p className="font-body text-sm text-muted-foreground">{prompt}</p>
-          <select
-            title={prompt}
-            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-            value={selectValue}
-            onChange={(e) => setSelectValue(e.target.value)}
-            disabled={submitting || resolved}
-          >
-            <option value="" disabled>
-              Choose an option
-            </option>
-            {options.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+          <Label htmlFor={selectFieldId} className="font-body text-sm font-normal text-muted-foreground">
+            {prompt}
+          </Label>
+          {options.length > 0 ? (
+            <Select
+              value={selectValue === "" ? undefined : selectValue}
+              onValueChange={setSelectValue}
+              disabled={submitting || resolved}
+            >
+              <SelectTrigger id={selectFieldId} className="h-9 w-full">
+                <SelectValue placeholder="Choose an option" />
+              </SelectTrigger>
+              <SelectContent>
+                {options.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <p className="font-mono text-xs text-muted-foreground">No options defined for this select.</p>
+          )}
           <Button
             type="button"
             size="sm"
@@ -174,9 +194,12 @@ export const A2uiInputBlock: FC<A2uiInputBlockProps> = ({
 
       {artifactType === "text_input" && (
         <div className="mt-2 space-y-2">
-          <p className="font-body text-sm text-muted-foreground">{prompt}</p>
+          <Label htmlFor={textFieldId} className="font-body text-sm font-normal text-muted-foreground">
+            {prompt}
+          </Label>
           {multiline ? (
             <Textarea
+              id={textFieldId}
               value={textValue}
               onChange={(e) => setTextValue(e.target.value)}
               placeholder={placeholder}
@@ -185,6 +208,7 @@ export const A2uiInputBlock: FC<A2uiInputBlockProps> = ({
             />
           ) : (
             <Input
+              id={textFieldId}
               value={textValue}
               onChange={(e) => setTextValue(e.target.value)}
               placeholder={placeholder}
@@ -285,11 +309,11 @@ export const A2uiInputBlock: FC<A2uiInputBlockProps> = ({
       </div>
 
       {result && (
-        <pre className="mt-2 overflow-x-auto rounded-md border border-border/40 bg-background/70 p-2 font-mono text-[10px] text-muted-foreground">
-          {result}
-        </pre>
+        <ScrollArea className="mt-2 max-h-40 w-full rounded-md border border-border/40 bg-background/70">
+          <pre className="p-2 font-mono text-[10px] text-muted-foreground">{result}</pre>
+        </ScrollArea>
       )}
-    </div>
+    </Card>
   );
 };
 
@@ -307,7 +331,7 @@ export const A2uiDisplayBlock: FC<A2uiDisplayBlockProps> = ({
   language,
 }) => {
   return (
-    <div className="my-2 rounded-lg border border-border/50 bg-muted/20 px-3 py-2.5">
+    <Card className="my-2 border-border/50 bg-muted/20 p-3 shadow-none">
       <div className="mb-2 flex items-center gap-2">
         <PanelTopOpenIcon size={12} className="text-muted-foreground" />
         <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
@@ -319,9 +343,11 @@ export const A2uiDisplayBlock: FC<A2uiDisplayBlockProps> = ({
         </span>
       </div>
       <p className="font-display text-sm font-semibold text-foreground">{title || "Artifact"}</p>
-      <pre className="mt-2 whitespace-pre-wrap rounded-md border border-border/40 bg-background/70 p-2 font-body text-[12px] text-muted-foreground">
-        {content}
-      </pre>
-    </div>
+      <ScrollArea className="mt-2 max-h-64 w-full rounded-md border border-border/40 bg-background/70">
+        <pre className="whitespace-pre-wrap p-2 font-body text-[12px] text-muted-foreground">
+          {content}
+        </pre>
+      </ScrollArea>
+    </Card>
   );
 };
