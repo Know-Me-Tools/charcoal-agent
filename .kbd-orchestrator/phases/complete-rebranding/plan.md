@@ -194,3 +194,12 @@ PLAN COMPLETE
 - WARNING lockfile excluded from naming grep: fixed — lockfile included (currently 0 hits for charcoal/lovable except via lovable-tagger, which change 7 removes).
 - WARNING filename rebrand untestable by grep: fixed — separate `find` check with allow-list.
 - Round cap reached; round-2 revisions were not re-reviewed by the judge. No unresolved findings.
+
+## Findings from execution (routed to later changes)
+Source: `openspec/changes/archive/2026-09-23-visual-verification-harness/verification.md`.
+- **assistant-ui-latest:** stream events that arrive before the first text/thinking delta (skill activation, context update, memory recall, tool calls) are silently dropped by `chat-message-store` — create the assistant message on `agui.stream.start` (or on any first block) and add a unit test.
+- **app-shell-flat2:** at 768px both the threads sidebar and the context panel stay open, collapsing the conversation to ~150px (HIGH); collapse one panel below `lg`.
+- **chat-surfaces-flat2:** light-theme user bubble unreadable (`bg-zinc-800`); context-update block overflows and tool names truncate at 320px; A2UI input shows "Response captured" before any response; mermaid artifacts render as source text.
+- **app-pages-flat2-entity-views:** skills page overflows horizontally at 320px (cards and Sync button clipped); `nested-interactive` axe violations on settings/skills.
+- **landing-and-about-brand:** unnamed button on landing (`button-name`, critical).
+- **All restyle changes:** baseline `color-contrast` violations on 14 of 24 page/theme scans (74 nodes); `npm run test:a11y` report is the tracking source; brand-fidelity-audit runs `AXE_STRICT=1`.
