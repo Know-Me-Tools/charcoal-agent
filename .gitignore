@@ -51,3 +51,9 @@ src-tauri/*.key
 .DS_Store
 .DS_Store?
 Thumbs.db
+
+# KBD orchestrator machine-local state
+.kbd-orchestrator/model-preflight.json
+.kbd-orchestrator/**/*.lock
+.kbd-orchestrator/**/hooks.log.jsonl
+.kbd-orchestrator/**/hooks-status.json

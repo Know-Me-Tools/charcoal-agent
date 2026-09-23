@@ -1,0 +1,150 @@
+{
+  "schemaVersion": "1",
+  "generatedBy": "kbd-runtime",
+  "projectionContractVersion": 2,
+  "sourceRevision": 27,
+  "derivedRevision": 27,
+  "frontier": {
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 27
+  },
+  "conflictCount": 0,
+  "updatedAt": "2026-09-23T22:47:06.285046Z",
+  "cursor": [
+    "complete-rebranding",
+    "execute",
+    "tailwind-v4-foundation"
+  ],
+  "root": {
+    "type": "phase",
+    "id": "440c5818-223c-4091-8b7f-bc8083505a3c",
+    "status": "ready",
+    "progress": {
+      "done": 0,
+      "total": 12
+    },
+    "children": [
+      {
+        "type": "phase",
+        "id": "complete-rebranding",
+        "canonicalId": "complete-rebranding",
+        "status": "PENDING",
+        "progress": {
+          "done": 0,
+          "total": 12
+        },
+        "children": [
+          {
+            "type": "change",
+            "id": "tailwind-v4-foundation",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 0
+            }
+          },
+          {
+            "type": "change",
+            "id": "visual-verification-harness",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 0
+            }
+          },
+          {
+            "type": "change",
+            "id": "entity-graph-data-layer",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 0
+            }
+          },
+          {
+            "type": "change",
+            "id": "shadcn-base-ui-migration",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 0
+            }
+          },
+          {
+            "type": "change",
+            "id": "assistant-ui-latest",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 0
+            }
+          },
+          {
+            "type": "change",
+            "id": "knowme-brand-tokens",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 0
+            }
+          },
+          {
+            "type": "change",
+            "id": "knowme-brand-identity",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 0
+            }
+          },
+          {
+            "type": "change",
+            "id": "app-shell-flat2",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 0
+            }
+          },
+          {
+            "type": "change",
+            "id": "chat-surfaces-flat2",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 0
+            }
+          },
+          {
+            "type": "change",
+            "id": "landing-and-about-brand",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 0
+            }
+          },
+          {
+            "type": "change",
+            "id": "app-pages-flat2-entity-views",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 0
+            }
+          },
+          {
+            "type": "change",
+            "id": "brand-fidelity-audit",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 0
+            }
+          }
+        ],
+        "annotations": []
+      }
+    ],
+    "annotations": []
+  }
+}

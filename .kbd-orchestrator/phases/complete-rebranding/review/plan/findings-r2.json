@@ -1,0 +1,39 @@
+{
+  "mode": "artifact",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "plan.md",
+      "line": 0,
+      "claim": "The plan does not include verification for several blocking project constraints, so downstream work can complete with constraint violations undetected.",
+      "evidence": "Constraints require blocking checks for `no-console-log-in-commits`, `no-any-type`, `no-hardcoded-secrets`, `no-env-files-committed`, `pglite-migrations-append-only`, and `pglite-not-prebundled`, but the final audit acceptance only says `build/typecheck/lint/unit/e2e all green`; the command list only creates changes and does not add a constraint-audit gate. The packet file tree also contains `.env` and `.env.development.local`, while the blocking constraint says `.env and .env.*.local must never be committed`.",
+      "suggested_fix": "Add an explicit final constraint-audit step/change or acceptance criteria that runs every blocking check from constraints.md, including `git ls-files` for env files and the grep checks for console.log, `: any`, secrets, and PGlite/Vite invariants."
+    },
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "line": 0,
+      "claim": "The rebranding acceptance criteria exclude `package-lock.json`, allowing stale Charcoal package metadata to survive in the authoritative lockfile.",
+      "evidence": "Change 7 acceptance runs a repo-wide `charcoal` grep with `--exclude=package-lock.json`, while constraints state `package-lock.json is the authoritative lockfile`; the same change explicitly includes `package.json` in the rebrand scope, so the lockfile root package name/version metadata must stay consistent with that rename.",
+      "suggested_fix": "Require package-lock root metadata to be updated and checked, or replace the blanket lockfile exclusion with a targeted assertion that any remaining lockfile matches are only transitive package names unrelated to this product."
+    },
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "line": 0,
+      "claim": "The Change 7 filename rebrand acceptance is untestable as written because `grep` does not check filenames.",
+      "evidence": "Change 7 says the `grep -rniI \"charcoal\" ... .` acceptance `returns only D-005 internal identifiers ... the `charcoal-agent.code-workspace` filename`, but `grep -r` searches file contents, not path names; it will not prove whether Charcoal remains in filenames.",
+      "suggested_fix": "Add a separate filename check such as `find . -iname '*charcoal*'` with the D-005 filename allow-list, or remove the filename claim from the grep acceptance."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

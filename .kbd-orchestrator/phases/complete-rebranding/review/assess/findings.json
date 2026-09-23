@@ -1,0 +1,31 @@
+{
+  "mode": "artifact",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "assessment.md",
+      "line": 0,
+      "claim": "The assessment bases the brand-source hierarchy on source files that the packet marks as missing, so downstream analysis/plan would rely on an unverified source of truth.",
+      "evidence": "Assessment says precedence #1 is `know-me-system/docs/knowme-ui-ux-standard.md` and precedence #3 includes `desktop/src/shared/components/KnowMeLogo.tsx`, but `cited_paths` reports `MISSING  know-me-system/docs/knowme-ui-ux-standard.md` and `MISSING  desktop/src/shared/components/KnowMeLogo.tsx`.",
+      "suggested_fix": "Re-run assessment against accessible brand sources, quote only paths that exist in the packet/repository or explicitly mark unavailable sources as unresolved inputs instead of resolved precedence."
+    },
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "line": 0,
+      "claim": "The assessment does not assess the goal requirement to keep WCAG contrast passing beyond two isolated color concerns.",
+      "evidence": "Goal: `Verify brand fidelity visually at 320/768/1024/1440 in both themes and keep build, tests, lint and WCAG contrast passing`. Assessment's Goal Progress item 7 says `no visual test harness; lint and tsc already failing`, while contrast appears only as open risks for `Primary-button text on ember` and `Faint-text value conflict`; there is no current contrast gap analysis for existing surfaces, tokens, or light/dark themes.",
+      "suggested_fix": "Add a WCAG contrast assessment section covering current token pairs and major UI surfaces in both themes, or explicitly state that contrast was not audited and must be a planning task."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

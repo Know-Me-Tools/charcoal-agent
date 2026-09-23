@@ -1,0 +1,39 @@
+{
+  "mode": "artifact",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "line": 0,
+      "claim": "The plan includes a large entity-graph/TanStack Query migration that is not required by any stated branding goal.",
+      "evidence": "Goals cover KnowMe brand adoption, tokens, typography, logos/product naming, surface restyling, token-based shadcn/assistant-ui theming, and visual/WCAG verification; none mention replacing TanStack Query or adopting Prometheus entity graph. The plan nevertheless adds change 3: \"entity-graph-data-layer: Replace TanStack Query with the Prometheus entity graph\" and acknowledges this is \"infrastructure, not branding\".",
+      "suggested_fix": "Move the entity-graph migration to a separate phase or add an explicit goal/assessment dependency showing why it must block the rebrand."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "plan.md",
+      "line": 0,
+      "claim": "The product-naming acceptance criteria omit files the plan itself says must be changed, so residual Charcoal/Lovable branding can pass the change.",
+      "evidence": "Change 7 details include \"set Tauri `productName`/window title \\\"KnowMe\\\"\", \"Update index.html\", \"Rewrite README\", and \"update CLAUDE.md \\\"Charcoal Agent\\\" wording\", but its acceptance only greps `src index.html public README.md`: `grep -rni \"charcoal\" src index.html public README.md` and does not check `src-tauri`, `package.json`, `CLAUDE.md`, or other root metadata. The goal requires replacing \"product naming with official KnowMe marks\".",
+      "suggested_fix": "Expand acceptance checks to include `src-tauri`, `package.json`, `CLAUDE.md`, root config/metadata, and any desktop/window-title files touched by the change."
+    },
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "line": 0,
+      "claim": "The chat restyling change uses brand identity assets but does not declare a dependency on the identity change.",
+      "evidence": "Change 9 `chat-surfaces-flat2` says \"welcome state uses the KnowMe mark instead of SparklesIcon\", while Change 7 `knowme-brand-identity` is the change that creates \"new Logo/Wordmark components\" and ports `KnowMeLogo` / `KnowMeWordmark`; Change 9 depends only on `assistant-ui-latest, knowme-brand-tokens`.",
+      "suggested_fix": "Add `knowme-brand-identity` as an explicit dependency of `chat-surfaces-flat2`."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

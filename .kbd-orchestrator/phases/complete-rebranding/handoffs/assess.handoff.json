@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-09-23T22:32:56Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "Brand source of truth resolved: binding UI/UX standard (Flat 2.0, surface ladder, cyan) > Brand Guide v1.0 + Conviction logo SVGs > know-me-system/desktop reference tokens/KnowMeLogo.tsx (all outside repo). Anchors/fonts already match; biggest gaps are Flat 2.0 (~460 border/shadow sites), missing logo/favicon/app icons, sub-12px type, and WCAG failures (white-on-#E04E28 3.97:1, light-mode ember/cyan/amber/green text, dark faint #6B7280). Open decisions for plan: legal name 'KnowMe AI, LLC' vs 'KnowMe, LLC'; Tailwind 3→4 upgrade (19 v4-only classes silently broken); delete vs restyle dead assistant-ui/chat components; UAR jargon in settings copy. Pre-existing lint (5 errors) and tsc (1 error) failures.",
+  "skipped": false,
+  "skipReason": null
+}
