@@ -16,5 +16,11 @@
 1. **Early stream events are dropped (correctness bug).** `chat-message-store` creates the assistant message only on the first text/thinking delta; `skill.activated`, `context.update`, `memory.recall` and `tool_call` events that arrive before it are silently discarded (`if (!streaming?.streamingMessageId) return`). UAR plausibly emits skill activation before generation. The fixture sends a thinking delta first so all blocks render; fix belongs in assistant-ui-latest (runtime/store) with a unit test.
 2. **320px overflow:** skills page cards and the Sync button clip horizontally; the context-update block overflows in the thread; tool-call names truncate.
 3. **Light theme user bubble** is dark (`bg-zinc-800`) with dark text — unreadable (already in assessment).
-4. A2UI `surfaceUpdate` envelopes from `agui.custom` render as raw JSON, and `mermaid` diagram artifacts render as source text rather than diagrams.
+4. The A2UI display artifact (from `agui.custom`) *is* captured — it renders through the app's `A2uiDisplayBlock`, which by current design shows the envelope as preformatted text rather than composing the surface. Composing A2UI surfaces is a product enhancement, not in this phase. Separately, `mermaid` diagram artifacts render as source text rather than diagrams.
 5. The A2UI input request shows "Response captured" before any response is submitted.
+
+## Adversarial review (diff mode)
+- r1: BLOCK, 2 CRITICAL / 1 WARNING (gpt-5.5, verified-distinct).
+  - CRITICAL namespace settings returned inline `{}` → fixed: typed `namespaceSettingsResponse` (`SettingsType`) served by GET/PUT. Typing caught an invalid `source` value while adding it.
+  - CRITICAL "A2UI display renders as raw JSON so requirement unmet" → not a harness defect: the screenshot contains the A2UI display artifact rendered by the app's own `A2uiDisplayBlock` (which intentionally shows raw content); finding #4 reworded to make that explicit.
+  - WARNING stale axe JSON could leak into the merged report → fixed: `test:a11y` clears `test-results/a11y` first.

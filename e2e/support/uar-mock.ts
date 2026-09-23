@@ -9,6 +9,7 @@ import {
   agentsResponse,
   providersResponse,
   runResponse,
+  namespaceSettingsResponse,
   sessionsResponse,
   skillsResponse,
   userSettingsResponse,
@@ -71,8 +72,8 @@ const ROUTES: RouteDef[] = [
   { method: "POST", pattern: /^\/api\/uar\/runs\/[^/]+\/artifact-response$/, handle: (r) => json(r, { ok: true }) },
   { method: "GET", pattern: /^\/api\/uar\/user\/settings$/, handle: (r) => json(r, userSettingsResponse) },
   { method: "PUT", pattern: /^\/api\/uar\/user\/settings$/, handle: (r) => json(r, userSettingsResponse) },
-  { method: "GET", pattern: /^\/api\/uar\/settings\/[^/]+$/, handle: (r) => json(r, {}) },
-  { method: "PUT", pattern: /^\/api\/uar\/settings\/[^/]+$/, handle: (r) => json(r, {}) },
+  { method: "GET", pattern: /^\/api\/uar\/settings\/[^/]+$/, handle: (r) => json(r, namespaceSettingsResponse) },
+  { method: "PUT", pattern: /^\/api\/uar\/settings\/[^/]+$/, handle: (r) => json(r, namespaceSettingsResponse) },
   {
     method: "POST",
     pattern: /^\/api\/chat\/completion$/,

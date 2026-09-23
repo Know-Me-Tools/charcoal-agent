@@ -7,6 +7,7 @@ import type {
   AgentsResponse,
   ProvidersResponse,
   Run,
+  SettingsType,
   Thread,
   UarModel,
   UarSkill,
@@ -184,4 +185,20 @@ export const runResponse: Run = {
   agent_id: FIXTURE_AGENT_ID,
   status: "complete",
   created_at: FIXED_TIME,
+};
+
+/** Namespace-scoped settings (GET/PUT /api/uar/settings/{namespace}). */
+export const namespaceSettingsResponse: SettingsType = {
+  "resilience.rate_limit_enabled": {
+    value: true,
+    source: "default",
+    default_value: true,
+    description: "Throttle outbound provider requests.",
+  },
+  "context.max_tokens": {
+    value: 128000,
+    source: "api",
+    default_value: 64000,
+    description: "Context window budget before compaction.",
+  },
 };

@@ -1,0 +1,39 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "e2e/support/uar-mock.ts",
+      "line": 77,
+      "claim": "Namespace settings are not backed by typed fixed fixture data as required; the mock returns inline empty objects.",
+      "evidence": "Acceptance criterion 2.1 requires typed fixtures for \"namespace settings and runs\" using `src/types` with fixed timestamps, but the namespace settings handlers are `handle: (r) => json(r, {})` for both `GET /api/uar/settings/[^/]+` and `PUT /api/uar/settings/[^/]+`.",
+      "suggested_fix": "Add a typed namespace-settings fixture in `e2e/fixtures/uar-data.ts` and return it from the GET/PUT handlers instead of `{}`."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "openspec/changes/visual-verification-harness/verification.md",
+      "line": 18,
+      "claim": "The conversation screenshot requirement is not satisfied because the A2UI display artifact is known to render as raw JSON rather than as a display artifact.",
+      "evidence": "Acceptance criterion 3.2 requires the thread capture to visibly include \"an A2UI display artifact\", but verification notes state: \"A2UI `surfaceUpdate` envelopes from `agui.custom` render as raw JSON\".",
+      "suggested_fix": "Implement/render the A2UI surface update in the app or adjust the harness fixture/assertion so the captured conversation actually contains a visible A2UI display artifact."
+    },
+    {
+      "severity": "WARNING",
+      "file": "e2e/support/a11y-report.mjs",
+      "line": 6,
+      "claim": "The aggregated accessibility report can include stale JSON files from previous runs because the report directory is never cleared before reading it.",
+      "evidence": "`a11y-report.mjs` reads every `*.json` in `test-results/a11y`, while `package.json` runs `playwright test e2e/a11y.spec.ts; status=$?; node e2e/support/a11y-report.mjs` without deleting `test-results/a11y` first.",
+      "suggested_fix": "Remove `test-results/a11y` at the start of `npm run test:a11y` or have the reporter consume only files produced by the current Playwright run."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}
