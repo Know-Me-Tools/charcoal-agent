@@ -107,7 +107,7 @@ export default function LandingPage() {
 			<main className="flex flex-1 flex-col items-center justify-center px-6 pb-16 text-center">
 				<div className="mx-auto max-w-2xl">
 					<p className="section-label mb-4">{"// An OS that learns you"}</p>
-					<h1 className="font-display text-4xl font-bold text-foreground [letter-spacing:-0.04em] sm:text-5xl md:text-6xl">
+					<h1 className="font-display text-4xl font-bold text-foreground tracking-[-0.04em] sm:text-5xl md:text-6xl">
 						AI that knows
 						<br />
 						<span className="text-primary">you.</span>
@@ -126,7 +126,7 @@ export default function LandingPage() {
 									onKeyDown={handleKeyDown}
 									placeholder="What would you like to explore?"
 									rows={1}
-									className="max-h-[120px] min-h-[44px] flex-1 resize-none rounded-lg bg-background px-4 py-3 font-body text-[15px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+									className="max-h-[120px] min-h-[44px] flex-1 resize-none rounded-lg bg-background px-4 py-3 font-body text-[15px] text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-ring"
 								/>
 								<Button
 									type="button"

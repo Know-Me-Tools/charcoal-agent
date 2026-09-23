@@ -1,7 +1,7 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { Server, Wrench, Palette, Info, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { SectionLabel } from "@/components/common/section-label";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -31,7 +31,7 @@ export default function SettingsPage() {
     <div className="flex flex-1 flex-col md:flex-row">
       {isMobile ? (
         /* Mobile: horizontal scrollable tabs */
-        <ScrollArea orientation="horizontal" className="shrink-0 border-b border-border bg-card">
+        <ScrollArea className="shrink-0 border-b border-border bg-card">
           <nav className="flex items-center gap-1 px-3 py-2">
             {settingsNav.map((item) => (
               <NavLink key={item.to} to={item.to}>
@@ -51,6 +51,7 @@ export default function SettingsPage() {
               </NavLink>
             ))}
           </nav>
+          <ScrollBar orientation="horizontal" />
         </ScrollArea>
       ) : (
         /* Desktop: side nav */

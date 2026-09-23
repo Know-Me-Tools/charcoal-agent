@@ -2,27 +2,27 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 27,
-  "derivedRevision": 27,
+  "sourceRevision": 84,
+  "derivedRevision": 84,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 27
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 84
   },
   "conflictCount": 0,
   "phase": "complete-rebranding",
   "phaseId": "complete-rebranding",
   "parentPhase": null,
-  "last_updated": "2026-09-23T22:47:06.285046Z",
+  "last_updated": "2026-09-23T23:01:02.148728Z",
   "last_updated_by": "kbd-runtime",
   "changes_total": 12,
-  "changes_completed": 0,
+  "changes_completed": 1,
   "implementation_total": 12,
-  "implementation_completed": 0,
+  "implementation_completed": 1,
   "completion": {
     "primaryCounter": "implementation",
     "implementation": {
-      "completed": 0,
+      "completed": 1,
       "total": 12,
-      "status": "PENDING"
+      "status": "IN_PROGRESS"
     },
     "evidence": {
       "status": "PENDING",
@@ -44,11 +44,11 @@
     {
       "id": "tailwind-v4-foundation",
       "title": "Upgrade to Tailwind 4 and clear the pre-existing lint/type baseline",
-      "status": "PENDING",
-      "implementation_status": "PENDING",
-      "tasks_total": 0,
-      "tasks_done": 0,
-      "last_task_completed": null,
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 11,
+      "tasks_done": 11,
+      "last_task_completed": "5.1 Full verification",
       "next_task_pending": null,
       "blockers": []
     },

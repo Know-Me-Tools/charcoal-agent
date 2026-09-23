@@ -319,7 +319,7 @@ export default function SkillsPage() {
                     handleSkillClick(skill);
                   }
                 }}
-                className={`cursor-pointer rounded-lg border bg-card p-4 text-left transition-all hover:border-primary/30 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                className={`cursor-pointer rounded-lg border bg-card p-4 text-left transition-all hover:border-primary/30 hover:shadow-xs focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring ${
                   category.type === "knowme" || category.type === "platform" 
                     ? "border-primary/20" 
                     : "border-border"

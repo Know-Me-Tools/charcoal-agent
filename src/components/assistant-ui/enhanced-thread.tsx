@@ -158,11 +158,11 @@ interface ComposerProps {
 
 const EnhancedComposer: FC<ComposerProps> = ({ promptCachingEnabled, onTogglePromptCaching }) => (
 	<ComposerPrimitive.Root className="relative flex w-full flex-col">
-		<ComposerPrimitive.AttachmentDropzone className="flex w-full flex-col rounded-2xl border border-input bg-background/80 px-1 pt-2 backdrop-blur-sm outline-none transition-shadow has-[textarea:focus-visible]:border-ring has-[textarea:focus-visible]:ring-2 has-[textarea:focus-visible]:ring-ring/20 data-[dragging=true]:border-ring data-[dragging=true]:border-dashed data-[dragging=true]:bg-accent/50">
+		<ComposerPrimitive.AttachmentDropzone className="flex w-full flex-col rounded-2xl border border-input bg-background/80 px-1 pt-2 backdrop-blur-xs outline-hidden transition-shadow has-[textarea:focus-visible]:border-ring has-[textarea:focus-visible]:ring-2 has-[textarea:focus-visible]:ring-ring/20 data-[dragging=true]:border-ring data-[dragging=true]:border-dashed data-[dragging=true]:bg-accent/50">
 			<ComposerAttachments />
 			<ComposerPrimitive.Input
 				placeholder="Ask your agent anything…"
-				className="mb-1 max-h-48 min-h-[3.5rem] w-full resize-none bg-transparent px-4 pt-3 pb-3 font-body text-sm text-foreground outline-none placeholder:text-muted-foreground/50 focus-visible:ring-0"
+				className="mb-1 max-h-48 min-h-14 w-full resize-none bg-transparent px-4 pt-3 pb-3 font-body text-sm text-foreground outline-hidden placeholder:text-muted-foreground/50 focus-visible:ring-0"
 				rows={1}
 				autoFocus
 				aria-label="Message input"
@@ -287,7 +287,7 @@ const UserMessage: FC = () => (
 		<div className="flex w-full items-start gap-3">
 			<UserActionBar />
 			<div className="min-w-0 flex-1">
-				<div className="wrap-break-word rounded-2xl rounded-tr-sm bg-zinc-800 px-4 py-3 font-body text-sm text-foreground leading-relaxed shadow-sm">
+				<div className="wrap-break-word rounded-2xl rounded-tr-sm bg-zinc-800 px-4 py-3 font-body text-sm text-foreground leading-relaxed shadow-xs">
 					<MessagePrimitive.Parts
 						components={{ Text: EnhancedMarkdownText }}
 					/>
@@ -325,7 +325,7 @@ const AssistantMessage: FC = () => (
 		<div className="flex w-full items-start gap-3">
 			<AgentAvatar />
 			<div className="min-w-0 flex-1">
-				<div className="wrap-break-word rounded-2xl rounded-tl-sm bg-muted/60 px-4 py-3 font-body text-sm text-foreground leading-relaxed shadow-sm">
+				<div className="wrap-break-word rounded-2xl rounded-tl-sm bg-muted/60 px-4 py-3 font-body text-sm text-foreground leading-relaxed shadow-xs">
 					<MessagePrimitive.Parts
 						components={{
 							Text: EnhancedMarkdownText,
@@ -573,7 +573,7 @@ const AssistantActionBar: FC = () => (
 		hideWhenRunning
 		autohide="not-last"
 		autohideFloat="single-branch"
-		className="col-start-3 row-start-2 -ml-1 flex gap-1 text-muted-foreground data-floating:absolute data-floating:rounded-md data-floating:border data-floating:bg-background data-floating:p-1 data-floating:shadow-sm"
+		className="col-start-3 row-start-2 -ml-1 flex gap-1 text-muted-foreground data-floating:absolute data-floating:rounded-md data-floating:border data-floating:bg-background data-floating:p-1 data-floating:shadow-xs"
 	>
 		<ActionBarPrimitive.Copy asChild>
 			<TooltipIconButton tooltip="Copy">
@@ -605,7 +605,7 @@ const AssistantActionBar: FC = () => (
 				className="z-50 min-w-36 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
 			>
 				<ActionBarPrimitive.ExportMarkdown asChild>
-					<ActionBarMorePrimitive.Item className="flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+					<ActionBarMorePrimitive.Item className="flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
 						<DownloadIcon className="size-4" />
 						Export as Markdown
 					</ActionBarMorePrimitive.Item>
@@ -621,7 +621,7 @@ const EditComposer: FC = () => (
 	<MessagePrimitive.Root className="mx-auto flex w-full max-w-(--thread-max-width) flex-col px-2 py-3">
 		<ComposerPrimitive.Root className="ml-auto flex w-full max-w-[85%] flex-col rounded-2xl bg-muted">
 			<ComposerPrimitive.Input
-				className="min-h-14 w-full resize-none bg-transparent p-4 font-body text-foreground text-sm outline-none"
+				className="min-h-14 w-full resize-none bg-transparent p-4 font-body text-foreground text-sm outline-hidden"
 				autoFocus
 			/>
 			<CardFooter className="mx-3 mb-3 flex items-center gap-2 self-end p-0">

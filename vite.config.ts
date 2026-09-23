@@ -1,8 +1,8 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { configDefaults } from "vitest/config";
 
 const host = process.env.TAURI_DEV_HOST;
@@ -19,8 +19,8 @@ export default defineConfig(({ mode }) => {
     // Tauri uses Chromium on Windows and WebKit on macOS and Linux
     target:
       process.env.TAURI_ENV_PLATFORM === 'windows'
-        ? 'chrome105'
-        : 'safari13',
+        ? 'chrome111'
+        : 'safari16.4',
     // don't minify for debug builds
     minify: !process.env.TAURI_ENV_DEBUG ? 'esbuild' : false,
     // produce sourcemaps for debug builds
@@ -66,7 +66,7 @@ export default defineConfig(({ mode }) => {
       };
     })(),
   },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [react(), tailwindcss(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

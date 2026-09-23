@@ -24,10 +24,10 @@ export function MobileSidebarDrawer({ children }: MobileSidebarDrawerProps) {
   if (!mobileSidebarOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] md:hidden">
+    <div className="fixed inset-0 z-60 md:hidden">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+        className="absolute inset-0 bg-background/80 backdrop-blur-xs"
         onClick={() => setMobileSidebarOpen(false)}
       />
       {/* Drawer */}

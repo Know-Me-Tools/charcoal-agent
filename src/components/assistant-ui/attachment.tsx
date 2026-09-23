@@ -26,23 +26,22 @@ import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button
 import { cn } from "@/lib/utils";
 
 const useFileSrc = (file: File | undefined) => {
-  const [src, setSrc] = useState<string | undefined>(undefined);
+  const [entry, setEntry] = useState<{ file: File; src: string }>();
 
   useEffect(() => {
-    if (!file) {
-      setSrc(undefined);
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(file);
-    setSrc(objectUrl);
-
+    if (!file) return;
+    // Object URLs are an external resource: create after commit and revoke in
+    // the same effect so abandoned renders never allocate one.
+    const src = URL.createObjectURL(file);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing with the object-URL lifecycle
+    setEntry({ file, src });
     return () => {
-      URL.revokeObjectURL(objectUrl);
+      URL.revokeObjectURL(src);
+      setEntry(undefined);
     };
   }, [file]);
 
-  return src;
+  return file && entry?.file === file ? entry.src : undefined;
 };
 
 const useAttachmentSrc = () => {
@@ -94,7 +93,7 @@ const AttachmentPreviewDialog: FC<PropsWithChildren> = ({ children }) => {
       >
         {children}
       </DialogTrigger>
-      <DialogContent className="aui-attachment-preview-dialog-content p-2 sm:max-w-3xl [&>button]:rounded-full [&>button]:bg-foreground/60 [&>button]:p-1 [&>button]:opacity-100 [&>button]:ring-0! [&_svg]:text-background [&>button]:hover:[&_svg]:text-destructive">
+      <DialogContent className="aui-attachment-preview-dialog-content p-2 sm:max-w-3xl [&>button]:rounded-full [&>button]:bg-foreground/60 [&>button]:p-1 [&>button]:opacity-100 [&>button]:ring-0! [&_svg]:text-background [&>button:hover_svg]:text-destructive">
         <DialogTitle className="aui-sr-only sr-only">
           Image Attachment Preview
         </DialogTitle>
@@ -138,9 +137,10 @@ const AttachmentUI: FC = () => {
         return "Document";
       case "file":
         return "File";
-      default:
+      default: {
         const _exhaustiveCheck: never = type;
         throw new Error(`Unknown attachment type: ${_exhaustiveCheck}`);
+      }
     }
   });
 
@@ -150,7 +150,7 @@ const AttachmentUI: FC = () => {
         className={cn(
           "aui-attachment-root relative",
           isImage &&
-            "aui-attachment-root-composer only:[&>#attachment-tile]:size-24",
+            "aui-attachment-root-composer [&>#attachment-tile]:only:size-24",
         )}
       >
         <AttachmentPreviewDialog>
@@ -183,7 +183,7 @@ const AttachmentRemove: FC = () => {
     <AttachmentPrimitive.Remove asChild>
       <TooltipIconButton
         tooltip="Remove file"
-        className="aui-attachment-tile-remove absolute top-1.5 right-1.5 size-3.5 rounded-full bg-white text-muted-foreground opacity-100 shadow-sm hover:bg-white! [&_svg]:text-black hover:[&_svg]:text-destructive"
+        className="aui-attachment-tile-remove absolute top-1.5 right-1.5 size-3.5 rounded-full bg-white text-muted-foreground opacity-100 shadow-xs hover:bg-white! [&_svg]:text-black hover:[&_svg]:text-destructive"
         side="top"
       >
         <XIcon className="aui-attachment-remove-icon size-3 dark:stroke-[2.5px]" />

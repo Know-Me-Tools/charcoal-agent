@@ -130,7 +130,7 @@ export const ShikiCodeBlock: FC<ShikiCodeBlockProps> = ({
       {highlightedHtml ? (
         <div
           className={cn(
-            "overflow-x-auto bg-muted/30 p-3 text-xs leading-relaxed [&_pre]:!bg-transparent [&_pre]:!p-0",
+            "overflow-x-auto bg-muted/30 p-3 text-xs leading-relaxed [&_pre]:bg-transparent! [&_pre]:p-0!",
             showLineNumbers &&
               "[&_.line]:relative [&_.line]:pl-10 [&_.line]:before:absolute [&_.line]:before:left-0 [&_.line]:before:w-8 [&_.line]:before:text-right [&_.line]:before:text-muted-foreground/50 [&_.line]:before:content-[attr(data-line)]",
           )}

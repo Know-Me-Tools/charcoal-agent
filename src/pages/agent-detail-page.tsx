@@ -57,11 +57,11 @@ function MarkdownEditorField({
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
             rows={rows}
-            className="w-full resize-y rounded-md border border-border bg-background px-3 py-2 font-mono text-xs leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            className="w-full resize-y rounded-md border border-border bg-background px-3 py-2 font-mono text-xs leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-ring"
           />
         </TabsContent>
         <TabsContent value="preview" className="mt-0">
-          <div className="min-h-[10rem] rounded-md border border-border bg-background px-4 py-3">
+          <div className="min-h-40 rounded-md border border-border bg-background px-4 py-3">
             {value.trim() ? (
               <div className="prose prose-sm max-w-none dark:prose-invert prose-p:leading-relaxed prose-pre:bg-muted prose-pre:text-foreground">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -201,7 +201,7 @@ export default function AgentDetailPage() {
             value={form.name}
             onChange={(e) => setField("name", e.target.value)}
             placeholder="Agent name"
-            className="w-full rounded-md border border-border bg-background px-3 py-2 font-ui text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            className="w-full rounded-md border border-border bg-background px-3 py-2 font-ui text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-ring"
           />
         </div>
 
@@ -219,7 +219,7 @@ export default function AgentDetailPage() {
             value={form.description}
             onChange={(e) => setField("description", e.target.value)}
             placeholder="What does this agent do?"
-            className="w-full rounded-md border border-border bg-background px-3 py-2 font-ui text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            className="w-full rounded-md border border-border bg-background px-3 py-2 font-ui text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-ring"
           />
         </div>
 
