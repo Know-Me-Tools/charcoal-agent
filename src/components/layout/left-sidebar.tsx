@@ -247,7 +247,7 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
             placeholder="Search threads…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-transparent font-ui text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none"
+            className="w-full bg-transparent font-ui text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-hidden"
           />
         </div>
       </div>

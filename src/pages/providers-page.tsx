@@ -95,7 +95,7 @@ export default function ProvidersPage() {
                 onChange={(e) =>
                   setNewProvider((p) => ({ ...p, display_name: e.target.value }))
                 }
-                className="w-full rounded-md border border-border bg-background px-3 py-2 font-ui text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 font-ui text-sm text-foreground focus:outline-hidden focus:ring-1 focus:ring-ring"
                 placeholder="OpenAI"
               />
             </div>
@@ -110,7 +110,7 @@ export default function ProvidersPage() {
                 onChange={(e) =>
                   setNewProvider((p) => ({ ...p, protocol: e.target.value }))
                 }
-                className="w-full rounded-md border border-border bg-background px-3 py-2 font-ui text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 font-ui text-sm text-foreground focus:outline-hidden focus:ring-1 focus:ring-ring"
               >
                 <option value="openai">openai</option>
                 <option value="anthropic">anthropic</option>
@@ -131,7 +131,7 @@ export default function ProvidersPage() {
                 onChange={(e) =>
                   setNewProvider((p) => ({ ...p, base_url: e.target.value }))
                 }
-                className="w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-sm text-foreground focus:outline-hidden focus:ring-1 focus:ring-ring"
                 placeholder="https://api.openai.com/v1"
               />
             </div>
@@ -147,7 +147,7 @@ export default function ProvidersPage() {
                 onChange={(e) =>
                   setNewProvider((p) => ({ ...p, api_key: e.target.value }))
                 }
-                className="w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-sm text-foreground focus:outline-hidden focus:ring-1 focus:ring-ring"
                 placeholder="sk-..."
               />
             </div>

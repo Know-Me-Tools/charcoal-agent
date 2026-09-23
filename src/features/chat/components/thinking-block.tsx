@@ -53,7 +53,7 @@ export const ThinkingBlock: FC<ThinkingBlockProps> = ({
 					<p className="font-body text-[13px] leading-relaxed text-muted-foreground whitespace-pre-wrap">
 						{text}
 						{isStreaming && (
-							<span className="ml-0.5 inline-block h-3.5 w-0.5 animate-[blink-cursor_1s_step-end_infinite] bg-primary" />
+							<span className="ml-0.5 inline-block h-3.5 w-0.5 animate-blink-cursor bg-primary" />
 						)}
 					</p>
 				</div>

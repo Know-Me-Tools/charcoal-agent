@@ -146,7 +146,7 @@ export const HtmlArtifactCard: FC<HtmlArtifactCardProps> = ({
       {/* Expand backdrop */}
       {isExpanded && (
         <div
-          className="fixed inset-0 -z-10 bg-background/80 backdrop-blur-sm"
+          className="fixed inset-0 -z-10 bg-background/80 backdrop-blur-xs"
           onClick={() => setIsExpanded(false)}
         />
       )}

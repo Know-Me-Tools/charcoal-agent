@@ -1,6 +1,151 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@plugin '@tailwindcss/typography';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+  @media (width >= --theme(--breakpoint-sm)) {
+    max-width: none;
+  }
+  @media (width >= 1400px) {
+    max-width: 1400px;
+  }
+}
+
+@theme inline {
+  --font-display: Space Grotesk, sans-serif;
+  --font-ui: Inter, sans-serif;
+  --font-body: Roboto, sans-serif;
+  --font-mono: JetBrains Mono, monospace;
+
+  --color-border: rgb(var(--border));
+  --color-input: rgb(var(--input));
+  --color-ring: rgb(var(--ring));
+  --color-background: rgb(var(--background));
+  --color-foreground: rgb(var(--foreground));
+
+  --color-primary: rgb(var(--primary));
+  --color-primary-foreground: rgb(var(--primary-foreground));
+
+  --color-secondary: rgb(var(--secondary));
+  --color-secondary-foreground: rgb(var(--secondary-foreground));
+
+  --color-destructive: rgb(var(--destructive));
+  --color-destructive-foreground: rgb(var(--destructive-foreground));
+
+  --color-muted: rgb(var(--muted));
+  --color-muted-foreground: rgb(var(--muted-foreground));
+
+  --color-accent: rgb(var(--accent));
+  --color-accent-foreground: rgb(var(--accent-foreground));
+
+  --color-popover: rgb(var(--popover));
+  --color-popover-foreground: rgb(var(--popover-foreground));
+
+  --color-card: rgb(var(--card));
+  --color-card-foreground: rgb(var(--card-foreground));
+
+  --color-success: rgb(var(--success));
+  --color-warning: rgb(var(--warning));
+  --color-info: rgb(var(--info));
+
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-blink-cursor: blink-cursor 1s step-end infinite;
+  --animate-shimmer: shimmer 1.5s ease-in-out infinite;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+  @keyframes blink-cursor {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+  @keyframes shimmer {
+    0% {
+      opacity: 0.5;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.5;
+    }
+  }
+}
+
+
+@utility grid-overlay {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M0 0h40v40H0z' fill='none' stroke='%23808080' stroke-width='0.5' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+@utility section-label {
+  @apply font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-primary;
+}
+
+@utility ui-label {
+  @apply font-ui text-xs font-semibold;
+}
+
+@utility ui-nav {
+  @apply font-ui text-[13px] font-semibold;
+}
+
+@utility ui-overline {
+  @apply font-ui text-[11px] font-bold uppercase tracking-[0.08em];
+}
+
+@utility body-text {
+  @apply font-body text-[15px] leading-[1.7];
+  max-width: 65ch;
+}
+
+@utility mono-meta {
+  @apply font-mono text-[10px] text-muted-foreground;
+}
+
+@utility transition-panel {
+  @apply transition-all duration-150 ease-out;
+}
+
+@utility transition-hover {
+  @apply transition-colors duration-100 ease-out;
+}
 
 @layer base {
   :root {
@@ -112,68 +257,29 @@
  * these rules beat Tailwind utilities, Radix UI, and any component classes.
  * (From UAR commit b6aff0c)
  */
-button:not(:disabled),
-[role="button"]:not([aria-disabled="true"]),
-a[href],
-[role="link"],
-[role="tab"],
-[role="menuitem"],
-[role="option"],
-[role="checkbox"],
-[role="radio"],
-[role="switch"],
-[role="combobox"],
-label[for],
-select:not(:disabled),
-summary,
-nav a,
-nav button,
-[data-clickable="true"] {
-  cursor: pointer !important;
-}
-
-button:disabled,
-select:disabled,
-[aria-disabled="true"],
-[data-disabled="true"] {
-  cursor: not-allowed !important;
-}
-
-@layer utilities {
-  .grid-overlay {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M0 0h40v40H0z' fill='none' stroke='%23808080' stroke-width='0.5' opacity='0.04'/%3E%3C/svg%3E");
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  a[href],
+  [role='link'],
+  [role='tab'],
+  [role='menuitem'],
+  [role='option'],
+  [role='checkbox'],
+  [role='radio'],
+  [role='switch'],
+  [role='combobox'],
+  label[for],
+  select:not(:disabled),
+  summary,
+  nav a,
+  nav button,
+  [data-clickable='true'] {
+    cursor: pointer !important;
   }
 
-  .section-label {
-    @apply font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-primary;
+  button:disabled,
+  select:disabled,
+  [aria-disabled='true'],
+  [data-disabled='true'] {
+    cursor: not-allowed !important;
   }
-
-  .ui-label {
-    @apply font-ui text-xs font-semibold;
-  }
-
-  .ui-nav {
-    @apply font-ui text-[13px] font-semibold;
-  }
-
-  .ui-overline {
-    @apply font-ui text-[11px] font-bold uppercase tracking-[0.08em];
-  }
-
-  .body-text {
-    @apply font-body text-[15px] leading-[1.7];
-    max-width: 65ch;
-  }
-
-  .mono-meta {
-    @apply font-mono text-[10px] text-muted-foreground;
-  }
-
-  .transition-panel {
-    @apply transition-all duration-150 ease-out;
-  }
-
-  .transition-hover {
-    @apply transition-colors duration-100 ease-out;
-  }
-}
