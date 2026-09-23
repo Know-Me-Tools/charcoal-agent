@@ -2,25 +2,25 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 84,
-  "derivedRevision": 84,
+  "sourceRevision": 131,
+  "derivedRevision": 131,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 84
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 131
   },
   "conflictCount": 0,
   "phase": "complete-rebranding",
   "phaseId": "complete-rebranding",
   "parentPhase": null,
-  "last_updated": "2026-09-23T23:01:02.148728Z",
+  "last_updated": "2026-09-23T23:27:55.094245Z",
   "last_updated_by": "kbd-runtime",
   "changes_total": 12,
-  "changes_completed": 1,
+  "changes_completed": 2,
   "implementation_total": 12,
-  "implementation_completed": 1,
+  "implementation_completed": 2,
   "completion": {
     "primaryCounter": "implementation",
     "implementation": {
-      "completed": 1,
+      "completed": 2,
       "total": 12,
       "status": "IN_PROGRESS"
     },
@@ -55,11 +55,11 @@
     {
       "id": "visual-verification-harness",
       "title": "Add Playwright screenshots and axe checks",
-      "status": "PENDING",
-      "implementation_status": "PENDING",
-      "tasks_total": 0,
-      "tasks_done": 0,
-      "last_task_completed": null,
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 9,
+      "tasks_done": 9,
+      "last_task_completed": "5.1 Full verification",
       "next_task_pending": null,
       "blockers": []
     },

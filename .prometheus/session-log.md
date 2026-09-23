@@ -166,3 +166,143 @@
 - Exact next work: /opsx:continue tailwind-v4-foundation
 - Verification:
   - none recorded
+
+<!-- karpathy-progress-event:kpm-344240e033150b25d05d492a3967aa28 -->
+## Progress boundary — 2026-09-23T23:11:56.955694Z
+
+- Event: `kpm-344240e033150b25d05d492a3967aa28`
+- Boundary: `task` / `complete`
+- Position: `complete-rebranding` / `visual-verification-harness` / `1`
+- Class and elapsed time: `product` / `0.0` hours
+- Commit: `bc1bc3d5c087534fccdb84143dc95dd0a0c08f08`
+- Files: `.gitignore`, `.kbd-orchestrator/current-waypoint.json`, `.kbd-orchestrator/phases/complete-rebranding/progress.json`, `.kbd-orchestrator/phases/complete-rebranding/tasks.md`, `.kbd-orchestrator/position-reminder.txt`, `.kbd-orchestrator/position.json`, `.prometheus/knowledge/wiki/index.md`, `.prometheus/knowledge/wiki/karpathy-session-cb24b7fce797c00b.md`, `.prometheus/knowledge/wiki/log.md`, `docs/xhtml-docs/knowme-business-cards.html`, `docs/xhtml-docs/knowme-logomark-v3-bold.html`, `docs/xhtml-docs/knowme-wordmark-system.html`, `e2e/tsconfig.json`, `openspec/changes/visual-verification-harness/tasks.md`, `package-lock.json`, `package.json`, `playwright.config.ts`
+- Blocker: none
+- Exact next work: /opsx:continue tailwind-v4-foundation
+- Verification:
+  - none recorded
+
+<!-- karpathy-progress-event:kpm-f5df15a680a600e3017483ad29224f59 -->
+## Progress boundary — 2026-09-23T23:12:31.201282Z
+
+- Event: `kpm-f5df15a680a600e3017483ad29224f59`
+- Boundary: `task` / `complete`
+- Position: `complete-rebranding` / `visual-verification-harness` / `2`
+- Class and elapsed time: `product` / `0.0` hours
+- Commit: `bc1bc3d5c087534fccdb84143dc95dd0a0c08f08`
+- Files: `.gitignore`, `.kbd-orchestrator/current-waypoint.json`, `.kbd-orchestrator/phases/complete-rebranding/progress.json`, `.kbd-orchestrator/phases/complete-rebranding/tasks.md`, `.kbd-orchestrator/position-reminder.txt`, `.kbd-orchestrator/position.json`, `.prometheus/knowledge/wiki/index.md`, `.prometheus/knowledge/wiki/karpathy-session-cb24b7fce797c00b.md`, `.prometheus/knowledge/wiki/log.md`, `docs/xhtml-docs/knowme-business-cards.html`, `docs/xhtml-docs/knowme-logomark-v3-bold.html`, `docs/xhtml-docs/knowme-wordmark-system.html`, `e2e/tsconfig.json`, `openspec/changes/visual-verification-harness/tasks.md`, `package-lock.json`, `package.json`, `playwright.config.ts`
+- Blocker: none
+- Exact next work: /opsx:continue tailwind-v4-foundation
+- Verification:
+  - none recorded
+
+<!-- karpathy-progress-event:kpm-8066b9928ce13aaf5e45d0ef6dee6fe4 -->
+## Progress boundary — 2026-09-23T23:13:22.515520Z
+
+- Event: `kpm-8066b9928ce13aaf5e45d0ef6dee6fe4`
+- Boundary: `task` / `complete`
+- Position: `complete-rebranding` / `visual-verification-harness` / `3`
+- Class and elapsed time: `product` / `0.0` hours
+- Commit: `bc1bc3d5c087534fccdb84143dc95dd0a0c08f08`
+- Files: `.gitignore`, `.kbd-orchestrator/current-waypoint.json`, `.kbd-orchestrator/phases/complete-rebranding/progress.json`, `.kbd-orchestrator/phases/complete-rebranding/tasks.md`, `.kbd-orchestrator/position-reminder.txt`, `.kbd-orchestrator/position.json`, `.prometheus/knowledge/wiki/index.md`, `.prometheus/knowledge/wiki/karpathy-session-cb24b7fce797c00b.md`, `.prometheus/knowledge/wiki/log.md`, `docs/xhtml-docs/knowme-business-cards.html`, `docs/xhtml-docs/knowme-logomark-v3-bold.html`, `docs/xhtml-docs/knowme-wordmark-system.html`, `e2e/fixtures/uar-data.ts`, `e2e/tsconfig.json`, `openspec/changes/visual-verification-harness/tasks.md`, `package-lock.json`, `package.json`, `playwright.config.ts`
+- Blocker: none
+- Exact next work: /opsx:continue tailwind-v4-foundation
+- Verification:
+  - none recorded
+
+<!-- karpathy-progress-event:kpm-a77d238cc2eb7b0fabbfe0cb9b13b825 -->
+## Progress boundary — 2026-09-23T23:14:36.598014Z
+
+- Event: `kpm-a77d238cc2eb7b0fabbfe0cb9b13b825`
+- Boundary: `task` / `complete`
+- Position: `complete-rebranding` / `visual-verification-harness` / `4`
+- Class and elapsed time: `product` / `0.0` hours
+- Commit: `bc1bc3d5c087534fccdb84143dc95dd0a0c08f08`
+- Files: `.gitignore`, `.kbd-orchestrator/current-waypoint.json`, `.kbd-orchestrator/phases/complete-rebranding/progress.json`, `.kbd-orchestrator/phases/complete-rebranding/tasks.md`, `.kbd-orchestrator/position-reminder.txt`, `.kbd-orchestrator/position.json`, `.prometheus/knowledge/wiki/index.md`, `.prometheus/knowledge/wiki/karpathy-session-cb24b7fce797c00b.md`, `.prometheus/knowledge/wiki/log.md`, `docs/xhtml-docs/knowme-business-cards.html`, `docs/xhtml-docs/knowme-logomark-v3-bold.html`, `docs/xhtml-docs/knowme-wordmark-system.html`, `e2e/fixtures/sse.ts`, `e2e/fixtures/uar-data.ts`, `e2e/tsconfig.json`, `openspec/changes/visual-verification-harness/tasks.md`, `package-lock.json`, `package.json`, `playwright.config.ts`, `src/test/uar-sse-fixture.test.ts`
+- Blocker: none
+- Exact next work: /opsx:continue tailwind-v4-foundation
+- Verification:
+  - none recorded
+
+<!-- karpathy-progress-event:kpm-09a96396dcd6cae42619a00fc4357557 -->
+## Progress boundary — 2026-09-23T23:15:44.016344Z
+
+- Event: `kpm-09a96396dcd6cae42619a00fc4357557`
+- Boundary: `task` / `complete`
+- Position: `complete-rebranding` / `visual-verification-harness` / `5`
+- Class and elapsed time: `product` / `0.0` hours
+- Commit: `bc1bc3d5c087534fccdb84143dc95dd0a0c08f08`
+- Files: `.gitignore`, `.kbd-orchestrator/current-waypoint.json`, `.kbd-orchestrator/phases/complete-rebranding/progress.json`, `.kbd-orchestrator/phases/complete-rebranding/tasks.md`, `.kbd-orchestrator/position-reminder.txt`, `.kbd-orchestrator/position.json`, `.prometheus/knowledge/wiki/index.md`, `.prometheus/knowledge/wiki/karpathy-session-cb24b7fce797c00b.md`, `.prometheus/knowledge/wiki/log.md`, `docs/xhtml-docs/knowme-business-cards.html`, `docs/xhtml-docs/knowme-logomark-v3-bold.html`, `docs/xhtml-docs/knowme-wordmark-system.html`, `e2e/fixtures/sse.ts`, `e2e/fixtures/uar-data.ts`, `e2e/mock-smoke.spec.ts`, `e2e/support/test.ts`, `e2e/support/uar-mock.ts`, `e2e/tsconfig.json`, `openspec/changes/visual-verification-harness/tasks.md`, `package-lock.json`, `package.json`, `playwright.config.ts`, `src/test/uar-sse-fixture.test.ts`
+- Blocker: none
+- Exact next work: /opsx:continue tailwind-v4-foundation
+- Verification:
+  - none recorded
+
+<!-- karpathy-progress-event:kpm-fc9a920c06c27c0057bb719f15ff4ada -->
+## Progress boundary — 2026-09-23T23:20:30.754486Z
+
+- Event: `kpm-fc9a920c06c27c0057bb719f15ff4ada`
+- Boundary: `task` / `complete`
+- Position: `complete-rebranding` / `visual-verification-harness` / `6`
+- Class and elapsed time: `product` / `0.0` hours
+- Commit: `bc1bc3d5c087534fccdb84143dc95dd0a0c08f08`
+- Files: `.gitignore`, `.kbd-orchestrator/current-waypoint.json`, `.kbd-orchestrator/phases/complete-rebranding/progress.json`, `.kbd-orchestrator/phases/complete-rebranding/tasks.md`, `.kbd-orchestrator/position-reminder.txt`, `.kbd-orchestrator/position.json`, `.prometheus/knowledge/wiki/index.md`, `.prometheus/knowledge/wiki/karpathy-session-cb24b7fce797c00b.md`, `.prometheus/knowledge/wiki/log.md`, `docs/xhtml-docs/knowme-business-cards.html`, `docs/xhtml-docs/knowme-logomark-v3-bold.html`, `docs/xhtml-docs/knowme-wordmark-system.html`, `e2e/fixtures/sse.ts`, `e2e/fixtures/uar-data.ts`, `e2e/mock-smoke.spec.ts`, `e2e/support/page-helpers.ts`, `e2e/support/routes.ts`, `e2e/support/test.ts`, `e2e/support/uar-mock.ts`, `e2e/tsconfig.json`, `e2e/visual.spec.ts`, `openspec/changes/visual-verification-harness/tasks.md`, `package-lock.json`, `package.json`, `playwright.config.ts`, `src/test/uar-sse-fixture.test.ts`
+- Blocker: none
+- Exact next work: /opsx:continue tailwind-v4-foundation
+- Verification:
+  - none recorded
+
+<!-- karpathy-progress-event:kpm-b4b18cd44437195b5e08c23f4bb868d6 -->
+## Progress boundary — 2026-09-23T23:23:24.667213Z
+
+- Event: `kpm-b4b18cd44437195b5e08c23f4bb868d6`
+- Boundary: `task` / `complete`
+- Position: `complete-rebranding` / `visual-verification-harness` / `7`
+- Class and elapsed time: `product` / `0.0` hours
+- Commit: `bc1bc3d5c087534fccdb84143dc95dd0a0c08f08`
+- Files: `.gitignore`, `.kbd-orchestrator/current-waypoint.json`, `.kbd-orchestrator/phases/complete-rebranding/progress.json`, `.kbd-orchestrator/phases/complete-rebranding/tasks.md`, `.kbd-orchestrator/position-reminder.txt`, `.kbd-orchestrator/position.json`, `.prometheus/knowledge/wiki/index.md`, `.prometheus/knowledge/wiki/karpathy-session-cb24b7fce797c00b.md`, `.prometheus/knowledge/wiki/log.md`, `docs/xhtml-docs/knowme-business-cards.html`, `docs/xhtml-docs/knowme-logomark-v3-bold.html`, `docs/xhtml-docs/knowme-wordmark-system.html`, `e2e/fixtures/sse.ts`, `e2e/fixtures/uar-data.ts`, `e2e/mock-smoke.spec.ts`, `e2e/support/page-helpers.ts`, `e2e/support/routes.ts`, `e2e/support/test.ts`, `e2e/support/uar-mock.ts`, `e2e/tsconfig.json`, `e2e/visual.spec.ts`, `openspec/changes/visual-verification-harness/tasks.md`, `package-lock.json`, `package.json`, `playwright.config.ts`, `src/test/uar-sse-fixture.test.ts`
+- Blocker: none
+- Exact next work: /opsx:continue tailwind-v4-foundation
+- Verification:
+  - none recorded
+
+<!-- karpathy-progress-event:kpm-034889988481239c8aeaa0af290132f3 -->
+## Progress boundary — 2026-09-23T23:25:07.078124Z
+
+- Event: `kpm-034889988481239c8aeaa0af290132f3`
+- Boundary: `task` / `complete`
+- Position: `complete-rebranding` / `visual-verification-harness` / `8`
+- Class and elapsed time: `product` / `0.0` hours
+- Commit: `bc1bc3d5c087534fccdb84143dc95dd0a0c08f08`
+- Files: `.gitignore`, `.kbd-orchestrator/current-waypoint.json`, `.kbd-orchestrator/phases/complete-rebranding/progress.json`, `.kbd-orchestrator/phases/complete-rebranding/tasks.md`, `.kbd-orchestrator/position-reminder.txt`, `.kbd-orchestrator/position.json`, `.prometheus/knowledge/wiki/index.md`, `.prometheus/knowledge/wiki/karpathy-session-cb24b7fce797c00b.md`, `.prometheus/knowledge/wiki/log.md`, `docs/xhtml-docs/knowme-business-cards.html`, `docs/xhtml-docs/knowme-logomark-v3-bold.html`, `docs/xhtml-docs/knowme-wordmark-system.html`, `e2e/a11y.spec.ts`, `e2e/fixtures/sse.ts`, `e2e/fixtures/uar-data.ts`, `e2e/mock-smoke.spec.ts`, `e2e/support/a11y-report.mjs`, `e2e/support/page-helpers.ts`, `e2e/support/routes.ts`, `e2e/support/test.ts`, `e2e/support/uar-mock.ts`, `e2e/tsconfig.json`, `e2e/visual.spec.ts`, `openspec/changes/visual-verification-harness/tasks.md`, `package-lock.json`, `package.json`, `playwright.config.ts`, `src/test/uar-sse-fixture.test.ts`
+- Blocker: none
+- Exact next work: /opsx:continue tailwind-v4-foundation
+- Verification:
+  - none recorded
+
+<!-- karpathy-progress-event:kpm-afd4c74e5c917e128ccd928779ef4868 -->
+## Progress boundary — 2026-09-23T23:27:57.220131Z
+
+- Event: `kpm-afd4c74e5c917e128ccd928779ef4868`
+- Boundary: `task` / `complete`
+- Position: `complete-rebranding` / `visual-verification-harness` / `9`
+- Class and elapsed time: `product` / `0.0` hours
+- Commit: `b06fe7a00a730efe67d640b3676035c024959ca0`
+- Files: `.kbd-orchestrator/current-waypoint.json`, `.kbd-orchestrator/phases/complete-rebranding/progress.json`, `.kbd-orchestrator/phases/complete-rebranding/tasks.md`, `.kbd-orchestrator/position-reminder.txt`, `.kbd-orchestrator/position.json`, `docs/xhtml-docs/knowme-business-cards.html`, `docs/xhtml-docs/knowme-logomark-v3-bold.html`, `docs/xhtml-docs/knowme-wordmark-system.html`, `openspec/changes/visual-verification-harness/tasks.md`
+- Blocker: none
+- Exact next work: /opsx:continue tailwind-v4-foundation
+- Verification:
+  - none recorded
+
+<!-- karpathy-progress-event:kpm-b32b021a73cc2633fa417af42d21e53b -->
+## Progress boundary — 2026-09-23T23:28:03.976616Z
+
+- Event: `kpm-b32b021a73cc2633fa417af42d21e53b`
+- Boundary: `change` / `complete`
+- Position: `complete-rebranding` / `visual-verification-harness` / `-`
+- Class and elapsed time: `product` / `0.0` hours
+- Commit: `b06fe7a00a730efe67d640b3676035c024959ca0`
+- Files: `.kbd-orchestrator/current-waypoint.json`, `.kbd-orchestrator/phases/complete-rebranding/progress.json`, `.kbd-orchestrator/phases/complete-rebranding/tasks.md`, `.kbd-orchestrator/position-reminder.txt`, `.kbd-orchestrator/position.json`, `docs/xhtml-docs/knowme-business-cards.html`, `docs/xhtml-docs/knowme-logomark-v3-bold.html`, `docs/xhtml-docs/knowme-wordmark-system.html`, `openspec/changes/visual-verification-harness/tasks.md`
+- Blocker: none
+- Exact next work: /opsx:continue tailwind-v4-foundation
+- Verification:
+  - none recorded

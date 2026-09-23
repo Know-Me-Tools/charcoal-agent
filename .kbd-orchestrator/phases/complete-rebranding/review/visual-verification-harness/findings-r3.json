@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "WARNING",
+      "file": "package.json",
+      "line": 20,
+      "claim": "`test:a11y` uses POSIX shell syntax, so the required npm script is not portable to all developer machines.",
+      "evidence": "Acceptance criteria require scripts including `test:a11y` and the spec says the harness should run identically on any developer machine; the added script is `node e2e/support/a11y-report.mjs --clean && playwright test e2e/a11y.spec.ts; status=$?; node e2e/support/a11y-report.mjs; exit $status`, which relies on `status=$?` and `exit $status` shell syntax not supported by Windows `cmd.exe` npm scripts.",
+      "suggested_fix": "Move the orchestration into a Node script that spawns Playwright, captures the exit code, runs the report merger, and exits with the captured code."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

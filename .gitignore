@@ -57,3 +57,8 @@ Thumbs.db
 .kbd-orchestrator/**/*.lock
 .kbd-orchestrator/**/hooks.log.jsonl
 .kbd-orchestrator/**/hooks-status.json
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
