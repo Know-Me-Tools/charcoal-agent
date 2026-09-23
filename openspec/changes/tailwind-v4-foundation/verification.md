@@ -31,3 +31,6 @@
   - WARNING `attachment.tsx` stacked-variant reordering produced `svg:hover>button` (never matches) → rewritten as `[&>button:hover_svg]:text-destructive` (compiles to `>button:hover svg`); tile remove button restored to `hover:[&_svg]:text-destructive` (`:hover svg`).
   - WARNING lint warnings → same accepted pre-existing exception as round 2.
   - Other codemod reorders checked: only `data-[state=open]:hover:` / `:focus:` on the same element (order-insensitive).
+- Round 4 (after fixes): **PASS** (0 CRITICAL / 2 WARNING), judge gpt-5.5, verified-distinct, anti-theater gate score 0.08.
+  - WARNING `useFileSrc` retained the removed File in state → fixed (state cleared in effect cleanup).
+  - WARNING lint warnings → accepted pre-existing exception (see above); carried to reflection.

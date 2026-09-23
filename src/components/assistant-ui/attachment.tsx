@@ -37,6 +37,7 @@ const useFileSrc = (file: File | undefined) => {
     setEntry({ file, src });
     return () => {
       URL.revokeObjectURL(src);
+      setEntry(undefined);
     };
   }, [file]);
 
