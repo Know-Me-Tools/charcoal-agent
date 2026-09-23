@@ -17,7 +17,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p e2e/tsconfig.json",
     "test:e2e": "playwright test",
     "test:visual": "playwright test e2e/visual.spec.ts",
-    "test:a11y": "node e2e/support/a11y-report.mjs --clean && playwright test e2e/a11y.spec.ts; status=$?; node e2e/support/a11y-report.mjs; exit $status"
+    "test:a11y": "node e2e/support/run-a11y.mjs"
   },
   "dependencies": {
     "@assistant-ui/react": "^0.12.10",

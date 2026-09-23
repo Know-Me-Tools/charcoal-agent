@@ -28,3 +28,5 @@
 - r2: BLOCK, 1 CRITICAL / 1 WARNING.
   - CRITICAL thread capture could precede later blocks → fixed: capture waits for a marker from every block type (skill, context, memory recall/mutation, tool call, citation, both artifacts, A2UI input, A2UI display). Markers assert `attached`, not `visible`: at 768px the app's layout collapse (finding 2) makes blocks 0px wide, which the screenshot records rather than masking with a failure.
   - WARNING `rm -rf` not portable → fixed: `node e2e/support/a11y-report.mjs --clean` (fs.rmSync).
+- r3: **PASS** (0 CRITICAL / 1 WARNING), gpt-5.5 verified-distinct, anti-theater score 0.08.
+  - WARNING `test:a11y` still used POSIX shell chaining → fixed: `e2e/support/run-a11y.mjs` orchestrates clean → playwright → merge and propagates the exit code (report-only exit 0; `AXE_STRICT=1` exit 1 verified).
