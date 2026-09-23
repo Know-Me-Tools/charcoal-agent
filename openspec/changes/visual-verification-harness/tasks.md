@@ -20,4 +20,4 @@
 
 ## 5. Verification
 
-- [ ] 5.1 Run `npm run build && npm run typecheck && npm run lint && npm test && npm run test:e2e`; verify all exit 0, record timings and the a11y violation summary baseline in `verification.md`
+- [x] 5.1 Run `npm run build && npm run typecheck && npm run lint && npm test && npm run test:e2e`; verify all exit 0, record timings and the a11y violation summary baseline in `verification.md`
