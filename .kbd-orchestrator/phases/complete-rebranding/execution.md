@@ -57,7 +57,7 @@ HANDOFF NOTE for any non-self tool (Codex, OpenCode, Kimi, Zed, MiniMax):
 
 APPROVAL GATES
 
-- Branching: work is currently on `main` with untracked KBD/OpenSpec/CLAUDE.md setup files. Operator approval needed to (a) commit the setup files and (b) create `rebrand/*` branches or worktrees before the first change is applied.
+- Branching: APPROVED 2026-09-23 — branch per change. Setup committed to `main` as 8462164; each change runs on `rebrand/<change-id>` branched from `main` and merges back in plan order. `docs/xhtml-docs/` (pre-existing untracked brand pages) left uncommitted pending operator decision.
 - brand-fidelity-audit: operator sign-off on visual fidelity (Manual).
 - Any deviation from S1/S2 values beyond D-007 contrast variants requires a new decision-log entry.
 
@@ -95,7 +95,7 @@ OUTPUTS
 
 BLOCKERS
 
-- NONE technical. Pending operator approval for commit/branch strategy (see APPROVAL GATES).
+- NONE
 
 REFLECTION HANDOFF
 
