@@ -24,7 +24,25 @@ async function streamFixtureConversation(page: Page): Promise<void> {
   const composer = page.getByPlaceholder(/Ask your agent anything/i).filter({ visible: true });
   await composer.fill("Plan my week around the rebrand launch.");
   await composer.press("Enter");
-  await expect(page.getByText(FIXTURE_FINAL_TEXT).filter({ visible: true }).first()).toBeVisible();
+  // Wait for a marker from every block type, including those streamed after the
+  // final text, so the capture always contains the complete conversation.
+  // `attached` (not `visible`) proves the stream finished rendering; whether each
+  // block is legible at a given width is what the screenshot itself records.
+  for (const marker of [
+    FIXTURE_FINAL_TEXT,
+    "KnowMe Profile", // skill activation
+    "summarize_oldest", // context update
+    "work.focus", // memory recall
+    "calendar_list_events", // tool call
+    "Planning guide", // citation
+    "Prefers weekly plans on Monday mornings", // memory mutation
+    "Week flow", // artifact (diagram)
+    "checklist.md", // artifact (code)
+    "Add Thursday review to calendar?", // A2UI input request
+    "Custom Event", // A2UI display (last event before done)
+  ]) {
+    await expect(page.getByText(marker).first()).toBeAttached();
+  }
   await expandToScrollableContent(page);
 }
 

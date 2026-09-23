@@ -3,6 +3,12 @@ import fs from "node:fs";
 import path from "node:path";
 
 const dir = path.resolve("test-results/a11y");
+
+// `--clean` runs before the scan so the merged report only reflects this run.
+if (process.argv.includes("--clean")) {
+  fs.rmSync(dir, { recursive: true, force: true });
+  process.exit(0);
+}
 const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith(".json")) : [];
 const all = files.flatMap((f) => JSON.parse(fs.readFileSync(path.join(dir, f), "utf8")).violations);
 const byRule = {};
