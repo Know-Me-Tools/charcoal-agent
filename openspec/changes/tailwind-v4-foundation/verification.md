@@ -19,3 +19,10 @@
 - Remaining `rounded-sm`/`shadow-sm` are the v4 names for v3 `rounded`/`shadow` (intentional renames).
 - `--radix-accordion-content-height` keyframes remain until shadcn-base-ui-migration.
 - Build targets raised to `chrome111` / `safari16.4` (Tailwind 4 minimum).
+
+## Adversarial review (diff mode)
+- Round 1 packet covered only the QA-log commit (packet builder diffs `HEAD`); discarded.
+- Round 2 (cumulative branch vs `main`, lockfile excluded for size, built in a temp worktree): BLOCK, 4 CRITICAL / 2 WARNING, judge gpt-5.5 verified-distinct.
+  - CRITICAL lockfile not updated; postcss.config.js / tailwind.config.ts / src/App.css not deleted → **false positives from packet construction** (`git checkout <branch> -- .` does not apply deletions; lockfile excluded deliberately). Verified on the real branch: `git diff --name-status main` shows `D postcss.config.js`, `D src/App.css`, `D tailwind.config.ts`, `M package-lock.json` with `@tailwindcss/vite` and `tw-animate-css` entries; `npm ci --dry-run` exit 0.
+  - WARNING `useFileSrc` created object URLs during render → fixed: URL created and revoked inside the same effect; returns undefined until committed for the current file.
+  - WARNING lint warnings remain → accepted exception: 6 pre-existing `react-refresh/only-export-components` warnings in shadcn `ui/*` files, unchanged by this change; those files are regenerated in shadcn-base-ui-migration.

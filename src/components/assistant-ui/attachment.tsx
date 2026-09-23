@@ -1,6 +1,6 @@
 "use client";
 
-import { PropsWithChildren, useEffect, useMemo, useState, type FC } from "react";
+import { PropsWithChildren, useEffect, useState, type FC } from "react";
 import { XIcon, PlusIcon, FileText } from "lucide-react";
 import {
   AttachmentPrimitive,
@@ -26,19 +26,21 @@ import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button
 import { cn } from "@/lib/utils";
 
 const useFileSrc = (file: File | undefined) => {
-  const src = useMemo(
-    () => (file ? URL.createObjectURL(file) : undefined),
-    [file],
-  );
+  const [entry, setEntry] = useState<{ file: File; src: string }>();
 
   useEffect(() => {
-    if (!src) return;
+    if (!file) return;
+    // Object URLs are an external resource: create after commit and revoke in
+    // the same effect so abandoned renders never allocate one.
+    const src = URL.createObjectURL(file);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing with the object-URL lifecycle
+    setEntry({ file, src });
     return () => {
       URL.revokeObjectURL(src);
     };
-  }, [src]);
+  }, [file]);
 
-  return src;
+  return file && entry?.file === file ? entry.src : undefined;
 };
 
 const useAttachmentSrc = () => {
