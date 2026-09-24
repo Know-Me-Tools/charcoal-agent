@@ -32,6 +32,14 @@ describe("useProviders", () => {
     expect(countCalls("/api/providers")).toBe(1);
   });
 
+  it("reports a failure instead of partial data when providers cannot load", async () => {
+    fetchMock = mockFetch({ "GET /api/providers": () => ({ status: 500, body: { error: "down" } }) });
+    const { wrapper } = createGraphTestHarness();
+    const { result } = renderHook(() => useProviders(), { wrapper });
+    await waitFor(() => expect(result.current.isError).toBe(true), { timeout: 5000 });
+    expect(result.current.isLoading).toBe(false);
+  });
+
   it("accepts the legacy flat-array response", async () => {
     fetchMock = mockFetch({ "GET /api/providers": () => ({ body: [openai] }) });
     const { wrapper } = createGraphTestHarness();

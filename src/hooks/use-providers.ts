@@ -54,7 +54,17 @@ export function useProviders(): QueryResult<ProvidersResult> {
     providers: list.data ?? [],
     defaultId: registry.data?.defaultId,
   };
-  return { ...list, data: list.data ? value : undefined };
+  // The default id is part of the result: its loading and failure count too.
+  const registryError = registry.error ? new Error(registry.error) : null;
+  const error = list.error ?? registryError;
+  const isLoading = list.isLoading || (registry.isLoading && !registryError);
+  const settled = list.data !== undefined && (registry.data !== null || registryError !== null);
+  return {
+    data: settled ? value : undefined,
+    isLoading,
+    isError: error !== null,
+    error,
+  };
 }
 
 /**

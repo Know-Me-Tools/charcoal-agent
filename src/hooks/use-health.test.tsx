@@ -20,8 +20,10 @@ describe("useHealth", () => {
     fetchMock = mockFetch({ "GET /healthz": () => ({ status: 503 }) });
     const { wrapper } = createGraphTestHarness();
     const { result } = renderHook(() => useHealth(), { wrapper });
-    await waitFor(() => expect(result.current.isError).toBe(true), { timeout: 5000 });
+    await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.data?.status).toBe("error");
     expect(result.current.isLoading).toBe(false);
+    // Reported immediately: one probe, no engine retry.
+    expect(fetchMock.calls.filter((c) => c.path === "/healthz")).toHaveLength(1);
   });
 });

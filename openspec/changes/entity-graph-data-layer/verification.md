@@ -30,3 +30,7 @@
 - Gates after r2 fixes: unit 43/43, typecheck 0, lint 0 errors, build ✓, e2e 124/124 (3.2 min on a fresh server). A run that reused a stale dev server from earlier took 11.2 min with 5 tests not reported as passed; `reuseExistingServer` is now opt-in (`E2E_REUSE_SERVER=1`).
 - r3: BLOCK, 1 CRITICAL — `useChatMessages().isLoading` stayed true after a failed fallback → fixed: `isLoading` is true only while the transcript fetch is in flight; unit test proves a 404 ends loading and sets `transcriptError`. (No current consumer reads `isLoading`, so there was no visible hang, but the contract is now correct.)
 - Gates after r3 fix: unit 44/44, typecheck 0, lint 0 errors, build ✓, e2e 124/124.
+- r4: BLOCK, 2 CRITICAL / 1 WARNING — all fixed:
+  - Session delete now removes the `Session` record from every graph list and the entity itself (test asserts `readEntity` → null).
+  - `useProviders` combines list and default-registry state: loading while either loads, error if either fails, data only once both settle (test: 500 → error, not loading).
+  - Health probes never throw: a failed probe is reported immediately as `status: "error"` with one request (restores the old `retry: false`; test asserts a single `/healthz` call).

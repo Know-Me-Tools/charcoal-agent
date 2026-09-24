@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useEntity } from "@prometheus-ags/prometheus-entity-management";
 import { ENTITY } from "@/lib/entity-graph/entities";
-import { toQueryResult, type QueryResult } from "@/lib/entity-graph/query-result";
+import type { QueryResult } from "@/lib/entity-graph/query-result";
 import type { HealthStatus } from "@/types";
 import { buildUrl } from "@/lib/api-client";
 
@@ -13,20 +13,25 @@ import { buildUrl } from "@/lib/api-client";
  * { status: "ok" } shape ourselves.
  */
 async function pingEndpoint(path: string): Promise<HealthStatus> {
-  const url = buildUrl(path);
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Health check failed: ${res.status}`);
-  // Body may be empty (200 + no JSON) — treat any 2xx as "ok".
+  // Never throw: a failed probe is a result ("error"), reported at once rather
+  // than retried by the graph engine.
   try {
+    const res = await fetch(buildUrl(path));
+    if (!res.ok) return { status: "error" };
+    // Body may be empty (200 + no JSON) — treat any 2xx as "ok".
     const text = await res.text();
     if (text) {
-      const json = JSON.parse(text) as Record<string, unknown>;
-      return { status: (json.status as "ok" | "error") ?? "ok" };
+      try {
+        const json = JSON.parse(text) as Record<string, unknown>;
+        return { status: (json.status as "ok" | "error") ?? "ok" };
+      } catch {
+        // Unparseable body — the server answered 2xx, so it is reachable.
+      }
     }
+    return { status: "ok" };
   } catch {
-    // Ignore parse errors — server is reachable, so mark ok.
+    return { status: "error" };
   }
-  return { status: "ok" };
 }
 
 interface HealthRecord extends HealthStatus {
@@ -54,12 +59,14 @@ function useRuntimeProbe(path: "/healthz" | "/readyz"): QueryResult<HealthStatus
     return () => clearInterval(timer);
   }, [refetch]);
 
-  const value: HealthStatus | undefined = probe.error
-    ? { status: "error" }
-    : probe.data
-      ? { status: probe.data.status }
-      : undefined;
-  return toQueryResult(probe, value, value !== undefined);
+  const value: HealthStatus | undefined = probe.data ? { status: probe.data.status } : undefined;
+  const unreachable = value?.status === "error";
+  return {
+    data: value,
+    isLoading: probe.isLoading,
+    isError: unreachable,
+    error: unreachable ? new Error(`Runtime ${path} check failed`) : null,
+  };
 }
 
 export function useHealth(): QueryResult<HealthStatus> {

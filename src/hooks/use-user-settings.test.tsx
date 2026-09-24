@@ -79,6 +79,7 @@ describe("useDeleteSession", () => {
     fetchMock = mockFetch({ "DELETE /api/sessions/t1": () => ({ body: {} }) });
     const { wrapper, store } = createGraphTestHarness();
     store.getState().upsertEntity("SessionTranscript", "t1", { id: "t1", messages: [] });
+    store.getState().upsertEntity("Session", "t1", { id: "t1", title: "Old" });
     store.getState().setEntityFetched("SessionTranscript", "t1");
     const { result } = renderHook(() => useDeleteSession(), { wrapper });
 
@@ -87,5 +88,6 @@ describe("useDeleteSession", () => {
     });
     expect(fetchMock.calls).toContainEqual(expect.objectContaining({ method: "DELETE", path: "/api/sessions/t1" }));
     expect(store.getState().entityStates["SessionTranscript:t1"]?.stale).toBe(true);
+    expect(store.getState().readEntity("Session", "t1")).toBeNull();
   });
 });
