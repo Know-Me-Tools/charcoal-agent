@@ -7,9 +7,8 @@ import {
 	ErrorPrimitive,
 	MessagePrimitive,
 	ThreadPrimitive,
+	type MessagePartStatus,
 	type ToolCallMessagePartProps,
-	useMessagePartText,
-	useMessageRuntime,
 } from "@assistant-ui/react";
 import {
 	ArrowDownIcon,
@@ -80,13 +79,17 @@ export const EnhancedThread: FC<EnhancedThreadProps> = ({
 					<KnowMeWelcome />
 				</AuiIf>
 
-				<ThreadPrimitive.Messages
-					components={{
-						UserMessage,
-						EditComposer,
-						AssistantMessage,
-					}}
-				/>
+				<ThreadPrimitive.Messages>
+					{({ message }) =>
+						message.composer.isEditing ? (
+							<EditComposer />
+						) : message.role === "user" ? (
+							<UserMessage />
+						) : (
+							<AssistantMessage />
+						)
+					}
+				</ThreadPrimitive.Messages>
 
 				<ThreadPrimitive.ViewportFooter className="aui-thread-viewport-footer sticky bottom-0 mx-auto mt-auto flex w-full max-w-(--thread-max-width) flex-col gap-4 overflow-visible rounded-t-3xl bg-background pb-4 md:pb-6">
 					<ThreadScrollToBottom />
@@ -290,9 +293,9 @@ const UserMessage: FC = () => (
 			<UserActionBar />
 			<div className="min-w-0 flex-1">
 				<div className="wrap-break-word rounded-2xl rounded-tr-sm bg-zinc-800 px-4 py-3 font-body text-sm text-foreground leading-relaxed shadow-xs">
-					<MessagePrimitive.Parts
-						components={{ Text: EnhancedMarkdownText }}
-					/>
+					<MessagePrimitive.Parts>
+						{({ part }) => (part.type === "text" ? <EnhancedMarkdownText /> : null)}
+					</MessagePrimitive.Parts>
 				</div>
 			</div>
 			<UserAvatar />
@@ -328,13 +331,21 @@ const AssistantMessage: FC = () => (
 			<AgentAvatar />
 			<div className="min-w-0 flex-1">
 				<div className="wrap-break-word rounded-2xl rounded-tl-sm bg-muted/60 px-4 py-3 font-body text-sm text-foreground leading-relaxed shadow-xs">
-					<MessagePrimitive.Parts
-						components={{
-							Text: EnhancedMarkdownText,
-							Reasoning: ReasoningPart,
-							tools: { Fallback: ToolCallPart },
+					<MessagePrimitive.Parts>
+						{({ part }) => {
+							switch (part.type) {
+								case "text":
+									return <EnhancedMarkdownText />;
+								case "reasoning":
+									return <ReasoningPart text={part.text} status={part.status} />;
+								case "tool-call":
+									// KnowMe rich blocks are encoded as tool calls (see ToolCallPart).
+									return <ToolCallPart {...part} />;
+								default:
+									return null;
+							}
 						}}
-					/>
+					</MessagePrimitive.Parts>
 					<MessageError />
 				</div>
 			</div>
@@ -348,8 +359,12 @@ const AssistantMessage: FC = () => (
 
 // ─── Reasoning Part ───────────────────────────────────────────────────────────
 
-const ReasoningPart: FC = () => {
-	const { text, status } = useMessagePartText();
+interface ReasoningPartProps {
+	text: string;
+	status: MessagePartStatus;
+}
+
+const ReasoningPart: FC<ReasoningPartProps> = ({ text, status }) => {
 	const isStreaming = status.type === "running";
 	const [isOpen, setIsOpen] = useState(isStreaming);
 
@@ -671,5 +686,3 @@ const BranchPicker: FC<BranchPickerPrimitive.Root.Props> = ({
 	</BranchPickerPrimitive.Root>
 );
 
-// Suppress unused import warning (used for future extensions)
-void useMessageRuntime;

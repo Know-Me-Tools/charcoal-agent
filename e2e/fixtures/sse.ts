@@ -20,6 +20,7 @@ const ASSISTANT_MARKDOWN = [
   "A quick helper you asked for:\n\n",
   "```ts\nexport function weekOf(date: Date): number {\n  const start = new Date(date.getFullYear(), 0, 1);\n  return Math.ceil(((+date - +start) / 86400000 + start.getDay() + 1) / 7);\n}\n```\n\n",
   "Inline math also renders: $e^{i\\pi} + 1 = 0$.\n\n",
+  "```mermaid\ngraph LR\n  Plan --> Build --> Review\n```\n\n",
   "A long identifier that must wrap: https://know-me.tools/very/long/path/that/keeps/going/without/any/spaces/at/all/to/check/wrapping/behaviour/in/narrow/viewports\n\n",
   FIXTURE_FINAL_TEXT,
 ];
@@ -35,12 +36,12 @@ const A2UI_ENVELOPE = {
   },
 };
 
+/**
+ * Realistic order: skill activation, context update and memory recall arrive
+ * before the first thinking/text token (the store must keep them).
+ */
 export const FIXTURE_EVENTS: SseEvent[] = [
   { event: "agui.stream.start", data: { kind: "stream", phase: "start", request_id: rid } },
-  // The client creates the assistant message on the first text/thinking delta and
-  // currently drops block events that arrive earlier (see visual-verification-harness
-  // verification.md). Keep a thinking delta first so every block is rendered.
-  { event: "agui.thinking.delta", data: { kind: "thinking", phase: "delta", request_id: rid, delta: { text: "The user wants a weekly plan. " } } },
   {
     event: "agui.skill.activated",
     data: {
@@ -76,6 +77,7 @@ export const FIXTURE_EVENTS: SseEvent[] = [
       ],
     },
   },
+  { event: "agui.thinking.delta", data: { kind: "thinking", phase: "delta", request_id: rid, delta: { text: "The user wants a weekly plan. " } } },
   { event: "agui.reasoning.delta", data: { kind: "reasoning", phase: "delta", request_id: rid, delta: { text: "Check the calendar, then summarise priorities." } } },
   { event: "agui.tool_call.delta", data: { kind: "tool_call", phase: "delta", request_id: rid, call_index: 0, id: "call-1", delta: { arguments: '{"range":' } } },
   { event: "agui.tool_call.delta", data: { kind: "tool_call", phase: "delta", request_id: rid, call_index: 0, id: "call-1", delta: { arguments: '"this_week"}' } } },

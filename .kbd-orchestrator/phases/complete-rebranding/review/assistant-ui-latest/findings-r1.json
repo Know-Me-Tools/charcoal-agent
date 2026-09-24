@@ -1,0 +1,22 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [],
+  "checked_classes": [
+    "Spec violations \u2014 package pins, registry entry, deprecated assistant-ui API migration, early stream block preservation, metadata/attachments runtime contract, and verification notes are represented in the diff or explicitly scoped by the packet note",
+    "Correctness \u2014 reviewed stream-message creation/order changes, markdown language detection, attachment URL lifecycle, and e2e reload request check; no packet-provable logic defect found",
+    "Regressions \u2014 reviewed changed assistant-ui component rendering paths and store behavior against stated existing contracts; no concrete dependency break visible in the packet",
+    "Security \u2014 no new secret material, unsafe deserialization, path writes, or boundary input handling changes visible in the diff",
+    "Constraint breaches \u2014 no console.log, new ': any', env files, pglite migration edits, reference-folder writes, or pglite prebundle changes appear in the diff",
+    "Silent failure \u2014 reviewed added fallbacks/early returns in store and attachment code; no newly swallowed error path provably violating criteria found"
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

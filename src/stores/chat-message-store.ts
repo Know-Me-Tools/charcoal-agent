@@ -147,6 +147,29 @@ function getOrCreateStreamingMessage(
   return newMsg;
 }
 
+/**
+ * The assistant message receiving the active stream, created on the first
+ * event of any kind so blocks that precede the first text/thinking token
+ * (skill activation, context update, memory recall, tool calls…) are kept in
+ * arrival order. Returns null when no stream is active for the thread.
+ */
+function activeStreamingMessage(
+  state: ChatMessageState,
+  threadId: string,
+): RichMessage | null {
+  const streaming = state.streamingByThread[threadId];
+  if (!streaming?.isStreaming || !streaming.runId) return null;
+  ensureThread(state, threadId);
+  const message = getOrCreateStreamingMessage(state, threadId, streaming.runId);
+  // Any block counts as the first token for loading/retry indicators.
+  const current = state.streamingByThread[threadId];
+  current.awaitingFirstToken = false;
+  current.retryAttempt = 0;
+  current.retryMaxAttempts = 0;
+  current.retryDelayMs = 0;
+  return message;
+}
+
 /** Persist all complete messages in a thread to PGLite. Fire-and-forget. */
 function persistMessages(threadId: string, messages: RichMessage[]): void {
   const db = tryDb();
@@ -280,23 +303,9 @@ export const useChatMessageStore = create<ChatMessageStore>()(
 
     addToolCall: (threadId, toolCall) =>
       set((state) => {
-        ensureThread(state, threadId);
-        const streaming = state.streamingByThread[threadId];
-        if (!streaming?.streamingMessageId) return;
-
-        // First token arrived (tool call counts as first content)
-        streaming.awaitingFirstToken = false;
-        streaming.retryAttempt = 0;
-        streaming.retryMaxAttempts = 0;
-        streaming.retryDelayMs = 0;
-
-        const messages = state.messagesByThread[threadId];
-        const idx = messages.findIndex(
-          (m) => m.id === streaming.streamingMessageId,
-        );
-        if (idx === -1) return;
-
-        messages[idx].content.push(toolCall as ContentBlock);
+        const message = activeStreamingMessage(state, threadId);
+        if (!message) return;
+        message.content.push(toolCall as ContentBlock);
       }),
 
     updateToolCall: (threadId, toolCallId, update) =>
@@ -318,16 +327,10 @@ export const useChatMessageStore = create<ChatMessageStore>()(
 
     addCitation: (threadId, citation) =>
       set((state) => {
-        const streaming = state.streamingByThread[threadId];
-        if (!streaming?.streamingMessageId) return;
+        const message = activeStreamingMessage(state, threadId);
+        if (!message) return;
 
-        const messages = state.messagesByThread[threadId];
-        const idx = messages?.findIndex(
-          (m) => m.id === streaming.streamingMessageId,
-        );
-        if (idx === undefined || idx === -1) return;
-
-        messages[idx].content.push({
+        message.content.push({
           type: "citation",
           source: citation.source,
           content: citation.content,
@@ -337,16 +340,10 @@ export const useChatMessageStore = create<ChatMessageStore>()(
 
     addSkillActivation: (threadId, skill) =>
       set((state) => {
-        const streaming = state.streamingByThread[threadId];
-        if (!streaming?.streamingMessageId) return;
+        const message = activeStreamingMessage(state, threadId);
+        if (!message) return;
 
-        const messages = state.messagesByThread[threadId];
-        const idx = messages?.findIndex(
-          (m) => m.id === streaming.streamingMessageId,
-        );
-        if (idx === undefined || idx === -1) return;
-
-        messages[idx].content.push({
+        message.content.push({
           type: "skill-activation",
           skillId: skill.skillId,
           skillName: skill.skillName,
@@ -357,58 +354,34 @@ export const useChatMessageStore = create<ChatMessageStore>()(
 
     addContextUpdate: (threadId, update) =>
       set((state) => {
-        const streaming = state.streamingByThread[threadId];
-        if (!streaming?.streamingMessageId) return;
+        const message = activeStreamingMessage(state, threadId);
+        if (!message) return;
 
-        const messages = state.messagesByThread[threadId];
-        const idx = messages?.findIndex(
-          (m) => m.id === streaming.streamingMessageId,
-        );
-        if (idx === undefined || idx === -1) return;
-
-        messages[idx].content.push({ type: "context-update", ...update });
+        message.content.push({ type: "context-update", ...update });
       }),
 
     addMemoryRecall: (threadId, recall) =>
       set((state) => {
-        const streaming = state.streamingByThread[threadId];
-        if (!streaming?.streamingMessageId) return;
+        const message = activeStreamingMessage(state, threadId);
+        if (!message) return;
 
-        const messages = state.messagesByThread[threadId];
-        const idx = messages?.findIndex(
-          (m) => m.id === streaming.streamingMessageId,
-        );
-        if (idx === undefined || idx === -1) return;
-
-        messages[idx].content.push({ type: "memory-recall", ...recall });
+        message.content.push({ type: "memory-recall", ...recall });
       }),
 
     addMemoryMutation: (threadId, mutation) =>
       set((state) => {
-        const streaming = state.streamingByThread[threadId];
-        if (!streaming?.streamingMessageId) return;
+        const message = activeStreamingMessage(state, threadId);
+        if (!message) return;
 
-        const messages = state.messagesByThread[threadId];
-        const idx = messages?.findIndex(
-          (m) => m.id === streaming.streamingMessageId,
-        );
-        if (idx === undefined || idx === -1) return;
-
-        messages[idx].content.push({ type: "memory-mutation", ...mutation });
+        message.content.push({ type: "memory-mutation", ...mutation });
       }),
 
     addArtifact: (threadId, artifact) =>
       set((state) => {
-        const streaming = state.streamingByThread[threadId];
-        if (!streaming?.streamingMessageId) return;
+        const message = activeStreamingMessage(state, threadId);
+        if (!message) return;
 
-        const messages = state.messagesByThread[threadId];
-        const idx = messages?.findIndex(
-          (m) => m.id === streaming.streamingMessageId,
-        );
-        if (idx === undefined || idx === -1) return;
-
-        messages[idx].content.push({ type: "artifact", ...artifact });
+        message.content.push({ type: "artifact", ...artifact });
       }),
 
     finishStream: (threadId) =>
