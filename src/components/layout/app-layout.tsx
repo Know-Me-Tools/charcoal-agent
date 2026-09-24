@@ -34,7 +34,7 @@ export function AppLayout() {
           <LeftSidebar className="w-[260px] shrink-0 border-r border-border" />
         )}
 
-        <main className="flex min-w-0 flex-1 flex-col grid-overlay">
+        <main className="flex min-w-0 flex-1 flex-col">
           <Outlet />
         </main>
 

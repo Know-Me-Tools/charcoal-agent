@@ -52,6 +52,9 @@
   /* Labels on fills */
   --km-on-ember: #0b0f14; /* 4.84:1 on #E04E28; white is 3.97:1 */
   --km-on-danger: #ffffff; /* 4.83:1 on #DC2626 */
+
+  /* Modal priority is a dimmed canvas, not a shadow (standard §3.2). */
+  --km-scrim: rgb(11 15 20 / 0.45);
 }
 
 .dark {
@@ -89,6 +92,8 @@
 
   --km-on-ember: #0b0f14; /* 6.76:1 */
   --km-on-danger: #0b0f14; /* 5.11:1 on #EF4444 */
+
+  --km-scrim: rgb(0 0 0 / 0.6);
 }
 
 /* shadcn / assistant-ui aliases, resolved per theme from the tokens above. */
@@ -164,6 +169,7 @@
   --color-danger-text: var(--km-danger-text);
   /* The standard has no separate info color; AI/info is cyan. */
   --color-info: var(--km-cyan);
+  --color-scrim: var(--km-scrim);
 
   /* shadcn names */
   --color-background: var(--background);
