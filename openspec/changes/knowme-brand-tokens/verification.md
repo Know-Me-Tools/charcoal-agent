@@ -33,3 +33,6 @@
 - `ui-store` persists `theme`/`fontSize` under `knowme:ui`; an inline script in `index.html` applies them before first paint (verified: the `<html>` class at `readyState=interactive` already reflects light after reload). Dark is the default.
 - `html[data-font-size]`: compact 15px / default 16px / comfortable 17.5px root size.
 - Note for later: the pre-paint script is inline; a future CSP needs its hash.
+
+## Adversarial review (diff mode)
+- r1: BLOCK, 1 CRITICAL — radius scale lacked a named pill token → added `--radius-pill: 9999px` (`rounded-pill`), documented as reserved for status/metadata.

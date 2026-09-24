@@ -123,7 +123,7 @@
   --sidebar-border: transparent;
   --sidebar-ring: var(--km-ember);
 
-  /* Shape (Brand Guide: 4 badges, 6 controls, 10 cards, 16 features, 24 modals) */
+  /* Shape (Brand Guide: 4 badges, 6 controls, 10 cards, 16 features, 24 modals, pill) */
   --radius: 0.625rem;
 
   /* Motion (standard §4.4, prototype easings) */
@@ -200,6 +200,8 @@
   --radius-lg: var(--radius);
   --radius-xl: 1rem;
   --radius-2xl: 1.5rem;
+  /* Pills are reserved for status, model/lane identity and metadata (standard §4.4). */
+  --radius-pill: 9999px;
 
   --ease-brand-out: var(--km-ease-out);
   --ease-brand-in: var(--km-ease-in);
