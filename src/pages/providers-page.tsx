@@ -265,7 +265,7 @@ function ProviderCard({
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {isDefault && (
-            <span className="flex items-center gap-1 font-ui text-[11px] font-semibold text-primary">
+            <span className="flex items-center gap-1 font-ui text-[11px] font-semibold text-ember-text">
               <Star size={12} /> Default
             </span>
           )}
@@ -290,7 +290,7 @@ function ProviderCard({
               Test
             </button>
             {testLatency !== null && (
-              <span className="font-mono text-xs text-success">{testLatency}ms</span>
+              <span className="font-mono text-xs text-success-text">{testLatency}ms</span>
             )}
             <button
               type="button"
@@ -303,7 +303,7 @@ function ProviderCard({
               <button
                 type="button"
                 onClick={onSetDefault}
-                className="flex h-8 items-center rounded-md border border-border px-3 font-ui text-xs font-semibold text-muted-foreground transition-hover hover:text-primary"
+                className="flex h-8 items-center rounded-md border border-border px-3 font-ui text-xs font-semibold text-muted-foreground transition-hover hover:text-ember-text"
               >
                 Set default
               </button>
@@ -311,7 +311,7 @@ function ProviderCard({
             <button
               type="button"
               onClick={onDelete}
-              className="flex h-8 items-center gap-1 rounded-md border border-border px-3 font-ui text-xs font-semibold text-muted-foreground transition-hover hover:border-destructive hover:text-destructive sm:ml-auto"
+              className="flex h-8 items-center gap-1 rounded-md border border-border px-3 font-ui text-xs font-semibold text-muted-foreground transition-hover hover:border-destructive hover:text-danger-text sm:ml-auto"
             >
               <Trash2 size={12} />
               Delete
@@ -377,12 +377,12 @@ function ProviderModelsTable({
               <td className="px-3 py-2">
                 <div className="flex gap-1">
                   {model.supports_vision && (
-                    <span className="rounded-sm bg-info/10 px-1.5 py-0.5 font-mono text-[10px] text-info">
+                    <span className="rounded-sm bg-info/10 px-1.5 py-0.5 font-mono text-[10px] text-cyan-text">
                       vision
                     </span>
                   )}
                   {model.supports_tools && (
-                    <span className="rounded-sm bg-success/10 px-1.5 py-0.5 font-mono text-[10px] text-success">
+                    <span className="rounded-sm bg-success/10 px-1.5 py-0.5 font-mono text-[10px] text-success-text">
                       tools
                     </span>
                   )}

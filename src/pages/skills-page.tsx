@@ -25,7 +25,7 @@ function SkillDetailPanel({ skill, onClose }: SkillDetailPanelProps) {
         {/* Header */}
         <div className="flex items-center justify-between border-b bg-muted/50 px-6 py-4">
           <div className="flex items-center gap-3">
-            <Wrench size={20} className={isBuiltin ? "text-primary" : "text-muted-foreground"} />
+            <Wrench size={20} className={isBuiltin ? "text-ember-text" : "text-muted-foreground"} />
             <div>
               <h2 className="font-display text-lg font-semibold text-foreground">
                 {skill.name}
@@ -100,7 +100,7 @@ function SkillDetailPanel({ skill, onClose }: SkillDetailPanelProps) {
                     {skill.triggers.keywords.map((kw) => (
                       <span
                         key={kw}
-                        className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary"
+                        className="rounded bg-primary/10 px-2 py-0.5 text-xs text-ember-text"
                       >
                         {kw}
                       </span>
@@ -208,7 +208,7 @@ export default function SkillsPage() {
     const isApi = skill.provider_id === "api";
     const isFilesystem = skill.provider_id === "filesystem" || skill.provider_id?.includes("fs");
     
-    if (isKnowMe) return { type: "knowme", label: "Built-in", color: "text-primary" };
+    if (isKnowMe) return { type: "knowme", label: "Built-in", color: "text-ember-text" };
     if (isPlatform || isApi) return { type: "platform", label: "Platform", color: "text-purple-400" };
     if (isFilesystem) return { type: "filesystem", label: "Filesystem", color: "text-blue-400" };
     return { type: "external", label: "External", color: "text-muted-foreground" };
@@ -266,7 +266,7 @@ export default function SkillsPage() {
         <div
           className={`mb-4 flex items-center gap-2 rounded-lg border px-4 py-2.5 font-ui text-sm ${
             syncError
-              ? "border-destructive/30 bg-destructive/5 text-destructive"
+              ? "border-destructive/30 bg-destructive/5 text-danger-text"
               : "border-green-500/20 bg-green-500/5 text-green-400"
           }`}
         >

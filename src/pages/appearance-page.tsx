@@ -28,7 +28,7 @@ export default function AppearancePage() {
               onClick={() => setTheme(t)}
               className={`flex-1 rounded-lg border p-4 text-center font-ui text-sm font-semibold transition-hover ${
                 theme === t
-                  ? "border-primary bg-primary/10 text-primary"
+                  ? "border-primary bg-primary/10 text-ember-text"
                   : "border-border text-muted-foreground hover:border-primary/30"
               }`}
             >
@@ -47,7 +47,7 @@ export default function AppearancePage() {
               onClick={() => setFontSize(fs.value)}
               className={`flex-1 rounded-lg border p-4 text-center font-ui text-sm font-semibold transition-hover ${
                 fontSize === fs.value
-                  ? "border-primary bg-primary/10 text-primary"
+                  ? "border-primary bg-primary/10 text-ember-text"
                   : "border-border text-muted-foreground hover:border-primary/30"
               }`}
             >

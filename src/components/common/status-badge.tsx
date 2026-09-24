@@ -1,17 +1,17 @@
 import type { RunStatus } from "@/types";
 
 const statusConfig: Record<string, { bg: string; text: string; dot: string }> = {
-  active: { bg: "bg-success/10", text: "text-success", dot: "bg-success" },
-  streaming: { bg: "bg-info/10", text: "text-info", dot: "bg-info" },
+  active: { bg: "bg-success/10", text: "text-success-text", dot: "bg-success" },
+  streaming: { bg: "bg-info/10", text: "text-cyan-text", dot: "bg-info" },
   complete: { bg: "bg-muted", text: "text-muted-foreground", dot: "bg-muted-foreground" },
-  pending: { bg: "bg-warning/10", text: "text-warning", dot: "bg-warning" },
-  failed: { bg: "bg-destructive/10", text: "text-destructive", dot: "bg-destructive" },
-  running: { bg: "bg-info/10", text: "text-info", dot: "bg-info" },
-  connected: { bg: "bg-success/10", text: "text-success", dot: "bg-success" },
-  disconnected: { bg: "bg-destructive/10", text: "text-destructive", dot: "bg-destructive" },
-  enabled: { bg: "bg-success/10", text: "text-success", dot: "bg-success" },
+  pending: { bg: "bg-warning/10", text: "text-warning-text", dot: "bg-warning" },
+  failed: { bg: "bg-destructive/10", text: "text-danger-text", dot: "bg-destructive" },
+  running: { bg: "bg-info/10", text: "text-cyan-text", dot: "bg-info" },
+  connected: { bg: "bg-success/10", text: "text-success-text", dot: "bg-success" },
+  disconnected: { bg: "bg-destructive/10", text: "text-danger-text", dot: "bg-destructive" },
+  enabled: { bg: "bg-success/10", text: "text-success-text", dot: "bg-success" },
   disabled: { bg: "bg-muted", text: "text-muted-foreground", dot: "bg-muted-foreground" },
-  calling: { bg: "bg-warning/10", text: "text-warning", dot: "bg-warning" },
+  calling: { bg: "bg-warning/10", text: "text-warning-text", dot: "bg-warning" },
 };
 
 interface StatusBadgeProps {

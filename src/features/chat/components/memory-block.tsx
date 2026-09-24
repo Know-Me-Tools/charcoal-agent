@@ -63,19 +63,19 @@ const mutationConfig = {
   created: {
     Icon: PlusCircleIcon,
     label: "Memory stored",
-    colorClass: "text-success",
+    colorClass: "text-success-text",
     bgClass: "bg-success/10 border-success/20",
   },
   updated: {
     Icon: DatabaseIcon,
     label: "Memory updated",
-    colorClass: "text-primary",
+    colorClass: "text-ember-text",
     bgClass: "bg-primary/10 border-primary/20",
   },
   deleted: {
     Icon: Trash2Icon,
     label: "Memory removed",
-    colorClass: "text-destructive",
+    colorClass: "text-danger-text",
     bgClass: "bg-destructive/10 border-destructive/20",
   },
 } as const;

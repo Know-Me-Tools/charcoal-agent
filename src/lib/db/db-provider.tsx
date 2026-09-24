@@ -86,7 +86,7 @@ export function DbProvider({ children }: DbProviderProps) {
       <div className="flex h-screen flex-col items-center justify-center gap-3 bg-background">
         {error ? (
           <>
-            <p className="font-mono text-xs text-destructive">Database error</p>
+            <p className="font-mono text-xs text-danger-text">Database error</p>
             <p className="max-w-xs text-center font-mono text-xs text-muted-foreground">{error}</p>
           </>
         ) : (

@@ -88,7 +88,7 @@ export const ArtifactBlock: FC<ArtifactBlockProps> = ({
       <div className="flex items-center gap-2 border-b border-border/30 px-3 py-2">
         <ArtifactTypeIcon
           artifactType={artifactType}
-          className={cn("shrink-0", isInputRequest ? "text-primary" : "text-muted-foreground")}
+          className={cn("shrink-0", isInputRequest ? "text-ember-text" : "text-muted-foreground")}
         />
 
         <div className="min-w-0 flex-1">
@@ -108,7 +108,7 @@ export const ArtifactBlock: FC<ArtifactBlockProps> = ({
             onClick={handleCopy}
             title="Copy content"
           >
-            <CopyIcon size={11} className={copied ? "text-success" : ""} />
+            <CopyIcon size={11} className={copied ? "text-success-text" : ""} />
           </Button>
 
           <Button
@@ -145,7 +145,7 @@ export const ArtifactBlock: FC<ArtifactBlockProps> = ({
             {isTruncated && (
               <button
                 type="button"
-                className="ml-1 font-mono text-[11px] text-primary hover:underline"
+                className="ml-1 font-mono text-[11px] text-ember-text hover:underline"
                 onClick={() => setIsExpanded(true)}
               >
                 show more
@@ -157,7 +157,7 @@ export const ArtifactBlock: FC<ArtifactBlockProps> = ({
 
       {isInputRequest && (
         <div className="border-t border-primary/20 bg-primary/5 px-3 py-2">
-          <p className="font-mono text-[11px] text-primary">
+          <p className="font-mono text-[11px] text-ember-text">
             {"// The agent is waiting for your input to continue."}
           </p>
         </div>

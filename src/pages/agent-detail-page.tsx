@@ -309,7 +309,7 @@ export default function AgentDetailPage() {
                   onClick={() => toggleSkill(skill.id)}
                   className={`rounded-md border px-3 py-1.5 font-ui text-xs font-semibold transition-hover ${
                     form.selectedSkills.includes(skill.id)
-                      ? "border-primary bg-primary/10 text-primary"
+                      ? "border-primary bg-primary/10 text-ember-text"
                       : "border-border text-muted-foreground hover:border-primary/30"
                   }`}
                 >
@@ -322,7 +322,7 @@ export default function AgentDetailPage() {
 
         {/* Save */}
         {compileAgent.isError && (
-          <p className="font-mono text-xs text-destructive">
+          <p className="font-mono text-xs text-danger-text">
             {(compileAgent.error as Error).message}
           </p>
         )}

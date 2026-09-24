@@ -153,8 +153,8 @@ export default function UserSettingsPage() {
 
       {error && (
         <div className="flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-2">
-          <AlertCircle size={13} className="shrink-0 text-destructive" />
-          <span className="font-mono text-[11px] text-destructive">{error}</span>
+          <AlertCircle size={13} className="shrink-0 text-danger-text" />
+          <span className="font-mono text-[11px] text-danger-text">{error}</span>
         </div>
       )}
 
@@ -261,7 +261,7 @@ export default function UserSettingsPage() {
             "Global default (UAR admin settings)",
           ].map((label, i) => (
             <li key={label} className="flex items-center gap-2">
-              <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 font-mono text-[10px] font-bold text-primary">
+              <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 font-mono text-[10px] font-bold text-ember-text">
                 {i + 1}
               </span>
               <span className="font-body text-xs text-muted-foreground">

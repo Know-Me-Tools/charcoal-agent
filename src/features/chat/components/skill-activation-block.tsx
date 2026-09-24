@@ -40,11 +40,11 @@ export const SkillActivationBlock: FC<SkillActivationBlockProps> = ({
       {/* Icon */}
       <ZapIcon
         size={12}
-        className={cn("shrink-0 text-primary", isActive && "animate-pulse")}
+        className={cn("shrink-0 text-ember-text", isActive && "animate-pulse")}
       />
 
       {/* Skill name */}
-      <span className="font-mono text-[11px] font-medium text-primary">
+      <span className="font-mono text-[11px] font-medium text-ember-text">
         {skillName}
       </span>
 

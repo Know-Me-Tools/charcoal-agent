@@ -193,7 +193,7 @@ const AttachmentUI: FC = () => {
                   aria-hidden="true"
                   className="aui-attachment-tile-error bg-background/70 animate-in fade-in-0 absolute inset-0 flex items-center justify-center backdrop-blur-[2px] motion-reduce:animate-none"
                 >
-                  <AlertCircleIcon className="text-destructive size-4" />
+                  <AlertCircleIcon className="text-danger-text size-4" />
                 </div>
               )}
             </TooltipTrigger>

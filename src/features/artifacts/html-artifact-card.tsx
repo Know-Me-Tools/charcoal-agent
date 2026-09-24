@@ -57,7 +57,7 @@ export const HtmlArtifactCard: FC<HtmlArtifactCardProps> = ({
       {/* Toolbar */}
       <div className="flex items-center justify-between border-b border-border/50 bg-muted/50 px-3 py-1.5">
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[11px] text-primary">{displayTitle}</span>
+          <span className="font-mono text-[11px] text-ember-text">{displayTitle}</span>
         </div>
 
         <div className="flex items-center gap-1">

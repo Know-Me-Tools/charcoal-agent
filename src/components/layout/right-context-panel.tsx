@@ -43,7 +43,7 @@ export function RightContextPanel() {
               <div className="mt-2 rounded-lg border border-border p-3">
                 <div className="flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
-                    <Bot size={16} className="text-primary" />
+                    <Bot size={16} className="text-ember-text" />
                   </div>
                   <div>
                     <p className="font-display text-sm font-semibold text-foreground">

@@ -24,20 +24,20 @@ const statusConfig = {
 	running: {
 		Icon: Loader2Icon,
 		label: "running",
-		iconClass: "animate-spin text-warning",
-		badgeClass: "bg-warning/10 text-warning",
+		iconClass: "animate-spin text-warning-text",
+		badgeClass: "bg-warning/10 text-warning-text",
 	},
 	complete: {
 		Icon: CheckCircle2Icon,
 		label: "complete",
-		iconClass: "text-success",
-		badgeClass: "bg-success/10 text-success",
+		iconClass: "text-success-text",
+		badgeClass: "bg-success/10 text-success-text",
 	},
 	failed: {
 		Icon: XCircleIcon,
 		label: "failed",
-		iconClass: "text-destructive",
-		badgeClass: "bg-destructive/10 text-destructive",
+		iconClass: "text-danger-text",
+		badgeClass: "bg-destructive/10 text-danger-text",
 	},
 } as const;
 
@@ -63,10 +63,10 @@ export const ToolCallBlock: FC<ToolCallBlockProps> = ({
 				className="flex h-auto w-full items-center justify-start gap-2.5 rounded-none px-3 py-2.5 hover:bg-muted/20"
 				aria-expanded={isExpanded}
 			>
-				<WrenchIcon size={13} className="shrink-0 text-primary" />
+				<WrenchIcon size={13} className="shrink-0 text-ember-text" />
 
 				{/* Tool name */}
-				<span className="font-mono text-[12px] font-medium text-primary">
+				<span className="font-mono text-[12px] font-medium text-ember-text">
 					{toolName}
 				</span>
 

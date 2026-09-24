@@ -2,16 +2,16 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 277,
-  "derivedRevision": 277,
+  "sourceRevision": 282,
+  "derivedRevision": 282,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 277
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 282
   },
   "conflictCount": 0,
   "phase": "complete-rebranding",
   "phaseId": "complete-rebranding",
   "parentPhase": null,
-  "last_updated": "2026-09-24T15:55:09.549138Z",
+  "last_updated": "2026-09-24T15:56:34.947927Z",
   "last_updated_by": "kbd-runtime",
   "changes_total": 12,
   "changes_completed": 5,
@@ -101,10 +101,10 @@
       "title": "Port the KnowMe token system (Flat 2.0) into Tailwind 4",
       "status": "IN_PROGRESS",
       "implementation_status": "IN_PROGRESS",
-      "tasks_total": 3,
-      "tasks_done": 2,
-      "last_task_completed": "1.2 Contrast test",
-      "next_task_pending": "2.1 Flat base and type roles",
+      "tasks_total": 4,
+      "tasks_done": 3,
+      "last_task_completed": "2.1 Flat base and type roles",
+      "next_task_pending": "2.2 Text-safe class substitution",
       "blockers": []
     },
     {

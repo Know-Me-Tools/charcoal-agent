@@ -66,7 +66,7 @@ function AgentSelector({ selectedId, selectedName, onChange }: AgentSelectorProp
             onClick={() => { onChange("", "Default agent"); setOpen(false); }}
             className={cn(
               "w-full px-3 py-2 text-left font-ui text-[11px] hover:bg-muted",
-              !selectedId && "text-primary font-semibold",
+              !selectedId && "text-ember-text font-semibold",
             )}
           >
             Default agent
@@ -82,7 +82,7 @@ function AgentSelector({ selectedId, selectedName, onChange }: AgentSelectorProp
                   onClick={() => { onChange(agent.id, agent.name); setOpen(false); }}
                   className={cn(
                     "w-full px-3 py-2 text-left font-ui text-[11px] hover:bg-muted",
-                    selectedId === agent.id && "text-primary font-semibold",
+                    selectedId === agent.id && "text-ember-text font-semibold",
                   )}
                 >
                   <span className="block truncate">{agent.name}</span>
@@ -202,7 +202,7 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
             title="Choose agent for new thread"
             className={cn(
               "h-7 w-7 p-0 text-muted-foreground hover:text-foreground",
-              showAgentPicker && "text-primary",
+              showAgentPicker && "text-ember-text",
             )}
           >
             <Bot size={14} />
@@ -211,7 +211,7 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
             variant="outline"
             size="sm"
             onClick={handleNewThread}
-            className="h-7 gap-1.5 px-2.5 font-ui text-xs font-semibold text-muted-foreground hover:border-primary hover:text-primary"
+            className="h-7 gap-1.5 px-2.5 font-ui text-xs font-semibold text-muted-foreground hover:border-primary hover:text-ember-text"
           >
             <Plus size={14} />
             New thread
@@ -254,7 +254,7 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
       <div className="flex-1 overflow-y-auto px-1.5" style={{ minHeight: 0 }}>
         {visibleThreads.length === 0 ? (
           <div className="px-3 py-8 text-center">
-            <p className="font-mono text-[11px] text-primary">
+            <p className="font-mono text-[11px] text-ember-text">
               {"// No threads yet"}
             </p>
             <p className="mt-1 font-body text-xs text-muted-foreground">
@@ -299,7 +299,7 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
                 variant="ghost"
                 size="icon"
                 onClick={(e) => void handleDeleteThread(e, thread.id)}
-                className="absolute right-1 top-1/2 hidden size-5 -translate-y-1/2 text-muted-foreground hover:text-destructive group-hover:flex"
+                className="absolute right-1 top-1/2 hidden size-5 -translate-y-1/2 text-muted-foreground hover:text-danger-text group-hover:flex"
                 aria-label={`Delete ${thread.title}`}
               >
                 <Trash2 size={12} />

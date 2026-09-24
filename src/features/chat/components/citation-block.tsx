@@ -24,12 +24,12 @@ export const CitationBlock: FC<CitationBlockProps> = ({
     >
       <BookOpenIcon
         size={12}
-        className="mt-0.5 shrink-0 text-primary"
+        className="mt-0.5 shrink-0 text-ember-text"
       />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           {index !== undefined && (
-            <span className="font-mono text-[10px] text-primary">
+            <span className="font-mono text-[10px] text-ember-text">
               [{index}]
             </span>
           )}
@@ -39,7 +39,7 @@ export const CitationBlock: FC<CitationBlockProps> = ({
           {url && (
             <ExternalLinkIcon
               size={10}
-              className="shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
+              className="shrink-0 text-muted-foreground transition-colors group-hover:text-ember-text"
             />
           )}
         </div>

@@ -72,7 +72,7 @@ class MermaidErrorBoundary extends Component<
 	render() {
 		if (this.state.hasError) {
 			return (
-				<div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-destructive text-sm">
+				<div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-danger-text text-sm">
 					<AlertCircleIcon size={14} />
 					<span className="font-mono text-xs">Diagram error</span>
 					<Button
@@ -157,7 +157,7 @@ const MermaidRenderer: FC<MermaidBlockProps> = ({ source, className }) => {
 				)}
 			>
 				<div className="flex items-center justify-between border-b border-border/50 bg-muted/50 px-3 py-1.5">
-					<span className="font-mono text-[11px] text-primary">mermaid</span>
+					<span className="font-mono text-[11px] text-ember-text">mermaid</span>
 					<Button
 						variant="ghost"
 						size="sm"
@@ -170,10 +170,10 @@ const MermaidRenderer: FC<MermaidBlockProps> = ({ source, className }) => {
 				<div className="flex items-start gap-2 p-3">
 					<AlertCircleIcon
 						size={14}
-						className="mt-0.5 shrink-0 text-destructive"
+						className="mt-0.5 shrink-0 text-danger-text"
 					/>
 					<div>
-						<p className="font-mono text-xs text-destructive">
+						<p className="font-mono text-xs text-danger-text">
 							Diagram parse error
 						</p>
 						<p className="mt-1 font-mono text-[10px] text-muted-foreground">
@@ -194,7 +194,7 @@ const MermaidRenderer: FC<MermaidBlockProps> = ({ source, className }) => {
 		>
 			{/* Header */}
 			<div className="flex items-center justify-between border-b border-border/50 bg-muted/50 px-3 py-1.5">
-				<span className="font-mono text-[11px] text-primary lowercase">
+				<span className="font-mono text-[11px] text-ember-text lowercase">
 					{"// diagram"}
 				</span>
 				<Button
