@@ -24,3 +24,6 @@
 ## Screenshot comparison vs. pre-change baseline
 - All non-thread routes: ≤0.3% except `/threads` 0.6–1.8% (registry add-attachment button is smaller; composer shifts 1–2 px).
 - Thread: taller at every width because fenced code is now highlighted and the fenced mermaid block renders as a diagram (fix 2).
+
+## Adversarial review (diff mode)
+- r1: **PASS**, 0 findings (gpt-5.5, verified-distinct; anti-theater score 0.0).
