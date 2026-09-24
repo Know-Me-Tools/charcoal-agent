@@ -1,6 +1,6 @@
 ## 1. Prepare
 
-- [ ] 1.1 Delete dead components with no consumers (`components/assistant-ui/{thread,markdown-text,tool-fallback,assistant-modal,assistant-sidebar,thread-list}.tsx`, `components/chat/*`) and the 26 unused shadcn primitives after a repo-wide grep confirms zero consumers; verify `npm run typecheck` and `npm run build`
+- [x] 1.1 Delete dead components with no consumers (`components/assistant-ui/{thread,markdown-text,tool-fallback,assistant-modal,assistant-sidebar,thread-list}.tsx`, `components/chat/*`) and the 26 unused shadcn primitives after a repo-wide grep confirms zero consumers; verify `npm run typecheck` and `npm run build`
 - [ ] 1.2 Switch `components.json` to `base-nova` (Tailwind config `""`, `iconLibrary: "lucide"`) and install `@base-ui/react`; verify `npx shadcn@4.21.0 info` reports the base-nova style
 
 ## 2. Migrate

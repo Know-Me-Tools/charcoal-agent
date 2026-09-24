@@ -23,6 +23,7 @@
     "@assistant-ui/react": "^0.12.10",
     "@assistant-ui/react-devtools": "^0.2.3",
     "@assistant-ui/react-markdown": "^0.12.3",
+    "@base-ui/react": "1.8.0",
     "@electric-sql/pglite": "^0.3.15",
     "@hookform/resolvers": "^5.2.2",
     "@prometheus-ags/entity-graph-core": "4.0.2",
