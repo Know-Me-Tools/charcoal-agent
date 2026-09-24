@@ -2,25 +2,25 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 175,
-  "derivedRevision": 175,
+  "sourceRevision": 184,
+  "derivedRevision": 184,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 175
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 184
   },
   "conflictCount": 0,
   "phase": "complete-rebranding",
   "phaseId": "complete-rebranding",
   "parentPhase": null,
-  "last_updated": "2026-09-24T01:42:24.390935Z",
+  "last_updated": "2026-09-24T01:50:21.072769Z",
   "last_updated_by": "kbd-runtime",
   "changes_total": 12,
-  "changes_completed": 2,
+  "changes_completed": 3,
   "implementation_total": 12,
-  "implementation_completed": 2,
+  "implementation_completed": 3,
   "completion": {
     "primaryCounter": "implementation",
     "implementation": {
-      "completed": 2,
+      "completed": 3,
       "total": 12,
       "status": "IN_PROGRESS"
     },
@@ -66,12 +66,12 @@
     {
       "id": "entity-graph-data-layer",
       "title": "Replace TanStack Query with the Prometheus entity graph",
-      "status": "IN_PROGRESS",
-      "implementation_status": "IN_PROGRESS",
-      "tasks_total": 9,
-      "tasks_done": 8,
-      "last_task_completed": "3.1 Remove TanStack Query",
-      "next_task_pending": "3.2 E2E skill toggle",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 10,
+      "tasks_done": 10,
+      "last_task_completed": "4.1 Full verification",
+      "next_task_pending": null,
       "blockers": []
     },
     {
