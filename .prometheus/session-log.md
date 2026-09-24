@@ -306,3 +306,157 @@
 - Exact next work: /opsx:continue tailwind-v4-foundation
 - Verification:
   - none recorded
+
+<!-- karpathy-progress-event:kpm-2c296d545f9a821ecb02b14e04818694 -->
+## Progress boundary — 2026-09-24T01:28:37.939062Z
+
+- Event: `kpm-2c296d545f9a821ecb02b14e04818694`
+- Boundary: `task` / `complete`
+- Position: `complete-rebranding` / `entity-graph-data-layer` / `1`
+- Class and elapsed time: `product` / `0.0` hours
+- Commit: `9492879e7b5e928ae6c47a4991b762aa6cb65dc8`
+- Files: `.kbd-orchestrator/current-waypoint.json`, `.kbd-orchestrator/phases/complete-rebranding/progress.json`, `.kbd-orchestrator/phases/complete-rebranding/tasks.md`, `.kbd-orchestrator/position-reminder.txt`, `.kbd-orchestrator/position.json`, `.prometheus/knowledge/wiki/index.md`, `.prometheus/knowledge/wiki/karpathy-session-3523d0925787735a.md`, `.prometheus/knowledge/wiki/log.md`, `docs/xhtml-docs/knowme-business-cards.html`, `docs/xhtml-docs/knowme-logomark-v3-bold.html`, `docs/xhtml-docs/knowme-wordmark-system.html`, `openspec/changes/entity-graph-data-layer/tasks.md`, `package-lock.json`, `package.json`, `src/App.tsx`, `src/lib/entity-graph/entities.ts`, `src/lib/entity-graph/graph-provider.tsx`, `src/lib/entity-graph/graph-store.ts`
+- Blocker: none
+- Exact next work: /opsx:continue tailwind-v4-foundation
+- Verification:
+  - none recorded
+
+<!-- karpathy-progress-event:kpm-0ad873fc21458d37b033675e1d514054 -->
+## Progress boundary — 2026-09-24T01:30:48.127370Z
+
+- Event: `kpm-0ad873fc21458d37b033675e1d514054`
+- Boundary: `task` / `complete`
+- Position: `complete-rebranding` / `entity-graph-data-layer` / `2`
+- Class and elapsed time: `product` / `0.0` hours
+- Commit: `2f02188c6bcd8ba63d965b13f9cc537f3cff6975`
+- Files: `.kbd-orchestrator/current-waypoint.json`, `.kbd-orchestrator/phases/complete-rebranding/progress.json`, `.kbd-orchestrator/phases/complete-rebranding/tasks.md`, `.kbd-orchestrator/position-reminder.txt`, `.kbd-orchestrator/position.json`, `docs/xhtml-docs/knowme-business-cards.html`, `docs/xhtml-docs/knowme-logomark-v3-bold.html`, `docs/xhtml-docs/knowme-wordmark-system.html`, `openspec/changes/entity-graph-data-layer/tasks.md`
+- Blocker: none
+- Exact next work: /opsx:continue tailwind-v4-foundation
+- Verification:
+  - none recorded
+
+<!-- karpathy-progress-event:kpm-b3414512b2f39695c3dccffaab183765 -->
+## Progress boundary — 2026-09-24T01:32:35.091596Z
+
+- Event: `kpm-b3414512b2f39695c3dccffaab183765`
+- Boundary: `task` / `complete`
+- Position: `complete-rebranding` / `entity-graph-data-layer` / `3`
+- Class and elapsed time: `product` / `0.0` hours
+- Commit: `75a634234525fd846fffbc3c8b71032aae6e2bc5`
+- Files: `.kbd-orchestrator/current-waypoint.json`, `.kbd-orchestrator/phases/complete-rebranding/progress.json`, `.kbd-orchestrator/phases/complete-rebranding/tasks.md`, `.kbd-orchestrator/position-reminder.txt`, `.kbd-orchestrator/position.json`, `docs/xhtml-docs/knowme-business-cards.html`, `docs/xhtml-docs/knowme-logomark-v3-bold.html`, `docs/xhtml-docs/knowme-wordmark-system.html`, `openspec/changes/entity-graph-data-layer/tasks.md`
+- Blocker: none
+- Exact next work: /opsx:continue tailwind-v4-foundation
+- Verification:
+  - none recorded
+
+<!-- karpathy-progress-event:kpm-736e33eefb2b1e507019ac62274d0dd2 -->
+## Progress boundary — 2026-09-24T01:36:36.338439Z
+
+- Event: `kpm-736e33eefb2b1e507019ac62274d0dd2`
+- Boundary: `task` / `complete`
+- Position: `complete-rebranding` / `entity-graph-data-layer` / `4`
+- Class and elapsed time: `product` / `0.0` hours
+- Commit: `e8ce73209da99eb8bcc8af5177c29a81341f6bea`
+- Files: `.kbd-orchestrator/current-waypoint.json`, `.kbd-orchestrator/phases/complete-rebranding/progress.json`, `.kbd-orchestrator/phases/complete-rebranding/tasks.md`, `.kbd-orchestrator/position-reminder.txt`, `.kbd-orchestrator/position.json`, `docs/xhtml-docs/knowme-business-cards.html`, `docs/xhtml-docs/knowme-logomark-v3-bold.html`, `docs/xhtml-docs/knowme-wordmark-system.html`, `openspec/changes/entity-graph-data-layer/tasks.md`
+- Blocker: none
+- Exact next work: /opsx:continue tailwind-v4-foundation
+- Verification:
+  - none recorded
+
+<!-- karpathy-progress-event:kpm-613cb840ea5bc905762787ac40ebb301 -->
+## Progress boundary — 2026-09-24T01:38:37.651821Z
+
+- Event: `kpm-613cb840ea5bc905762787ac40ebb301`
+- Boundary: `task` / `complete`
+- Position: `complete-rebranding` / `entity-graph-data-layer` / `5`
+- Class and elapsed time: `product` / `0.0` hours
+- Commit: `7954a75c35bfe4b96b8889e4714962ca00922f51`
+- Files: `.kbd-orchestrator/current-waypoint.json`, `.kbd-orchestrator/phases/complete-rebranding/progress.json`, `.kbd-orchestrator/phases/complete-rebranding/tasks.md`, `.kbd-orchestrator/position-reminder.txt`, `.kbd-orchestrator/position.json`, `docs/xhtml-docs/knowme-business-cards.html`, `docs/xhtml-docs/knowme-logomark-v3-bold.html`, `docs/xhtml-docs/knowme-wordmark-system.html`, `openspec/changes/entity-graph-data-layer/tasks.md`
+- Blocker: none
+- Exact next work: /opsx:continue tailwind-v4-foundation
+- Verification:
+  - none recorded
+
+<!-- karpathy-progress-event:kpm-94497e7b0d91c086376c16ae3acf6873 -->
+## Progress boundary — 2026-09-24T01:39:47.314265Z
+
+- Event: `kpm-94497e7b0d91c086376c16ae3acf6873`
+- Boundary: `task` / `complete`
+- Position: `complete-rebranding` / `entity-graph-data-layer` / `6`
+- Class and elapsed time: `product` / `0.0` hours
+- Commit: `4567dff57aef5e278d6463f52be52a66d7f04fbf`
+- Files: `.kbd-orchestrator/current-waypoint.json`, `.kbd-orchestrator/phases/complete-rebranding/progress.json`, `.kbd-orchestrator/phases/complete-rebranding/tasks.md`, `.kbd-orchestrator/position-reminder.txt`, `.kbd-orchestrator/position.json`, `docs/xhtml-docs/knowme-business-cards.html`, `docs/xhtml-docs/knowme-logomark-v3-bold.html`, `docs/xhtml-docs/knowme-wordmark-system.html`, `openspec/changes/entity-graph-data-layer/tasks.md`
+- Blocker: none
+- Exact next work: /opsx:continue tailwind-v4-foundation
+- Verification:
+  - none recorded
+
+<!-- karpathy-progress-event:kpm-e3d382e5f83cf87af3f58b8d8a9cb55d -->
+## Progress boundary — 2026-09-24T01:41:20.060922Z
+
+- Event: `kpm-e3d382e5f83cf87af3f58b8d8a9cb55d`
+- Boundary: `task` / `complete`
+- Position: `complete-rebranding` / `entity-graph-data-layer` / `7`
+- Class and elapsed time: `product` / `0.0` hours
+- Commit: `e9682f7f0a5475fbd56c6b22cbb4f8d74e8b77f3`
+- Files: `.kbd-orchestrator/current-waypoint.json`, `.kbd-orchestrator/phases/complete-rebranding/progress.json`, `.kbd-orchestrator/phases/complete-rebranding/tasks.md`, `.kbd-orchestrator/position-reminder.txt`, `.kbd-orchestrator/position.json`, `docs/xhtml-docs/knowme-business-cards.html`, `docs/xhtml-docs/knowme-logomark-v3-bold.html`, `docs/xhtml-docs/knowme-wordmark-system.html`, `openspec/changes/entity-graph-data-layer/tasks.md`
+- Blocker: none
+- Exact next work: /opsx:continue tailwind-v4-foundation
+- Verification:
+  - none recorded
+
+<!-- karpathy-progress-event:kpm-23401ccedb49cef8ed3f15e85c95dd07 -->
+## Progress boundary — 2026-09-24T01:42:16.082371Z
+
+- Event: `kpm-23401ccedb49cef8ed3f15e85c95dd07`
+- Boundary: `task` / `complete`
+- Position: `complete-rebranding` / `entity-graph-data-layer` / `8`
+- Class and elapsed time: `product` / `0.0` hours
+- Commit: `2abf0b52161a61a68daa444fb807848fc51b4805`
+- Files: `.kbd-orchestrator/current-waypoint.json`, `.kbd-orchestrator/phases/complete-rebranding/progress.json`, `.kbd-orchestrator/phases/complete-rebranding/tasks.md`, `.kbd-orchestrator/position-reminder.txt`, `.kbd-orchestrator/position.json`, `docs/xhtml-docs/knowme-business-cards.html`, `docs/xhtml-docs/knowme-logomark-v3-bold.html`, `docs/xhtml-docs/knowme-wordmark-system.html`, `openspec/changes/entity-graph-data-layer/tasks.md`
+- Blocker: none
+- Exact next work: /opsx:continue tailwind-v4-foundation
+- Verification:
+  - none recorded
+
+<!-- karpathy-progress-event:kpm-13c017e12e106fa81f4fd2f741102624 -->
+## Progress boundary — 2026-09-24T01:46:23.884858Z
+
+- Event: `kpm-13c017e12e106fa81f4fd2f741102624`
+- Boundary: `task` / `complete`
+- Position: `complete-rebranding` / `entity-graph-data-layer` / `9`
+- Class and elapsed time: `product` / `0.0` hours
+- Commit: `0f22fa3c7b43fb9bd10735c2984ea235cfb8b146`
+- Files: `.kbd-orchestrator/current-waypoint.json`, `.kbd-orchestrator/phases/complete-rebranding/progress.json`, `.kbd-orchestrator/phases/complete-rebranding/tasks.md`, `.kbd-orchestrator/position-reminder.txt`, `.kbd-orchestrator/position.json`, `docs/xhtml-docs/knowme-business-cards.html`, `docs/xhtml-docs/knowme-logomark-v3-bold.html`, `docs/xhtml-docs/knowme-wordmark-system.html`, `openspec/changes/entity-graph-data-layer/tasks.md`
+- Blocker: none
+- Exact next work: /opsx:continue tailwind-v4-foundation
+- Verification:
+  - none recorded
+
+<!-- karpathy-progress-event:kpm-014d059563204446cc8371b51f32e079 -->
+## Progress boundary — 2026-09-24T01:50:22.992426Z
+
+- Event: `kpm-014d059563204446cc8371b51f32e079`
+- Boundary: `task` / `complete`
+- Position: `complete-rebranding` / `entity-graph-data-layer` / `10`
+- Class and elapsed time: `product` / `0.0` hours
+- Commit: `0f22fa3c7b43fb9bd10735c2984ea235cfb8b146`
+- Files: `.kbd-orchestrator/current-waypoint.json`, `.kbd-orchestrator/phases/complete-rebranding/progress.json`, `.kbd-orchestrator/phases/complete-rebranding/tasks.md`, `.kbd-orchestrator/position-reminder.txt`, `.kbd-orchestrator/position.json`, `docs/xhtml-docs/knowme-business-cards.html`, `docs/xhtml-docs/knowme-logomark-v3-bold.html`, `docs/xhtml-docs/knowme-wordmark-system.html`, `openspec/changes/entity-graph-data-layer/tasks.md`, `openspec/changes/entity-graph-data-layer/verification.md`
+- Blocker: none
+- Exact next work: /opsx:continue tailwind-v4-foundation
+- Verification:
+  - none recorded
+
+<!-- karpathy-progress-event:kpm-b7eb80c9e062e4c2b12f1809e45201c9 -->
+## Progress boundary — 2026-09-24T01:50:29.953066Z
+
+- Event: `kpm-b7eb80c9e062e4c2b12f1809e45201c9`
+- Boundary: `change` / `complete`
+- Position: `complete-rebranding` / `entity-graph-data-layer` / `-`
+- Class and elapsed time: `product` / `0.0` hours
+- Commit: `0f22fa3c7b43fb9bd10735c2984ea235cfb8b146`
+- Files: `.kbd-orchestrator/current-waypoint.json`, `.kbd-orchestrator/phases/complete-rebranding/progress.json`, `.kbd-orchestrator/phases/complete-rebranding/tasks.md`, `.kbd-orchestrator/position-reminder.txt`, `.kbd-orchestrator/position.json`, `docs/xhtml-docs/knowme-business-cards.html`, `docs/xhtml-docs/knowme-logomark-v3-bold.html`, `docs/xhtml-docs/knowme-wordmark-system.html`, `openspec/changes/entity-graph-data-layer/tasks.md`, `openspec/changes/entity-graph-data-layer/verification.md`
+- Blocker: none
+- Exact next work: /opsx:continue tailwind-v4-foundation
+- Verification:
+  - none recorded

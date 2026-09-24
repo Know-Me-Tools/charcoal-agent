@@ -8,7 +8,8 @@ import { useThreadRegistryStore } from "@/stores/thread-registry-store";
 import { useChatMessageStore } from "@/stores/chat-message-store";
 import { useAgents } from "@/hooks/use-agents";
 import { useUi } from "@/hooks/use-ui";
-import { api, isJwtConfigured } from "@/lib/api-client";
+import { isJwtConfigured } from "@/lib/api-client";
+import { useDeleteSession } from "@/hooks/use-sessions";
 import { cn } from "@/lib/utils";
 import type { LocalThread } from "@/types";
 
@@ -115,6 +116,7 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
   const threads = useThreadRegistryStore((s) => s.threads);
   const registerThread = useThreadRegistryStore((s) => s.registerThread);
   const removeThread = useThreadRegistryStore((s) => s.removeThread);
+  const deleteSession = useDeleteSession();
 
   const activeThreadId = (() => {
     const match = /\/threads\/([^/]+)/.exec(location.pathname);
@@ -147,7 +149,7 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
     setMobileSidebarOpen(false);
   };
 
-  const handleDeleteThread = async (
+  const handleDeleteThread = (
     e: React.MouseEvent,
     id: string,
   ) => {
@@ -161,12 +163,8 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
       navigate("/threads");
     }
 
-    // Best-effort server delete — ignore failures
-    try {
-      await api.delete(`/api/sessions/${id}`);
-    } catch {
-      // Server delete is fire-and-forget; local registry is source of truth
-    }
+    // Best-effort server delete; the local registry is the source of truth.
+    deleteSession.mutate(id);
   };
 
   const formatTime = (dateStr: string) => {

@@ -1,0 +1,22 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [],
+  "checked_classes": [
+    "Spec violations \u2014 checked acceptance criteria and runtime-data-sync requirements against the diff; no concrete unmet criterion found within packet scope.",
+    "Correctness \u2014 checked migrated hooks, mutation adapter, invalidation paths, health polling, chat transcript fallback, and session/user-settings flows; no packet-provable logic defect found.",
+    "Regressions \u2014 checked deleted TanStack hooks against the stated zero-consumer deletion scope in proposal/design/acceptance notes; no packet-provable regression found.",
+    "Security \u2014 checked new fetch/API paths and dependency changes for obvious secret exposure, unsafe env handling, or new auth bypass; no concrete issue found in the diff.",
+    "Constraint breaches \u2014 checked blocking constraints visible in the diff: no console.log, no new ': any', no hardcoded secrets, no env files, no pglite migration edits, and pglite optimizeDeps untouched.",
+    "Silent failure \u2014 checked error propagation for list loads, mutations, transcript fallback, health checks, and user settings save/load; no concrete silent failure found."
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

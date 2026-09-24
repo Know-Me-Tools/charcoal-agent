@@ -1,0 +1,39 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "src/hooks/use-sessions.ts",
+      "line": 14,
+      "claim": "Deleting a runtime session does not invalidate or remove the `Session` entity/list, so graph-backed session views can keep stale deleted sessions.",
+      "evidence": "Acceptance criteria 2.5 requires routing left-sidebar session delete through graph hooks (`Session`), and the runtime-data-sync requirement says successful delete operations SHALL refresh affected resource lists; the new `useDeleteSession` mutation is typed as `ENTITY.Session` but only invalidates `ENTITY.SessionTranscript` via `invalidateEntities` and never invalidates/removes `ENTITY.Session`.",
+      "suggested_fix": "After a successful delete, remove or invalidate the deleted `ENTITY.Session` and invalidate `ENTITY.Session` lists, in addition to invalidating the transcript."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "src/hooks/use-providers.ts",
+      "line": 75,
+      "claim": "`useProviders` silently ignores `ProviderRegistry` loading and error state, so default-provider load failures are not exposed to the page.",
+      "evidence": "The runtime-data-sync requirement says load failures SHALL be exposed as an error state; `useProviders` loads the provider list and `ProviderRegistry` separately but returns `{ ...list, data: list.data ? value : undefined }`, using only the list hook's `isLoading`, `isError`, and `error` while discarding `registry.isLoading`/`registry.error`.",
+      "suggested_fix": "Combine list and registry states: return loading while either is loading, error if either fails, and only expose `defaultId` data after the registry read has settled successfully."
+    },
+    {
+      "severity": "WARNING",
+      "file": "src/hooks/use-health.ts",
+      "line": 42,
+      "claim": "Health and readiness probes use the global retrying engine instead of the no-retry behavior specified for health checks.",
+      "evidence": "Design decision 5 says health polling should use `maxRetries` 0 / retry false, matching the old TanStack `retry: false`; `useRuntimeProbe` calls `useEntity` without any per-health retry override while `graph-store.ts` configures the engine globally with `maxRetries: 1`.",
+      "suggested_fix": "Disable retries for `RuntimeHealth` reads if the entity-graph API supports it, or implement the 30-second polling with explicit fetch state that does not use the global retry setting."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

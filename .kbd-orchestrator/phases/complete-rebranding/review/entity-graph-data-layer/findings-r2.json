@@ -1,0 +1,38 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "src/features/chat/use-chat-messages.ts",
+      "line": 35,
+      "claim": "Server transcript load failures are silently converted to an empty transcript instead of exposing an error state.",
+      "evidence": "The added runtime-data-sync requirement says \"Load and mutation failures SHALL be exposed to the page as an error state with the runtime's message\"; `fetchSessionMessages` returns `[]` on any non-OK response (`if (!res.ok) return [];`) and `useChatMessages` only reads `transcript?.messages`, so the entity read cannot surface the HTTP failure.",
+      "suggested_fix": "Throw an Error containing the response/runtime message on non-2xx so `useEntity` records an error and callers can surface it, or explicitly return an error state from `useChatMessages`."
+    },
+    {
+      "severity": "WARNING",
+      "file": "src/hooks/use-threads.ts",
+      "line": 31,
+      "claim": "The non-TanStack `useActiveThread` export was deleted even though the accepted deletion scope only names dead thread query hooks.",
+      "evidence": "The acceptance criteria and proposal allow deleting `useThreads`/`useThreadDetail`/`useCreateThread`/`useDeleteThread` in `use-threads.ts`, but the diff also removes `useActiveThread`, which was a plain store wrapper (`activeThreadId`, `setActiveThread`) and not a TanStack-based query hook.",
+      "suggested_fix": "Keep `useActiveThread` unless a repo-wide consumer check proves it is dead and the accepted scope is updated to include it."
+    },
+    {
+      "severity": "WARNING",
+      "file": "src/hooks/use-user-settings.ts",
+      "claim": "The new user settings graph hooks have no accompanying tests despite the tests-for-new-features warning constraint.",
+      "evidence": "Constraint `tests-for-new-features` says tests should exist for new hooks, stores and utilities; the diff adds `src/hooks/use-user-settings.ts` and modifies `user-settings-page.tsx`, but no `use-user-settings.test.tsx` or equivalent coverage is added.",
+      "suggested_fix": "Add tests covering initial load, disabled JWT behavior, save success updating the graph, and save/load error exposure."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

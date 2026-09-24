@@ -1,0 +1,30 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "src/lib/entity-graph/use-runtime-list.ts",
+      "line": 34,
+      "claim": "Initial list-load failures now expose an empty array as data instead of leaving data undefined, breaking the stated TanStack-compatible hook shape on error.",
+      "evidence": "`useRuntimeList` calls `toQueryResult(..., list.items, list.items.length > 0)`, and `toQueryResult` returns `value` whenever `!state.isLoading`; on an initial failed list load `list.items` is `[]`, `isLoading` is false, and `error` is set, so hooks like `useAgents()` return `{ data: [], isError: true }`. Acceptance requires unchanged app hook return shapes and failures exposed as error states; TanStack Query initial failures have `data: undefined`, not an empty successful-looking list.",
+      "suggested_fix": "Track whether the list has successfully loaded at least once, or pass a success/hasFetched flag from the graph list state, and keep `data` undefined when the initial fetch failed."
+    },
+    {
+      "severity": "WARNING",
+      "file": "openspec/changes/entity-graph-data-layer/verification.md",
+      "claim": "The change records a known test coverage gap for the new post-stream SessionTranscript invalidation path.",
+      "evidence": "Warning constraint `tests-for-new-features` says tests should exist for new hooks, stores and utilities; verification.md states: `The post-stream SessionTranscript invalidation ... is implemented in use-chat-runtime.ts but only exercised indirectly ... there is no dedicated unit test`.",
+      "suggested_fix": "Add a focused test around `useChatRuntime` stream completion that asserts `invalidateEntity(ENTITY.SessionTranscript, threadId)` is called or that the transcript entity becomes stale."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

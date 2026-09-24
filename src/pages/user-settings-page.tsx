@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { AlertCircle, Check, Loader2, RefreshCw, Save, User } from "lucide-react";
 import { SectionLabel } from "@/components/common/section-label";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { isJwtConfigured } from "@/lib/api-client";
-import { api } from "@/lib/api-client";
+import { useSaveUserSettings, useUserSettings } from "@/hooks/use-user-settings";
 import type { CachingScope, UpdateUserSettingsPayload, UserSettings } from "@/types";
 
 // ---------------------------------------------------------------------------
@@ -20,51 +20,39 @@ import type { CachingScope, UpdateUserSettingsPayload, UserSettings } from "@/ty
 // ---------------------------------------------------------------------------
 
 export default function UserSettingsPage() {
-  const [settings, setSettings] = useState<UserSettings | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const isJwt = isJwtConfigured();
+  const settingsQuery = useUserSettings(isJwt);
+  const saveSettings = useSaveUserSettings();
+  // Unsaved edits; cleared after a successful save so the graph copy shows again.
+  const [draft, setDraft] = useState<UserSettings | null>(null);
   const [saved, setSaved] = useState(false);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const isJwt = isJwtConfigured();
-
-  const fetchSettings = useCallback(async () => {
-    if (!isJwt) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await api.get<UserSettings>("/api/uar/user/settings");
-      setSettings(data);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load user settings");
-    } finally {
-      setLoading(false);
-    }
-  }, [isJwt]);
-
-  useEffect(() => {
-    void fetchSettings();
-  }, [fetchSettings]);
+  const settings = draft ?? settingsQuery.data ?? null;
+  const setSettings = (update: (s: UserSettings | null) => UserSettings | null) =>
+    setDraft((prev) => update(prev ?? settingsQuery.data ?? null));
+  const loading = settingsQuery.isLoading;
+  const saving = saveSettings.isPending;
+  const error = saveSettings.error?.message ?? settingsQuery.error?.message ?? null;
+  const fetchSettings = () => {
+    setDraft(null);
+    settingsQuery.refetch();
+  };
 
   const save = async () => {
     if (!settings || !isJwt) return;
-    setSaving(true);
-    setError(null);
+    const payload: UpdateUserSettingsPayload = {
+      prompt_caching_enabled: settings.prompt_caching_enabled,
+      preferred_scope: settings.preferred_scope,
+    };
     try {
-      const payload: UpdateUserSettingsPayload = {
-        prompt_caching_enabled: settings.prompt_caching_enabled,
-        preferred_scope: settings.preferred_scope,
-      };
-      const updated = await api.put<UserSettings>("/api/uar/user/settings", payload);
-      setSettings(updated);
+      await saveSettings.mutateAsync(payload);
+      setDraft(null);
       setSaved(true);
       if (savedTimer.current) clearTimeout(savedTimer.current);
       savedTimer.current = setTimeout(() => setSaved(false), 2000);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to save user settings");
-    } finally {
-      setSaving(false);
+    } catch {
+      // Error is surfaced through `saveSettings.error`.
     }
   };
 
@@ -124,7 +112,7 @@ export default function UserSettingsPage() {
             variant="ghost"
             size="sm"
             className="h-8 gap-1.5 font-mono text-[11px]"
-            onClick={() => { void fetchSettings(); }}
+            onClick={fetchSettings}
             disabled={loading}
           >
             {loading ? (

@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "package.json",
+      "line": 28,
+      "claim": "The new entity-graph dependencies are not installed at the required exact 4.0.2 versions.",
+      "evidence": "Acceptance criterion 1.1 requires installing `@prometheus-ags/entity-graph-core@4.0.2` and `@prometheus-ags/prometheus-entity-management@4.0.2`, but package.json adds them as `\"^4.0.2\"`, allowing newer 4.x versions.",
+      "suggested_fix": "Change both dependency specifiers to exact `\"4.0.2\"`."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

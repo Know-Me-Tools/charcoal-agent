@@ -1,4 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useEntity } from "@prometheus-ags/prometheus-entity-management";
+import { ENTITY } from "@/lib/entity-graph/entities";
+import type { QueryResult } from "@/lib/entity-graph/query-result";
 import type { HealthStatus } from "@/types";
 import { buildUrl } from "@/lib/api-client";
 
@@ -10,36 +13,66 @@ import { buildUrl } from "@/lib/api-client";
  * { status: "ok" } shape ourselves.
  */
 async function pingEndpoint(path: string): Promise<HealthStatus> {
-  const url = buildUrl(path);
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Health check failed: ${res.status}`);
-  // Body may be empty (200 + no JSON) — treat any 2xx as "ok".
+  // Never throw: a failed probe is a result ("error"), reported at once rather
+  // than retried by the graph engine.
   try {
+    const res = await fetch(buildUrl(path));
+    if (!res.ok) return { status: "error" };
+    // Body may be empty (200 + no JSON) — treat any 2xx as "ok".
     const text = await res.text();
     if (text) {
-      const json = JSON.parse(text) as Record<string, unknown>;
-      return { status: (json.status as "ok" | "error") ?? "ok" };
+      try {
+        const json = JSON.parse(text) as Record<string, unknown>;
+        return { status: (json.status as "ok" | "error") ?? "ok" };
+      } catch {
+        // Unparseable body — the server answered 2xx, so it is reachable.
+      }
     }
+    return { status: "ok" };
   } catch {
-    // Ignore parse errors — server is reachable, so mark ok.
+    return { status: "error" };
   }
-  return { status: "ok" };
 }
 
-export function useHealth() {
-  return useQuery({
-    queryKey: ["health"],
-    queryFn: () => pingEndpoint("/healthz"),
-    refetchInterval: 30_000,
-    retry: false,
-  });
+interface HealthRecord extends HealthStatus {
+  id: string;
 }
 
-export function useReady() {
-  return useQuery({
-    queryKey: ["ready"],
-    queryFn: () => pingEndpoint("/readyz"),
-    refetchInterval: 30_000,
-    retry: false,
+const HEALTH_POLL_MS = 30_000;
+
+/**
+ * Poll a runtime health endpoint every 30 s while mounted. A failed check
+ * reports `status: "error"` even if an earlier check succeeded.
+ */
+function useRuntimeProbe(path: "/healthz" | "/readyz"): QueryResult<HealthStatus> {
+  const id = path.slice(1);
+  const probe = useEntity<HealthStatus, HealthRecord>({
+    type: ENTITY.RuntimeHealth,
+    id,
+    fetch: () => pingEndpoint(path),
+    normalize: (status) => ({ ...status, id }),
   });
+  const { refetch } = probe;
+
+  useEffect(() => {
+    const timer = setInterval(refetch, HEALTH_POLL_MS);
+    return () => clearInterval(timer);
+  }, [refetch]);
+
+  const value: HealthStatus | undefined = probe.data ? { status: probe.data.status } : undefined;
+  const unreachable = value?.status === "error";
+  return {
+    data: value,
+    isLoading: probe.isLoading,
+    isError: unreachable,
+    error: unreachable ? new Error(`Runtime ${path} check failed`) : null,
+  };
+}
+
+export function useHealth(): QueryResult<HealthStatus> {
+  return useRuntimeProbe("/healthz");
+}
+
+export function useReady(): QueryResult<HealthStatus> {
+  return useRuntimeProbe("/readyz");
 }

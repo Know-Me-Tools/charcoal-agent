@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "src/lib/entity-graph/invalidate.ts",
+      "line": 7,
+      "claim": "Type-wide invalidation does not invalidate singleton entity records such as ProviderRegistry, so set-default/provider changes can leave `defaultId` stale.",
+      "evidence": "`invalidateEntityType` calls `state.invalidateEntity(type)` with only the type, while the design packet distinguishes `invalidateType(type)` from entity-specific `invalidateEntity`; `useSetDefaultProvider` relies on this helper via `invalidateTypes: PROVIDER_TYPES`, where `PROVIDER_TYPES` includes `ENTITY.ProviderRegistry`.",
+      "suggested_fix": "Call the graph's type-wide invalidation (`state.invalidateType(type)`) and then the custom list-prefix invalidation, or explicitly invalidate singleton ids such as `state.invalidateEntity(ENTITY.ProviderRegistry, REGISTRY_ID)`."
+    },
+    {
+      "severity": "WARNING",
+      "file": "src/hooks/use-providers.ts",
+      "line": 85,
+      "claim": "`useProviderModels(undefined)` no longer preserves the TanStack-compatible disabled-query shape because it returns an empty array instead of `undefined` data.",
+      "evidence": "`useProviderModels` passes `enabled: !!providerId` but still returns `toQueryResult(set, models, !!set.data)`; `toQueryResult` returns `value` whenever `!state.isLoading`, and `models` is `[]` when no provider id is selected. The acceptance criteria require keeping app hooks' public return shapes unchanged.",
+      "suggested_fix": "When `providerId` is falsy, return `{ data: undefined, isLoading: false, isError: false, error: null }` before calling/using the graph result."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}
