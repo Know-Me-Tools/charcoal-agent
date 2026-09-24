@@ -1,6 +1,6 @@
 ## 1. Tokens
 
-- [ ] 1.1 Create `src/styles/tokens.css` with the KnowMe light (`:root`) and dark (`.dark`) palettes, text-safe variants, shadcn/assistant-ui aliases, radius, motion and code-background tokens; import it from `src/index.css`, remove the RGB-triplet and stock sidebar tokens, and expose everything via `@theme inline`; verify `npm run build` and that built CSS contains `bg-canvas`, `text-faint`, `text-ember-text`, `bg-cyan`
+- [x] 1.1 Create `src/styles/tokens.css` with the KnowMe light (`:root`) and dark (`.dark`) palettes, text-safe variants, shadcn/assistant-ui aliases, radius, motion and code-background tokens; import it from `src/index.css`, remove the RGB-triplet and stock sidebar tokens, and expose everything via `@theme inline`; verify `npm run build` and that built CSS contains `bg-canvas`, `text-faint`, `text-ember-text`, `bg-cyan`
 - [ ] 1.2 Add `src/styles/tokens.test.ts` asserting every text × surface pair ≥ 4.5:1 and every label × fill pair ≥ 4.5:1 in both themes; verify it passes and fails when a text token is set to the standard's failing value
 
 ## 2. Flat 2.0 base and type roles
