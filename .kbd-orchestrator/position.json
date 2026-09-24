@@ -2,24 +2,24 @@
   "schemaVersion": "1",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 342,
-  "derivedRevision": 342,
+  "sourceRevision": 374,
+  "derivedRevision": 374,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 342
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 374
   },
   "conflictCount": 0,
-  "updatedAt": "2026-09-24T22:55:44.585312Z",
+  "updatedAt": "2026-09-24T23:49:54.065248Z",
   "cursor": [
     "complete-rebranding",
     "execute",
-    "app-shell-flat2"
+    "chat-surfaces-flat2"
   ],
   "root": {
     "type": "phase",
     "id": "440c5818-223c-4091-8b7f-bc8083505a3c",
     "status": "ready",
     "progress": {
-      "done": 7,
+      "done": 8,
       "total": 12
     },
     "children": [
@@ -29,7 +29,7 @@
         "canonicalId": "complete-rebranding",
         "status": "PENDING",
         "progress": {
-          "done": 7,
+          "done": 8,
           "total": 12
         },
         "children": [
@@ -99,10 +99,10 @@
           {
             "type": "change",
             "id": "app-shell-flat2",
-            "status": "PENDING",
+            "status": "COMPLETE",
             "progress": {
-              "done": 0,
-              "total": 0
+              "done": 6,
+              "total": 6
             }
           },
           {
