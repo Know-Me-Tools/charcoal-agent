@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useGraphStoreApi } from "@prometheus-ags/prometheus-entity-management";
+import { ENTITY } from "@/lib/entity-graph/entities";
 import {
   useExternalStoreRuntime,
   type AppendMessage,
@@ -222,7 +223,7 @@ export interface ChatRuntimeOptions {
 }
 
 export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {}) {
-  const qc = useQueryClient();
+  const graph = useGraphStoreApi();
   const consumePendingPrompt = useChatIntentStore((s) => s.consumePendingPrompt);
   const { startStream, cancelStream } = useMessageStream();
   const { messages, isStreaming } = useChatMessages(threadId);
@@ -260,8 +261,8 @@ export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {
       markPersisted(threadId);
       touch(threadId);
 
-      // Invalidate server-side queries so the sidebar stays in sync
-      void qc.invalidateQueries({ queryKey: ["sessions", threadId] });
+      // Mark the server transcript stale so the next fallback read is fresh
+      graph.getState().invalidateEntity(ENTITY.SessionTranscript, threadId);
 
       // Generate title only once per thread (check current title first)
       if (titleGeneratedRef.current) return;
@@ -282,7 +283,7 @@ export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {
       const title = await generateThreadTitle(userMsgText, assistantText);
       setTitle(threadId, title);
     },
-    [threadId, markPersisted, touch, setTitle, qc],
+    [threadId, markPersisted, touch, setTitle, graph],
   );
 
   const onNew = useCallback(

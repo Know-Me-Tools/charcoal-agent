@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEntity } from "@prometheus-ags/prometheus-entity-management";
+import { ENTITY } from "@/lib/entity-graph/entities";
 import {
   useChatMessageStore,
   selectIsStreaming,
@@ -26,6 +27,12 @@ function uarMessageToRich(msg: UarMessage, index: number): RichMessage {
     createdAt: new Date(),
     status: "complete",
   };
+}
+
+/** Server-side transcript kept in the graph as one record per thread. */
+interface SessionTranscript {
+  id: string;
+  messages: UarMessage[];
 }
 
 async function fetchSessionMessages(sessionId: string): Promise<UarMessage[]> {
@@ -102,13 +109,15 @@ export function useChatMessages(threadId: string | null) {
   // ── 2. Fall back to server when PGLite is also empty ─────────────────────
   // The query is enabled whenever local store is empty AND we haven't
   // already started hydrating from PGLite (give PGLite a tick to respond).
-  const { data: serverMessages } = useQuery({
-    queryKey: ["sessions", threadId, "messages-fallback"],
-    queryFn: () => fetchSessionMessages(threadId ?? ""),
+  const { data: transcript } = useEntity<UarMessage[], SessionTranscript>({
+    type: ENTITY.SessionTranscript,
+    id: threadId,
+    fetch: (id) => fetchSessionMessages(String(id)),
+    normalize: (messages) => ({ id: threadId ?? "", messages }),
     enabled: !!threadId && localIsEmpty && !isStreaming && !isEphemeral,
     staleTime: 60_000,
-    retry: false,
   });
+  const serverMessages = transcript?.messages;
 
   useEffect(() => {
     if (!threadId) return;

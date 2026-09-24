@@ -1,4 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useEntity } from "@prometheus-ags/prometheus-entity-management";
+import { ENTITY } from "@/lib/entity-graph/entities";
+import { toQueryResult, type QueryResult } from "@/lib/entity-graph/query-result";
 import type { HealthStatus } from "@/types";
 import { buildUrl } from "@/lib/api-client";
 
@@ -26,20 +29,43 @@ async function pingEndpoint(path: string): Promise<HealthStatus> {
   return { status: "ok" };
 }
 
-export function useHealth() {
-  return useQuery({
-    queryKey: ["health"],
-    queryFn: () => pingEndpoint("/healthz"),
-    refetchInterval: 30_000,
-    retry: false,
-  });
+interface HealthRecord extends HealthStatus {
+  id: string;
 }
 
-export function useReady() {
-  return useQuery({
-    queryKey: ["ready"],
-    queryFn: () => pingEndpoint("/readyz"),
-    refetchInterval: 30_000,
-    retry: false,
+const HEALTH_POLL_MS = 30_000;
+
+/**
+ * Poll a runtime health endpoint every 30 s while mounted. A failed check
+ * reports `status: "error"` even if an earlier check succeeded.
+ */
+function useRuntimeProbe(path: "/healthz" | "/readyz"): QueryResult<HealthStatus> {
+  const id = path.slice(1);
+  const probe = useEntity<HealthStatus, HealthRecord>({
+    type: ENTITY.RuntimeHealth,
+    id,
+    fetch: () => pingEndpoint(path),
+    normalize: (status) => ({ ...status, id }),
   });
+  const { refetch } = probe;
+
+  useEffect(() => {
+    const timer = setInterval(refetch, HEALTH_POLL_MS);
+    return () => clearInterval(timer);
+  }, [refetch]);
+
+  const value: HealthStatus | undefined = probe.error
+    ? { status: "error" }
+    : probe.data
+      ? { status: probe.data.status }
+      : undefined;
+  return toQueryResult(probe, value, value !== undefined);
+}
+
+export function useHealth(): QueryResult<HealthStatus> {
+  return useRuntimeProbe("/healthz");
+}
+
+export function useReady(): QueryResult<HealthStatus> {
+  return useRuntimeProbe("/readyz");
 }
