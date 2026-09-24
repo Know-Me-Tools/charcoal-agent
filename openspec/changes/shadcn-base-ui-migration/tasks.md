@@ -16,4 +16,4 @@
 
 ## 4. Verification
 
-- [ ] 4.1 Run `npm run build && npm run typecheck && npm run lint && npm test && npm run test:e2e`; compare screenshots with the previous run for layout regressions; record results in `verification.md`
+- [x] 4.1 Run `npm run build && npm run typecheck && npm run lint && npm test && npm run test:e2e`; compare screenshots with the previous run for layout regressions; record results in `verification.md`

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- standalone harness entry, never hot-reloaded as a module */
 /**
  * Browser-only harness for primitive behaviors that need real layout
  * (focus trapping, select positioning). Served by the Vite dev server for

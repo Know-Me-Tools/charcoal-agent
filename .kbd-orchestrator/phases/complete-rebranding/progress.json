@@ -2,25 +2,25 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 223,
-  "derivedRevision": 223,
+  "sourceRevision": 226,
+  "derivedRevision": 226,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 223
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 226
   },
   "conflictCount": 0,
   "phase": "complete-rebranding",
   "phaseId": "complete-rebranding",
   "parentPhase": null,
-  "last_updated": "2026-09-24T07:21:29.260590Z",
+  "last_updated": "2026-09-24T07:43:06.629729Z",
   "last_updated_by": "kbd-runtime",
   "changes_total": 12,
-  "changes_completed": 3,
+  "changes_completed": 4,
   "implementation_total": 12,
-  "implementation_completed": 3,
+  "implementation_completed": 4,
   "completion": {
     "primaryCounter": "implementation",
     "implementation": {
-      "completed": 3,
+      "completed": 4,
       "total": 12,
       "status": "IN_PROGRESS"
     },
@@ -77,12 +77,12 @@
     {
       "id": "shadcn-base-ui-migration",
       "title": "Reinstall shadcn primitives on Base UI at the latest shadcn",
-      "status": "IN_PROGRESS",
-      "implementation_status": "IN_PROGRESS",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
       "tasks_total": 8,
-      "tasks_done": 7,
-      "last_task_completed": "3.2 Behavior tests",
-      "next_task_pending": "4.1 Full verification",
+      "tasks_done": 8,
+      "last_task_completed": "4.1 Full verification",
+      "next_task_pending": null,
       "blockers": []
     },
     {
