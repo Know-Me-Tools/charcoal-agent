@@ -2,6 +2,8 @@ import { Link, useLocation } from "react-router-dom";
 import { PanelRight, Sun, Moon, Menu } from "lucide-react";
 import { useUi } from "@/hooks/use-ui";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { WIDE_LAYOUT_QUERY } from "@/components/layout/breakpoints";
 import { KnowMeLockup } from "@/components/brand";
 import { UarStatus } from "@/components/common/uar-status";
 import { NAV_DESTINATIONS, isDestinationActive } from "@/components/layout/nav-destinations";
@@ -12,8 +14,9 @@ const ICON_BUTTON =
 
 export function Topbar() {
   const { pathname } = useLocation();
-  const { theme, setTheme, toggleRightPanel, toggleMobileSidebar } = useUi();
+  const { theme, setTheme, toggleRightPanel, setContextSheetOpen, toggleMobileSidebar } = useUi();
   const isMobile = useIsMobile();
+  const isWide = useMediaQuery(WIDE_LAYOUT_QUERY);
   const isThreadView = pathname.startsWith("/threads/");
   const showSidebar = pathname.startsWith("/threads") || pathname === "/";
   const nextTheme = theme === "dark" ? "light" : "dark";
@@ -64,10 +67,10 @@ export function Topbar() {
           {theme === "dark" ? <Sun size={16} aria-hidden="true" /> : <Moon size={16} aria-hidden="true" />}
         </button>
 
-        {isThreadView && !isMobile && (
+        {isThreadView && (
           <button
             type="button"
-            onClick={toggleRightPanel}
+            onClick={isWide ? toggleRightPanel : () => setContextSheetOpen(true)}
             className={ICON_BUTTON}
             aria-label="Toggle context panel"
             title="Toggle context panel"

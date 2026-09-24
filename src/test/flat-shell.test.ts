@@ -11,12 +11,7 @@ const SHELL_DIRS = ["src/components/layout", "src/components/common"];
 const SHELL_PRIMITIVES = ["src/components/ui/dialog.tsx", "src/components/ui/select.tsx", "src/components/ui/sheet.tsx"];
 
 /** Files not restyled yet. Each is expected to fail; remove it once it passes. */
-const PENDING = new Set<string>([
-  "src/components/layout/left-sidebar.tsx",
-  "src/components/layout/mobile-sidebar-drawer.tsx",
-  "src/components/layout/right-context-panel.tsx",
-  "src/components/common/skeleton-loader.tsx",
-]);
+const PENDING = new Set<string>([]);
 
 const RULES: Array<{ name: string; pattern: RegExp }> = [
   // border, border-t, border-l-[3px], border-border… but not border-0 / border-transparent

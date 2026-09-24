@@ -9,7 +9,7 @@
 
 ## 3. Shell surfaces
 
-- [ ] 3.1 Top bar and navigation: chrome surface, nav links and bottom nav with ember-tinted active + `aria-current`, hover/focus fills, 12px labels, named icon buttons (theme, context, menu), runtime status in the desktop top bar, skip link and `id="main"` target in `AppLayout`; verify with e2e (active destination per route, skip link, status label)
+- [x] 3.1 Top bar and navigation: chrome surface, nav links and bottom nav with ember-tinted active + `aria-current`, hover/focus fills, 12px labels, named icon buttons (theme, context, menu), runtime status in the desktop top bar, skip link and `id="main"` target in `AppLayout`; verify with e2e (active destination per route, skip link, status label)
 - [ ] 3.2 Sidebar, context panel and drawers: sidebar chrome, filled search, primary "New thread", `Select` agent picker, active thread tint + `aria-current`, no borders/sub-12px text; context panel on surface inline ≥1280 and as a sheet below; phone thread drawer as a sheet; switch the flat-shell guard fully on; verify with e2e (conversation width ≥480px at 768/1024, sheet open/Escape, drawer on 320) and the guard test
 
 ## 4. Verification

@@ -1,10 +1,12 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { Topbar } from "@/components/layout/topbar";
 import { LeftSidebar } from "@/components/layout/left-sidebar";
-import { RightContextPanel } from "@/components/layout/right-context-panel";
+import { ContextPanelSheet, RightContextPanel } from "@/components/layout/right-context-panel";
 import { MobileBottomNav } from "@/components/layout/mobile-nav";
 import { MobileSidebarDrawer } from "@/components/layout/mobile-sidebar-drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { WIDE_LAYOUT_QUERY } from "@/components/layout/breakpoints";
 import { useDbHydration } from "@/hooks/use-db-hydration";
 
 /** Fragment navigation doesn't reliably move focus, so the skip link does it. */
@@ -19,6 +21,7 @@ export function AppLayout() {
   useDbHydration();
   const location = useLocation();
   const isMobile = useIsMobile();
+  const isWide = useMediaQuery(WIDE_LAYOUT_QUERY);
   const isThreadView = location.pathname.startsWith("/threads/");
   const showSidebar = location.pathname.startsWith("/threads") || location.pathname === "/";
 
@@ -54,8 +57,10 @@ export function AppLayout() {
         </main>
 
         {/* Desktop right panel */}
-        {!isMobile && isThreadView && <RightContextPanel />}
+        {isWide && isThreadView && <RightContextPanel />}
       </div>
+
+      {!isWide && isThreadView && <ContextPanelSheet />}
 
       {/* Mobile bottom nav */}
       {isMobile && <MobileBottomNav />}

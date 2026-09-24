@@ -3,6 +3,8 @@
  * navigation, and Flat 2.0 surfaces (fill-separated regions, no borders or
  * shadows, nothing below 12px).
  */
+import type { Page } from "@playwright/test";
+import { FIXTURE_THREAD_ID } from "./support/routes";
 import { expect, test } from "./support/test";
 
 const DESTINATIONS = [
@@ -63,4 +65,120 @@ test("icon-only controls in the top bar are named", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/threads");
   await expect(page.getByRole("banner").getByRole("button", { name: /switch to (light|dark) theme/i })).toBeVisible();
+});
+
+test("shell regions separate by fill with no borders, shadows or sub-12px text", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/threads");
+  await expect(page.getByRole("complementary", { name: "Threads" })).toBeVisible();
+  const report = await page.evaluate(() => {
+    const token = (name: string) => {
+      const probe = document.createElement("div");
+      probe.style.backgroundColor = `var(${name})`;
+      document.body.append(probe);
+      const value = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return value;
+    };
+    const bg = (el: Element | null) => (el ? getComputedStyle(el).backgroundColor : "missing");
+    const shell = [
+      document.querySelector("header"),
+      document.querySelector("aside[aria-label='Threads']"),
+      document.querySelector("nav[aria-label='Main']"),
+    ].filter((el): el is Element => el !== null);
+    const offenders: string[] = [];
+    for (const root of shell) {
+      for (const el of [root, ...Array.from(root.querySelectorAll("*"))]) {
+        const s = getComputedStyle(el);
+        const bordered = ["Top", "Right", "Bottom", "Left"].some(
+          (side) =>
+            parseFloat(s.getPropertyValue(`border-${side.toLowerCase()}-width`)) > 0 &&
+            s.getPropertyValue(`border-${side.toLowerCase()}-color`) !== "rgba(0, 0, 0, 0)",
+        );
+        if (bordered) offenders.push(`border: ${el.tagName}.${el.className}`);
+        if (s.boxShadow !== "none" && !el.matches(":focus-visible")) offenders.push(`shadow: ${el.tagName}`);
+        if (s.backdropFilter !== "none" && s.backdropFilter !== "") offenders.push(`blur: ${el.tagName}`);
+        const hasText = Array.from(el.childNodes).some((n) => n.nodeType === Node.TEXT_NODE && n.textContent?.trim());
+        if (hasText && parseFloat(s.fontSize) < 12) offenders.push(`${s.fontSize}: ${el.textContent?.trim()}`);
+      }
+    }
+    return {
+      offenders,
+      header: bg(document.querySelector("header")),
+      sidebar: bg(document.querySelector("aside[aria-label='Threads']")),
+      main: bg(document.querySelector("main")),
+      chrome: token("--km-chrome"),
+      canvas: token("--km-canvas"),
+    };
+  });
+  expect(report.offenders).toEqual([]);
+  expect(report.header).toBe(report.chrome);
+  expect(report.sidebar).toBe(report.chrome);
+  expect(report.main).toBe(report.canvas);
+});
+
+/** Open the fixture thread and send one message so it is persisted and listed. */
+async function openPersistedThread(page: Page): Promise<void> {
+  await page.goto(`/threads/${FIXTURE_THREAD_ID}`);
+  const composer = page.getByPlaceholder(/Ask your agent anything/i).filter({ visible: true });
+  await composer.fill("Plan my week around the rebrand launch.");
+  await composer.press("Enter");
+}
+
+test("the open thread is marked active in the sidebar without a border", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openPersistedThread(page);
+  const active = page.getByRole("complementary", { name: "Threads" }).locator("[aria-current='page']");
+  await expect(active).toHaveCount(1);
+  await expect(active).toHaveClass(/\bbg-ember-soft\b/);
+  // No visible left rule: either no width or a transparent colour.
+  const leftRule = await active.evaluate((el) => {
+    const s = getComputedStyle(el);
+    return { width: parseFloat(s.borderLeftWidth), color: s.borderLeftColor };
+  });
+  expect(leftRule.width === 0 || leftRule.color === "rgba(0, 0, 0, 0)").toBe(true);
+});
+
+for (const width of [768, 1024]) {
+  test(`conversation keeps at least 480px at ${width}px; context opens as a sheet`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(`/threads/${FIXTURE_THREAD_ID}`);
+    const main = page.locator("main#main");
+    await expect(main).toBeVisible();
+    expect((await main.boundingBox())?.width ?? 0).toBeGreaterThanOrEqual(480);
+    await expect(page.getByRole("complementary", { name: "Context" })).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Toggle context panel" }).click();
+    const sheet = page.getByRole("dialog", { name: "Context" });
+    await expect(sheet).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(sheet).toHaveCount(0);
+  });
+}
+
+test("context panel is inline at 1440px", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`/threads/${FIXTURE_THREAD_ID}`);
+  const panel = page.getByRole("complementary", { name: "Context" });
+  await expect(panel).toBeVisible();
+  const { panelBg, surface } = await panel.evaluate((el) => {
+    const probe = document.createElement("div");
+    probe.style.backgroundColor = "var(--km-surface)";
+    document.body.append(probe);
+    const surface = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return { panelBg: getComputedStyle(el).backgroundColor, surface };
+  });
+  expect(panelBg).toBe(surface);
+});
+
+test("phone thread drawer is a dismissible sheet", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto("/threads");
+  await page.getByRole("button", { name: "Open threads" }).click();
+  const drawer = page.getByRole("dialog", { name: "Threads" });
+  await expect(drawer).toBeVisible();
+  await expect(drawer.getByRole("button", { name: "New thread", exact: true })).toBeVisible();
+  await drawer.getByRole("button", { name: "Close threads" }).click();
+  await expect(drawer).toHaveCount(0);
 });

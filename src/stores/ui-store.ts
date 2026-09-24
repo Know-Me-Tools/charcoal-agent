@@ -9,11 +9,15 @@ export type FontSize = "compact" | "default" | "comfortable";
 export const UI_STORAGE_KEY = "knowme:ui";
 
 interface UiState {
+  /** Inline context panel (wide screens). */
   rightPanelOpen: boolean;
+  /** Context panel as a sheet below 1280px; never persisted. */
+  contextSheetOpen: boolean;
   mobileSidebarOpen: boolean;
   theme: Theme;
   fontSize: FontSize;
   toggleRightPanel: () => void;
+  setContextSheetOpen: (open: boolean) => void;
   setMobileSidebarOpen: (open: boolean) => void;
   toggleMobileSidebar: () => void;
   setTheme: (theme: Theme) => void;
@@ -32,6 +36,7 @@ export const useUiStore = create<UiState>()(
   persist(
     immer((set) => ({
       rightPanelOpen: true,
+      contextSheetOpen: false,
       mobileSidebarOpen: false,
       theme: "dark",
       fontSize: "default",
@@ -39,6 +44,11 @@ export const useUiStore = create<UiState>()(
       toggleRightPanel: () =>
         set((state) => {
           state.rightPanelOpen = !state.rightPanelOpen;
+        }),
+
+      setContextSheetOpen: (open) =>
+        set((state) => {
+          state.contextSheetOpen = open;
         }),
 
       setMobileSidebarOpen: (open) =>
