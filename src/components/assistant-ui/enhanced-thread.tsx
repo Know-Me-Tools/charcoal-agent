@@ -9,7 +9,6 @@ import {
 	ThreadPrimitive,
 	type ToolCallMessagePartProps,
 	useMessagePartText,
-	useMessageRuntime,
 } from "@assistant-ui/react";
 import {
 	ArrowDownIcon,
@@ -671,5 +670,3 @@ const BranchPicker: FC<BranchPickerPrimitive.Root.Props> = ({
 	</BranchPickerPrimitive.Root>
 );
 
-// Suppress unused import warning (used for future extensions)
-void useMessageRuntime;

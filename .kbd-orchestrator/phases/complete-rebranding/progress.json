@@ -2,16 +2,16 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 226,
-  "derivedRevision": 226,
+  "sourceRevision": 230,
+  "derivedRevision": 230,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 226
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 230
   },
   "conflictCount": 0,
   "phase": "complete-rebranding",
   "phaseId": "complete-rebranding",
   "parentPhase": null,
-  "last_updated": "2026-09-24T07:43:06.629729Z",
+  "last_updated": "2026-09-24T09:28:45.990199Z",
   "last_updated_by": "kbd-runtime",
   "changes_total": 12,
   "changes_completed": 4,
@@ -88,12 +88,12 @@
     {
       "id": "assistant-ui-latest",
       "title": "Upgrade assistant-ui to 0.15.x on the Base UI registry",
-      "status": "PENDING",
-      "implementation_status": "PENDING",
-      "tasks_total": 0,
+      "status": "IN_PROGRESS",
+      "implementation_status": "IN_PROGRESS",
+      "tasks_total": 1,
       "tasks_done": 0,
       "last_task_completed": null,
-      "next_task_pending": null,
+      "next_task_pending": "1.1 Upgrade packages and run codemods",
       "blockers": []
     },
     {

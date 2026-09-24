@@ -20,9 +20,9 @@
     "test:a11y": "node e2e/support/run-a11y.mjs"
   },
   "dependencies": {
-    "@assistant-ui/react": "^0.12.10",
-    "@assistant-ui/react-devtools": "^0.2.3",
-    "@assistant-ui/react-markdown": "^0.12.3",
+    "@assistant-ui/react": "0.15.21",
+    "@assistant-ui/react-devtools": "1.2.20",
+    "@assistant-ui/react-markdown": "0.14.16",
     "@base-ui/react": "1.8.0",
     "@electric-sql/pglite": "^0.3.15",
     "@prometheus-ags/entity-graph-core": "4.0.2",
