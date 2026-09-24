@@ -1,7 +1,7 @@
 ## 1. Upgrade
 
 - [x] 1.1 Pin `@assistant-ui/react@0.15.21`, `@assistant-ui/react-markdown@0.14.16`, `@assistant-ui/react-devtools@1.2.20`; run `npx assistant-ui@0.0.117 upgrade`; verify packages resolve (`npm ls`) and record remaining type errors
-- [ ] 1.2 Add the `@assistant-ui` registry to `components.json` and replace `tooltip-icon-button` and `attachment` with the base-nova registry versions (fix CLI-emitted imports if needed); verify the attachment tile trigger has button semantics (`role="button"`, `tabIndex={0}`, Base UI dialog trigger) by inspecting the registry markup — attachments are unreachable in the running app because no attachment adapter is configured, so no runtime test is possible (amended during 1.2)
+- [x] 1.2 Add the `@assistant-ui` registry to `components.json` and replace `tooltip-icon-button` and `attachment` with the base-nova registry versions (fix CLI-emitted imports if needed); verify the attachment tile trigger has button semantics (`role="button"`, `tabIndex={0}`, Base UI dialog trigger) by inspecting the registry markup — attachments are unreachable in the running app because no attachment adapter is configured, so no runtime test is possible (amended during 1.2)
 
 ## 2. Migrate chat components
 
