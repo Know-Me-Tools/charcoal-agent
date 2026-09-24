@@ -6,7 +6,7 @@ The app has no KnowMe mark anywhere: the name is plain text, the chat welcome us
 
 - `src/components/brand/`: `KnowMeMark` (Conviction K monogram; body in `currentColor`, ember node from the token), `KnowMeWordmark` ("Know" + ember "Me", Space Grotesk 700) and `KnowMeLockup` (mark + wordmark at the brand's nav/footer/hero sizes), with accessible names and minimum sizes enforced.
 - Replace every plain-text "KnowMe" brand rendering (topbar, mobile drawer, landing header and footer, About, chat welcome — replacing the sparkles icon) with the lockup or mark.
-- Brand assets generated reproducibly by `scripts/generate-brand-assets.mjs` from the Conviction SVG: `favicon.svg` (theme-aware), `favicon.ico` (16/32/48), `apple-touch-icon.png`, `og-image.png` (1200×630, self-hosted), and `src-tauri/icons/*` via `cargo tauri icon` from the brand app-icon source.
+- Brand assets generated reproducibly by `scripts/generate-brand-assets.mjs` from the Conviction SVG: `favicon.svg` (charcoal tile), `favicon.ico` (16/32/48), `apple-touch-icon.png`, `og-image.png` (1200×630, self-hosted), and `src-tauri/icons/*` via `cargo tauri icon` from the brand app-icon source.
 - `index.html`: title, description, theme color, favicon links, Open Graph/Twitter tags with the approved tagline "AI that understands you." and the self-hosted image.
 - Copy: remove "Charcoal Agent" (built-in skills belong to the KnowMe agent in the Universal Agent Runtime); legal line "© 2026 KnowMe AI, LLC" in the landing footer and About.
 - Tauri: `productName`/window title "KnowMe", `devUrl` port 8080 and npm commands (previously port 3000 and bun), Cargo package metadata.

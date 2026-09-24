@@ -1,7 +1,7 @@
 ## 1. Brand components
 
 - [x] 1.1 Add `src/components/brand/` (`KnowMeMark`, `KnowMeWordmark`, `KnowMeLockup` with nav/footer/hero variants, accessible name, minimum sizes) with component tests (accessible name "KnowMe", ember node uses the token, minimum size clamp)
-- [ ] 1.2 Replace plain-text brand renderings with the lockup/mark (topbar, mobile drawer, landing header and footer, About, chat welcome instead of the sparkles icon); verify with an e2e check that the top bar exposes a "KnowMe" brand link containing the mark on every app route
+- [x] 1.2 Replace plain-text brand renderings with the lockup/mark (topbar, mobile drawer, landing header and footer, About, chat welcome instead of the sparkles icon); verify with an e2e check that the top bar exposes a "KnowMe" brand link containing the mark on every app route
 
 ## 2. Assets and metadata
 

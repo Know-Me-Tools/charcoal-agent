@@ -14,7 +14,7 @@ See proposal.md. Brand sources (outside the repo): `branding/logos/conviction-*.
 2. **Accessible naming.** The lockup renders one accessible name ("KnowMe") via `aria-label` on the lockup root, hiding the SVG and the split wordmark spans from assistive tech to avoid "Know Me".
 3. **Size contract.** `KnowMeMark` clamps to the brand minimums by context (`size` ≥ 16; nav lockup ≥ 24) and the lockup exposes `variant: "nav" | "footer" | "hero"` mapping to the lockup spec sizes, so call sites cannot drift.
 4. **Generated, committed assets.** `scripts/generate-brand-assets.mjs` (run with `npm run brand:assets`) writes favicons with `rsvg-convert` + ImageMagick, renders `og-image.png` from an HTML template with Playwright (brand fonts from Google Fonts) and calls `cargo tauri icon` for the desktop icons. Outputs are committed so builds need none of these tools.
-5. **Favicon theming.** `favicon.svg` embeds a `prefers-color-scheme` style so the tile inverts appropriately; `favicon.ico` is the charcoal tile (works on both).
+5. **Favicon.** `favicon.svg` and `favicon.ico` are the charcoal app-icon tile, which reads on both light and dark browser tabs, so no `prefers-color-scheme` variant is needed (amended during 2.1).
 6. **Tauri dev wiring.** `devUrl` `http://localhost:8080`, `beforeDevCommand: "npm run dev"`, `beforeBuildCommand: "npm run build"` — matching Vite and the npm lockfile.
 7. **Docker naming with compatibility.** Services/containers/network become `knowme-web`/`knowme-uar`/`knowme-network`; the published port reads `${KNOWME_PORT:-${CHARCOAL_PORT:-8080}}` so existing `.env` files keep working.
 
