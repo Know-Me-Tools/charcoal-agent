@@ -3,11 +3,14 @@ import type { AppRoute, Theme } from "./routes";
 import { FIXED_TIME } from "../fixtures/uar-data";
 
 /**
- * Apply a theme. The app toggles a `dark` class on <html> (default dark, not yet
- * persisted); this is the single place to change when theme persistence lands.
+ * Apply a theme the way the app does: persist it under `knowme:ui` (read by the
+ * pre-paint script and the ui store) and toggle the `.dark` class now.
  */
 export async function setTheme(page: Page, theme: Theme): Promise<void> {
   await page.evaluate((t) => {
+    const key = "knowme:ui";
+    const saved = JSON.parse(localStorage.getItem(key) ?? "{}") as { state?: Record<string, unknown> };
+    localStorage.setItem(key, JSON.stringify({ state: { ...saved.state, theme: t }, version: 0 }));
     document.documentElement.classList.toggle("dark", t === "dark");
   }, theme);
   await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => r(null))));

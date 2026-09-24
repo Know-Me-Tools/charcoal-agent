@@ -2,18 +2,18 @@
   "schemaVersion": "1",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 282,
-  "derivedRevision": 282,
+  "sourceRevision": 287,
+  "derivedRevision": 287,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 282
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 287
   },
   "conflictCount": 0,
-  "updatedAt": "2026-09-24T15:56:34.947927Z",
+  "updatedAt": "2026-09-24T15:57:21.589492Z",
   "cursor": [
     "complete-rebranding",
     "execute",
     "knowme-brand-tokens",
-    "4"
+    "5"
   ],
   "root": {
     "type": "phase",
@@ -84,8 +84,8 @@
             "id": "knowme-brand-tokens",
             "status": "IN_PROGRESS",
             "progress": {
-              "done": 3,
-              "total": 4
+              "done": 4,
+              "total": 5
             }
           },
           {

@@ -2,6 +2,20 @@
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Apply the saved theme and font size before first paint (key: knowme:ui,
+      // written by src/stores/ui-store.ts). Dark is the default.
+      (function () {
+        try {
+          var saved = JSON.parse(localStorage.getItem("knowme:ui") || "{}").state || {};
+          var root = document.documentElement;
+          root.classList.toggle("dark", saved.theme !== "light");
+          root.dataset.fontSize = saved.fontSize || "default";
+        } catch (e) {
+          document.documentElement.classList.add("dark");
+        }
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>KnowMe — AI Agent Runtime</title>
     <meta name="description" content="Desktop-class AI agent chat application for managing and interacting with AI agents through persistent conversation threads.">

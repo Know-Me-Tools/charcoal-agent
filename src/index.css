@@ -99,6 +99,14 @@
     @apply bg-background text-foreground font-ui antialiased;
   }
 
+  /* Appearance > font size scales every rem-based size. */
+  html[data-font-size="compact"] {
+    font-size: 15px;
+  }
+  html[data-font-size="comfortable"] {
+    font-size: 17.5px;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

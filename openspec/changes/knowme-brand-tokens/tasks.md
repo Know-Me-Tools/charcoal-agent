@@ -6,7 +6,7 @@
 ## 2. Flat 2.0 base and type roles
 
 - [x] 2.1 Base layer: transparent default borders, `.aui-root` shadow removal, visible ember focus ring; type-role utilities (`section-label`, `ui-overline`, `mono-meta`, …) at ≥12 px; brand font weights in `index.html`; verify build and the harness screenshots render with no default borders
-- [ ] 2.2 Substitute bare text uses (`text-primary|success|warning|info|destructive` → text-safe tokens) across `src/`; verify `grep` finds no bare `text-primary`/`text-success`/`text-warning`/`text-info`/`text-destructive` classes and `npm run typecheck` passes
+- [x] 2.2 Substitute bare text uses (`text-primary|success|warning|info|destructive` → text-safe tokens) across `src/`; verify `grep` finds no bare `text-primary`/`text-success`/`text-warning`/`text-info`/`text-destructive` classes and `npm run typecheck` passes
 
 ## 3. Theme mechanics and third parties
 
