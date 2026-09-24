@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "src/features/chat/use-chat-messages.ts",
+      "line": 122,
+      "claim": "An in-flight transcript fetch can be stored under the wrong thread if `threadId` changes before the response is normalized.",
+      "evidence": "The `useEntity` fetch is keyed by the request id (`fetch: (id) => fetchSessionMessages(String(id))`), but `normalize` ignores that request id and closes over the current render's `threadId`: `normalize: (messages) => ({ id: threadId ?? \"\", messages })`. This violates the runtime-data-sync requirement that resources are identified by their type and id.",
+      "suggested_fix": "Carry the requested id through the fetch result, e.g. `fetch: async (id) => ({ id: String(id), messages: await fetchSessionMessages(String(id)) })`, then normalize with `raw.id` instead of the outer `threadId`."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "src/hooks/use-providers.ts",
+      "line": 77,
+      "claim": "An in-flight provider-model request can be stored under the wrong provider if `providerId` changes before normalization runs.",
+      "evidence": "The `useEntity` fetch receives the requested provider id (`fetch: async (id) => api.get(.../${id}/models)`), but `normalize` closes over the current `providerId`: `id: providerId ?? \"\"` and `modelIds: models.map((m) => providerModelId(providerId ?? \"\", m.id))`. This can mis-key `ProviderModelSet` and `ProviderModel` records, violating the requirement for one canonical record per runtime resource identified by type and id.",
+      "suggested_fix": "Return the requested provider id from `fetch` with the models and normalize using that captured id, or use a normalize API parameter for the entity id if the library provides one."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

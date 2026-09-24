@@ -118,6 +118,34 @@ describe("useProviderModels", () => {
     await waitFor(() => expect(result.current.data?.[0]?.id).toBe("gpt-5.2"));
   });
 
+  it("never stores a late response for a previous provider under the current one", async () => {
+    let releaseSlow!: () => void;
+    const slow = new Promise<void>((r) => (releaseSlow = r));
+    const model = (id: string) => ({ id, display_name: id, context_window: 1, supports_vision: false, supports_tools: true, max_output_tokens: 1 });
+    fetchMock = mockFetch({
+      "GET /api/providers/slow/models": async () => {
+        await slow;
+        return { body: [model("slow-model")] };
+      },
+      "GET /api/providers/fast/models": () => ({ body: [model("fast-model")] }),
+    });
+    const { wrapper } = createGraphTestHarness();
+    const { result, rerender } = renderHook(({ id }: { id: string }) => useProviderModels(id), {
+      wrapper,
+      initialProps: { id: "slow" },
+    });
+    await waitFor(() => expect(fetchMock.calls.some((c) => c.path.includes("/slow/"))).toBe(true));
+
+    rerender({ id: "fast" });
+    await waitFor(() => expect(result.current.data?.map((m) => m.id)).toEqual(["fast-model"]));
+    await act(async () => {
+      releaseSlow();
+      await slow;
+    });
+    await new Promise((r) => setTimeout(r, 20));
+    expect(result.current.data?.map((m) => m.id)).toEqual(["fast-model"]);
+  });
+
   it("stores each model once, keyed by provider and model id", async () => {
     fetchMock = mockFetch({
       "GET /api/providers/openai/models": () => ({

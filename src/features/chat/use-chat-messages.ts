@@ -116,11 +116,12 @@ export function useChatMessages(threadId: string | null) {
     data: transcript,
     error: transcriptError,
     isLoading: transcriptLoading,
-  } = useEntity<UarMessage[], SessionTranscript>({
+  } = useEntity<SessionTranscript, SessionTranscript>({
     type: ENTITY.SessionTranscript,
     id: threadId,
-    fetch: (id) => fetchSessionMessages(String(id)),
-    normalize: (messages) => ({ id: threadId ?? "", messages }),
+    // Carry the requested id so a late response is stored under its own thread.
+    fetch: async (id) => ({ id: String(id), messages: await fetchSessionMessages(String(id)) }),
+    normalize: (transcript) => transcript,
     enabled: !!threadId && localIsEmpty && !isStreaming && !isEphemeral,
     staleTime: 60_000,
   });

@@ -75,24 +75,25 @@ export function useProviders(): QueryResult<ProvidersResult> {
  */
 export function useProviderModels(providerId: string | undefined): QueryResult<UarModel[]> {
   const storeApi = useGraphStoreApi();
-  const set = useEntity<UarModel[], ProviderModelSet>({
+  const set = useEntity<ProviderModelSet, ProviderModelSet>({
     type: ENTITY.ProviderModelSet,
     id: providerId,
-    fetch: async (id) => {
+    // Keys derive from the requested id, so a late response for a previously
+    // selected provider is never stored under the current one.
+    fetch: async (requested) => {
+      const id = String(requested);
       const raw = await api.get<UarModel[]>(`/api/providers/${id}/models`);
       const models = Array.isArray(raw) ? raw : [];
       const graph = storeApi.getState();
-      for (const model of models) {
-        const key = providerModelId(String(id), model.id);
+      const modelIds = models.map((model) => {
+        const key = providerModelId(id, model.id);
         graph.upsertEntity(ENTITY.ProviderModel, key, { ...model });
         graph.setEntityFetched(ENTITY.ProviderModel, key);
-      }
-      return models;
+        return key;
+      });
+      return { id, modelIds };
     },
-    normalize: (models) => ({
-      id: providerId ?? "",
-      modelIds: models.map((m) => providerModelId(providerId ?? "", m.id)),
-    }),
+    normalize: (modelSet) => modelSet,
     enabled: !!providerId,
   });
   const models = useStore(
