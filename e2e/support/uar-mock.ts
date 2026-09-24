@@ -62,6 +62,7 @@ const ROUTES: RouteDef[] = [
   { method: "DELETE", pattern: /^\/api\/skills\/[^/]+$/, handle: (r) => json(r, {}) },
   { method: "GET", pattern: /^\/api\/sessions$/, handle: (r) => json(r, sessionsResponse) },
   { method: "POST", pattern: /^\/api\/sessions$/, handle: (r) => json(r, sessionsResponse[0]) },
+  { method: "GET", pattern: /^\/api\/sessions\/[^/]+\/messages$/, handle: (r) => json(r, []) },
   {
     method: "GET",
     pattern: /^\/api\/sessions\/([^/]+)$/,

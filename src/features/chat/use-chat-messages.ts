@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useEntity } from "@prometheus-ags/prometheus-entity-management";
 import { ENTITY } from "@/lib/entity-graph/entities";
+import { api } from "@/lib/api-client";
 import {
   useChatMessageStore,
   selectIsStreaming,
@@ -35,10 +36,12 @@ interface SessionTranscript {
   messages: UarMessage[];
 }
 
+/**
+ * GET /api/sessions/{id}/messages through the API client (base URL, auth and
+ * session headers). Non-2xx responses throw so the graph records the error.
+ */
 async function fetchSessionMessages(sessionId: string): Promise<UarMessage[]> {
-  const res = await fetch(`/api/sessions/${sessionId}/messages`);
-  if (!res.ok) return [];
-  const data = await res.json();
+  const data = await api.get<unknown>(`/api/sessions/${sessionId}/messages`);
   return Array.isArray(data) ? (data as UarMessage[]) : [];
 }
 
@@ -109,7 +112,7 @@ export function useChatMessages(threadId: string | null) {
   // ── 2. Fall back to server when PGLite is also empty ─────────────────────
   // The query is enabled whenever local store is empty AND we haven't
   // already started hydrating from PGLite (give PGLite a tick to respond).
-  const { data: transcript } = useEntity<UarMessage[], SessionTranscript>({
+  const { data: transcript, error: transcriptError } = useEntity<UarMessage[], SessionTranscript>({
     type: ENTITY.SessionTranscript,
     id: threadId,
     fetch: (id) => fetchSessionMessages(String(id)),
@@ -145,5 +148,7 @@ export function useChatMessages(threadId: string | null) {
     messages,
     isStreaming,
     isLoading: localIsEmpty && !isStreaming,
+    /** Server-transcript fallback failure (null when not attempted or successful). */
+    transcriptError,
   };
 }

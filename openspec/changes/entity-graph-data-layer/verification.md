@@ -23,3 +23,8 @@
   - CRITICAL models not one record per model → fixed: each model is a `ProviderModel` record (`provider::model`), `ProviderModelSet` keeps order; test proves a patch to one model record reaches the hook.
   - CRITICAL `useDeleteAgent` / skill create-update-delete removed rather than migrated → the proposal and design (D9) specify deleting hooks with no consumers; tasks.md wording contradicted that and was amended. Repo-wide grep confirmed zero consumers.
   - WARNING overlapping mutation calls shared one result slot → fixed: per-call tokens; concurrency test resolves two overlapping calls out of order.
+- r2: BLOCK, 1 CRITICAL / 2 WARNING.
+  - CRITICAL transcript load failures became an empty list → fixed: `fetchSessionMessages` now uses `api.get` (base URL, auth and `X-UAR-Session-ID` headers — the previous raw `fetch` sent none) and throws on non-2xx; `useChatMessages` exposes `transcriptError`. e2e mock gained `GET /api/sessions/:id/messages`.
+  - WARNING `useActiveThread` deleted outside stated scope → it had zero consumers (repo-wide grep); proposal's deletion list updated to name it.
+  - WARNING no tests for user settings → added 6 tests (load, JWT-disabled no request, load failure, save writes graph, save failure Error, session delete marks transcript stale).
+- Gates after r2 fixes: unit 43/43, typecheck 0, lint 0 errors, build ✓, e2e 124/124 (3.2 min on a fresh server). A run that reused a stale dev server from earlier took 11.2 min with 5 tests not reported as passed; `reuseExistingServer` is now opt-in (`E2E_REUSE_SERVER=1`).

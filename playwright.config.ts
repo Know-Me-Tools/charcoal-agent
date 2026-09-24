@@ -20,7 +20,8 @@ export default defineConfig({
   webServer: {
     command: `npx vite --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}`,
-    reuseExistingServer: !process.env.CI,
+    // Opt-in reuse: a stale dev server from an earlier run caused slow, flaky runs.
+    reuseExistingServer: process.env.E2E_REUSE_SERVER === "1",
     timeout: 120_000,
   },
 });
