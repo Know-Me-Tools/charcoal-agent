@@ -23,6 +23,9 @@ test("chat welcome shows the KnowMe mark instead of a generic icon", async ({ pa
   const welcome = page.locator(".aui-thread-root");
   await expect(welcome.locator("svg[data-slot='knowme-mark']").first()).toBeVisible();
   await expect(welcome.locator(".lucide-sparkles")).toHaveCount(0);
+  // Named once: the heading reads "KnowMe" and the mark beside it is decorative.
+  await expect(welcome.getByRole("heading", { name: "KnowMe" })).toBeVisible();
+  await expect(welcome.locator("svg[data-slot='knowme-mark'][aria-hidden='true']").first()).toBeAttached();
 });
 
 test("landing footer and About show the legal line", async ({ page }) => {

@@ -16,4 +16,4 @@
 
 ## 4. Verification
 
-- [ ] 4.1 Run `npm run build && npm run typecheck && npm run lint && npm test && npm run test:e2e`; record results, the allow-listed identifiers and the asset list in `verification.md`
+- [x] 4.1 Run `npm run build && npm run typecheck && npm run lint && npm test && npm run test:e2e`; record results, the allow-listed identifiers and the asset list in `verification.md`

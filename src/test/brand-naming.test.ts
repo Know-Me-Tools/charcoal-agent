@@ -42,12 +42,17 @@ function trackedFiles(): string[] {
   return out.split("\n").filter((f) => f && f !== "src/test/brand-naming.test.ts");
 }
 
+/** Removes only the allowed occurrences, so other names on the same line are still checked. */
+function stripAllowed(line: string): string {
+  return ALLOWED.reduce((rest, allowed) => rest.replace(new RegExp(allowed.source, "g"), ""), line);
+}
+
 function offendingLines(pattern: RegExp): string[] {
   return trackedFiles().flatMap((file) =>
     readFileSync(file, "utf8")
       .split("\n")
       .flatMap((line, i) =>
-        pattern.test(line) && !ALLOWED.some((a) => a.test(line)) ? [`${file}:${i + 1}: ${line.trim()}`] : [],
+        pattern.test(stripAllowed(line)) ? [`${file}:${i + 1}: ${line.trim()}`] : [],
       ),
   );
 }

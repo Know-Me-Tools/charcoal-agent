@@ -53,3 +53,8 @@ The source is `scripts/brand/app-icon.svg`, the desktop app icon from know-me-sy
   - About names the KnowMe agent
   - the built-in skill copy
   - no "Charcoal" text on About or Skills
+
+## Adversarial review (diff mode)
+- r1: BLOCK, 2 CRITICAL.
+  1. **The naming guard exempted whole lines.** One allow-listed phrase (the `charcoal-agent` repo directory) let a "Lovable" on the same CLAUDE.md line through. Fixed: the guard now strips only the allowed substrings before testing. The Lovable mention is removed. A planted line mixing both now fails both checks.
+  2. **The welcome mark had no accessible name.** It sits beside the visible "KnowMe" heading, so naming it would announce the product twice (WCAG H67). The requirement is clarified to "name exposed exactly once": standalone marks are named, and marks beside the name are decorative. e2e now asserts the heading name and the decorative mark.

@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Official mark and wordmark
-The app SHALL display the KnowMe "Conviction" monogram with its ember node and the "Know" + ember "Me" wordmark wherever the product name is shown as brand identity, never plain text or a generic icon, and the mark SHALL have an accessible name.
+The app SHALL display the KnowMe "Conviction" monogram with its ember node and the "Know" + ember "Me" wordmark wherever the product name is shown as brand identity, never plain text or a generic icon. Every brand rendering SHALL expose the name "KnowMe" to assistive technology exactly once: a mark or lockup that stands alone carries the accessible name, and a mark placed beside visible "KnowMe" text is decorative so the name is not announced twice.
 
 #### Scenario: Navigation lockup
 - **WHEN** any app page is open
@@ -10,6 +10,11 @@ The app SHALL display the KnowMe "Conviction" monogram with its ember node and t
 #### Scenario: Chat welcome
 - **WHEN** a new, empty thread is shown
 - **THEN** the welcome state shows the KnowMe mark instead of a generic icon
+- **AND** assistive technology reads "KnowMe" once, from the adjacent heading, with the mark hidden as decorative
+
+#### Scenario: Standalone mark
+- **WHEN** the mark appears without visible product text (for example the agent avatar)
+- **THEN** the mark itself has the accessible name "KnowMe"
 
 ### Requirement: Browser and social identity
 The browser tab and link previews SHALL use KnowMe assets hosted by the app itself: a KnowMe favicon, an Apple touch icon, and a KnowMe social preview image with the approved tagline.
