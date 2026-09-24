@@ -38,3 +38,4 @@
 
 ## Adversarial review (diff mode)
 - r1: BLOCK, 1 CRITICAL. **A sheet's open flag outlived the sheet.** Opening the context sheet at 1024, widening to 1440 and narrowing again reopened it unprompted. The phone drawer had the same flaw. Neither flag is persisted. Fix: `useCloseWithLayout` closes a sheet on route change and on unmount. Two new e2e tests cover resize round-trips for both sheets and back/forward navigation.
+- r2: BLOCK, 1 CRITICAL: "`contextSheetOpen` is persisted". Not the case: `ui-store` persists through `partialize: (state) => ({ theme, fontSize })` (unchanged, so not in the diff). To make this verifiable, `ui-store.test.ts` asserts storage holds only `theme` and `fontSize` after every panel/sheet flag is set; it fails if `partialize` is removed (checked).
