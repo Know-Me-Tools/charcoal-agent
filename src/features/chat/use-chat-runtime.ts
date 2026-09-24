@@ -23,7 +23,7 @@ import type { RichMessage, ContentBlock } from "@/types/chat-content";
  * `message.metadata.submittedFeedback` without an optional-chain guard. Every
  * object we return MUST therefore have a `metadata` property, even if empty.
  */
-function richMessageToThreadMessageLike(msg: RichMessage): ThreadMessageLike {
+export function richMessageToThreadMessageLike(msg: RichMessage): ThreadMessageLike {
   /** Minimal metadata shape that satisfies the library's internal accessor. */
   const baseMetadata = { custom: {} };
 

@@ -7,7 +7,7 @@
 
 - [x] 2.1 Move `enhanced-thread.tsx` off deprecated APIs (children render functions for Messages/Parts with an explicit rich-block switch, `useAuiState` instead of `useMessagePart*`, `AuiIf` instead of primitive `If`); verify `npm run typecheck` and that `grep -n "components={{\|useMessagePart" src/components/assistant-ui` is empty
 - [x] 2.2 Update `enhanced-markdown-text.tsx` to react-markdown 0.14 APIs; verify code, KaTeX and mermaid blocks render in the harness thread capture
-- [ ] 2.3 Fix dropped early stream blocks: the store creates the streaming assistant message on the first event of any kind; unit tests prove skill/context/memory-recall/tool-call before the first delta are kept in order; restore the realistic SSE fixture order
+- [x] 2.3 Fix dropped early stream blocks: the store creates the streaming assistant message on the first event of any kind; unit tests prove skill/context/memory-recall/tool-call before the first delta are kept in order; restore the realistic SSE fixture order
 
 ## 3. Verify behavior
 
