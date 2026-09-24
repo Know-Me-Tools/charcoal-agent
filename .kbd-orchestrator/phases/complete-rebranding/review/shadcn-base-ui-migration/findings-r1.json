@@ -1,0 +1,29 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "src/components/ui/primitives.test.tsx",
+      "claim": "The required component test for Select keyboard selection is missing.",
+      "evidence": "Acceptance criterion 3.2 requires \"Add component tests for the ui-primitives spec (dialog focus trap/Escape/focus return, select keyboard selection, tooltip on focus, switch Space, collapsible expanded state)\"; the added primitives.test.tsx contains describe blocks for Dialog, Tooltip, Switch, and Collapsible only, with no Select test.",
+      "suggested_fix": "Add a Testing Library/Vitest component test that renders the Select primitive, opens it via keyboard, navigates with arrow keys, selects with Enter, and asserts the selected value is reported."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "src/components/ui/sheet.tsx",
+      "claim": "The Sheet primitive was deleted even though the added ui-primitives requirement explicitly covers sheets.",
+      "evidence": "openspec/changes/shadcn-base-ui-migration/specs/ui-primitives/spec.md says \"Dialogs and sheets SHALL move focus inside when opened, keep Tab focus inside while open, close on Escape and on a pointer press outside, and return focus to the element that opened them\"; the diff deletes src/components/ui/sheet.tsx with no replacement.",
+      "suggested_fix": "Keep or add a Base UI-backed Sheet component and tests satisfying the same overlay behavior, or remove/adjust the sheet requirement from the accepted spec if sheets are intentionally out of scope."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

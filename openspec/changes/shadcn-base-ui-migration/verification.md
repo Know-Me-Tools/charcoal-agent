@@ -24,3 +24,8 @@
 - Agent editor pages: within ±6 px height (control sizes); Write/Preview tabs back above the editor after fix 2.
 - Settings pages at 320 px: settings tab bar now scrolls horizontally with a visible scrollbar; provider cards no longer overflow the viewport (improvement).
 - Thread: ~170 px taller at 1440 — base-nova `Card` has larger default padding and `Button` sizes differ, so chat blocks are roomier. Intentionally not tuned here: `chat-surfaces-flat2` restyles every chat block.
+
+## Adversarial review (diff mode)
+- r1: BLOCK, 2 CRITICAL — both artifact/implementation mismatches in my own docs:
+  - "Select keyboard component test missing" → the jsdom test was attempted and fails for lack of layout (listbox positioning); the behavior is verified in a real browser (`e2e/primitives.spec.ts` harness test). tasks.md 3.2 amended to state where each behavior is verified.
+  - "Sheet deleted though the spec covers sheets" → `sheet` had zero consumers and was deleted per the proposal; the spec requirement and capability description no longer mention sheets.

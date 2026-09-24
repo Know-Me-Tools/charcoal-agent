@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Modal overlays trap focus and dismiss predictably
-Dialogs and sheets SHALL move focus inside when opened, keep Tab focus inside while open, close on Escape and on a pointer press outside, and return focus to the element that opened them.
+Dialogs SHALL move focus inside when opened, keep Tab focus inside while open, close on Escape and on a pointer press outside, and return focus to the element that opened them.
 
 #### Scenario: Escape closes a dialog
 - **WHEN** a dialog is open and the user presses Escape

@@ -17,7 +17,7 @@ Out of scope: visual restyling (tokens arrive in `knowme-brand-tokens`); assista
 ## Capabilities
 
 ### New Capabilities
-- `ui-primitives`: keyboard and pointer behavior of the app's overlay and form primitives (dialogs, sheets, selects, tooltips, switches, collapsibles, tabs).
+- `ui-primitives`: keyboard and pointer behavior of the app's overlay and form primitives (dialogs, selects, tooltips, switches, collapsibles, tabs). Sheets are out of scope: the `sheet` primitive had no consumers and was deleted.
 
 ### Modified Capabilities
 <!-- none -->
