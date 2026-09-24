@@ -33,13 +33,18 @@ const InlineCode: FC<React.HTMLAttributes<HTMLElement>> = ({
 // Smart code block dispatcher — routes by language
 const EnhancedCodeBlock: FC<
   React.HTMLAttributes<HTMLElement> & { "data-language"?: string }
-> = ({ children, "data-language": language, ...props }) => {
+> = ({ children, "data-language": language, className, ...props }) => {
   const isCodeBlock = useIsMarkdownCodeBlock();
   const code = typeof children === "string" ? children : String(children ?? "");
-  const lang = language ?? "";
+  // react-markdown marks fenced code with `className="language-<lang>"`.
+  const lang = language ?? /(?:^|\s)language-([\w+#-]+)/.exec(className ?? "")?.[1] ?? "";
 
   if (!isCodeBlock) {
-    return <InlineCode {...props}>{children}</InlineCode>;
+    return (
+      <InlineCode className={className} {...props}>
+        {children}
+      </InlineCode>
+    );
   }
 
   // Mermaid diagrams

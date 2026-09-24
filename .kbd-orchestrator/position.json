@@ -2,18 +2,18 @@
   "schemaVersion": "1",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 240,
-  "derivedRevision": 240,
+  "sourceRevision": 245,
+  "derivedRevision": 245,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 240
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 245
   },
   "conflictCount": 0,
-  "updatedAt": "2026-09-24T09:32:04.812430Z",
+  "updatedAt": "2026-09-24T09:34:09.683781Z",
   "cursor": [
     "complete-rebranding",
     "execute",
     "assistant-ui-latest",
-    "3"
+    "4"
   ],
   "root": {
     "type": "phase",
@@ -75,8 +75,8 @@
             "id": "assistant-ui-latest",
             "status": "IN_PROGRESS",
             "progress": {
-              "done": 2,
-              "total": 3
+              "done": 3,
+              "total": 4
             }
           },
           {

@@ -20,6 +20,7 @@ const ASSISTANT_MARKDOWN = [
   "A quick helper you asked for:\n\n",
   "```ts\nexport function weekOf(date: Date): number {\n  const start = new Date(date.getFullYear(), 0, 1);\n  return Math.ceil(((+date - +start) / 86400000 + start.getDay() + 1) / 7);\n}\n```\n\n",
   "Inline math also renders: $e^{i\\pi} + 1 = 0$.\n\n",
+  "```mermaid\ngraph LR\n  Plan --> Build --> Review\n```\n\n",
   "A long identifier that must wrap: https://know-me.tools/very/long/path/that/keeps/going/without/any/spaces/at/all/to/check/wrapping/behaviour/in/narrow/viewports\n\n",
   FIXTURE_FINAL_TEXT,
 ];
