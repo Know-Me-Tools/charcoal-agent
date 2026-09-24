@@ -54,8 +54,9 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M0 0h40v40H0z' fill='none' stroke='%23808080' stroke-width='0.5' opacity='0.04'/%3E%3C/svg%3E");
 }
 
+/* Type roles (standard §4.2): nothing below 12px; eyebrows are mono 600, 0.12em. */
 @utility section-label {
-  @apply font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-primary;
+  @apply font-mono text-xs font-semibold uppercase tracking-[0.12em] text-ember-text;
 }
 
 @utility ui-label {
@@ -67,7 +68,7 @@
 }
 
 @utility ui-overline {
-  @apply font-ui text-[11px] font-bold uppercase tracking-[0.08em];
+  @apply font-ui text-xs font-semibold uppercase tracking-[0.12em];
 }
 
 @utility body-text {
@@ -76,24 +77,37 @@
 }
 
 @utility mono-meta {
-  @apply font-mono text-[10px] text-muted-foreground;
+  @apply font-mono text-xs text-faint;
 }
 
 @utility transition-panel {
-  @apply transition-all duration-150 ease-out;
+  @apply transition-all duration-(--km-duration-fast) ease-brand-out;
 }
 
 @utility transition-hover {
-  @apply transition-colors duration-100 ease-out;
+  @apply transition-colors duration-(--km-duration-fast) ease-brand-out;
 }
 
 @layer base {
+  /* Flat 2.0: default borders resolve to the transparent --border token;
+     focus outlines use the ember ring (>=3:1 on both canvases). */
   * {
-    @apply border-border;
+    @apply border-border outline-ring;
   }
 
   body {
-    @apply bg-background text-foreground font-body antialiased;
+    @apply bg-background text-foreground font-ui antialiased;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 
   h1, h2, h3, h4 {
@@ -152,3 +166,20 @@
   [data-disabled='true'] {
     cursor: not-allowed !important;
   }
+
+/* assistant-ui owns chat interaction; Flat 2.0 removes the registry's
+   default elevation and rule lines (state is shown with filled surfaces). */
+.aui-root *,
+.aui-root *::before,
+.aui-root *::after {
+  box-shadow: none !important;
+}
+
+.aui-md blockquote,
+.aui-md hr,
+.aui-md td,
+.aui-md tr,
+.aui-md th,
+.aui-md pre {
+  border-color: transparent !important;
+}
