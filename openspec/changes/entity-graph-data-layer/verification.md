@@ -35,3 +35,6 @@
   - `useProviders` combines list and default-registry state: loading while either loads, error if either fails, data only once both settle (test: 500 → error, not loading).
   - Health probes never throw: a failed probe is reported immediately as `status: "error"` with one request (restores the old `retry: false`; test asserts a single `/healthz` call).
 - r5: BLOCK, 1 CRITICAL — "providers exposed before the default id settles" → **false positive**: `useEntity` returns `null` (not `undefined`) for an unloaded record, and the check was `registry.data !== null`; the suggested `!== undefined` would have released data early. Hardened to `!= null` and added a test that seeds providers in the graph before the registry loads and asserts `data` stays undefined until `defaultId` arrives.
+- r6: BLOCK, 1 CRITICAL / 1 WARNING.
+  - CRITICAL a 2xx body `{"status":"error"}` is reported unhealthy → this is the pre-existing (and intended) behavior: the runtime is stating it is unhealthy. The spec's wording ("any 2xx is healthy") was imprecise; the Runtime health polling requirement now states the exact rule with two added scenarios, and a test covers the reported-unhealthy case.
+  - WARNING `isPending` reflected only the latest call → fixed: adapter tracks in-flight calls; the concurrency test asserts pending stays true until the last overlapping call resolves.

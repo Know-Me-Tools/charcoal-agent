@@ -16,6 +16,13 @@ describe("useHealth", () => {
     expect(result.current.isError).toBe(false);
   });
 
+  it("honours a 2xx body that reports the runtime unhealthy", async () => {
+    fetchMock = mockFetch({ "GET /healthz": () => ({ status: 200, body: { status: "error" } }) });
+    const { wrapper } = createGraphTestHarness();
+    const { result } = renderHook(() => useHealth(), { wrapper });
+    await waitFor(() => expect(result.current.data?.status).toBe("error"));
+  });
+
   it("reports an error status when the runtime is unreachable", async () => {
     fetchMock = mockFetch({ "GET /healthz": () => ({ status: 503 }) });
     const { wrapper } = createGraphTestHarness();

@@ -66,6 +66,8 @@ export function useGraphMutation<TInput, TRaw, TEntity extends object = Record<s
   const [data, setData] = useState<TRaw | undefined>(undefined);
   const [variables, setVariables] = useState<TInput | undefined>(undefined);
   const [error, setError] = useState<Error | null>(null);
+  // In-flight calls; the package's state tracks only the latest call.
+  const [inFlight, setInFlight] = useState(0);
 
   const entityMutation = useEntityMutation<TokenedInput<TInput>, TRaw, TEntity>({
     type: opts.type,
@@ -98,10 +100,12 @@ export function useGraphMutation<TInput, TRaw, TEntity extends object = Record<s
       calls.current.set(token, call);
       setVariables(input);
       setError(null);
+      setInFlight((n) => n + 1);
       try {
         await runMutation({ token, input });
       } finally {
         calls.current.delete(token);
+        setInFlight((n) => n - 1);
       }
       if (call.error) {
         setError(call.error);
@@ -130,6 +134,7 @@ export function useGraphMutation<TInput, TRaw, TEntity extends object = Record<s
     setError(null);
   }, [resetMutation]);
 
-  const { isPending, isSuccess, isError } = entityMutation.state;
+  const isPending = inFlight > 0;
+  const { isSuccess, isError } = entityMutation.state;
   return { mutate, mutateAsync, isPending, isSuccess, isError, error, data, variables, reset };
 }

@@ -41,8 +41,16 @@ Load and mutation failures SHALL be exposed to the page as an error state with t
 - **THEN** the agents query reports an error and is no longer loading
 
 ### Requirement: Runtime health polling
-The app SHALL check runtime health every 30 seconds while a health indicator is mounted and treat any 2xx response (including an empty body) as healthy.
+The app SHALL check runtime health every 30 seconds while a health indicator is mounted. A 2xx response SHALL count as healthy unless its JSON body reports `"status": "error"`; an empty or non-JSON 2xx body counts as healthy. A non-2xx response or network failure SHALL be reported as unreachable immediately, without retrying.
 
 #### Scenario: Empty 200 health response
 - **WHEN** `/healthz` returns 200 with an empty body
 - **THEN** the health indicator reports the runtime as reachable
+
+#### Scenario: Runtime reports itself unhealthy
+- **WHEN** `/healthz` returns 200 with body `{"status":"error"}`
+- **THEN** the health indicator reports the runtime as unhealthy
+
+#### Scenario: Runtime unreachable
+- **WHEN** `/healthz` returns 503
+- **THEN** the health indicator reports the runtime as unreachable after a single request

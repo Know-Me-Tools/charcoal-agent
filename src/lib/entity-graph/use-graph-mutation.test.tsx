@@ -153,9 +153,15 @@ describe("useGraphMutation concurrency", () => {
     await waitFor(() => expect(resolvers.size).toBe(2));
     await act(async () => {
       resolvers.get("b")!({ id: "b", enabled: false });
-      resolvers.get("a")!({ id: "a", enabled: true });
-      await Promise.all([first, second]);
+      await second;
     });
+    // "a" is still in flight, so the hook is still pending.
+    expect(result.current.isPending).toBe(true);
+    await act(async () => {
+      resolvers.get("a")!({ id: "a", enabled: true });
+      await first;
+    });
+    expect(result.current.isPending).toBe(false);
     await expect(first).resolves.toEqual({ id: "a", enabled: true });
     await expect(second).resolves.toEqual({ id: "b", enabled: false });
   });
