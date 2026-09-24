@@ -1,5 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMemo } from "react";
+import { useEntityList } from "@prometheus-ags/prometheus-entity-management";
 import { api } from "@/lib/api-client";
+import { ENTITY } from "@/lib/entity-graph/entities";
+import { toQueryResult, type QueryResult } from "@/lib/entity-graph/query-result";
+import { useGraphMutation } from "@/lib/entity-graph/use-graph-mutation";
 import type {
   Agent,
   AgentsResponse,
@@ -8,7 +12,7 @@ import type {
   CompileAgentResponse,
 } from "@/types";
 
-const AGENTS_KEY = ["agents"] as const;
+const AGENTS_KEY = [ENTITY.Agent];
 
 /**
  * Map a UAR runtime/federated agent to the richer Agent shape used by the
@@ -38,33 +42,39 @@ function uarAgentToAgent(u: UarAgent): Agent {
  * Fetch agents from UAR (GET /api/agents) and flatten runtime + federated
  * agents into a single list, each annotated with a `source` field.
  */
-export function useAgents() {
-  return useQuery({
+async function fetchAgents(): Promise<{ items: Agent[] }> {
+  const res = await api.get<AgentsResponse>("/api/agents");
+  const runtime = (res.runtime_agents ?? []).map((a) =>
+    uarAgentToAgent({ ...a, source: "runtime" }),
+  );
+  const federated = (res.federated_agents ?? []).map((a) =>
+    uarAgentToAgent({ ...a, source: "federated" }),
+  );
+  return { items: [...runtime, ...federated] };
+}
+
+export function useAgents(): QueryResult<Agent[]> {
+  const list = useEntityList<Agent, Agent>({
+    type: ENTITY.Agent,
     queryKey: AGENTS_KEY,
-    queryFn: async () => {
-      const res = await api.get<AgentsResponse>("/api/agents");
-      const runtime = (res.runtime_agents ?? []).map((a) =>
-        uarAgentToAgent({ ...a, source: "runtime" }),
-      );
-      const federated = (res.federated_agents ?? []).map((a) =>
-        uarAgentToAgent({ ...a, source: "federated" }),
-      );
-      return [...runtime, ...federated];
-    },
+    fetch: fetchAgents,
+    normalize: (agent) => ({ id: agent.id, data: agent }),
   });
+  return toQueryResult(list, list.items, list.items.length > 0);
 }
 
 /**
- * Derive a single agent from the already-cached list query.
+ * Derive a single agent from the list query.
  * The UAR has no GET /api/agents/:id endpoint; the list response contains
  * the full AgentArtifact for each runtime agent, so we filter from there.
  */
-export function useAgent(id: string | undefined) {
+export function useAgent(id: string | undefined): QueryResult<Agent> {
   const result = useAgents();
-  return {
-    ...result,
-    data: id ? result.data?.find((a) => a.id === id) : undefined,
-  };
+  const agent = useMemo(
+    () => (id ? result.data?.find((a) => a.id === id) : undefined),
+    [id, result.data],
+  );
+  return { ...result, data: agent };
 }
 
 // ── Compiler-backed create / update ──────────────────────────────────────────
@@ -212,33 +222,30 @@ profiles:
  * when the name matches an already-compiled spec.
  */
 export function useCompileAgent() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (input: CompileAgentInput) => {
+  return useGraphMutation<CompileAgentInput, CompileAgentResponse>({
+    type: ENTITY.Agent,
+    mutate: (input) => {
       const payload: CompileAgentPayload = { content: buildAgentMd(input) };
       return api.post<CompileAgentResponse>("/api/compiler/compile", payload);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: AGENTS_KEY }),
+    invalidateTypes: [ENTITY.Agent],
   });
 }
 
 /** Update per-agent memory settings via PATCH /api/agents/{id}. */
+interface UpdateAgentMemoryInput {
+  id: string;
+  memory_enabled?: boolean | null;
+  memory_auto_capture?: boolean | null;
+  memory_inject_context?: boolean | null;
+  memory_scope?: string;
+}
+
+/** Update per-agent memory settings via PATCH /api/agents/{id}. */
 export function useUpdateAgentMemory() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      id,
-      memory_enabled,
-      memory_auto_capture,
-      memory_inject_context,
-      memory_scope,
-    }: {
-      id: string;
-      memory_enabled?: boolean | null;
-      memory_auto_capture?: boolean | null;
-      memory_inject_context?: boolean | null;
-      memory_scope?: string;
-    }) => {
+  return useGraphMutation<UpdateAgentMemoryInput, Agent>({
+    type: ENTITY.Agent,
+    mutate: ({ id, memory_enabled, memory_auto_capture, memory_inject_context, memory_scope }) => {
       const body: Record<string, unknown> = {};
       if (memory_enabled !== undefined && memory_enabled !== null)
         body.memory_enabled = memory_enabled;
@@ -249,15 +256,6 @@ export function useUpdateAgentMemory() {
       if (memory_scope !== undefined) body.memory_scope = memory_scope;
       return api.patch<Agent>(`/api/agents/${id}`, body);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: AGENTS_KEY }),
-  });
-}
-
-/** Delete an agent from the UAR. */
-export function useDeleteAgent() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => api.delete(`/api/agents/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: AGENTS_KEY }),
+    invalidateTypes: [ENTITY.Agent],
   });
 }

@@ -28,3 +28,13 @@ export const USER_SETTINGS_ID = "me";
 export function providerModelId(providerId: string, modelId: string): string {
   return `${providerId}::${modelId}`;
 }
+
+/**
+ * Prefix matching every serialized list key that starts with `type`
+ * (`["Skill"]`, `["Skill",{...}]`). Needed because the core's
+ * `invalidateType` compares the bare type name against JSON-serialized keys
+ * (which start with `[`), so its list half never matches.
+ */
+export function listKeyPrefix(type: EntityTypeName): string {
+  return JSON.stringify([type]).slice(0, -1);
+}

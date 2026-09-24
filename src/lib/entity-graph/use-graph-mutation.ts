@@ -4,6 +4,7 @@ import {
   useGraphStoreApi,
   type EntityId,
 } from "@prometheus-ags/prometheus-entity-management";
+import { invalidateEntityType } from "./invalidate";
 import type { EntityTypeName } from "./entities";
 
 export interface MutateCallbacks<TInput, TRaw> {
@@ -73,7 +74,7 @@ export function useGraphMutation<TInput, TRaw, TEntity extends object = Record<s
     optimistic: opts.optimistic ? (input) => optsRef.current.optimistic!(input) : undefined,
     onSuccess: (result, input) => {
       const store = storeApi.getState();
-      for (const type of optsRef.current.invalidateTypes ?? []) store.invalidateType(type);
+      for (const type of optsRef.current.invalidateTypes ?? []) invalidateEntityType(storeApi, type);
       for (const { type, id } of optsRef.current.invalidateEntities?.(input) ?? []) {
         store.invalidateEntity(type, id);
       }

@@ -2,16 +2,16 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 140,
-  "derivedRevision": 140,
+  "sourceRevision": 145,
+  "derivedRevision": 145,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 140
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 145
   },
   "conflictCount": 0,
   "phase": "complete-rebranding",
   "phaseId": "complete-rebranding",
   "parentPhase": null,
-  "last_updated": "2026-09-24T01:28:45.976590Z",
+  "last_updated": "2026-09-24T01:30:56.171069Z",
   "last_updated_by": "kbd-runtime",
   "changes_total": 12,
   "changes_completed": 2,
@@ -68,10 +68,10 @@
       "title": "Replace TanStack Query with the Prometheus entity graph",
       "status": "IN_PROGRESS",
       "implementation_status": "IN_PROGRESS",
-      "tasks_total": 2,
-      "tasks_done": 1,
-      "last_task_completed": "1.1 Install and mount entity graph",
-      "next_task_pending": "1.2 useGraphMutation adapter",
+      "tasks_total": 3,
+      "tasks_done": 2,
+      "last_task_completed": "1.2 useGraphMutation adapter",
+      "next_task_pending": "2.1 Agents",
       "blockers": []
     },
     {
