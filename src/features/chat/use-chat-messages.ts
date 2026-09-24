@@ -112,7 +112,11 @@ export function useChatMessages(threadId: string | null) {
   // ── 2. Fall back to server when PGLite is also empty ─────────────────────
   // The query is enabled whenever local store is empty AND we haven't
   // already started hydrating from PGLite (give PGLite a tick to respond).
-  const { data: transcript, error: transcriptError } = useEntity<UarMessage[], SessionTranscript>({
+  const {
+    data: transcript,
+    error: transcriptError,
+    isLoading: transcriptLoading,
+  } = useEntity<UarMessage[], SessionTranscript>({
     type: ENTITY.SessionTranscript,
     id: threadId,
     fetch: (id) => fetchSessionMessages(String(id)),
@@ -147,7 +151,8 @@ export function useChatMessages(threadId: string | null) {
   return {
     messages,
     isStreaming,
-    isLoading: localIsEmpty && !isStreaming,
+    /** True only while the server-transcript fallback is in flight; a failure ends loading. */
+    isLoading: localIsEmpty && !isStreaming && transcriptLoading,
     /** Server-transcript fallback failure (null when not attempted or successful). */
     transcriptError,
   };
