@@ -2,16 +2,16 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 203,
-  "derivedRevision": 203,
+  "sourceRevision": 208,
+  "derivedRevision": 208,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 203
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 208
   },
   "conflictCount": 0,
   "phase": "complete-rebranding",
   "phaseId": "complete-rebranding",
   "parentPhase": null,
-  "last_updated": "2026-09-24T07:15:10.988302Z",
+  "last_updated": "2026-09-24T07:17:15.339408Z",
   "last_updated_by": "kbd-runtime",
   "changes_total": 12,
   "changes_completed": 3,
@@ -79,10 +79,10 @@
       "title": "Reinstall shadcn primitives on Base UI at the latest shadcn",
       "status": "IN_PROGRESS",
       "implementation_status": "IN_PROGRESS",
-      "tasks_total": 4,
-      "tasks_done": 3,
-      "last_task_completed": "2.1 Reinstall primitives on Base UI",
-      "next_task_pending": "2.2 Migrate call sites",
+      "tasks_total": 5,
+      "tasks_done": 4,
+      "last_task_completed": "2.2 Migrate call sites",
+      "next_task_pending": "2.3 Single toast system",
       "blockers": []
     },
     {

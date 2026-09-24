@@ -1,5 +1,4 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import type React from "react";
@@ -61,7 +60,6 @@ const App = () => (
     <DbProvider>
       <TooltipProvider>
         <Toaster />
-        <Sonner />
         <AppBootstrap>
           <RouterProvider router={router} />
         </AppBootstrap>
