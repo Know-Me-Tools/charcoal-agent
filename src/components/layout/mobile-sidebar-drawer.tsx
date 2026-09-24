@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { X } from "lucide-react";
 import { useUi } from "@/hooks/use-ui";
+import { KnowMeLockup } from "@/components/brand";
 
 interface MobileSidebarDrawerProps {
   children: React.ReactNode;
@@ -33,9 +34,7 @@ export function MobileSidebarDrawer({ children }: MobileSidebarDrawerProps) {
       {/* Drawer */}
       <aside className="absolute left-0 top-0 bottom-0 flex w-[300px] max-w-[85vw] flex-col bg-card shadow-xl transition-panel">
         <div className="flex h-12 items-center justify-between border-b border-border px-4">
-          <span className="font-display text-base font-bold text-foreground">
-            KnowMe
-          </span>
+          <KnowMeLockup variant="footer" />
           <button
             onClick={() => setMobileSidebarOpen(false)}
             className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-hover hover:text-foreground"

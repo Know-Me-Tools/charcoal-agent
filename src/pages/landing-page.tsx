@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { useChatIntentStore } from "@/stores/chat-intent-store";
 import { useThreadRegistryStore } from "@/stores/thread-registry-store";
 import { useUi } from "@/hooks/use-ui";
+import { KnowMeLockup } from "@/components/brand";
 
 const features = [
 	{
@@ -84,9 +85,7 @@ export default function LandingPage() {
 		<div className="flex min-h-screen flex-col bg-background">
 			{/* Hero */}
 			<header className="flex items-center justify-between px-6 py-4 md:px-12">
-				<span className="font-display text-lg font-bold tracking-tight text-foreground">
-					KnowMe
-				</span>
+				<KnowMeLockup variant="nav" />
 				<div className="flex items-center gap-2">
 					<button
 						onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -177,9 +176,12 @@ export default function LandingPage() {
 
 			{/* Footer */}
 			<footer className="border-t border-border px-6 py-6 text-center">
-				<span className="font-mono text-[10px] text-muted-foreground">
-					KnowMe · v0.1.0
-				</span>
+				<div className="flex flex-col items-center gap-3">
+					<KnowMeLockup variant="footer" />
+					<span className="font-mono text-xs text-faint">
+						© 2026 KnowMe AI, LLC · v0.1.0
+					</span>
+				</div>
 			</footer>
 		</div>
 	);

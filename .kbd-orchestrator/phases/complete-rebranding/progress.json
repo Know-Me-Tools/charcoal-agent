@@ -2,16 +2,16 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 304,
-  "derivedRevision": 304,
+  "sourceRevision": 309,
+  "derivedRevision": 309,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 304
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 309
   },
   "conflictCount": 0,
   "phase": "complete-rebranding",
   "phaseId": "complete-rebranding",
   "parentPhase": null,
-  "last_updated": "2026-09-24T22:40:36.489855Z",
+  "last_updated": "2026-09-24T22:41:47.944388Z",
   "last_updated_by": "kbd-runtime",
   "changes_total": 12,
   "changes_completed": 6,
@@ -141,10 +141,10 @@
       "title": "Logo, icons, metadata, naming and copy",
       "status": "IN_PROGRESS",
       "implementation_status": "IN_PROGRESS",
-      "tasks_total": 1,
-      "tasks_done": 0,
-      "last_task_completed": null,
-      "next_task_pending": "1.1 Brand components",
+      "tasks_total": 2,
+      "tasks_done": 1,
+      "last_task_completed": "1.1 Brand components",
+      "next_task_pending": "1.2 Place lockup and mark",
       "blockers": []
     },
     {

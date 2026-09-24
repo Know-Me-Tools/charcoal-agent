@@ -21,7 +21,10 @@ export function KnowMeMark({ size = 28, label, className }: KnowMeMarkProps) {
   const px = Math.max(MIN_SIZE, size);
   return (
     <svg
-      viewBox="0 0 200 200"
+      data-slot="knowme-mark"
+      // Cropped to the glyph (stem x 50–134, y 38–162 in the 200×200 brand
+      // artboard) so the frameless mark fills its box at nav/footer sizes.
+      viewBox="27 34 132 132"
       width={px}
       height={px}
       className={cn("shrink-0", className)}

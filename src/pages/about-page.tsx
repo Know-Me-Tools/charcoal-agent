@@ -1,6 +1,7 @@
 import { useHealth } from "@/hooks/use-health";
 import { SectionLabel } from "@/components/common/section-label";
 import { StatusBadge } from "@/components/common/status-badge";
+import { KnowMeLockup } from "@/components/brand";
 
 const APP_VERSION = "0.1.0";
 const UAR_BASE = (import.meta.env.VITE_UAR_BASE_URL as string | undefined) ?? "http://localhost:6565";
@@ -12,9 +13,10 @@ export default function AboutPage() {
     <div className="max-w-lg space-y-8">
       <div>
         <SectionLabel>About</SectionLabel>
-        <h1 className="mt-1 font-display text-2xl font-bold text-foreground">
-          KnowMe
+        <h1 className="mt-2">
+          <KnowMeLockup variant="nav" />
         </h1>
+        <p className="mt-2 font-mono text-xs text-faint">© 2026 KnowMe AI, LLC</p>
       </div>
 
       <div className="space-y-4">

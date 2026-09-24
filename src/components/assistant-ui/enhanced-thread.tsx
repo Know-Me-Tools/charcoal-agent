@@ -23,7 +23,6 @@ import {
 	MoreHorizontalIcon,
 	PencilIcon,
 	RefreshCwIcon,
-	SparklesIcon,
 	SquareIcon,
 	UserIcon,
 	ZapIcon,
@@ -52,6 +51,7 @@ import { SkillActivationBlock } from "@/features/chat/components/skill-activatio
 import { ToolCallBlockWrapper } from "@/features/chat/components/tool-call-block";
 import { CitationBlock } from "@/features/chat/components/citation-block";
 import { cn } from "@/lib/utils";
+import { KnowMeMark } from "@/components/brand";
 
 // ─── Root Thread ─────────────────────────────────────────────────────────────
 
@@ -111,8 +111,8 @@ const KnowMeWelcome: FC = () => {
 			<div className="flex w-full grow flex-col items-center justify-center">
 				<div className="flex size-full flex-col items-center justify-center gap-4 px-4 text-center">
 					{/* Brand mark */}
-					<div className="flex items-center justify-center rounded-2xl border border-border/50 bg-muted/30 p-4">
-						<SparklesIcon size={28} className="text-ember-text" />
+					<div className="flex items-center justify-center rounded-2xl bg-muted/30 p-4 text-fg">
+						<KnowMeMark size={32} />
 					</div>
 
 					<div className="space-y-1">
@@ -271,8 +271,8 @@ const UserAvatar: FC = () => (
 const AgentAvatar: FC = () => (
 	<div className="flex flex-col items-center gap-1 pt-0.5">
 		<Avatar className="size-8 ring-1 ring-primary/30">
-			<AvatarFallback className="bg-primary/15 text-ember-text">
-				<SparklesIcon size={14} />
+			<AvatarFallback className="bg-primary/15 text-fg">
+				<KnowMeMark size={18} label="KnowMe" />
 			</AvatarFallback>
 		</Avatar>
 		<span className="font-mono text-[9px] uppercase tracking-wider text-primary/70">
