@@ -2,10 +2,10 @@
   "schemaVersion": "5",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 208,
-  "derivedRevision": 208,
+  "sourceRevision": 213,
+  "derivedRevision": 213,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 208
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 213
   },
   "conflictCount": 0,
   "projectId": "440c5818-223c-4091-8b7f-bc8083505a3c",
@@ -22,15 +22,15 @@
   "parentPhase": "complete-rebranding",
   "childPointer": null,
   "change": "shadcn-base-ui-migration",
-  "currentTask": "5",
+  "currentTask": "6",
   "status": "ready",
   "completionMetric": "implementation",
   "implementationCompleted": 3,
   "implementationTotal": 12,
   "planRevision": 2,
-  "revision": 208,
+  "revision": 213,
   "exactNextCommand": "/opsx:continue tailwind-v4-foundation",
   "nextChange": "shadcn-base-ui-migration",
-  "nextTask": "5",
-  "updatedAt": "2026-09-24T07:17:15.339408Z"
+  "nextTask": "6",
+  "updatedAt": "2026-09-24T07:17:56.689262Z"
 }

@@ -25,4 +25,4 @@ Out of scope: visual restyling (tokens arrive in `knowme-brand-tokens`); assista
 ## Impact
 
 - Code: `components.json`, `src/components/ui/*`, consumers in `src/pages/*`, `src/components/{layout,common,assistant-ui}/*`, `src/features/**`, `src/App.tsx`.
-- Dependencies: + `@base-ui/react`; − 26 `@radix-ui/*` packages, `next-themes`. (`@radix-ui/*` may remain transitively via assistant-ui 0.12 until the next change.)
+- Dependencies: + `@base-ui/react`; − 27 direct `@radix-ui/*` packages, `next-themes`, and the packages only the deleted primitives used (`cmdk`, `embla-carousel-react`, `input-otp`, `react-day-picker`, `react-resizable-panels`, `recharts`, `vaul`, `react-hook-form`, `@hookform/resolvers`, `date-fns`). (`@radix-ui/*` may remain transitively via assistant-ui 0.12 until the next change.)
