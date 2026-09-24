@@ -12,7 +12,7 @@
 
 - [x] 3.1 Copy: remove "Charcoal Agent" wording, describe built-in skills as the KnowMe agent's, add "© 2026 KnowMe AI, LLC" to the landing footer and About; verify in e2e
 - [x] 3.2 Tauri: productName/title "KnowMe", devUrl 8080, npm before-commands, Cargo metadata; verify `npx tauri info` or config JSON and `cargo metadata` parse
-- [ ] 3.3 Repo hygiene: README for KnowMe, remove `lovable-tagger` (and its Vite plugin), `bun.lockb`; docker-compose/.env.example/Dockerfile/CLAUDE.md naming with `CHARCOAL_PORT` fallback; verify `docker compose config` parses and the repo-wide grep finds no product-name "Charcoal"/Lovable references outside the D-005 allow-list
+- [x] 3.3 Repo hygiene: README for KnowMe, remove `lovable-tagger` (and its Vite plugin), `bun.lockb`; docker-compose/.env.example/Dockerfile/CLAUDE.md naming with `CHARCOAL_PORT` fallback; verify `docker compose config` parses and the repo-wide grep finds no product-name "Charcoal"/Lovable references outside the D-005 allow-list
 
 ## 4. Verification
 
