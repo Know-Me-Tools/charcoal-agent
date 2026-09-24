@@ -15,4 +15,4 @@
 
 ## 4. Verification
 
-- [ ] 4.1 Run `npm run build && npm run typecheck && npm run lint && npm test && npm run test:e2e`; compare the axe color-contrast count with the previous baseline and record screenshots/contrast results in `verification.md`
+- [x] 4.1 Run `npm run build && npm run typecheck && npm run lint && npm test && npm run test:e2e`; compare the axe color-contrast count with the previous baseline and record screenshots/contrast results in `verification.md`
