@@ -165,7 +165,7 @@ function SkillDetailPanel({ skill, onClose }: SkillDetailPanelProps) {
           <p className="text-xs text-muted-foreground">
             Skills are loaded from the Universal Agent Runtime API. 
             {isFilesystem && " This skill is loaded from the filesystem provider."}
-            {isBuiltin && " This is a built-in skill synced from the Charcoal Agent."}
+            {isBuiltin && " This is a built-in skill of the KnowMe agent, synced to your Universal Agent Runtime."}
           </p>
         </div>
       </div>

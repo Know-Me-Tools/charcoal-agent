@@ -18,7 +18,7 @@ FROM nginx:1.27-alpine AS runtime
 RUN rm /etc/nginx/conf.d/default.conf
 
 # Copy custom nginx config
-COPY nginx.conf /etc/nginx/conf.d/charcoal.conf
+COPY nginx.conf /etc/nginx/conf.d/knowme.conf
 
 # Copy built SPA
 COPY --from=builder /app/dist /usr/share/nginx/html

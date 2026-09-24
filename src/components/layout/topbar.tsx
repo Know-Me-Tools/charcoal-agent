@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { PanelRight, Sun, Moon, Menu } from "lucide-react";
 import { useUi } from "@/hooks/use-ui";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { KnowMeLockup } from "@/components/brand";
 
 export function Topbar() {
   const location = useLocation();
@@ -24,10 +25,8 @@ export function Topbar() {
           </button>
         )}
 
-        <Link to="/" className="flex items-center gap-2">
-          <span className="font-display text-lg font-bold tracking-tight text-foreground">
-            KnowMe
-          </span>
+        <Link to="/" className="flex items-center rounded-md">
+          <KnowMeLockup variant="nav" />
         </Link>
 
         {/* Desktop nav */}

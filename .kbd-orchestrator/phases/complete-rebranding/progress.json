@@ -2,25 +2,54 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 300,
-  "derivedRevision": 300,
+  "sourceRevision": 342,
+  "derivedRevision": 342,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 300
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 342
   },
   "conflictCount": 0,
   "phase": "complete-rebranding",
   "phaseId": "complete-rebranding",
   "parentPhase": null,
-  "last_updated": "2026-09-24T16:17:41.518167Z",
+  "last_updated": "2026-09-24T22:55:44.585312Z",
   "last_updated_by": "kbd-runtime",
   "changes_total": 12,
-  "changes_completed": 6,
+  "changes_completed": 7,
   "implementation_total": 12,
-  "implementation_completed": 6,
+  "implementation_completed": 7,
   "completion": {
     "primaryCounter": "implementation",
     "implementation": {
-      "completed": 6,
+      "completed": 7,
+      "total": 12,
+      "status": "IN_PROGRESS"
+    },
+    "evidence": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    },
+    "certification": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    },
+    "publication": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    }
+  },
+  "completionScopes": {
+    "completion": "phase",
+    "runCompletion": "run"
+  },
+  "runCompletion": {
+    "scope": "run",
+    "runId": "complete-rebranding-20260923T223312Z",
+    "primaryCounter": "implementation",
+    "implementation": {
+      "completed": 7,
       "total": 12,
       "status": "IN_PROGRESS"
     },
@@ -110,11 +139,11 @@
     {
       "id": "knowme-brand-identity",
       "title": "Logo, icons, metadata, naming and copy",
-      "status": "PENDING",
-      "implementation_status": "PENDING",
-      "tasks_total": 0,
-      "tasks_done": 0,
-      "last_task_completed": null,
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 8,
+      "tasks_done": 8,
+      "last_task_completed": "4.1 Full verification",
       "next_task_pending": null,
       "blockers": []
     },
