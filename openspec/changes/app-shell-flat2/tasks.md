@@ -1,6 +1,6 @@
 ## 1. Foundations
 
-- [ ] 1.1 Add `--km-scrim` to `tokens.css` (both themes, exposed as `bg-scrim`), remove the `grid-overlay` utility and its usages, add `useMediaQuery`, add `src/components/ui/sheet.tsx` (Base UI Dialog, flat), and flatten `dialog`/`select` (no ring outlines, shadows or blur; filled select trigger); verify with a unit test for the sheet (opens, Escape closes, close button named) and the existing primitives tests
+- [x] 1.1 Add `--km-scrim` to `tokens.css` (both themes, exposed as `bg-scrim`), remove the `grid-overlay` utility and its usages, add `useMediaQuery`, add `src/components/ui/sheet.tsx` (Base UI Dialog, flat), and flatten `dialog`/`select` (no ring outlines, shadows or blur; filled select trigger); verify with a unit test for the sheet (opens, Escape closes, close button named) and the existing primitives tests
 - [ ] 1.2 Add `src/test/flat-shell.test.ts` (Flat 2.0 + sub-12px + raw palette guard over layout, common and the flattened primitives); it is expected to fail until task 3.2 finishes, so mark the failing part with `it.fails` only while in progress and switch it on in 3.2
 
 ## 2. Status
