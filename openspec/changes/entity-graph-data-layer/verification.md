@@ -15,8 +15,8 @@
 4. `useEntityMutation` clears an optimistic patch only when `normalize` is supplied, and resolves `null` (not reject) on failure with a string error; `useGraphMutation` supplies `normalize` for the toggle and captures the real `Error` via `onError`.
 5. The package README still pins 3.2.0 install examples while npm latest is 4.0.2.
 
-## Coverage gap
-- The post-stream `SessionTranscript` invalidation (spec scenario "Conversation finished") is implemented in `use-chat-runtime.ts` but only exercised indirectly by the e2e thread capture; there is no dedicated unit test because `useChatRuntime` requires the assistant-ui runtime. `assistant-ui-latest` rewrites this file and should add one.
+## Coverage
+- The post-stream `SessionTranscript` invalidation (spec scenario "Conversation finished") is covered by `use-chat-runtime.test.tsx`: a queued prompt streams the e2e SSE fixture and the test asserts the transcript becomes stale. Mutation-checked: removing the invalidation line makes the test fail.
 
 ## Adversarial review (diff mode)
 - r1: BLOCK, 3 CRITICAL / 1 WARNING (gpt-5.5, verified-distinct).
@@ -42,3 +42,6 @@
 - r8: BLOCK, 1 CRITICAL / 1 WARNING.
   - CRITICAL "type-wide invalidation skips singletons like ProviderRegistry" → **false positive**: core `invalidateEntity(type)` with no id marks every `type:*` record stale (probed earlier; `Agent:a1` flipped stale). Added a regression test: set-default → `defaultId` refreshes from `openai` to `anthropic`.
   - WARNING `useProviderModels(undefined)` returned `[]` rather than `undefined` → fixed to the disabled-query shape; test asserts `data` is undefined with no request.
+- r9: BLOCK, 1 CRITICAL / 1 WARNING — both fixed:
+  - A failed first list load returned `[]` → `toQueryResult` now yields data only after a successful load; `useRuntimeList` tracks `lastFetched` without error. Tests: failed load → `data` undefined; empty runtime → `data` `[]`.
+  - Coverage gap for the post-stream transcript invalidation → closed with a focused `useChatRuntime` test (mutation-checked).

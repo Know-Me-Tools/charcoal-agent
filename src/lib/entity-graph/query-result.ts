@@ -12,12 +12,13 @@ interface GraphReadState {
 }
 
 /**
- * Convert an entity-graph hook result into `QueryResult`. `data` stays
- * undefined until the first load settles, matching what pages already expect.
+ * Convert an entity-graph hook result into `QueryResult`. `data` is undefined
+ * until a load has succeeded (`hasValue`), so an initial failure never looks
+ * like an empty result — the shape pages already expect.
  */
 export function toQueryResult<T>(state: GraphReadState, value: T, hasValue: boolean): QueryResult<T> {
   return {
-    data: hasValue || !state.isLoading ? value : undefined,
+    data: hasValue ? value : undefined,
     isLoading: state.isLoading,
     isError: state.error !== null,
     error: state.error !== null ? new Error(state.error) : null,

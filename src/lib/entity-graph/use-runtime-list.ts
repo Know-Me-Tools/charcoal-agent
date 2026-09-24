@@ -24,6 +24,10 @@ export function useRuntimeList<T extends object>(type: EntityTypeName, enabled =
   const key = defaultListKey(type);
   const stale = useStore(storeApi, (s) => s.lists[key]?.stale ?? false);
   const fetching = useStore(storeApi, (s) => s.lists[key]?.isFetching ?? false);
+  const loadedOk = useStore(
+    storeApi,
+    (s) => s.lists[key]?.lastFetched != null && (s.lists[key]?.error ?? null) === null,
+  );
   const { refetch } = list;
 
   useEffect(() => {
@@ -33,6 +37,6 @@ export function useRuntimeList<T extends object>(type: EntityTypeName, enabled =
   return toQueryResult(
     { isLoading: list.isLoading, error: list.error?.message ?? null },
     list.items,
-    list.items.length > 0,
+    list.items.length > 0 || loadedOk,
   );
 }

@@ -47,6 +47,17 @@ describe("useAgents", () => {
     await waitFor(() => expect(result.current.isError).toBe(true), { timeout: 5000 });
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBeInstanceOf(Error);
+    // A failed first load is not an empty list.
+    expect(result.current.data).toBeUndefined();
+  });
+});
+
+describe("useAgents empty runtime", () => {
+  it("reports an empty list once the runtime answers with no agents", async () => {
+    fetchMock = mockFetch({ "GET /api/agents": () => ({ body: {} }) });
+    const { wrapper } = createGraphTestHarness();
+    const { result } = renderHook(() => useAgents(), { wrapper });
+    await waitFor(() => expect(result.current.data).toEqual([]));
   });
 });
 

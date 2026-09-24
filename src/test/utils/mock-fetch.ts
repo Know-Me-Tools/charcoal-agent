@@ -1,6 +1,7 @@
 import { vi } from "vitest";
 
-type MockResponse = { status?: number; body?: unknown };
+/** `raw` sends text as-is (e.g. an SSE stream); otherwise `body` is JSON-encoded. */
+type MockResponse = { status?: number; body?: unknown; raw?: string };
 
 /** Handlers may be async to hold a response open (e.g. to observe optimistic UI). */
 export type MockHandler = (req: {
@@ -29,7 +30,7 @@ export function mockFetch(routes: Record<string, MockHandler>): FetchMock {
     const handler = routes[`${method} ${url.pathname}`];
     const res = handler ? await handler(req) : { status: 501, body: { error: "unmocked" } };
     const status = res.status ?? 200;
-    const text = res.body === undefined ? "" : JSON.stringify(res.body);
+    const text = res.raw ?? (res.body === undefined ? "" : JSON.stringify(res.body));
     return new Response(text, { status, headers: { "content-type": "application/json" } });
   });
   return { calls, restore: () => spy.mockRestore() };
