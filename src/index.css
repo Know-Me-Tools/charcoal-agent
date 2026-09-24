@@ -50,9 +50,6 @@
 }
 
 
-@utility grid-overlay {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M0 0h40v40H0z' fill='none' stroke='%23808080' stroke-width='0.5' opacity='0.04'/%3E%3C/svg%3E");
-}
 
 /* Type roles (standard §4.2): nothing below 12px; eyebrows are mono 600, 0.12em. */
 @utility section-label {
@@ -82,6 +79,12 @@
 
 @utility transition-panel {
   @apply transition-all duration-(--km-duration-fast) ease-brand-out;
+}
+
+/* Keyboard focus (standard §3.2): a fill plus a visible ember outline, so
+   focus never depends on the fill colour alone. */
+@utility focus-cue {
+  @apply focus-visible:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring;
 }
 
 @utility transition-hover {
@@ -115,12 +118,15 @@
       animation-iteration-count: 1 !important;
       scroll-behavior: auto !important;
     }
-    /* Not inside SVG: Mermaid measures label boxes while laying out, and a
-       forced transition-duration there inflates diagrams ~5x. */
-    :not(svg, svg *),
-    :not(svg, svg *)::before,
-    :not(svg, svg *)::after {
-      transition-duration: 0.01ms !important;
+    /* 0s, not a tiny duration: transition-property defaults to `all`, so any
+       non-zero duration turns on transitions for every property on every
+       element. Values then lag a frame (the root font size after Appearance
+       changes, Mermaid label measurement, which inflated diagrams ~5x). */
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0s !important;
+      transition-delay: 0s !important;
     }
   }
 

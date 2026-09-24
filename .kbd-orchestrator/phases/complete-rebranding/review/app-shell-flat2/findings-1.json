@@ -1,0 +1,22 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "src/stores/ui-store.ts",
+      "claim": "The context sheet open flag is stored in the UI store without any route-reset in this diff, so a tablet/phone thread route can render the context sheet already open instead of only opening it from the top-bar toggle.",
+      "evidence": "Acceptance criteria 3.2 says the context panel below 1280px opens \"as a sheet\" from the toggle; design.md decision 5 says `contextSheetOpen` is transient. The diff adds `contextSheetOpen: false` and `setContextSheetOpen` to the persisted `ui-store`, `Topbar` only ever sets it true via `setContextSheetOpen(true)`, and `AppLayout` renders `{!isWide && isThreadView && <ContextPanelSheet />}` without clearing the flag when leaving a thread route.",
+      "suggested_fix": "Reset `contextSheetOpen` to false when the sheet unmounts or when `pathname`/`isWide` changes away from a sub-1280 thread view, and exclude it from persisted UI state if the store uses Zustand persistence for all serializable fields."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

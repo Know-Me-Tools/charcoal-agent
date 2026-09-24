@@ -45,6 +45,11 @@ const TEXT = [
 const LABELS_ON_FILLS: Array<[label: string, fill: string]> = [
   ["km-on-ember", "km-ember"],
   ["km-on-danger", "km-danger"],
+  // Status pills: tone text on its soft fill.
+  ["km-success-text", "km-success-soft"],
+  ["km-warning-text", "km-warning-soft"],
+  ["km-danger-text", "km-danger-soft"],
+  ["km-cyan-text", "km-cyan-soft"],
 ];
 const AA = 4.5;
 
