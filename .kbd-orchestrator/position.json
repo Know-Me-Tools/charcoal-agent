@@ -2,18 +2,18 @@
   "schemaVersion": "1",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 165,
-  "derivedRevision": 165,
+  "sourceRevision": 170,
+  "derivedRevision": 170,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 165
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 170
   },
   "conflictCount": 0,
-  "updatedAt": "2026-09-24T01:39:55.875785Z",
+  "updatedAt": "2026-09-24T01:41:28.711008Z",
   "cursor": [
     "complete-rebranding",
     "execute",
     "entity-graph-data-layer",
-    "7"
+    "8"
   ],
   "root": {
     "type": "phase",
@@ -57,8 +57,8 @@
             "id": "entity-graph-data-layer",
             "status": "IN_PROGRESS",
             "progress": {
-              "done": 6,
-              "total": 7
+              "done": 7,
+              "total": 8
             }
           },
           {

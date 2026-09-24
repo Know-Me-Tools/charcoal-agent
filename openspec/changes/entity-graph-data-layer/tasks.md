@@ -9,7 +9,7 @@
 - [x] 2.2 Providers: list + `ProviderRegistry` default id, per-provider models (`ProviderModel`), create/update/delete/set-default/test-connection; unit tests for default id, models keyed per provider, and list refresh after create/delete; verify tests pass
 - [x] 2.3 Skills: list, optimistic toggle with rollback, refresh, create/update/delete; skills-sync invalidates `Skill` on the active graph; unit tests for optimistic toggle success and rollback on 500, and sync-triggered refresh; verify tests pass
 - [x] 2.4 Health/readiness polling (`RuntimeHealth`, 30 s, empty-body 200 = ok) and chat transcript fallback (`SessionTranscript`) with post-stream `invalidateEntity`; unit tests for empty-body health and failed health → error; verify tests pass
-- [ ] 2.5 Route `left-sidebar` session delete and `user-settings-page` load/save through graph hooks (`Session`, `UserSettings`); delete dead hooks (`use-runs.ts`, thread query hooks, unused provider/skill/agent mutations) after grepping for consumers; verify `npm run typecheck`
+- [x] 2.5 Route `left-sidebar` session delete and `user-settings-page` load/save through graph hooks (`Session`, `UserSettings`); delete dead hooks (`use-runs.ts`, thread query hooks, unused provider/skill/agent mutations) after grepping for consumers; verify `npm run typecheck`
 
 ## 3. Remove TanStack Query
 

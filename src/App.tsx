@@ -1,7 +1,6 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import type React from "react";
 import { DbProvider } from "@/lib/db/db-provider";
@@ -20,15 +19,6 @@ import AppearancePage from "@/pages/appearance-page";
 import AboutPage from "@/pages/about-page";
 import UserSettingsPage from "@/pages/user-settings-page";
 import NotFound from "@/pages/NotFound";
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
 
 const router = createBrowserRouter([
   { path: "/", element: <LandingPage /> },
@@ -58,7 +48,7 @@ const router = createBrowserRouter([
 ]);
 
 /**
- * Runs app-wide one-time effects that need QueryClient + DB to be ready.
+ * Runs app-wide one-time effects that need the entity graph + DB to be ready.
  * Rendered inside all providers so hooks have full context.
  */
 function AppBootstrap({ children }: { children: React.ReactNode }) {
@@ -67,8 +57,7 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
 }
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <GraphProvider>
+  <GraphProvider>
     <DbProvider>
       <TooltipProvider>
         <Toaster />
@@ -78,8 +67,7 @@ const App = () => (
         </AppBootstrap>
       </TooltipProvider>
     </DbProvider>
-    </GraphProvider>
-  </QueryClientProvider>
+  </GraphProvider>
 );
 
 export default App;
