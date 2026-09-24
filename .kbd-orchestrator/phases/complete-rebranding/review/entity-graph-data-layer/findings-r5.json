@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "src/hooks/use-providers.ts",
+      "line": 67,
+      "claim": "useProviders can expose provider data with defaultId undefined before the ProviderRegistry request has settled, breaking the promised combined providers/default-id result shape.",
+      "evidence": "The r4 verification note in acceptance_criteria says `useProviders` must combine list and default-registry state with `data only once both settle`; however the diff computes `const settled = list.data !== undefined && (registry.data !== null || registryError !== null);`, and because `registry.data` is initially `undefined`, `registry.data !== null` is true, so `data: settled ? value : undefined` can be returned while the registry is still loading.",
+      "suggested_fix": "Change the settled check to require an actual registry result or registry error, e.g. `const registrySettled = registry.data !== undefined || registryError !== null; const settled = list.data !== undefined && registrySettled;`, and keep `data` undefined until then."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

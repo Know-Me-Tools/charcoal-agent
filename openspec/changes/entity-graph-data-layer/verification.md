@@ -34,3 +34,4 @@
   - Session delete now removes the `Session` record from every graph list and the entity itself (test asserts `readEntity` → null).
   - `useProviders` combines list and default-registry state: loading while either loads, error if either fails, data only once both settle (test: 500 → error, not loading).
   - Health probes never throw: a failed probe is reported immediately as `status: "error"` with one request (restores the old `retry: false`; test asserts a single `/healthz` call).
+- r5: BLOCK, 1 CRITICAL — "providers exposed before the default id settles" → **false positive**: `useEntity` returns `null` (not `undefined`) for an unloaded record, and the check was `registry.data !== null`; the suggested `!== undefined` would have released data early. Hardened to `!= null` and added a test that seeds providers in the graph before the registry loads and asserts `data` stays undefined until `defaultId` arrives.

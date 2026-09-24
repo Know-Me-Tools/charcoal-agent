@@ -58,7 +58,8 @@ export function useProviders(): QueryResult<ProvidersResult> {
   const registryError = registry.error ? new Error(registry.error) : null;
   const error = list.error ?? registryError;
   const isLoading = list.isLoading || (registry.isLoading && !registryError);
-  const settled = list.data !== undefined && (registry.data !== null || registryError !== null);
+  // `useEntity` reports an unloaded record as `null`; `!= null` also covers undefined.
+  const settled = list.data !== undefined && (registry.data != null || registryError !== null);
   return {
     data: settled ? value : undefined,
     isLoading,

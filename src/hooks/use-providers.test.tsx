@@ -40,6 +40,18 @@ describe("useProviders", () => {
     expect(result.current.isLoading).toBe(false);
   });
 
+  it("withholds data until the default id has loaded", async () => {
+    fetchMock = mockFetch({
+      "GET /api/providers": () => ({ body: { providers: [openai], default_id: "openai" } }),
+    });
+    const { wrapper, store } = createGraphTestHarness();
+    // Providers already in the graph from another view, default id not yet known.
+    store.getState().upsertEntity("Provider", "openai", openai);
+    const { result } = renderHook(() => useProviders(), { wrapper });
+    expect(result.current.data).toBeUndefined();
+    await waitFor(() => expect(result.current.data?.defaultId).toBe("openai"));
+  });
+
   it("accepts the legacy flat-array response", async () => {
     fetchMock = mockFetch({ "GET /api/providers": () => ({ body: [openai] }) });
     const { wrapper } = createGraphTestHarness();
