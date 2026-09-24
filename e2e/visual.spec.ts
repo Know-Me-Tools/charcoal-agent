@@ -9,6 +9,10 @@ import { APP_ROUTES, THEMES, VIEWPORT_HEIGHT, VIEWPORT_WIDTHS } from "./support/
 
 const SCREENSHOT_DIR = path.resolve("test-results/screenshots");
 
+// Full-page captures of the expanded thread (~2,700px tall) can exceed the
+// default 60s under parallel load; seen once each in two changes' full runs.
+test.describe.configure({ timeout: 90_000 });
+
 for (const route of APP_ROUTES) {
   test.describe(route.name, () => {
     for (const width of VIEWPORT_WIDTHS) {
