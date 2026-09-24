@@ -6,7 +6,7 @@
 ## 2. Assets and metadata
 
 - [x] 2.1 Add `scripts/generate-brand-assets.mjs` + `npm run brand:assets`; generate and commit `favicon.svg`, `favicon.ico`, `apple-touch-icon.png`, `og-image.png` and `src-tauri/icons/*`; verify file types/sizes (`file`, `identify`) and review the images
-- [ ] 2.2 Update `index.html` (title, description, theme-color, favicon/apple-touch links, OG/Twitter tags with the approved tagline and self-hosted image); remove `public/placeholder.svg`; verify with an e2e test reading the head tags (no external image hosts)
+- [x] 2.2 Update `index.html` (title, description, theme-color, favicon/apple-touch links, OG/Twitter tags with the approved tagline and self-hosted image); remove `public/placeholder.svg`; verify with an e2e test reading the head tags (no external image hosts)
 
 ## 3. Naming and shell
 

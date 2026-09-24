@@ -51,3 +51,16 @@ test("head metadata uses KnowMe identity and self-hosted assets", async ({ page,
     expect((await page.request.get(href)).ok(), href).toBe(true);
   }
 });
+
+test("About names the KnowMe agent on the Universal Agent Runtime", async ({ page }) => {
+  await page.goto("/settings/about");
+  await expect(page.getByText("KnowMe on the Universal Agent Runtime")).toBeVisible();
+  await expect(page.getByText(/Charcoal/)).toHaveCount(0);
+});
+
+test("built-in skill details credit the KnowMe agent", async ({ page }) => {
+  await page.goto("/settings/skills");
+  await page.getByText("KnowMe Profile", { exact: true }).first().click();
+  await expect(page.getByText(/built-in skill of the KnowMe agent/)).toBeVisible();
+  await expect(page.getByText(/Charcoal/)).toHaveCount(0);
+});

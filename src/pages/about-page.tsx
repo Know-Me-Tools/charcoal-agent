@@ -26,20 +26,20 @@ export default function AboutPage() {
         </div>
 
         <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
-          <span className="font-ui text-sm text-muted-foreground">UAR Status</span>
+          <span className="font-ui text-sm text-muted-foreground">Runtime status</span>
           <StatusBadge
             status={health?.status === "ok" ? "connected" : "disconnected"}
           />
         </div>
 
         <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
-          <span className="font-ui text-sm text-muted-foreground">UAR Endpoint</span>
+          <span className="font-ui text-sm text-muted-foreground">Runtime endpoint</span>
           <span className="max-w-xs truncate font-mono text-sm text-foreground">{UAR_BASE}</span>
         </div>
 
         <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
-          <span className="font-ui text-sm text-muted-foreground">Runtime</span>
-          <span className="font-mono text-sm text-foreground">Universal Agent Runtime</span>
+          <span className="font-ui text-sm text-muted-foreground">Agent</span>
+          <span className="font-mono text-sm text-foreground">KnowMe on the Universal Agent Runtime</span>
         </div>
       </div>
     </div>
