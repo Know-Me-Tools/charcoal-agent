@@ -1,66 +1,14 @@
 import { useMemo } from "react";
-import { useEntityList } from "@prometheus-ags/prometheus-entity-management";
 import { api } from "@/lib/api-client";
 import { ENTITY } from "@/lib/entity-graph/entities";
-import { toQueryResult, type QueryResult } from "@/lib/entity-graph/query-result";
+import type { QueryResult } from "@/lib/entity-graph/query-result";
 import { useGraphMutation } from "@/lib/entity-graph/use-graph-mutation";
-import type {
-  Agent,
-  AgentsResponse,
-  UarAgent,
-  CompileAgentPayload,
-  CompileAgentResponse,
-} from "@/types";
+import { useRuntimeList } from "@/lib/entity-graph/use-runtime-list";
+import type { Agent, CompileAgentPayload, CompileAgentResponse } from "@/types";
 
-const AGENTS_KEY = [ENTITY.Agent];
-
-/**
- * Map a UAR runtime/federated agent to the richer Agent shape used by the
- * charcoal-agent UI. For runtime agents the full AgentArtifact is present in
- * the list response, so we extract prompt/policy from their nested fields.
- */
-function uarAgentToAgent(u: UarAgent): Agent {
-  return {
-    id: u.id,
-    name: u.metadata?.title ?? u.id,
-    system_prompt: u.prompt?.system ?? "",
-    provider_id: u.policy?.provider?.default?.provider ?? "",
-    model_id: u.policy?.provider?.default?.model ?? "",
-    skills: (u.skills ?? []).map((s) => s.skill_id),
-    enabled: true,
-    created_at: "",
-    updated_at: "",
-    // Extra UAR fields surfaced for display
-    source: u.source,
-    kind: u.kind,
-    metadata: u.metadata,
-    rawSkills: u.skills,
-  };
-}
-
-/**
- * Fetch agents from UAR (GET /api/agents) and flatten runtime + federated
- * agents into a single list, each annotated with a `source` field.
- */
-async function fetchAgents(): Promise<{ items: Agent[] }> {
-  const res = await api.get<AgentsResponse>("/api/agents");
-  const runtime = (res.runtime_agents ?? []).map((a) =>
-    uarAgentToAgent({ ...a, source: "runtime" }),
-  );
-  const federated = (res.federated_agents ?? []).map((a) =>
-    uarAgentToAgent({ ...a, source: "federated" }),
-  );
-  return { items: [...runtime, ...federated] };
-}
-
+/** Every runtime and federated agent (GET /api/agents), each tagged with its `source`. */
 export function useAgents(): QueryResult<Agent[]> {
-  const list = useEntityList<Agent, Agent>({
-    type: ENTITY.Agent,
-    queryKey: AGENTS_KEY,
-    fetch: fetchAgents,
-    normalize: (agent) => ({ id: agent.id, data: agent }),
-  });
-  return toQueryResult(list, list.items, list.items.length > 0);
+  return useRuntimeList<Agent>(ENTITY.Agent);
 }
 
 /**

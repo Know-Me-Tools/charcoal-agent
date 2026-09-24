@@ -5,7 +5,7 @@
 
 ## 2. Migrate data hooks
 
-- [ ] 2.1 Agents: `useAgents`/`useAgent` via `useEntityList` (`Agent`), `useCompileAgent`/`useUpdateAgentMemory`/`useDeleteAgent` via `useGraphMutation` with `Agent` invalidation; unit tests for list mapping, derived single agent, and invalidation after compile; verify tests pass
+- [x] 2.1 Agents: `useAgents`/`useAgent` via `useEntityList` (`Agent`), `useCompileAgent`/`useUpdateAgentMemory`/`useDeleteAgent` via `useGraphMutation` with `Agent` invalidation; unit tests for list mapping, derived single agent, and invalidation after compile; verify tests pass
 - [ ] 2.2 Providers: list + `ProviderRegistry` default id, per-provider models (`ProviderModel`), create/update/delete/set-default/test-connection; unit tests for default id, models keyed per provider, and list refresh after create/delete; verify tests pass
 - [ ] 2.3 Skills: list, optimistic toggle with rollback, refresh, create/update/delete; skills-sync invalidates `Skill` on the active graph; unit tests for optimistic toggle success and rollback on 500, and sync-triggered refresh; verify tests pass
 - [ ] 2.4 Health/readiness polling (`RuntimeHealth`, 30 s, empty-body 200 = ok) and chat transcript fallback (`SessionTranscript`) with post-stream `invalidateEntity`; unit tests for empty-body health and failed health → error; verify tests pass

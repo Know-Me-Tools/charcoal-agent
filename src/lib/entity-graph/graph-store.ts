@@ -1,4 +1,5 @@
 import { configureEngine, createGraphStore } from "@prometheus-ags/entity-graph-core";
+import { registerUarTransports } from "./transports";
 
 /**
  * Engine defaults equivalent to the former TanStack QueryClient config
@@ -9,6 +10,8 @@ configureEngine({
   revalidateOnFocus: false,
   defaultStaleTime: 0,
 });
+
+registerUarTransports();
 
 /** The application's single entity graph (tests create their own). */
 export const appGraphStore = createGraphStore();
