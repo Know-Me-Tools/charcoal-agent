@@ -2,16 +2,16 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 263,
-  "derivedRevision": 263,
+  "sourceRevision": 267,
+  "derivedRevision": 267,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 263
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 267
   },
   "conflictCount": 0,
   "phase": "complete-rebranding",
   "phaseId": "complete-rebranding",
   "parentPhase": null,
-  "last_updated": "2026-09-24T09:42:24.578464Z",
+  "last_updated": "2026-09-24T15:52:36.504565Z",
   "last_updated_by": "kbd-runtime",
   "changes_total": 12,
   "changes_completed": 5,
@@ -99,12 +99,12 @@
     {
       "id": "knowme-brand-tokens",
       "title": "Port the KnowMe token system (Flat 2.0) into Tailwind 4",
-      "status": "PENDING",
-      "implementation_status": "PENDING",
-      "tasks_total": 0,
+      "status": "IN_PROGRESS",
+      "implementation_status": "IN_PROGRESS",
+      "tasks_total": 1,
       "tasks_done": 0,
       "last_task_completed": null,
-      "next_task_pending": null,
+      "next_task_pending": "1.1 Token file",
       "blockers": []
     },
     {

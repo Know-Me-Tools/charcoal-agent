@@ -1,0 +1,206 @@
+/*
+ * KnowMe design tokens.
+ *
+ * Sources: knowme-ui-ux-standard.md §3–4 (binding for app UI, Flat 2.0),
+ * Brand Guide v1.0 (radius, motion, type), know-me-system/desktop index.css.
+ * Light values live on :root, dark on .dark (the app toggles `.dark` on <html>).
+ *
+ * `*-text` tokens are text-safe variants: where the standard's color fails
+ * WCAG AA as text on the theme's busiest surface (muted), a darker/lighter
+ * value is used for text only (decision D-007). Fills keep the standard value.
+ * Ratios below are against the muted surface; src/styles/tokens.test.ts
+ * enforces >= 4.5:1 for every text x surface pair.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Surface ladder (standard §3.4) */
+  --km-canvas: #f7f7f8;
+  --km-chrome: #ffffff;
+  --km-surface: #fafbfc;
+  --km-raised: #ffffff;
+  --km-hover: #f2f4f7;
+  --km-muted: #eef0f3;
+  --km-code: #f0f2f5;
+
+  /* Text */
+  --km-fg: #0b0f14;
+  --km-fg-secondary: #4b5563;
+  --km-fg-faint: #5f6977; /* standard #6B7280 = 4.23:1 */
+
+  /* Brand + roles (fills) */
+  --km-ember: #e04e28;
+  --km-ember-2: #c13e1e;
+  --km-ember-soft: #fbe8e1;
+  --km-cyan: #0891b2;
+  --km-cyan-soft: #e3f4f8;
+  --km-success: #16a34a;
+  --km-success-soft: #e2f2e9;
+  --km-warning: #d97706;
+  --km-warning-soft: #fdf1dd;
+  --km-danger: #dc2626;
+  --km-danger-soft: #fbe7e7;
+
+  /* Text-safe variants */
+  --km-ember-text: #b8391b; /* #E04E28 = 3.48:1 */
+  --km-cyan-text: #0e7490; /* #0891B2 = 3.23:1 */
+  --km-success-text: #14743a; /* #16A34A = 2.89:1 */
+  --km-warning-text: #a14a08; /* #D97706 = 2.79:1 */
+  --km-danger-text: #b91c1c; /* #DC2626 = 4.23:1 */
+
+  /* Labels on fills */
+  --km-on-ember: #0b0f14; /* 4.84:1 on #E04E28; white is 3.97:1 */
+  --km-on-danger: #ffffff; /* 4.83:1 on #DC2626 */
+}
+
+.dark {
+  color-scheme: dark;
+
+  --km-canvas: #0b0f14;
+  --km-chrome: #111620;
+  --km-surface: #161d29;
+  --km-raised: #1c2535;
+  --km-hover: #202b40;
+  --km-muted: #253044;
+  --km-code: #0a1220;
+
+  --km-fg: #e8edf3;
+  --km-fg-secondary: #a7b0bc;
+  --km-fg-faint: #939dab; /* standard #6B7280 = 2.74:1 */
+
+  --km-ember: #ff6a3d;
+  --km-ember-2: #e04e28;
+  --km-ember-soft: #2b1a18;
+  --km-cyan: #00c2dc;
+  --km-cyan-soft: #0e2a33;
+  --km-success: #22c55e;
+  --km-success-soft: #0f3320;
+  --km-warning: #f59e0b;
+  --km-warning-soft: #33250b;
+  --km-danger: #ef4444;
+  --km-danger-soft: #2a0e0a;
+
+  --km-ember-text: #ff6a3d; /* 4.66:1 */
+  --km-cyan-text: #00c2dc;
+  --km-success-text: #22c55e;
+  --km-warning-text: #f59e0b;
+  --km-danger-text: #f87171; /* #EF4444 = 3.52:1 */
+
+  --km-on-ember: #0b0f14; /* 6.76:1 */
+  --km-on-danger: #0b0f14; /* 5.11:1 on #EF4444 */
+}
+
+/* shadcn / assistant-ui aliases, resolved per theme from the tokens above. */
+:root,
+.dark {
+  --background: var(--km-canvas);
+  --foreground: var(--km-fg);
+  --card: var(--km-surface);
+  --card-foreground: var(--km-fg);
+  --popover: var(--km-raised);
+  --popover-foreground: var(--km-fg);
+  --primary: var(--km-ember);
+  --primary-foreground: var(--km-on-ember);
+  --secondary: var(--km-muted);
+  --secondary-foreground: var(--km-fg);
+  --muted: var(--km-muted);
+  --muted-foreground: var(--km-fg-secondary);
+  --accent: var(--km-hover);
+  --accent-foreground: var(--km-fg);
+  --destructive: var(--km-danger);
+  --destructive-foreground: var(--km-on-danger);
+  /* Flat 2.0: areas separate by fills, never strokes. */
+  --border: transparent;
+  --input: var(--km-muted);
+  --ring: var(--km-ember);
+  --sidebar: var(--km-chrome);
+  --sidebar-foreground: var(--km-fg-secondary);
+  --sidebar-primary: var(--km-ember);
+  --sidebar-primary-foreground: var(--km-on-ember);
+  --sidebar-accent: var(--km-hover);
+  --sidebar-accent-foreground: var(--km-fg);
+  --sidebar-border: transparent;
+  --sidebar-ring: var(--km-ember);
+
+  /* Shape (Brand Guide: 4 badges, 6 controls, 10 cards, 16 features, 24 modals) */
+  --radius: 0.625rem;
+
+  /* Motion (standard §4.4, prototype easings) */
+  --km-duration-fast: 150ms;
+  --km-duration-page: 250ms;
+  --km-duration-overlay: 350ms;
+  --km-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --km-ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+}
+
+@theme inline {
+  /* KnowMe names */
+  --color-canvas: var(--km-canvas);
+  --color-chrome: var(--km-chrome);
+  --color-surface: var(--km-surface);
+  --color-raised: var(--km-raised);
+  --color-hover: var(--km-hover);
+  --color-muted-surface: var(--km-muted);
+  --color-code: var(--km-code);
+  --color-fg: var(--km-fg);
+  --color-fg-secondary: var(--km-fg-secondary);
+  --color-faint: var(--km-fg-faint);
+  --color-ember: var(--km-ember);
+  --color-ember-2: var(--km-ember-2);
+  --color-ember-soft: var(--km-ember-soft);
+  --color-ember-text: var(--km-ember-text);
+  --color-cyan: var(--km-cyan);
+  --color-cyan-soft: var(--km-cyan-soft);
+  --color-cyan-text: var(--km-cyan-text);
+  --color-success: var(--km-success);
+  --color-success-soft: var(--km-success-soft);
+  --color-success-text: var(--km-success-text);
+  --color-warning: var(--km-warning);
+  --color-warning-soft: var(--km-warning-soft);
+  --color-warning-text: var(--km-warning-text);
+  --color-danger: var(--km-danger);
+  --color-danger-soft: var(--km-danger-soft);
+  --color-danger-text: var(--km-danger-text);
+  /* The standard has no separate info color; AI/info is cyan. */
+  --color-info: var(--km-cyan);
+
+  /* shadcn names */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: var(--radius);
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+
+  --ease-brand-out: var(--km-ease-out);
+  --ease-brand-in: var(--km-ease-in);
+}
