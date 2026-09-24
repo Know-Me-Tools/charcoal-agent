@@ -58,3 +58,7 @@ The source is `scripts/brand/app-icon.svg`, the desktop app icon from know-me-sy
 - r1: BLOCK, 2 CRITICAL.
   1. **The naming guard exempted whole lines.** One allow-listed phrase (the `charcoal-agent` repo directory) let a "Lovable" on the same CLAUDE.md line through. Fixed: the guard now strips only the allowed substrings before testing. The Lovable mention is removed. A planted line mixing both now fails both checks.
   2. **The welcome mark had no accessible name.** It sits beside the visible "KnowMe" heading, so naming it would announce the product twice (WCAG H67). The requirement is clarified to "name exposed exactly once": standalone marks are named, and marks beside the name are decorative. e2e now asserts the heading name and the decorative mark.
+- r2: BLOCK, 2 CRITICAL, 1 WARNING.
+  1. **Standalone wordmark named a generic `span`** (ARIA prohibits `aria-label` there). It now has `role="img"` when not decorative. The unit test queries it by role and name.
+  2. **Planning docs still use the old names.** This is intended: they describe the rename. The scope is now stated in the proposal and in the guard: planning and history records (`openspec/`, `.kbd-orchestrator/`, `.refiner/`, `.prometheus/`) are not scanned.
+  3. WARNING: "`mode` unused in `vite.config.ts`" is not the case. It is still passed to `loadEnv(mode, …)`, and lint reports 0 errors. No change made.

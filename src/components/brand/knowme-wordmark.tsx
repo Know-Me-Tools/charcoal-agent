@@ -14,6 +14,8 @@ export function KnowMeWordmark({ className, decorative = false }: KnowMeWordmark
   return (
     <span
       data-slot="knowme-wordmark"
+      // A named image: aria-label is not allowed on a generic span.
+      role={decorative ? undefined : "img"}
       aria-label={decorative ? undefined : "KnowMe"}
       aria-hidden={decorative ? "true" : undefined}
       className={cn("font-display font-bold leading-none tracking-[-0.03em]", className)}

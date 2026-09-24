@@ -4,6 +4,9 @@
  * The product is KnowMe. "Charcoal" may appear only as a persisted identifier
  * that existing local data depends on, or as the colour word. Lovable
  * scaffolding must not come back.
+ *
+ * Planning and history records (openspec/, .kbd-orchestrator/, .refiner/,
+ * .prometheus/) describe the rename and are deliberately not scanned.
  */
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";

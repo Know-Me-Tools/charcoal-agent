@@ -26,9 +26,9 @@ describe("KnowMeMark", () => {
 describe("KnowMeWordmark", () => {
   it('renders "Know" + ember "Me" read as one word', () => {
     render(<KnowMeWordmark />);
-    const word = screen.getByText((_, el) => el?.getAttribute("data-slot") === "knowme-wordmark");
+    const word = screen.getByRole("img", { name: "KnowMe" });
+    expect(word).toHaveAttribute("data-slot", "knowme-wordmark");
     expect(word).toHaveTextContent("KnowMe");
-    expect(word).toHaveAttribute("aria-label", "KnowMe");
     expect(screen.getByText("Me")).toHaveClass("text-ember");
   });
 });

@@ -12,7 +12,7 @@ The app has no KnowMe mark anywhere: the name is plain text, the chat welcome us
 - Tauri: `productName`/window title "KnowMe", `devUrl` port 8080 and npm commands (previously port 3000 and bun), Cargo package metadata.
 - Repo hygiene: README rewritten for KnowMe; `lovable-tagger` and `public/placeholder.svg` removed; docker-compose/.env/Dockerfile/CLAUDE.md product naming updated (with a backward-compatible `CHARCOAL_PORT` fallback); stale `bun.lockb` removed (the project builds with npm; the lockfile misdirected the shadcn CLI twice).
 
-Unchanged by design (D-005): `CharcoalDb`, `charcoal-*` storage keys, `X-UAR-Session-ID`, `/api/uar/*`, the repo directory and `charcoal-agent.code-workspace`, and `supabase/config.toml` `project_id` (an infrastructure identifier). "Charcoal" as the brand color name ("deep charcoal") is not product naming.
+Unchanged by design (D-005): `CharcoalDb`, `charcoal-*` storage keys, `X-UAR-Session-ID`, `/api/uar/*`, the repo directory and `charcoal-agent.code-workspace`, and `supabase/config.toml` `project_id` (an infrastructure identifier). "Charcoal" as the brand color name ("deep charcoal") is not product naming. Planning and history records (`openspec/`, `.kbd-orchestrator/`, `.refiner/`, `.prometheus/`) keep the old names because they describe the rename; the naming check covers shipped source, tests, docs, container and desktop config (see `src/test/brand-naming.test.ts`).
 
 ## Capabilities
 
