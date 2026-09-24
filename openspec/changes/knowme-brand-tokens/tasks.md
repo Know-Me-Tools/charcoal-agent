@@ -10,7 +10,7 @@
 
 ## 3. Theme mechanics and third parties
 
-- [ ] 3.1 Persist `theme` and `fontSize` (`knowme:ui`), apply them before first paint via an inline script, apply font size via `html[data-font-size]`; update the e2e `setTheme` helper to seed storage; add an e2e test for theme persistence across reload and for the comfortable font size
+- [x] 3.1 Persist `theme` and `fontSize` (`knowme:ui`), apply them before first paint via an inline script, apply font size via `html[data-font-size]`; update the e2e `setTheme` helper to seed storage; add an e2e test for theme persistence across reload and for the comfortable font size
 - [ ] 3.2 Mermaid reads tokens and re-renders on theme change; Shiki code blocks use the brand code backgrounds; verify a thread capture in both themes
 
 ## 4. Verification

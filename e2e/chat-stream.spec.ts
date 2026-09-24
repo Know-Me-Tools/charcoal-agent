@@ -29,6 +29,16 @@ test("a streamed reply shows every block and reloads from local storage", async 
     await expect(page.getByText(marker).first(), marker).toBeAttached();
   }
 
+  // Fenced mermaid renders as a normally sized diagram (reduced motion is on in
+  // the harness; a global transition override once inflated it ~5x).
+  // Mermaid renders asynchronously (lazy import), so poll until it settles.
+  await expect
+    .poll(async () => {
+      const viewBox = await page.locator("svg[id^=mermaid]").first().getAttribute("viewBox");
+      return Number((viewBox ?? "").split(/\s+/)[2] ?? Number.NaN);
+    }, { message: "mermaid viewBox width" })
+    .toBeLessThan(1000);
+
   const chatRequests: string[] = [];
   page.on("request", (req) => {
     if (req.url().includes("/api/chat/completion")) chatRequests.push(req.url());

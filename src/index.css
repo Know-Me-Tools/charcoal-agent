@@ -113,8 +113,14 @@
     *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
+    }
+    /* Not inside SVG: Mermaid measures label boxes while laying out, and a
+       forced transition-duration there inflates diagrams ~5x. */
+    :not(svg, svg *),
+    :not(svg, svg *)::before,
+    :not(svg, svg *)::after {
+      transition-duration: 0.01ms !important;
     }
   }
 

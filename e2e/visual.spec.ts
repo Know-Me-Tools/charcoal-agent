@@ -4,7 +4,7 @@
  */
 import path from "node:path";
 import { test } from "./support/test";
-import { openRoute, screenshotName, setTheme } from "./support/page-helpers";
+import { openRoute, screenshotName, seedTheme } from "./support/page-helpers";
 import { APP_ROUTES, THEMES, VIEWPORT_HEIGHT, VIEWPORT_WIDTHS } from "./support/routes";
 
 const SCREENSHOT_DIR = path.resolve("test-results/screenshots");
@@ -15,8 +15,8 @@ for (const route of APP_ROUTES) {
       for (const theme of THEMES) {
         test(`${width} › ${theme}`, async ({ page }) => {
           await page.setViewportSize({ width, height: VIEWPORT_HEIGHT });
+          await seedTheme(page, theme);
           await openRoute(page, route);
-          await setTheme(page, theme);
           await page.screenshot({
             path: path.join(SCREENSHOT_DIR, screenshotName(route, width, theme)),
             fullPage: true,

@@ -16,6 +16,16 @@ export async function setTheme(page: Page, theme: Theme): Promise<void> {
   await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => r(null))));
 }
 
+/**
+ * Seed the saved theme before the app loads, exactly as a returning user's
+ * preference is applied (pre-paint script + ui store rehydration).
+ */
+export async function seedTheme(page: Page, theme: Theme): Promise<void> {
+  await page.addInitScript((t) => {
+    localStorage.setItem("knowme:ui", JSON.stringify({ state: { theme: t, fontSize: "default" }, version: 0 }));
+  }, theme);
+}
+
 /** Navigate, run any route preparation, and wait until real content is visible. */
 export async function openRoute(page: Page, route: AppRoute): Promise<void> {
   // Freeze the clock so relative/absolute timestamps render identically every run.
