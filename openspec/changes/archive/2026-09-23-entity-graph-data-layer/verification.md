@@ -46,3 +46,4 @@
   - A failed first list load returned `[]` → `toQueryResult` now yields data only after a successful load; `useRuntimeList` tracks `lastFetched` without error. Tests: failed load → `data` undefined; empty runtime → `data` `[]`.
   - Coverage gap for the post-stream transcript invalidation → closed with a focused `useChatRuntime` test (mutation-checked).
 - r10: BLOCK, 1 CRITICAL — dependency ranges `^4.0.2` vs the plan's exact pin → fixed: both entity-graph packages pinned to `4.0.2` (`--save-exact`); lockfile unchanged in resolution; build and 51 unit tests pass.
+- r11: **PASS**, 0 findings (gpt-5.5, verified-distinct; anti-theater score 0.0).
