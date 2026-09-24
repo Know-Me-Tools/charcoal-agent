@@ -19,8 +19,6 @@ const PENDING = new Set<string>([
   "src/components/layout/right-context-panel.tsx",
   "src/components/layout/topbar.tsx",
   "src/components/common/skeleton-loader.tsx",
-  "src/components/common/status-badge.tsx",
-  "src/components/common/uar-status.tsx",
 ]);
 
 const RULES: Array<{ name: string; pattern: RegExp }> = [
