@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "src/components/layout/topbar.tsx",
+      "line": 28,
+      "claim": "The topbar brand exposes the KnowMe name twice to assistive technology because the link is labelled and its child lockup is also a named image.",
+      "evidence": "brand-identity requirement says every brand rendering SHALL expose the name \"KnowMe\" exactly once; topbar.tsx adds `<Link to=\"/\" aria-label=\"KnowMe home\"> <KnowMeLockup variant=\"nav\" />`, while knowme-lockup.tsx renders `<span role=\"img\" aria-label=\"KnowMe\">`.",
+      "suggested_fix": "Either remove the link aria-label and let the lockup provide the link name, or add a decorative/aria-hidden mode to KnowMeLockup when it is inside an explicitly labelled link."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

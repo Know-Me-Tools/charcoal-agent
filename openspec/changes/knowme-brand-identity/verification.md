@@ -63,3 +63,4 @@ The source is `scripts/brand/app-icon.svg`, the desktop app icon from know-me-sy
   2. **Planning docs still use the old names.** This is intended: they describe the rename. The scope is now stated in the proposal and in the guard: planning and history records (`openspec/`, `.kbd-orchestrator/`, `.refiner/`, `.prometheus/`) are not scanned.
   3. WARNING: "`mode` unused in `vite.config.ts`" is not the case. It is still passed to `loadEnv(mode, …)`, and lint reports 0 errors. No change made.
 - r3: BLOCK, 1 CRITICAL. **The topbar link's `aria-label="KnowMe home"` sat over a named lockup**, so the name could be announced twice. The label is removed and the lockup names the link ("KnowMe"). e2e asserts the link by that exact name.
+- r4: **PASS**, 0 findings (gpt-5.5, verified-distinct). The final tree was re-run: unit 93/93, e2e 141/141, lint 0 errors, typecheck 0.
