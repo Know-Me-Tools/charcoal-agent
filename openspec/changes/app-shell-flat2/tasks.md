@@ -14,4 +14,4 @@
 
 ## 4. Verification
 
-- [ ] 4.1 Run `npm run build && npm run typecheck && npm run lint && npm test && npm run test:e2e`, the visual harness for `/threads` and a thread at 320/768/1024/1440 × both themes (review the captures), and `npm run test:a11y`; record results and the axe delta in `verification.md`
+- [x] 4.1 Run `npm run build && npm run typecheck && npm run lint && npm test && npm run test:e2e`, the visual harness for `/threads` and a thread at 320/768/1024/1440 × both themes (review the captures), and `npm run test:a11y`; record results and the axe delta in `verification.md`

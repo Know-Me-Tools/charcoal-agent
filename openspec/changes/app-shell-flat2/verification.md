@@ -25,7 +25,7 @@
 | §3.4 surface ladder | chrome: top bar, sidebar, bottom nav, drawer; canvas: main; surface: context panel; raised: menus, agent card |
 | §4.2 12px floor | all shell text ≥ 12px (guard + e2e computed-size check) |
 | §5.1 persistent status | runtime status pill in the desktop top bar on every route |
-| §5.3 tablet | context panel is a sheet below 1280px; conversation ≥ 480px at 768 (508px) and 1024 (764px) |
+| §5.3 tablet | context panel is a sheet below 1280px (phones included); conversation ≥ 480px at 768 (508px) and 1024 (764px) |
 | §11 status not colour-only, skip link, names | icon + label + tone; "Skip to content" focuses `main`; named icon buttons, search, agent picker |
 
 ## Defects found and fixed
@@ -35,4 +35,3 @@
 
 ## Deferred (owner)
 - `components/ui/button` still uses a 1px transparent border and a `ring-3` focus halo (no visible border). Left to brand-fidelity-audit with the remaining primitives.
-- Phones get the context toggle too (as a sheet), which the standard doesn't cover explicitly.
