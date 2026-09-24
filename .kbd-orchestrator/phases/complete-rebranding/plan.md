@@ -197,6 +197,7 @@ PLAN COMPLETE
 
 ## Findings from execution (routed to later changes)
 Source: `openspec/changes/archive/2026-09-23-visual-verification-harness/verification.md`.
+- **assistant-ui-latest:** re-pulled `attachment.tsx` must give the attachment tile trigger real button semantics/keyboard activation (review warning from shadcn-base-ui-migration).
 - **assistant-ui-latest:** stream events that arrive before the first text/thinking delta (skill activation, context update, memory recall, tool calls) are silently dropped by `chat-message-store` — create the assistant message on `agui.stream.start` (or on any first block) and add a unit test.
 - **app-shell-flat2:** at 768px both the threads sidebar and the context panel stay open, collapsing the conversation to ~150px (HIGH); collapse one panel below `lg`.
 - **chat-surfaces-flat2:** light-theme user bubble unreadable (`bg-zinc-800`); context-update block overflows and tool names truncate at 320px; A2UI input shows "Response captured" before any response; mermaid artifacts render as source text.

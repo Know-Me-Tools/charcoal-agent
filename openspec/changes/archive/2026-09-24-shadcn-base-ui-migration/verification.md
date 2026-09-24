@@ -29,3 +29,4 @@
 - r1: BLOCK, 2 CRITICAL — both artifact/implementation mismatches in my own docs:
   - "Select keyboard component test missing" → the jsdom test was attempted and fails for lack of layout (listbox positioning); the behavior is verified in a real browser (`e2e/primitives.spec.ts` harness test). tasks.md 3.2 amended to state where each behavior is verified.
   - "Sheet deleted though the spec covers sheets" → `sheet` had zero consumers and was deleted per the proposal; the spec requirement and capability description no longer mention sheets.
+- r2: **PASS**, 0 CRITICAL / 1 WARNING — attachment tile trigger semantics (the inner tooltip trigger is a plain div; the outer Base UI dialog trigger renders with `nativeButton={false}`). Carried to `assistant-ui-latest`, which re-pulls `attachment.tsx` from the assistant-ui Base UI registry.

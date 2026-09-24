@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "WARNING",
+      "file": "src/components/assistant-ui/attachment.tsx",
+      "line": 156,
+      "claim": "The attachment tile is rendered as an interactive tooltip/dialog trigger using a plain div without semantic button role or keyboard focus handling.",
+      "evidence": "The hunk replaces the previous `<div ... role=\"button\" ... aria-label=...>` inside `<TooltipTrigger asChild>` with `<TooltipTrigger render={<div ... id=\"attachment-tile\" aria-label=... />}>`, leaving the rendered interactive element as a non-semantic div; this conflicts with the `accessibility-basics` warning constraint requiring new UI components to have aria-label or semantic HTML.",
+      "suggested_fix": "Render a real `button`/`Button` for the trigger, or ensure the rendered div receives `role=\"button\"`, `tabIndex={0}`, and keyboard activation support compatible with Base UI."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}
