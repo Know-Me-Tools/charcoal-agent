@@ -12,7 +12,7 @@
 ## 3. Clean up and verify behavior
 
 - [x] 3.1 Uninstall direct `@radix-ui/*` dependencies and `next-themes`; verify `grep -rn "@radix-ui\|next-themes" src package.json` is empty and `npm run build` passes
-- [ ] 3.2 Add component tests for the ui-primitives spec (dialog focus trap/Escape/focus return, select keyboard selection, tooltip on focus, switch Space, collapsible expanded state) and an e2e spec for the agent editor select and tabs plus the thread's reasoning collapsible; verify `npm test` and `npm run test:e2e` pass
+- [x] 3.2 Add component tests for the ui-primitives spec (dialog focus trap/Escape/focus return, select keyboard selection, tooltip on focus, switch Space, collapsible expanded state) and an e2e spec for the agent editor select and tabs plus the thread's reasoning collapsible; verify `npm test` and `npm run test:e2e` pass
 
 ## 4. Verification
 

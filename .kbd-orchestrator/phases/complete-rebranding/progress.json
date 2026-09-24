@@ -2,16 +2,16 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 218,
-  "derivedRevision": 218,
+  "sourceRevision": 223,
+  "derivedRevision": 223,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 218
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 223
   },
   "conflictCount": 0,
   "phase": "complete-rebranding",
   "phaseId": "complete-rebranding",
   "parentPhase": null,
-  "last_updated": "2026-09-24T07:19:04.506555Z",
+  "last_updated": "2026-09-24T07:21:29.260590Z",
   "last_updated_by": "kbd-runtime",
   "changes_total": 12,
   "changes_completed": 3,
@@ -79,10 +79,10 @@
       "title": "Reinstall shadcn primitives on Base UI at the latest shadcn",
       "status": "IN_PROGRESS",
       "implementation_status": "IN_PROGRESS",
-      "tasks_total": 7,
-      "tasks_done": 6,
-      "last_task_completed": "3.1 Remove Radix and next-themes",
-      "next_task_pending": "3.2 Behavior tests",
+      "tasks_total": 8,
+      "tasks_done": 7,
+      "last_task_completed": "3.2 Behavior tests",
+      "next_task_pending": "4.1 Full verification",
       "blockers": []
     },
     {
