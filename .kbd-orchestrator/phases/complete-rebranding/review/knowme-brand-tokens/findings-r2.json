@@ -1,0 +1,22 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [],
+  "checked_classes": [
+    "Spec violations \u2014 checked acceptance criteria 1.1, 1.2, 2.1, 2.2, 3.1, 3.2, and 4.1 against the diff; the required token file, import, contrast test, theme persistence, font-size handling, Mermaid/Shiki updates, and verification notes are present, and documented out-of-scope opacity/hard-coded palette remnants are not contrary to the stated criteria.",
+    "Correctness \u2014 reviewed theme hydration, pre-paint script behavior, Zustand persistence, e2e helper ordering, Mermaid re-rendering, and Shiki theme switching; no concrete logic error is evidenced in the packet.",
+    "Regressions \u2014 checked changed class token mappings and test helper changes for removed required behavior; no dependency in the provided file tree or criteria is contradicted by the diff.",
+    "Security \u2014 checked inline script/localStorage parsing, dangerouslySetInnerHTML usage in unchanged Shiki flow, and secret/env constraints; no new hardcoded secret, injection vector, or committed env file is evidenced.",
+    "Constraint breaches \u2014 checked blocking constraints for console.log, new : any, env files, reference folder writes, migration edits, pglite prebundle changes, and protected tool-folder deletion; none are evidenced by the diff.",
+    "Silent failure \u2014 checked swallowed errors/default fallbacks in the new theme script and persistence flow; the catch path preserves dark default and no acceptance criterion requires surfacing malformed localStorage."
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

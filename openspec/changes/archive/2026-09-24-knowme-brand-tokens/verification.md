@@ -36,3 +36,4 @@
 
 ## Adversarial review (diff mode)
 - r1: BLOCK, 1 CRITICAL — radius scale lacked a named pill token → added `--radius-pill: 9999px` (`rounded-pill`), documented as reserved for status/metadata.
+- r2: **PASS**, 0 findings (gpt-5.5, verified-distinct).
