@@ -12,12 +12,9 @@ const SHELL_PRIMITIVES = ["src/components/ui/dialog.tsx", "src/components/ui/sel
 
 /** Files not restyled yet. Each is expected to fail; remove it once it passes. */
 const PENDING = new Set<string>([
-  "src/components/layout/app-layout.tsx",
   "src/components/layout/left-sidebar.tsx",
-  "src/components/layout/mobile-nav.tsx",
   "src/components/layout/mobile-sidebar-drawer.tsx",
   "src/components/layout/right-context-panel.tsx",
-  "src/components/layout/topbar.tsx",
   "src/components/common/skeleton-loader.tsx",
 ]);
 

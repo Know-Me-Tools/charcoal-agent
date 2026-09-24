@@ -5,7 +5,7 @@
 
 ## 2. Status
 
-- [ ] 2.1 Rework `UarStatus` (status tokens + icon + "Connected"/"Checking"/"Offline" label, compact top-bar form) and `StatusBadge` (12px pill on status tokens); verify with unit tests for each state's label and tone class
+- [x] 2.1 Rework `UarStatus` (status tokens + icon + "Connected"/"Checking"/"Offline" label, compact top-bar form) and `StatusBadge` (12px pill on status tokens); verify with unit tests for each state's label and tone class
 
 ## 3. Shell surfaces
 

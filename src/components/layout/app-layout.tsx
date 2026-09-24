@@ -7,6 +7,14 @@ import { MobileSidebarDrawer } from "@/components/layout/mobile-sidebar-drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDbHydration } from "@/hooks/use-db-hydration";
 
+/** Fragment navigation doesn't reliably move focus, so the skip link does it. */
+function focusMain(event: React.MouseEvent<HTMLAnchorElement>): void {
+  const main = document.getElementById("main");
+  if (!main) return;
+  event.preventDefault();
+  main.focus();
+}
+
 export function AppLayout() {
   useDbHydration();
   const location = useLocation();
@@ -15,7 +23,14 @@ export function AppLayout() {
   const showSidebar = location.pathname.startsWith("/threads") || location.pathname === "/";
 
   return (
-    <div className="flex h-screen flex-col bg-background">
+    <div className="flex h-screen flex-col bg-canvas">
+      <a
+        href="#main"
+        onClick={focusMain}
+        className="sr-only rounded-md bg-raised px-3 py-2 font-ui text-sm font-semibold text-foreground focus:not-sr-only focus:fixed focus:top-2 focus:left-4 focus:z-100 focus-cue"
+      >
+        Skip to content
+      </a>
       <Topbar />
 
       {/* Mobile sidebar drawer */}
@@ -31,10 +46,10 @@ export function AppLayout() {
       <div className="flex min-h-0 flex-1">
         {/* Desktop sidebar */}
         {!isMobile && showSidebar && (
-          <LeftSidebar className="w-[260px] shrink-0 border-r border-border" />
+          <LeftSidebar className="w-[260px] shrink-0" />
         )}
 
-        <main className="flex min-w-0 flex-1 flex-col">
+        <main id="main" tabIndex={-1} className="flex min-w-0 flex-1 flex-col bg-canvas outline-none">
           <Outlet />
         </main>
 
