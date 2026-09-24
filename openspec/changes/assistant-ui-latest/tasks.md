@@ -15,4 +15,4 @@
 
 ## 4. Verification
 
-- [ ] 4.1 Run `npm run build && npm run typecheck && npm run lint && npm test && npm run test:e2e`; confirm no direct or transitive `@radix-ui` remains if 0.15 dropped it; compare screenshots with the previous run; record results in `verification.md`
+- [x] 4.1 Run `npm run build && npm run typecheck && npm run lint && npm test && npm run test:e2e`; confirm no direct or transitive `@radix-ui` remains if 0.15 dropped it; compare screenshots with the previous run; record results in `verification.md`
