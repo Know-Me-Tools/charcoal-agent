@@ -2,7 +2,7 @@ import type { Agent, UarAgent } from "@/types";
 
 /**
  * Map a UAR runtime/federated agent to the richer Agent shape used by the
- * charcoal-agent UI. For runtime agents the full AgentArtifact is present in
+ * KnowMe UI. For runtime agents the full AgentArtifact is present in
  * the list response, so we extract prompt/policy from their nested fields.
  */
 export function uarAgentToAgent(u: UarAgent): Agent {

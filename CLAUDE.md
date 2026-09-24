@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Charcoal Agent ("KnowMe", package name `know-me`) is a React 19 + Vite SPA chat client for the **Universal Agent Runtime (UAR)**, a separate Rust backend living at `../prometheus/universal-agent-runtime`. This repo contains no agent logic — it renders UAR's AG-UI event stream, manages threads locally, and pushes built-in skills to UAR. It can also be wrapped as a Tauri 2 desktop app (`src-tauri/`, a stock shell with only the log plugin). Originally scaffolded by Lovable; the README is Lovable boilerplate.
+KnowMe (package name `know-me`; the repo directory is still `charcoal-agent`) is a React 19 + Vite SPA chat client for the **Universal Agent Runtime (UAR)**, a separate Rust backend living at `../prometheus/universal-agent-runtime`. This repo contains no agent logic — it renders UAR's AG-UI event stream, manages threads locally, and pushes built-in skills to UAR. It can also be wrapped as a Tauri 2 desktop app (`src-tauri/`, a stock shell with only the log plugin). The product, logo and copy follow the KnowMe AI, LLC brand; the Lovable scaffolding has been removed.
 
 ## Commands
 

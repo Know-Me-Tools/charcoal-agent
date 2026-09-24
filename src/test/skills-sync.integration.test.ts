@@ -1,7 +1,7 @@
 /**
  * Skills Sync Integration Tests
  *
- * These tests validate that charcoal-agent's built-in KnowMe skills are correctly
+ * These tests validate that the KnowMe client's built-in KnowMe skills are correctly
  * pushed to the UAR through the Skills management API and confirmed active.
  *
  * Requirements:
