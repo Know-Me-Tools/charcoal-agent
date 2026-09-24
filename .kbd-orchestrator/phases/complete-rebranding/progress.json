@@ -2,16 +2,16 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 245,
-  "derivedRevision": 245,
+  "sourceRevision": 250,
+  "derivedRevision": 250,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 245
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 250
   },
   "conflictCount": 0,
   "phase": "complete-rebranding",
   "phaseId": "complete-rebranding",
   "parentPhase": null,
-  "last_updated": "2026-09-24T09:34:09.683781Z",
+  "last_updated": "2026-09-24T09:35:19.558493Z",
   "last_updated_by": "kbd-runtime",
   "changes_total": 12,
   "changes_completed": 4,
@@ -90,10 +90,10 @@
       "title": "Upgrade assistant-ui to 0.15.x on the Base UI registry",
       "status": "IN_PROGRESS",
       "implementation_status": "IN_PROGRESS",
-      "tasks_total": 4,
-      "tasks_done": 3,
-      "last_task_completed": "2.1 enhanced-thread off deprecated APIs",
-      "next_task_pending": "2.2 enhanced-markdown-text on react-markdown 0.14",
+      "tasks_total": 5,
+      "tasks_done": 4,
+      "last_task_completed": "2.2 enhanced-markdown-text on react-markdown 0.14",
+      "next_task_pending": "2.3 Keep early stream blocks",
       "blockers": []
     },
     {
