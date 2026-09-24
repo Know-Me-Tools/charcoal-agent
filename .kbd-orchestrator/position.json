@@ -2,18 +2,18 @@
   "schemaVersion": "1",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 213,
-  "derivedRevision": 213,
+  "sourceRevision": 218,
+  "derivedRevision": 218,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 213
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 218
   },
   "conflictCount": 0,
-  "updatedAt": "2026-09-24T07:17:56.689262Z",
+  "updatedAt": "2026-09-24T07:19:04.506555Z",
   "cursor": [
     "complete-rebranding",
     "execute",
     "shadcn-base-ui-migration",
-    "6"
+    "7"
   ],
   "root": {
     "type": "phase",
@@ -66,8 +66,8 @@
             "id": "shadcn-base-ui-migration",
             "status": "IN_PROGRESS",
             "progress": {
-              "done": 5,
-              "total": 6
+              "done": 6,
+              "total": 7
             }
           },
           {
