@@ -182,3 +182,35 @@ test("phone thread drawer is a dismissible sheet", async ({ page }) => {
   await drawer.getByRole("button", { name: "Close threads" }).click();
   await expect(drawer).toHaveCount(0);
 });
+
+test("sheets close when their layout goes away, so they never reopen on their own", async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto(`/threads/${FIXTURE_THREAD_ID}`);
+  await page.getByRole("button", { name: "Toggle context panel" }).click();
+  await expect(page.getByRole("dialog", { name: "Context" })).toBeVisible();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(page.getByRole("complementary", { name: "Context" })).toBeVisible();
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await expect(page.locator("main#main")).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.getByRole("button", { name: "Open threads" }).click();
+  await expect(page.getByRole("dialog", { name: "Threads" })).toBeVisible();
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.setViewportSize({ width: 320, height: 800 });
+  await expect(page.getByRole("button", { name: "Open threads" })).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+});
+
+test("the context sheet closes when the route changes", async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 900 });
+  await page.goto("/agents");
+  await page.goto(`/threads/${FIXTURE_THREAD_ID}`);
+  await page.getByRole("button", { name: "Toggle context panel" }).click();
+  await expect(page.getByRole("dialog", { name: "Context" })).toBeVisible();
+  await page.goBack();
+  await page.goForward();
+  await expect(page.locator("main#main")).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+});

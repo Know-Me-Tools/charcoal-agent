@@ -35,3 +35,6 @@
 
 ## Deferred (owner)
 - `components/ui/button` still uses a 1px transparent border and a `ring-3` focus halo (no visible border). Left to brand-fidelity-audit with the remaining primitives.
+
+## Adversarial review (diff mode)
+- r1: BLOCK, 1 CRITICAL. **A sheet's open flag outlived the sheet.** Opening the context sheet at 1024, widening to 1440 and narrowing again reopened it unprompted. The phone drawer had the same flaw. Neither flag is persisted. Fix: `useCloseWithLayout` closes a sheet on route change and on unmount. Two new e2e tests cover resize round-trips for both sheets and back/forward navigation.

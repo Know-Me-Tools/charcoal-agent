@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import { useCloseWithLayout } from "@/hooks/use-close-with-layout";
 import { useThreadRegistryStore } from "@/stores/thread-registry-store";
 import { useAgents } from "@/hooks/use-agents";
 import { useUi } from "@/hooks/use-ui";
@@ -101,6 +102,7 @@ export function RightContextPanel() {
 /** The same panel as a right-hand sheet below 1280px, so it never squeezes the conversation. */
 export function ContextPanelSheet() {
   const { contextSheetOpen, setContextSheetOpen } = useUi();
+  useCloseWithLayout(setContextSheetOpen);
 
   return (
     <Sheet open={contextSheetOpen} onOpenChange={setContextSheetOpen}>

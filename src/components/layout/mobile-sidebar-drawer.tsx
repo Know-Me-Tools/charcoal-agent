@@ -1,6 +1,7 @@
 import { useUi } from "@/hooks/use-ui";
 import { KnowMeLockup } from "@/components/brand";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { useCloseWithLayout } from "@/hooks/use-close-with-layout";
 
 interface MobileSidebarDrawerProps {
   children: React.ReactNode;
@@ -9,6 +10,7 @@ interface MobileSidebarDrawerProps {
 /** Phone thread list: a left sheet with scrim, focus trap and Escape to close. */
 export function MobileSidebarDrawer({ children }: MobileSidebarDrawerProps) {
   const { mobileSidebarOpen, setMobileSidebarOpen } = useUi();
+  useCloseWithLayout(setMobileSidebarOpen);
 
   return (
     <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
