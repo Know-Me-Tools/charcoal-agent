@@ -10,7 +10,8 @@ for (const path of APP_PATHS) {
   test(`top bar shows the KnowMe lockup on ${path}`, async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(path);
-    const home = page.getByRole("link", { name: "KnowMe home" });
+    // The lockup names the link, so "KnowMe" is announced once.
+    const home = page.getByRole("link", { name: "KnowMe", exact: true });
     await expect(home).toBeVisible();
     await expect(home.getByRole("img", { name: "KnowMe" })).toBeVisible();
     await expect(home.locator("svg circle")).toHaveAttribute("fill", "var(--km-ember)");

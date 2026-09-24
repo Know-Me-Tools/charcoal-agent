@@ -25,7 +25,7 @@ export function Topbar() {
           </button>
         )}
 
-        <Link to="/" aria-label="KnowMe home" className="flex items-center rounded-md">
+        <Link to="/" className="flex items-center rounded-md">
           <KnowMeLockup variant="nav" />
         </Link>
 
