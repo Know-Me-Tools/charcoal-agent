@@ -2,10 +2,10 @@
   "schemaVersion": "5",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 230,
-  "derivedRevision": 230,
+  "sourceRevision": 235,
+  "derivedRevision": 235,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 230
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 235
   },
   "conflictCount": 0,
   "projectId": "440c5818-223c-4091-8b7f-bc8083505a3c",
@@ -22,15 +22,15 @@
   "parentPhase": "complete-rebranding",
   "childPointer": null,
   "change": "assistant-ui-latest",
-  "currentTask": "1",
+  "currentTask": "2",
   "status": "ready",
   "completionMetric": "implementation",
   "implementationCompleted": 4,
   "implementationTotal": 12,
   "planRevision": 2,
-  "revision": 230,
+  "revision": 235,
   "exactNextCommand": "/opsx:continue tailwind-v4-foundation",
   "nextChange": "assistant-ui-latest",
-  "nextTask": "1",
-  "updatedAt": "2026-09-24T09:28:45.990199Z"
+  "nextTask": "2",
+  "updatedAt": "2026-09-24T09:29:52.533347Z"
 }

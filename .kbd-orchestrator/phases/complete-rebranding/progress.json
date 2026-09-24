@@ -2,16 +2,16 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 230,
-  "derivedRevision": 230,
+  "sourceRevision": 235,
+  "derivedRevision": 235,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 230
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 235
   },
   "conflictCount": 0,
   "phase": "complete-rebranding",
   "phaseId": "complete-rebranding",
   "parentPhase": null,
-  "last_updated": "2026-09-24T09:28:45.990199Z",
+  "last_updated": "2026-09-24T09:29:52.533347Z",
   "last_updated_by": "kbd-runtime",
   "changes_total": 12,
   "changes_completed": 4,
@@ -90,10 +90,10 @@
       "title": "Upgrade assistant-ui to 0.15.x on the Base UI registry",
       "status": "IN_PROGRESS",
       "implementation_status": "IN_PROGRESS",
-      "tasks_total": 1,
-      "tasks_done": 0,
-      "last_task_completed": null,
-      "next_task_pending": "1.1 Upgrade packages and run codemods",
+      "tasks_total": 2,
+      "tasks_done": 1,
+      "last_task_completed": "1.1 Upgrade packages and run codemods",
+      "next_task_pending": "1.2 Registry attachment and tooltip-icon-button",
       "blockers": []
     },
     {
