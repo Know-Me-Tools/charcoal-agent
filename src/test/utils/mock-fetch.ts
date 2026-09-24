@@ -1,9 +1,13 @@
 import { vi } from "vitest";
 
-export type MockHandler = (req: { method: string; path: string; body: unknown }) => {
-  status?: number;
-  body?: unknown;
-};
+type MockResponse = { status?: number; body?: unknown };
+
+/** Handlers may be async to hold a response open (e.g. to observe optimistic UI). */
+export type MockHandler = (req: {
+  method: string;
+  path: string;
+  body: unknown;
+}) => MockResponse | Promise<MockResponse>;
 
 export interface FetchMock {
   calls: Array<{ method: string; path: string; body: unknown }>;
@@ -23,7 +27,7 @@ export function mockFetch(routes: Record<string, MockHandler>): FetchMock {
     const req = { method, path: url.pathname, body };
     calls.push(req);
     const handler = routes[`${method} ${url.pathname}`];
-    const res = handler ? handler(req) : { status: 501, body: { error: "unmocked" } };
+    const res = handler ? await handler(req) : { status: 501, body: { error: "unmocked" } };
     const status = res.status ?? 200;
     const text = res.body === undefined ? "" : JSON.stringify(res.body);
     return new Response(text, { status, headers: { "content-type": "application/json" } });
