@@ -13,7 +13,7 @@
 
 ## 3. Remove TanStack Query
 
-- [ ] 3.1 Remove `QueryClientProvider`/`QueryClient` from `App.tsx`; uninstall `@tanstack/react-query` and `@tanstack/react-table@8`; verify `grep -rn "@tanstack/react-query" src package.json` is empty and `npm ls @tanstack/react-query` reports nothing at top level
+- [x] 3.1 Remove `QueryClientProvider`/`QueryClient` from `App.tsx`; uninstall `@tanstack/react-query` and `@tanstack/react-table@8`; verify `grep -rn "@tanstack/react-query" src package.json` is empty and `npm ls @tanstack/react-query` reports nothing at top level
 - [ ] 3.2 Add an e2e spec: toggling a skill updates the skills page immediately and a failing toggle (mock 500) reverts it; run the full e2e suite; verify `npm run test:e2e` passes with zero unmocked requests
 
 ## 4. Verification
