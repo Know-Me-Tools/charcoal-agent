@@ -1,6 +1,6 @@
 ## 1. Foundation
 
-- [ ] 1.1 Install `@prometheus-ags/entity-graph-core@4.0.2` and `@prometheus-ags/prometheus-entity-management@4.0.2`; add `src/lib/entity-graph/` with entity type constants, the app graph store, engine defaults, and a `GraphProvider` component; mount it in `App.tsx` alongside the existing QueryClientProvider; verify `npm run build` and `npm run typecheck`
+- [x] 1.1 Install `@prometheus-ags/entity-graph-core@4.0.2` and `@prometheus-ags/prometheus-entity-management@4.0.2`; add `src/lib/entity-graph/` with entity type constants, the app graph store, engine defaults, and a `GraphProvider` component; mount it in `App.tsx` alongside the existing QueryClientProvider; verify `npm run build` and `npm run typecheck`
 - [ ] 1.2 Implement `useGraphMutation` (TanStack-compatible surface over `useEntityMutation`) with unit tests for pending, success, error, `variables`, per-call callbacks, and `mutateAsync` rejection; verify `npx vitest run src/lib/entity-graph`
 
 ## 2. Migrate data hooks

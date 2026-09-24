@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import type React from "react";
 import { DbProvider } from "@/lib/db/db-provider";
+import { GraphProvider } from "@/lib/entity-graph/graph-provider";
 import { AppLayout } from "@/components/layout/app-layout";
 import { useSkillsSyncOnMount } from "@/hooks/use-skills-sync";
 import LandingPage from "@/pages/landing-page";
@@ -67,6 +68,7 @@ function AppBootstrap({ children }: { children: React.ReactNode }) {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <GraphProvider>
     <DbProvider>
       <TooltipProvider>
         <Toaster />
@@ -76,6 +78,7 @@ const App = () => (
         </AppBootstrap>
       </TooltipProvider>
     </DbProvider>
+    </GraphProvider>
   </QueryClientProvider>
 );
 
