@@ -19,6 +19,12 @@ import type { CachingScope, UpdateUserSettingsPayload, UserSettings } from "@/ty
 // Page
 // ---------------------------------------------------------------------------
 
+const SCOPE_ITEMS = [
+  { value: "session", label: "Session (per-conversation)" },
+  { value: "user", label: "User (account-wide)" },
+  { value: "agent", label: "Agent (per-agent default)" },
+];
+
 export default function UserSettingsPage() {
   const isJwt = isJwtConfigured();
   const settingsQuery = useUserSettings(isJwt);
@@ -217,11 +223,11 @@ export default function UserSettingsPage() {
           </p>
           <Select
             value={settings?.preferred_scope ?? "session"}
-            onValueChange={(v) =>
-              setSettings((s) =>
-                s ? { ...s, preferred_scope: v as CachingScope } : s,
-              )
-            }
+            items={SCOPE_ITEMS}
+            onValueChange={(v) => {
+              if (v === null) return;
+              setSettings((s) => (s ? { ...s, preferred_scope: v as CachingScope } : s));
+            }}
             disabled={!settings}
           >
             <SelectTrigger className="font-mono text-[12px]">

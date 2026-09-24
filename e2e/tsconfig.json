@@ -1,17 +1,33 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2023",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
     "baseUrl": "..",
-    "paths": { "@/*": ["./src/*"] }
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
+    "jsx": "react-jsx"
   },
-  "include": ["./**/*.ts", "../playwright.config.ts"]
+  "include": [
+    "./**/*.ts",
+    "./**/*.tsx",
+    "../playwright.config.ts",
+    "../src/vite-env.d.ts"
+  ]
 }

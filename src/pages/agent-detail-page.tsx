@@ -244,7 +244,9 @@ export default function AgentDetailPage() {
             </label>
             <Select
               value={form.providerId}
+              items={providers.map((p) => ({ value: p.id, label: p.display_name ?? p.id }))}
               onValueChange={(v) => {
+                if (v === null) return;
                 setForm((f) => ({ ...f, providerId: v, modelId: "" }));
               }}
             >
@@ -270,7 +272,10 @@ export default function AgentDetailPage() {
             </label>
             <Select
               value={form.modelId}
-              onValueChange={(v) => setField("modelId", v)}
+              items={(models ?? []).map((m) => ({ value: m.id, label: m.display_name || m.id }))}
+              onValueChange={(v) => {
+                if (v !== null) setField("modelId", v);
+              }}
               disabled={!form.providerId}
             >
               <SelectTrigger id="agent-model" className="w-full font-ui text-sm">

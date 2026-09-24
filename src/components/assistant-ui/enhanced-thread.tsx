@@ -191,24 +191,26 @@ const ComposerActionBar: FC<ComposerProps> = ({ promptCachingEnabled, onTogglePr
 				<ComposerAddAttachment />
 				{onTogglePromptCaching && (
 					<Tooltip>
-						<TooltipTrigger asChild>
-							<button
-								type="button"
-								onClick={onTogglePromptCaching}
-								aria-label={label}
-								className={cn(
-									"flex size-7 items-center justify-center rounded-md transition-colors",
-									isCachingOn
-										? "text-primary hover:text-primary/70"
-										: "text-muted-foreground/50 hover:text-muted-foreground",
-								)}
-							>
-								{isCachingOn ? (
-									<ZapIcon className="size-3.5 fill-current" />
-								) : (
-									<ZapOffIcon className="size-3.5" />
-								)}
-							</button>
+						<TooltipTrigger
+							render={
+								<button
+									type="button"
+									onClick={onTogglePromptCaching}
+									aria-label={label}
+									className={cn(
+										"flex size-7 items-center justify-center rounded-md transition-colors",
+										isCachingOn
+											? "text-primary hover:text-primary/70"
+											: "text-muted-foreground/50 hover:text-muted-foreground",
+									)}
+								/>
+							}
+						>
+							{isCachingOn ? (
+								<ZapIcon className="size-3.5 fill-current" />
+							) : (
+								<ZapOffIcon className="size-3.5" />
+							)}
 						</TooltipTrigger>
 						<TooltipContent side="top" className="font-mono text-[11px]">
 							{label}
@@ -354,12 +356,14 @@ const ReasoningPart: FC = () => {
 	return (
 		<Card className="my-2 overflow-hidden rounded-lg border-border/50 bg-muted/20 shadow-none">
 			<Collapsible open={isOpen} onOpenChange={setIsOpen}>
-				<CollapsibleTrigger asChild>
-					<Button
-						variant="ghost"
-						className="flex h-auto w-full items-center justify-start gap-2 rounded-none px-3 py-2 hover:bg-muted/30"
-						aria-expanded={isOpen}
-					>
+				<CollapsibleTrigger
+					render={
+						<Button
+							variant="ghost"
+							className="flex h-auto w-full items-center justify-start gap-2 rounded-none px-3 py-2 hover:bg-muted/30"
+						/>
+					}
+				>
 						<BrainIcon size={13} className="shrink-0 text-muted-foreground" />
 						<span className="flex-1 font-mono text-[11px] text-muted-foreground">
 							{isStreaming ? (
@@ -382,7 +386,6 @@ const ReasoningPart: FC = () => {
 								isOpen && "rotate-180",
 							)}
 						/>
-					</Button>
 				</CollapsibleTrigger>
 				<CollapsibleContent>
 					<Separator className="opacity-30" />

@@ -130,7 +130,10 @@ function AgentMemoryPanel({ agent }: { agent: Agent }) {
           <span className="font-mono text-[11px] text-foreground">Scope</span>
           <Select
             value={state.memory_scope}
-            onValueChange={(v) => setState((s) => ({ ...s, memory_scope: v }))}
+            items={SCOPE_OPTIONS}
+            onValueChange={(v) => {
+              if (v !== null) setState((s) => ({ ...s, memory_scope: v }));
+            }}
           >
             <SelectTrigger className="h-7 w-36 font-mono text-[11px]">
               <SelectValue />
