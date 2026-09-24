@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "src/stores/ui-store.ts",
+      "line": 13,
+      "claim": "The new context sheet open flag is persisted even though it is documented as transient, so a stored `true` value can reopen or flash the sheet on later sessions.",
+      "evidence": "The diff adds `contextSheetOpen` with the comment `/** Context panel as a sheet below 1280px; never persisted. */` and places it inside the Zustand `persist(...)` state without adding any `partialize` exclusion, so default persist behavior stores it with the rest of the state.",
+      "suggested_fix": "Add a `partialize` option to the `persist` config that excludes `contextSheetOpen` (and other transient sheet/drawer flags such as `mobileSidebarOpen` if they must not survive sessions)."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

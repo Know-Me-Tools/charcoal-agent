@@ -1,0 +1,22 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [],
+  "checked_classes": [
+    "Spec violations \u2014 compared the diff against each acceptance criterion and found the required tokens, shell changes, responsive panel behavior, status labels, tests, and verification notes represented in the changed files.",
+    "Correctness \u2014 reviewed changed hook/store/layout/sheet logic for inverted conditions, stale open state, route/resize cleanup, and obvious runtime errors; no concrete defect is provable from the packet.",
+    "Regressions \u2014 checked changed navigation, status, sidebar, drawer, context panel, and accessibility behavior against the stated existing app shell expectations; no packet-supported regression found.",
+    "Security \u2014 reviewed new DOM querying, store persistence, UI controls, and environment usage for injection, secret exposure, unsafe persistence, or traversal; no concrete issue found.",
+    "Constraint breaches \u2014 checked the diff for console.log, new ': any', hardcoded secrets, env files, reference-folder writes, migration edits, and pglite config changes; none are present in the packet.",
+    "Silent failure \u2014 reviewed new filtering, media-query, sheet close, and status fallback paths for swallowed errors or masking required states; no packet-supported silent failure found."
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}
