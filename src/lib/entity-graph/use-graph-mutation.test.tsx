@@ -130,3 +130,33 @@ describe("useGraphMutation", () => {
     );
   });
 });
+
+describe("useGraphMutation concurrency", () => {
+  it("resolves overlapping calls with their own results", async () => {
+    const { wrapper } = createGraphTestHarness();
+    const resolvers = new Map<string, (v: Item) => void>();
+    const { result } = renderHook(
+      () =>
+        useGraphMutation<string, Item>({
+          type: ENTITY.Skill,
+          mutate: (id) => new Promise<Item>((r) => resolvers.set(id, r)),
+        }),
+      { wrapper },
+    );
+
+    let first!: Promise<Item>;
+    let second!: Promise<Item>;
+    act(() => {
+      first = result.current.mutateAsync("a");
+      second = result.current.mutateAsync("b");
+    });
+    await waitFor(() => expect(resolvers.size).toBe(2));
+    await act(async () => {
+      resolvers.get("b")!({ id: "b", enabled: false });
+      resolvers.get("a")!({ id: "a", enabled: true });
+      await Promise.all([first, second]);
+    });
+    await expect(first).resolves.toEqual({ id: "a", enabled: true });
+    await expect(second).resolves.toEqual({ id: "b", enabled: false });
+  });
+});

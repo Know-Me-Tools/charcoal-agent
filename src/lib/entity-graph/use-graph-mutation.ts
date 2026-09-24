@@ -40,18 +40,17 @@ export interface GraphMutationResult<TInput, TRaw> {
   reset: () => void;
 }
 
-interface CallRecord<TInput, TRaw> {
+interface CallRecord<TRaw> {
   error: Error | null;
   result: TRaw | undefined;
+}
+
+/** Each call carries its own token so overlapping calls never share results. */
+interface TokenedInput<TInput> {
+  token: number;
   input: TInput;
 }
 
-/**
- * Graph-aware mutation with the call surface pages already use
- * (`mutate(input, { onSuccess })`, `isPending`, `error`, `variables`).
- * Writes, optimistic patches and rollback are handled by `useEntityMutation`;
- * this adapter adds type-level invalidation and keeps the real `Error`.
- */
 export function useGraphMutation<TInput, TRaw, TEntity extends object = Record<string, unknown>>(
   opts: GraphMutationOptions<TInput, TRaw, TEntity>,
 ): GraphMutationResult<TInput, TRaw> {
@@ -61,28 +60,31 @@ export function useGraphMutation<TInput, TRaw, TEntity extends object = Record<s
   useLayoutEffect(() => {
     optsRef.current = opts;
   });
-  const lastCall = useRef<CallRecord<TInput, TRaw> | null>(null);
+  const calls = useRef(new Map<number, CallRecord<TRaw>>());
+  const nextToken = useRef(0);
 
   const [data, setData] = useState<TRaw | undefined>(undefined);
   const [variables, setVariables] = useState<TInput | undefined>(undefined);
   const [error, setError] = useState<Error | null>(null);
 
-  const entityMutation = useEntityMutation<TInput, TRaw, TEntity>({
+  const entityMutation = useEntityMutation<TokenedInput<TInput>, TRaw, TEntity>({
     type: opts.type,
-    mutate: (input) => optsRef.current.mutate(input),
-    normalize: opts.normalize ? (raw, input) => optsRef.current.normalize!(raw, input) : undefined,
-    optimistic: opts.optimistic ? (input) => optsRef.current.optimistic!(input) : undefined,
-    onSuccess: (result, input) => {
+    mutate: ({ input }) => optsRef.current.mutate(input),
+    normalize: opts.normalize ? (raw, { input }) => optsRef.current.normalize!(raw, input) : undefined,
+    optimistic: opts.optimistic ? ({ input }) => optsRef.current.optimistic!(input) : undefined,
+    onSuccess: (result, { token, input }) => {
       const store = storeApi.getState();
       for (const type of optsRef.current.invalidateTypes ?? []) invalidateEntityType(storeApi, type);
       for (const { type, id } of optsRef.current.invalidateEntities?.(input) ?? []) {
         store.invalidateEntity(type, id);
       }
-      if (lastCall.current) lastCall.current.result = result;
+      const call = calls.current.get(token);
+      if (call) call.result = result;
       optsRef.current.onSuccess?.(result, input);
     },
-    onError: (err, input) => {
-      if (lastCall.current) lastCall.current.error = err;
+    onError: (err, { token, input }) => {
+      const call = calls.current.get(token);
+      if (call) call.error = err;
       optsRef.current.onError?.(err, input);
     },
   });
@@ -91,11 +93,16 @@ export function useGraphMutation<TInput, TRaw, TEntity extends object = Record<s
 
   const mutateAsync = useCallback(
     async (input: TInput): Promise<TRaw> => {
-      const call: CallRecord<TInput, TRaw> = { error: null, result: undefined, input };
-      lastCall.current = call;
+      const token = ++nextToken.current;
+      const call: CallRecord<TRaw> = { error: null, result: undefined };
+      calls.current.set(token, call);
       setVariables(input);
       setError(null);
-      await runMutation(input);
+      try {
+        await runMutation({ token, input });
+      } finally {
+        calls.current.delete(token);
+      }
       if (call.error) {
         setError(call.error);
         throw call.error;

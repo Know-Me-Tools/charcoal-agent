@@ -6,8 +6,10 @@
 export const ENTITY = {
   Agent: "Agent",
   Provider: "Provider",
-  /** id: `${providerId}::${modelId}` — models are scoped to their provider. */
+  /** id: `${providerId}::${modelId}` — one record per model, scoped to its provider. */
   ProviderModel: "ProviderModel",
+  /** id: provider id — the ordered model ids a provider offers. */
+  ProviderModelSet: "ProviderModelSet",
   /** Singleton (`REGISTRY_ID`) holding the runtime's default provider id. */
   ProviderRegistry: "ProviderRegistry",
   Skill: "Skill",

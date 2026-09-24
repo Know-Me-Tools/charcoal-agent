@@ -1,6 +1,8 @@
-import { useEntity } from "@prometheus-ags/prometheus-entity-management";
+import { useStore } from "zustand";
+import { useShallow } from "zustand/react/shallow";
+import { useEntity, useGraphStoreApi } from "@prometheus-ags/prometheus-entity-management";
 import { api } from "@/lib/api-client";
-import { ENTITY, REGISTRY_ID } from "@/lib/entity-graph/entities";
+import { ENTITY, REGISTRY_ID, providerModelId } from "@/lib/entity-graph/entities";
 import { toQueryResult, type QueryResult } from "@/lib/entity-graph/query-result";
 import { fetchProvidersResponse } from "@/lib/entity-graph/transports";
 import { useGraphMutation } from "@/lib/entity-graph/use-graph-mutation";
@@ -24,9 +26,9 @@ interface ProviderRegistry {
   defaultId: string | undefined;
 }
 
-interface ProviderModels {
+interface ProviderModelSet {
   id: string;
-  models: UarModel[];
+  modelIds: string[];
 }
 
 /** Everything a provider change can affect: the list and the default-id registry. */
@@ -55,16 +57,42 @@ export function useProviders(): QueryResult<ProvidersResult> {
   return { ...list, data: list.data ? value : undefined };
 }
 
-/** Models for one provider (GET /api/providers/{id}/models), cached per provider. */
+/**
+ * Models for one provider (GET /api/providers/{id}/models). Each model is its
+ * own graph record (`ProviderModel`, id `${providerId}::${modelId}`); the
+ * provider's `ProviderModelSet` keeps their order.
+ */
 export function useProviderModels(providerId: string | undefined): QueryResult<UarModel[]> {
-  const result = useEntity<UarModel[], ProviderModels>({
-    type: ENTITY.ProviderModel,
+  const storeApi = useGraphStoreApi();
+  const set = useEntity<UarModel[], ProviderModelSet>({
+    type: ENTITY.ProviderModelSet,
     id: providerId,
-    fetch: (id) => api.get<UarModel[]>(`/api/providers/${id}/models`),
-    normalize: (models) => ({ id: providerId ?? "", models: Array.isArray(models) ? models : [] }),
+    fetch: async (id) => {
+      const raw = await api.get<UarModel[]>(`/api/providers/${id}/models`);
+      const models = Array.isArray(raw) ? raw : [];
+      const graph = storeApi.getState();
+      for (const model of models) {
+        const key = providerModelId(String(id), model.id);
+        graph.upsertEntity(ENTITY.ProviderModel, key, { ...model });
+        graph.setEntityFetched(ENTITY.ProviderModel, key);
+      }
+      return models;
+    },
+    normalize: (models) => ({
+      id: providerId ?? "",
+      modelIds: models.map((m) => providerModelId(providerId ?? "", m.id)),
+    }),
     enabled: !!providerId,
   });
-  return toQueryResult(result, result.data?.models ?? [], !!result.data);
+  const models = useStore(
+    storeApi,
+    useShallow((state) =>
+      (set.data?.modelIds ?? [])
+        .map((key) => state.readEntity<UarModel>(ENTITY.ProviderModel, key))
+        .filter((m): m is UarModel => m !== null),
+    ),
+  );
+  return toQueryResult(set, models, !!set.data);
 }
 
 export function useCreateProvider() {
@@ -81,7 +109,7 @@ export function useUpdateProvider() {
     mutate: ({ id, ...payload }) => api.put<UarProvider>(`/api/providers/${id}`, payload),
     normalize: (provider, input) => ({ id: provider?.id ?? input.id, data: provider }),
     invalidateTypes: PROVIDER_TYPES,
-    invalidateEntities: (input) => [{ type: ENTITY.ProviderModel, id: input.id }],
+    invalidateEntities: (input) => [{ type: ENTITY.ProviderModelSet, id: input.id }],
   });
 }
 

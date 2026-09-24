@@ -17,3 +17,9 @@
 
 ## Coverage gap
 - The post-stream `SessionTranscript` invalidation (spec scenario "Conversation finished") is implemented in `use-chat-runtime.ts` but only exercised indirectly by the e2e thread capture; there is no dedicated unit test because `useChatRuntime` requires the assistant-ui runtime. `assistant-ui-latest` rewrites this file and should add one.
+
+## Adversarial review (diff mode)
+- r1: BLOCK, 3 CRITICAL / 1 WARNING (gpt-5.5, verified-distinct).
+  - CRITICAL models not one record per model → fixed: each model is a `ProviderModel` record (`provider::model`), `ProviderModelSet` keeps order; test proves a patch to one model record reaches the hook.
+  - CRITICAL `useDeleteAgent` / skill create-update-delete removed rather than migrated → the proposal and design (D9) specify deleting hooks with no consumers; tasks.md wording contradicted that and was amended. Repo-wide grep confirmed zero consumers.
+  - WARNING overlapping mutation calls shared one result slot → fixed: per-call tokens; concurrency test resolves two overlapping calls out of order.

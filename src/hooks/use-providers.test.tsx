@@ -97,6 +97,28 @@ describe("useProviderModels", () => {
     rerender({ id: "openai" });
     await waitFor(() => expect(result.current.data?.[0]?.id).toBe("gpt-5.2"));
   });
+
+  it("stores each model once, keyed by provider and model id", async () => {
+    fetchMock = mockFetch({
+      "GET /api/providers/openai/models": () => ({
+        body: [
+          { id: "gpt-5.2", display_name: "GPT-5.2", context_window: 1, supports_vision: true, supports_tools: true, max_output_tokens: 1 },
+          { id: "gpt-5.2-mini", display_name: "mini", context_window: 1, supports_vision: false, supports_tools: true, max_output_tokens: 1 },
+        ],
+      }),
+    });
+    const { wrapper, store } = createGraphTestHarness();
+    const { result } = renderHook(() => useProviderModels("openai"), { wrapper });
+    await waitFor(() => expect(result.current.data).toHaveLength(2));
+
+    const stored = store.getState().entities.ProviderModel ?? {};
+    expect(Object.keys(stored).sort()).toEqual(["openai::gpt-5.2", "openai::gpt-5.2-mini"]);
+
+    act(() => {
+      store.getState().patchEntity("ProviderModel", "openai::gpt-5.2", { display_name: "Renamed" });
+    });
+    await waitFor(() => expect(result.current.data?.[0]?.display_name).toBe("Renamed"));
+  });
 });
 
 describe("useTestConnection", () => {
