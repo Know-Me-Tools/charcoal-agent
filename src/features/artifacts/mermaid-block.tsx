@@ -14,6 +14,7 @@ import {
 	useState,
 } from "react";
 import { Button } from "@/components/ui/button";
+import { useUiStore } from "@/stores/ui-store";
 import { cn } from "@/lib/utils";
 
 // Lazy mermaid import
@@ -22,30 +23,42 @@ let mermaidLoadPromise: Promise<typeof import("mermaid").default> | null = null;
 
 async function getMermaid() {
 	if (mermaidModule) return mermaidModule;
-	if (mermaidLoadPromise) return mermaidLoadPromise;
-
-	mermaidLoadPromise = import("mermaid").then((m) => {
+	mermaidLoadPromise ??= import("mermaid").then((m) => {
 		mermaidModule = m.default;
-		const isDark = document.documentElement.classList.contains("dark");
-		mermaidModule.initialize({
-			startOnLoad: false,
-			theme: isDark ? "dark" : "default",
-			fontFamily: "JetBrains Mono, monospace",
-			themeVariables: {
-				primaryColor: isDark ? "#ff6a3d" : "#e04e28",
-				primaryTextColor: isDark ? "#e8edf3" : "#0b0f14",
-				primaryBorderColor: isDark ? "#233041" : "#d8dee6",
-				lineColor: isDark ? "#a7b0bc" : "#4b5563",
-				background: isDark ? "#0f1620" : "#ffffff",
-				mainBkg: isDark ? "#141c26" : "#f7f7f8",
-				edgeLabelBackground: isDark ? "#141c26" : "#f7f7f8",
-				nodeTextColor: isDark ? "#e8edf3" : "#0b0f14",
-			},
-		});
 		return mermaidModule;
 	});
-
 	return mermaidLoadPromise;
+}
+
+/** Read a KnowMe token from the active theme (see src/styles/tokens.css). */
+function token(name: string): string {
+	return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+/** Point Mermaid at the current theme's KnowMe tokens (called before each render). */
+function applyMermaidTheme(mermaid: typeof import("mermaid").default, isDark: boolean): void {
+	mermaid.initialize({
+		startOnLoad: false,
+		// Built-in themes keep Mermaid's layout metrics; token colors override them.
+		theme: isDark ? "dark" : "default",
+		fontFamily: "JetBrains Mono, monospace",
+		themeVariables: {
+			primaryColor: token("--km-raised"),
+			primaryTextColor: token("--km-fg"),
+			primaryBorderColor: token("--km-fg-faint"),
+			nodeBorder: token("--km-fg-faint"),
+			clusterBorder: token("--km-fg-faint"),
+			clusterBkg: token("--km-surface"),
+			lineColor: token("--km-fg-secondary"),
+			background: token("--km-code"),
+			mainBkg: token("--km-raised"),
+			secondaryColor: token("--km-hover"),
+			tertiaryColor: token("--km-surface"),
+			edgeLabelBackground: token("--km-surface"),
+			nodeTextColor: token("--km-fg"),
+			textColor: token("--km-fg"),
+		},
+	});
 }
 
 // Simple error boundary
@@ -72,7 +85,7 @@ class MermaidErrorBoundary extends Component<
 	render() {
 		if (this.state.hasError) {
 			return (
-				<div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-destructive text-sm">
+				<div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-danger-text text-sm">
 					<AlertCircleIcon size={14} />
 					<span className="font-mono text-xs">Diagram error</span>
 					<Button
@@ -106,6 +119,8 @@ const MermaidRenderer: FC<MermaidBlockProps> = ({ source, className }) => {
 	const [error, setError] = useState<string | null>(null);
 	const [isCopied, setIsCopied] = useState(false);
 	const idRef = useRef(`mermaid-${++mermaidIdCounter}`);
+	// Re-render when the theme changes so the diagram follows the tokens.
+	const theme = useUiStore((s) => s.theme);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -115,6 +130,7 @@ const MermaidRenderer: FC<MermaidBlockProps> = ({ source, className }) => {
 		getMermaid()
 			.then(async (mermaid) => {
 				try {
+					applyMermaidTheme(mermaid, theme === "dark");
 					const { svg: rendered } = await mermaid.render(
 						idRef.current,
 						source.trim(),
@@ -139,7 +155,7 @@ const MermaidRenderer: FC<MermaidBlockProps> = ({ source, className }) => {
 		return () => {
 			cancelled = true;
 		};
-	}, [source]);
+	}, [source, theme]);
 
 	const handleCopy = () => {
 		navigator.clipboard.writeText(source).then(() => {
@@ -157,7 +173,7 @@ const MermaidRenderer: FC<MermaidBlockProps> = ({ source, className }) => {
 				)}
 			>
 				<div className="flex items-center justify-between border-b border-border/50 bg-muted/50 px-3 py-1.5">
-					<span className="font-mono text-[11px] text-primary">mermaid</span>
+					<span className="font-mono text-[11px] text-ember-text">mermaid</span>
 					<Button
 						variant="ghost"
 						size="sm"
@@ -170,10 +186,10 @@ const MermaidRenderer: FC<MermaidBlockProps> = ({ source, className }) => {
 				<div className="flex items-start gap-2 p-3">
 					<AlertCircleIcon
 						size={14}
-						className="mt-0.5 shrink-0 text-destructive"
+						className="mt-0.5 shrink-0 text-danger-text"
 					/>
 					<div>
-						<p className="font-mono text-xs text-destructive">
+						<p className="font-mono text-xs text-danger-text">
 							Diagram parse error
 						</p>
 						<p className="mt-1 font-mono text-[10px] text-muted-foreground">
@@ -194,7 +210,7 @@ const MermaidRenderer: FC<MermaidBlockProps> = ({ source, className }) => {
 		>
 			{/* Header */}
 			<div className="flex items-center justify-between border-b border-border/50 bg-muted/50 px-3 py-1.5">
-				<span className="font-mono text-[11px] text-primary lowercase">
+				<span className="font-mono text-[11px] text-ember-text lowercase">
 					{"// diagram"}
 				</span>
 				<Button

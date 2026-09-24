@@ -19,7 +19,7 @@ function ChatErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
         {/* Header */}
         <div className="flex items-start gap-3">
           <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-destructive/10">
-            <AlertTriangle size={18} className="text-destructive" />
+            <AlertTriangle size={18} className="text-danger-text" />
           </span>
           <div>
             <h2 className="font-display text-base font-semibold text-foreground">

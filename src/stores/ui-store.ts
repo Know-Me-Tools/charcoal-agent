@@ -1,55 +1,76 @@
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
-type FontSize = "compact" | "default" | "comfortable";
+export type Theme = "dark" | "light";
+export type FontSize = "compact" | "default" | "comfortable";
+
+/** localStorage key read by the pre-paint script in index.html — keep in sync. */
+export const UI_STORAGE_KEY = "knowme:ui";
 
 interface UiState {
   rightPanelOpen: boolean;
   mobileSidebarOpen: boolean;
-  theme: "dark" | "light";
+  theme: Theme;
   fontSize: FontSize;
   toggleRightPanel: () => void;
   setMobileSidebarOpen: (open: boolean) => void;
   toggleMobileSidebar: () => void;
-  setTheme: (theme: "dark" | "light") => void;
+  setTheme: (theme: Theme) => void;
   setFontSize: (size: FontSize) => void;
 }
 
+/** Reflect theme and font size on <html> (the `.dark` class drives the tokens). */
+export function applyUiPreferences(theme: Theme, fontSize: FontSize): void {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  root.classList.toggle("dark", theme === "dark");
+  root.dataset.fontSize = fontSize;
+}
+
 export const useUiStore = create<UiState>()(
-  immer((set) => ({
-    rightPanelOpen: true,
-    mobileSidebarOpen: false,
-    theme: "dark",
-    fontSize: "default",
+  persist(
+    immer((set) => ({
+      rightPanelOpen: true,
+      mobileSidebarOpen: false,
+      theme: "dark",
+      fontSize: "default",
 
-    toggleRightPanel: () =>
-      set((state) => {
-        state.rightPanelOpen = !state.rightPanelOpen;
-      }),
+      toggleRightPanel: () =>
+        set((state) => {
+          state.rightPanelOpen = !state.rightPanelOpen;
+        }),
 
-    setMobileSidebarOpen: (open) =>
-      set((state) => {
-        state.mobileSidebarOpen = open;
-      }),
+      setMobileSidebarOpen: (open) =>
+        set((state) => {
+          state.mobileSidebarOpen = open;
+        }),
 
-    toggleMobileSidebar: () =>
-      set((state) => {
-        state.mobileSidebarOpen = !state.mobileSidebarOpen;
-      }),
+      toggleMobileSidebar: () =>
+        set((state) => {
+          state.mobileSidebarOpen = !state.mobileSidebarOpen;
+        }),
 
-    setTheme: (theme) =>
-      set((state) => {
-        state.theme = theme;
-        if (theme === "dark") {
-          document.documentElement.classList.add("dark");
-        } else {
-          document.documentElement.classList.remove("dark");
-        }
-      }),
+      setTheme: (theme) =>
+        set((state) => {
+          state.theme = theme;
+          applyUiPreferences(theme, state.fontSize);
+        }),
 
-    setFontSize: (size) =>
-      set((state) => {
-        state.fontSize = size;
-      }),
-  })),
+      setFontSize: (size) =>
+        set((state) => {
+          state.fontSize = size;
+          applyUiPreferences(state.theme, size);
+        }),
+    })),
+    {
+      name: UI_STORAGE_KEY,
+      storage: createJSONStorage(() => localStorage),
+      // Only preferences persist; panel/drawer state is per session.
+      partialize: (state) => ({ theme: state.theme, fontSize: state.fontSize }),
+      onRehydrateStorage: () => (state) => {
+        if (state) applyUiPreferences(state.theme, state.fontSize);
+      },
+    },
+  ),
 );

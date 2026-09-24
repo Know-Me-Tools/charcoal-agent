@@ -151,7 +151,7 @@ const enhancedComponents = memoizeMarkdownComponents({
   a: ({ className, ...props }) => (
     <a
       className={cn(
-        "text-primary underline underline-offset-2 hover:text-primary/80",
+        "text-ember-text underline underline-offset-2 hover:text-primary/80",
         className,
       )}
       target="_blank"
@@ -238,7 +238,7 @@ const enhancedComponents = memoizeMarkdownComponents({
   ),
   sup: ({ className, ...props }) => (
     <sup
-      className={cn("[&>a]:text-xs [&>a]:no-underline [&>a]:text-primary", className)}
+      className={cn("[&>a]:text-xs [&>a]:no-underline [&>a]:text-ember-text", className)}
       {...props}
     />
   ),

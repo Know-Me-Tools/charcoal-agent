@@ -21,7 +21,7 @@ export function MobileBottomNav() {
             key={item.to}
             to={item.to}
             className={`flex flex-1 flex-col items-center justify-center gap-0.5 py-1 font-ui text-[10px] font-semibold transition-hover ${
-              isActive ? "text-primary" : "text-muted-foreground"
+              isActive ? "text-ember-text" : "text-muted-foreground"
             }`}
           >
             <item.icon size={20} />

@@ -103,7 +103,7 @@ function AgentMemoryPanel({ agent }: { agent: Agent }) {
   return (
     <div className="mt-3 rounded-lg border border-border bg-background p-3">
       <div className="mb-2 flex items-center gap-1.5">
-        <Brain size={12} className="text-primary" />
+        <Brain size={12} className="text-ember-text" />
         <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
           Memory (per-agent override)
         </span>
@@ -163,7 +163,7 @@ function AgentMemoryPanel({ agent }: { agent: Agent }) {
           <span className="font-mono text-[11px] text-green-400">Saved ✓</span>
         )}
         {updateMemory.isError && (
-          <span className="font-mono text-[11px] text-destructive">
+          <span className="font-mono text-[11px] text-danger-text">
             {(updateMemory.error as Error).message}
           </span>
         )}
@@ -194,11 +194,11 @@ function AgentCard({ agent }: { agent: Agent }) {
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary/10">
-              <Bot size={20} className="text-primary" />
+              <Bot size={20} className="text-ember-text" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="truncate font-display text-sm font-semibold text-foreground group-hover:text-primary">
+                <span className="truncate font-display text-sm font-semibold text-foreground group-hover:text-ember-text">
                   {agent.name}
                 </span>
                 <span

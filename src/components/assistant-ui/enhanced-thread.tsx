@@ -112,14 +112,14 @@ const KnowMeWelcome: FC = () => {
 				<div className="flex size-full flex-col items-center justify-center gap-4 px-4 text-center">
 					{/* Brand mark */}
 					<div className="flex items-center justify-center rounded-2xl border border-border/50 bg-muted/30 p-4">
-						<SparklesIcon size={28} className="text-primary" />
+						<SparklesIcon size={28} className="text-ember-text" />
 					</div>
 
 					<div className="space-y-1">
 						<h1 className="font-display font-semibold text-2xl tracking-tight text-foreground">
 							KnowMe
 						</h1>
-						<p className="font-mono text-[11px] text-primary">
+						<p className="font-mono text-[11px] text-ember-text">
 							{"// No threads yet"}
 						</p>
 					</div>
@@ -203,7 +203,7 @@ const ComposerActionBar: FC<ComposerProps> = ({ promptCachingEnabled, onTogglePr
 									className={cn(
 										"flex size-7 items-center justify-center rounded-md transition-colors",
 										isCachingOn
-											? "text-primary hover:text-primary/70"
+											? "text-ember-text hover:text-primary/70"
 											: "text-muted-foreground/50 hover:text-muted-foreground",
 									)}
 								/>
@@ -271,7 +271,7 @@ const UserAvatar: FC = () => (
 const AgentAvatar: FC = () => (
 	<div className="flex flex-col items-center gap-1 pt-0.5">
 		<Avatar className="size-8 ring-1 ring-primary/30">
-			<AvatarFallback className="bg-primary/15 text-primary">
+			<AvatarFallback className="bg-primary/15 text-ember-text">
 				<SparklesIcon size={14} />
 			</AvatarFallback>
 		</Avatar>

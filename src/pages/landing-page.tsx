@@ -110,7 +110,7 @@ export default function LandingPage() {
 					<h1 className="font-display text-4xl font-bold text-foreground tracking-[-0.04em] sm:text-5xl md:text-6xl">
 						AI that knows
 						<br />
-						<span className="text-primary">you.</span>
+						<span className="text-ember-text">you.</span>
 					</h1>
 					<p className="mx-auto mt-6 max-w-lg font-body text-base leading-relaxed text-muted-foreground sm:text-lg">
 						Your personal agent operating system — it remembers, adapts, and
@@ -143,7 +143,7 @@ export default function LandingPage() {
 								</span>
 								<Link
 									to="/threads"
-									className="flex items-center gap-1 font-ui text-[11px] font-semibold text-muted-foreground transition-hover hover:text-primary"
+									className="flex items-center gap-1 font-ui text-[11px] font-semibold text-muted-foreground transition-hover hover:text-ember-text"
 								>
 									Browse threads <ArrowRight size={10} />
 								</Link>
@@ -162,7 +162,7 @@ export default function LandingPage() {
 							className="rounded-lg border border-border bg-card p-6"
 						>
 							<div className="mb-3 flex h-10 w-10 items-center justify-center rounded-md bg-primary/10">
-								<f.icon size={20} className="text-primary" />
+								<f.icon size={20} className="text-ember-text" />
 							</div>
 							<h3 className="font-display text-base font-semibold text-foreground">
 								{f.title}

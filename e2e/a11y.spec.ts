@@ -7,7 +7,7 @@ import fs from "node:fs";
 import path from "node:path";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "./support/test";
-import { openRoute, setTheme } from "./support/page-helpers";
+import { openRoute, seedTheme } from "./support/page-helpers";
 import { APP_ROUTES, THEMES, VIEWPORT_HEIGHT } from "./support/routes";
 
 const STRICT = process.env.AXE_STRICT === "1";
@@ -27,8 +27,8 @@ for (const route of APP_ROUTES) {
   for (const theme of THEMES) {
     test(`a11y › ${route.name} › ${theme}`, async ({ page }, testInfo) => {
       await page.setViewportSize({ width: WIDTH, height: VIEWPORT_HEIGHT });
+      await seedTheme(page, theme);
       await openRoute(page, route);
-      await setTheme(page, theme);
 
       const results = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])

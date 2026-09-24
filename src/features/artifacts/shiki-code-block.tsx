@@ -2,6 +2,7 @@ import { useState, useEffect, type FC } from "react";
 import type { Highlighter } from "shiki";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUiStore } from "@/stores/ui-store";
 
 // Lazy singleton highlighter
 let highlighterPromise: Promise<Highlighter> | null = null;
@@ -54,6 +55,9 @@ export const ShikiCodeBlock: FC<ShikiCodeBlockProps> = ({
   const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
 
+  // Re-highlight when the theme changes.
+  const theme = useUiStore((s) => s.theme);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -64,13 +68,11 @@ export const ShikiCodeBlock: FC<ShikiCodeBlockProps> = ({
           ? language
           : "text";
 
-        // Detect dark/light from document
-        const isDark = document.documentElement.classList.contains("dark");
-        const theme = isDark ? "github-dark-dimmed" : "github-light";
+        const shikiTheme = theme === "dark" ? "github-dark-dimmed" : "github-light";
 
         const html = hl.codeToHtml(code, {
           lang: safeLanguage,
-          theme,
+          theme: shikiTheme,
           transformers: showLineNumbers
             ? [
                 {
@@ -91,7 +93,7 @@ export const ShikiCodeBlock: FC<ShikiCodeBlockProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [code, language, showLineNumbers]);
+  }, [code, language, showLineNumbers, theme]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code).then(() => {
@@ -130,14 +132,14 @@ export const ShikiCodeBlock: FC<ShikiCodeBlockProps> = ({
       {highlightedHtml ? (
         <div
           className={cn(
-            "overflow-x-auto bg-muted/30 p-3 text-xs leading-relaxed [&_pre]:bg-transparent! [&_pre]:p-0!",
+            "overflow-x-auto bg-code p-3 text-xs leading-relaxed [&_pre]:bg-transparent! [&_pre]:p-0!",
             showLineNumbers &&
               "[&_.line]:relative [&_.line]:pl-10 [&_.line]:before:absolute [&_.line]:before:left-0 [&_.line]:before:w-8 [&_.line]:before:text-right [&_.line]:before:text-muted-foreground/50 [&_.line]:before:content-[attr(data-line)]",
           )}
           dangerouslySetInnerHTML={{ __html: highlightedHtml }}
         />
       ) : (
-        <pre className="overflow-x-auto bg-muted/30 p-3 font-mono text-xs leading-relaxed text-foreground">
+        <pre className="overflow-x-auto bg-code p-3 font-mono text-xs leading-relaxed text-foreground">
           <code>{code}</code>
         </pre>
       )}

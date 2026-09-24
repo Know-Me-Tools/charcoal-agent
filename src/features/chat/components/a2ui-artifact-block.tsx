@@ -119,7 +119,7 @@ export const A2uiInputBlock: FC<A2uiInputBlockProps> = ({
   return (
     <Card className="my-2 border-primary/25 bg-primary/5 p-3 shadow-none">
       <div className="mb-2 flex items-center gap-2">
-        <PanelTopOpenIcon size={12} className="text-primary" />
+        <PanelTopOpenIcon size={12} className="text-ember-text" />
         <span className="font-mono text-[10px] uppercase tracking-widest text-primary/90">
           A2UI Input
         </span>
@@ -299,13 +299,13 @@ export const A2uiInputBlock: FC<A2uiInputBlockProps> = ({
           </span>
         )}
         {!submitting && (submitted || resolved) && (
-          <span className="inline-flex items-center gap-1 font-mono text-[10px] text-success">
+          <span className="inline-flex items-center gap-1 font-mono text-[10px] text-success-text">
             <CheckCircle2Icon size={10} />
             Response captured
           </span>
         )}
         {submitError && (
-          <span className="font-mono text-[10px] text-destructive">{submitError}</span>
+          <span className="font-mono text-[10px] text-danger-text">{submitError}</span>
         )}
       </div>
 
