@@ -104,6 +104,10 @@ export function useProviderModels(providerId: string | undefined): QueryResult<U
         .filter((m): m is UarModel => m !== null),
     ),
   );
+  if (!providerId) {
+    // Disabled query: no data rather than an empty list.
+    return { data: undefined, isLoading: false, isError: false, error: null };
+  }
   return toQueryResult(set, models, !!set.data);
 }
 

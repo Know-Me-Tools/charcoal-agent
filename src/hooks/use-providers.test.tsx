@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { createGraphTestHarness } from "@/test/utils/graph-wrapper";
 import { mockFetch, type FetchMock } from "@/test/utils/mock-fetch";
 import {
+  useSetDefaultProvider,
   useCreateProvider,
   useDeleteProvider,
   useProviderModels,
@@ -50,6 +51,27 @@ describe("useProviders", () => {
     const { result } = renderHook(() => useProviders(), { wrapper });
     expect(result.current.data).toBeUndefined();
     await waitFor(() => expect(result.current.data?.defaultId).toBe("openai"));
+  });
+
+  it("refreshes the default id after setting a new default", async () => {
+    let defaultId = "openai";
+    fetchMock = mockFetch({
+      "GET /api/providers": () => ({ body: { providers: [openai, anthropic], default_id: defaultId } }),
+      "POST /api/providers/anthropic/default": () => {
+        defaultId = "anthropic";
+        return { body: {} };
+      },
+    });
+    const { wrapper } = createGraphTestHarness();
+    const { result } = renderHook(() => ({ list: useProviders(), setDefault: useSetDefaultProvider() }), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.list.data?.defaultId).toBe("openai"));
+
+    await act(async () => {
+      await result.current.setDefault.mutateAsync("anthropic");
+    });
+    await waitFor(() => expect(result.current.list.data?.defaultId).toBe("anthropic"));
   });
 
   it("accepts the legacy flat-array response", async () => {
@@ -113,6 +135,7 @@ describe("useProviderModels", () => {
       initialProps: { id: undefined as string | undefined },
     });
     expect(fetchMock.calls).toHaveLength(0);
+    expect(result.current.data).toBeUndefined();
 
     rerender({ id: "openai" });
     await waitFor(() => expect(result.current.data?.[0]?.id).toBe("gpt-5.2"));
