@@ -45,3 +45,4 @@
 - r9: BLOCK, 1 CRITICAL / 1 WARNING — both fixed:
   - A failed first list load returned `[]` → `toQueryResult` now yields data only after a successful load; `useRuntimeList` tracks `lastFetched` without error. Tests: failed load → `data` undefined; empty runtime → `data` `[]`.
   - Coverage gap for the post-stream transcript invalidation → closed with a focused `useChatRuntime` test (mutation-checked).
+- r10: BLOCK, 1 CRITICAL — dependency ranges `^4.0.2` vs the plan's exact pin → fixed: both entity-graph packages pinned to `4.0.2` (`--save-exact`); lockfile unchanged in resolution; build and 51 unit tests pass.
