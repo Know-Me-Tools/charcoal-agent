@@ -11,7 +11,7 @@
 
 ## 3. Verify behavior
 
-- [ ] 3.1 Add an e2e spec: stream the fixture, assert every block type is visible, reload the thread and assert the conversation and its blocks are restored from local storage with no chat request; keep the runtime conversion contract under unit test (metadata on every message, `attachments: []` on user messages)
+- [x] 3.1 Add an e2e spec: stream the fixture, assert every block type is visible, reload the thread and assert the conversation and its blocks are restored from local storage with no chat request; keep the runtime conversion contract under unit test (metadata on every message, `attachments: []` on user messages)
 
 ## 4. Verification
 
