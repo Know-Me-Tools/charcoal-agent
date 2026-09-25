@@ -2,26 +2,26 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 421,
-  "derivedRevision": 421,
+  "sourceRevision": 422,
+  "derivedRevision": 422,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 421
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 422
   },
   "conflictCount": 0,
   "phase": "complete-rebranding",
   "phaseId": "complete-rebranding",
   "parentPhase": null,
-  "last_updated": "2026-09-25T13:32:30.327539Z",
+  "last_updated": "2026-09-25T13:33:49.510974Z",
   "last_updated_by": "kbd-runtime",
-  "changes_total": 12,
+  "changes_total": 13,
   "changes_completed": 9,
-  "implementation_total": 12,
+  "implementation_total": 13,
   "implementation_completed": 9,
   "completion": {
     "primaryCounter": "implementation",
     "implementation": {
       "completed": 9,
-      "total": 12,
+      "total": 13,
       "status": "IN_PROGRESS"
     },
     "evidence": {
@@ -50,7 +50,7 @@
     "primaryCounter": "implementation",
     "implementation": {
       "completed": 9,
-      "total": 12,
+      "total": 13,
       "status": "IN_PROGRESS"
     },
     "evidence": {
@@ -155,6 +155,17 @@
       "tasks_total": 6,
       "tasks_done": 6,
       "last_task_completed": "4.1 Verification",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "chat-persistence-durability",
+      "title": "Durable chat persistence: awaited writes, pagehide flush, reload e2e",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 0,
+      "tasks_done": 0,
+      "last_task_completed": null,
       "next_task_pending": null,
       "blockers": []
     },

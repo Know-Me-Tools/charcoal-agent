@@ -2,10 +2,10 @@
   "schemaVersion": "5",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 421,
-  "derivedRevision": 421,
+  "sourceRevision": 422,
+  "derivedRevision": 422,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 421
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 422
   },
   "conflictCount": 0,
   "projectId": "440c5818-223c-4091-8b7f-bc8083505a3c",
@@ -21,7 +21,7 @@
   "phase": "complete-rebranding",
   "parentPhase": null,
   "childPointer": null,
-  "change": "landing-and-about-brand",
+  "change": "chat-persistence-durability",
   "currentTask": null,
   "status": "ready",
   "lifecycle": "ready",
@@ -29,11 +29,11 @@
   "stageStatus": "IN_PROGRESS",
   "completionMetric": "implementation",
   "implementationCompleted": 9,
-  "implementationTotal": 12,
+  "implementationTotal": 13,
   "planRevision": 2,
-  "revision": 421,
+  "revision": 422,
   "exactNextCommand": "/opsx:continue tailwind-v4-foundation",
-  "nextChange": "landing-and-about-brand",
+  "nextChange": "chat-persistence-durability",
   "nextTask": null,
-  "updatedAt": "2026-09-25T13:32:30.327539Z"
+  "updatedAt": "2026-09-25T13:33:49.510974Z"
 }
