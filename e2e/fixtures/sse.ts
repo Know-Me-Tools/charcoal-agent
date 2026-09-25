@@ -15,7 +15,15 @@ export const FIXTURE_FINAL_TEXT = "That covers everything for this week.";
 export const LONG_TOOL_NAME =
   "calendar_list_events_for_the_current_and_upcoming_fiscal_quarter_across_every_connected_calendar_and_timezone";
 
-type SseEvent = { event: string; data: Record<string, unknown> };
+/** Tool names for the running (never resolves) and failed tool-call states. */
+export const RUNNING_TOOL_NAME = "send_calendar_invite";
+export const FAILED_TOOL_NAME = "sync_contacts";
+export const FAILED_TOOL_RESULT = "Contacts provider unavailable";
+
+/** Title of the HTML artifact fence in `ASSISTANT_MARKDOWN` (chat-surfaces spec scenario 11). */
+export const HTML_ARTIFACT_LABEL = "html artifact";
+
+export type SseEvent = { event: string; data: Record<string, unknown> };
 
 const rid = FIXTURE_REQUEST_ID;
 
@@ -29,6 +37,7 @@ const ASSISTANT_MARKDOWN = [
   "Inline math also renders: $e^{i\\pi} + 1 = 0$.\n\n",
   "```mermaid\ngraph LR\n  Plan --> Build --> Review\n```\n\n",
   "A long identifier that must wrap: https://know-me.tools/very/long/path/that/keeps/going/without/any/spaces/at/all/to/check/wrapping/behaviour/in/narrow/viewports\n\n",
+  "```html\n<!doctype html>\n<html>\n  <head>\n    <title>Rebrand quick look</title>\n  </head>\n  <body>\n    <h1>Rebrand quick look</h1>\n    <p>A tiny preview page for the new brand tokens.</p>\n  </body>\n</html>\n```\n\n",
   FIXTURE_FINAL_TEXT,
 ];
 
@@ -105,6 +114,25 @@ export const FIXTURE_EVENTS: SseEvent[] = [
     event: "agui.tool_result",
     data: { kind: "tool_result", request_id: rid, call_index: 1, id: "call-2", name: LONG_TOOL_NAME, content: '{"ok":true}', success: true },
   },
+  // Running: completes the call but never gets a tool_result, so the block's
+  // own `status` stays "running" (use-message-stream.ts only flips it to
+  // "complete"/"failed" on agui.tool_result) — chat-surfaces spec scenario 9.
+  { event: "agui.tool_call.delta", data: { kind: "tool_call", phase: "delta", request_id: rid, call_index: 2, id: "call-3", delta: { arguments: '{"attendee":' } } },
+  {
+    event: "agui.tool_call.complete",
+    data: { kind: "tool_call", phase: "complete", request_id: rid, call_index: 2, id: "call-3", name: RUNNING_TOOL_NAME, arguments_json: '{"attendee":"team@know-me.tools"}' },
+  },
+  // Failed: a tool_result with success:false flips the block's status to
+  // "failed" (`ToolCallBlockWrapper` maps that to the "Failed" pill).
+  { event: "agui.tool_call.delta", data: { kind: "tool_call", phase: "delta", request_id: rid, call_index: 3, id: "call-4", delta: { arguments: "{}" } } },
+  {
+    event: "agui.tool_call.complete",
+    data: { kind: "tool_call", phase: "complete", request_id: rid, call_index: 3, id: "call-4", name: FAILED_TOOL_NAME, arguments_json: "{}" },
+  },
+  {
+    event: "agui.tool_result",
+    data: { kind: "tool_result", request_id: rid, call_index: 3, id: "call-4", name: FAILED_TOOL_NAME, content: FAILED_TOOL_RESULT, success: false },
+  },
   {
     event: "agui.citation.added",
     data: {
@@ -170,6 +198,67 @@ export const FIXTURE_EVENTS: SseEvent[] = [
   },
   { event: "agui.custom", data: { kind: "custom", name: "a2ui", value: A2UI_ENVELOPE } },
   { event: "agui.done", data: { kind: "done", request_id: rid } },
+];
+
+/**
+ * A prefix of the fixture stream with no `agui.done`, paired with
+ * `holdChatStreamOpen` (`e2e/support/uar-mock.ts`), which serves the body
+ * over a response that never closes so the client never sees the reader
+ * finish and the message stays "running" — chat-surfaces spec scenario 12
+ * (streaming indicator) and scenario 9 (the "running" tool state). `agui.done`
+ * is what `use-message-stream.ts` (and, as a fallback, the reader closing)
+ * uses to finish a stream, so a body fulfilled normally — even one missing
+ * `agui.done` — finishes as soon as delivery completes; only a genuinely
+ * still-open response stays "running".
+ *
+ * Order matters here beyond realism: `@assistant-ui/core`'s
+ * `toMessagePartStatus` (`normalizePartStatus.js`) only lets the LAST part in
+ * a message's content array inherit the message's own "running" status —
+ * every earlier part reads as "complete" once a later part exists, tool-calls
+ * excepted (their status is `result === undefined ? message.status : complete`
+ * regardless of position). The reply text is last here on purpose, so its
+ * streaming mark is the part under test — the thinking part earlier in the
+ * same array is expected to read "complete"/"Reasoning" once the text part
+ * exists (see `PARTIAL_STREAM_THINKING_ONLY_EVENTS` for testing the thinking
+ * pulse instead, where thinking is the only, and therefore last, part).
+ */
+export const PARTIAL_STREAM_EVENTS: SseEvent[] = [
+  { event: "agui.stream.start", data: { kind: "stream", phase: "start", request_id: rid } },
+  { event: "agui.thinking.delta", data: { kind: "thinking", phase: "delta", request_id: rid, delta: { text: "The user wants a weekly plan. " } } },
+  { event: "agui.tool_call.delta", data: { kind: "tool_call", phase: "delta", request_id: rid, call_index: 2, id: "call-3", delta: { arguments: '{"attendee":' } } },
+  {
+    event: "agui.tool_call.complete",
+    data: { kind: "tool_call", phase: "complete", request_id: rid, call_index: 2, id: "call-3", name: RUNNING_TOOL_NAME, arguments_json: '{"attendee":"team@know-me.tools"}' },
+  },
+  {
+    event: "agui.message.delta",
+    data: { kind: "message", phase: "delta", request_id: rid, delta: { text: "Here is your plan for the week, based on what I remember about your priorities." } },
+  },
+];
+
+/**
+ * Thinking as the only (and therefore last) part, so it — not a later text
+ * part — inherits the message's "running" status and shows the "Thinking"
+ * label with the pulsing cyan dots (`ReasoningPart`, `enhanced-thread.tsx`).
+ */
+export const PARTIAL_STREAM_THINKING_ONLY_EVENTS: SseEvent[] = [
+  { event: "agui.stream.start", data: { kind: "stream", phase: "start", request_id: rid } },
+  { event: "agui.thinking.delta", data: { kind: "thinking", phase: "delta", request_id: rid, delta: { text: "The user wants a weekly plan. " } } },
+];
+
+/**
+ * A distinctive raw error string that must never reach the DOM (message
+ * error scenario, review round 1 fix). The completion request needs at least
+ * one content event before `agui.error` — `use-message-stream.ts` only
+ * creates the streaming assistant message on the first delta
+ * (`getOrCreateStreamingMessage`, `src/stores/chat-message-store.ts`), and
+ * `setStreamError` is a no-op with no message to attach the error to.
+ */
+export const RAW_STREAM_ERROR_TEXT = "internal secret trace 9f3d-x1";
+export const ERROR_STREAM_EVENTS: SseEvent[] = [
+  { event: "agui.stream.start", data: { kind: "stream", phase: "start", request_id: rid } },
+  { event: "agui.message.delta", data: { kind: "message", phase: "delta", request_id: rid, delta: { text: "Working on your plan" } } },
+  { event: "agui.error", data: { kind: "error", request_id: rid, message: RAW_STREAM_ERROR_TEXT } },
 ];
 
 /** Serialise events exactly as UAR does: `event:` + `data:` lines, blank-line delimited. */

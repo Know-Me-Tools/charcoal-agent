@@ -98,6 +98,53 @@ export interface UarMock {
 /** Paths the mock owns; anything else (Vite assets, fonts) passes through untouched. */
 const BACKEND_PATH = /^\/(api\/|healthz$|readyz$)/;
 
+/**
+ * Serves `/api/chat/completion` with a response that never closes, so
+ * `use-message-stream.ts` never sees `reader.read()` return `done: true` and
+ * the message stays "running" indefinitely (it only finishes on `agui.done`,
+ * `[DONE]`, or the reader closing — see that file's "Reader exhausted"
+ * fallback). `route.fulfill()` only delivers a whole body atomically
+ * (Playwright has no genuine chunked/held-open response support), so this
+ * works one level lower: it overrides `window.fetch` itself via an init
+ * script, before any page script runs. Call before `page.goto()`.
+ *
+ * Non-streaming requests to the same path (`stream: false`, e.g. thread-title
+ * generation) still fall through to the real `fetch`, which Playwright's
+ * normal route interception (`installUarMock`) continues to serve.
+ */
+export async function holdChatStreamOpen(page: Page, sseBody: string): Promise<void> {
+  await page.addInitScript((body: string) => {
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = async (input, init) => {
+      const url = typeof input === "string" ? input : input instanceof Request ? input.url : String(input);
+      if (url.includes("/api/chat/completion")) {
+        let stream = true;
+        try {
+          const parsed = typeof init?.body === "string" ? (JSON.parse(init.body) as { stream?: boolean }) : null;
+          stream = parsed?.stream !== false;
+        } catch {
+          stream = true;
+        }
+        if (stream) {
+          const encoder = new TextEncoder();
+          const readable = new ReadableStream({
+            start(controller) {
+              controller.enqueue(encoder.encode(body));
+              // Deliberately never call controller.close(): the response
+              // stays open, so the reader never finishes.
+            },
+          });
+          return new Response(readable, {
+            status: 200,
+            headers: { "content-type": "text/event-stream", "cache-control": "no-cache" },
+          });
+        }
+      }
+      return originalFetch(input, init);
+    };
+  }, sseBody);
+}
+
 export async function installUarMock(page: Page): Promise<UarMock> {
   const mock: UarMock = { unmocked: [] };
 
