@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "openspec/changes/chat-surfaces-flat2/tasks.md",
+      "line": 86,
+      "claim": "Task 4.3 remains unchecked even though this phase is supposed to be complete and verification has been added.",
+      "evidence": "The task list still contains `- [ ] 4.3 (owner: km-product-owner) Write openspec/changes/chat-surfaces-flat2/verification.md...`, while the acceptance criteria require 4.3 verification evidence and independent review before archive.",
+      "suggested_fix": "Mark task 4.3 complete after ensuring the verification and independent-review requirements are satisfied."
+    },
+    {
+      "severity": "WARNING",
+      "file": "src/features/chat/components/a2ui-artifact-block.tsx",
+      "line": 253,
+      "claim": "The A2UI form JSON textarea has no accessible name.",
+      "evidence": "In the `artifactType === \"form\"` branch, the component renders a descriptive `<p>` followed by `<Textarea value={formJson} ... rows={6} className={FIELD_CLASSES} />` without a `<Label htmlFor=...>`, `id`, or `aria-label`, despite the `accessibility-basics` constraint requiring new UI components to have aria-label or semantic HTML.",
+      "suggested_fix": "Give the textarea an `id` and associated `<Label htmlFor={...}>`, or add an `aria-label` such as `aria-label=\"JSON response\"`."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

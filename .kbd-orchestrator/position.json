@@ -2,24 +2,24 @@
   "schemaVersion": "1",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 374,
-  "derivedRevision": 374,
+  "sourceRevision": 421,
+  "derivedRevision": 421,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 374
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 421
   },
   "conflictCount": 0,
-  "updatedAt": "2026-09-24T23:49:54.065248Z",
+  "updatedAt": "2026-09-25T13:32:30.327539Z",
   "cursor": [
     "complete-rebranding",
     "execute",
-    "chat-surfaces-flat2"
+    "landing-and-about-brand"
   ],
   "root": {
     "type": "phase",
     "id": "440c5818-223c-4091-8b7f-bc8083505a3c",
     "status": "ready",
     "progress": {
-      "done": 8,
+      "done": 9,
       "total": 12
     },
     "children": [
@@ -29,7 +29,7 @@
         "canonicalId": "complete-rebranding",
         "status": "PENDING",
         "progress": {
-          "done": 8,
+          "done": 9,
           "total": 12
         },
         "children": [
@@ -108,10 +108,10 @@
           {
             "type": "change",
             "id": "chat-surfaces-flat2",
-            "status": "PENDING",
+            "status": "COMPLETE",
             "progress": {
-              "done": 0,
-              "total": 0
+              "done": 9,
+              "total": 9
             }
           },
           {

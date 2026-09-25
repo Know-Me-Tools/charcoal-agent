@@ -1,0 +1,39 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "src/components/assistant-ui/enhanced-thread.tsx",
+      "line": 164,
+      "claim": "The focused composer now draws a focus outline even though the acceptance criteria require no focused outline/ring.",
+      "evidence": "The hunk adds `has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring` to `ComposerPrimitive.AttachmentDropzone`, while acceptance criterion 3.2 says the composer test covers `no border or outline when focused` and `specs/chat-surfaces/spec.md` says focused composer has `no ember or ring outline`.",
+      "suggested_fix": "Either remove the focus outline and satisfy the current criterion, or update the OpenSpec/design acceptance criteria to require the new focus outline before marking this change complete."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "src/features/chat/components/a2ui-artifact-block.tsx",
+      "line": 323,
+      "claim": "A2UI status pills are placed in a `role=\"status\"` live region, contradicting the design spec's explicit ban on live status roles inside streamed blocks.",
+      "evidence": "The A2UI status row adds `<div role=\"status\" aria-live=\"polite\" className=\"contents\">`, but `docs/design/chat-surfaces.md` \u00a75 says: `Do not put role=\"status\" on pills inside streamed blocks. The message log is already a polite live region, and a live role on every pill would announce each state change mid-stream.`",
+      "suggested_fix": "Remove `role=\"status\"`/`aria-live` from streamed block pills, or revise the design spec and acceptance evidence to explicitly allow this A2UI exception."
+    },
+    {
+      "severity": "WARNING",
+      "file": "src/features/chat/components/tool-call-block.tsx",
+      "line": 118,
+      "claim": "Failed tool results render the raw `result` string directly instead of mapping it to plain-language error copy.",
+      "evidence": "In the failed branch, the component renders `{result}` inside the danger block; `docs/design/chat-surfaces.md` \u00a77.3 requires `failed with a message: ... plain language`, and \u00a73.8 similarly rejects raw runtime/transport errors in user-facing message surfaces.",
+      "suggested_fix": "Map failed tool results to controlled user-facing copy, or sanitize/classify known tool error payloads before rendering."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}
