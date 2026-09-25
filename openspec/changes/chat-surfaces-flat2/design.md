@@ -32,7 +32,7 @@ These parts are already in place and are not redone here:
    | Thread background | `bg-canvas` | — |
    | Assistant message | none (canvas) | `font-body` (Roboto), `text-fg`, max ~68ch |
    | User message | `bg-ember-soft`, trailing edge | `text-fg` |
-   | Composer | `bg-surface` at rest, `bg-raised` on `focus-within` | `font-body`; placeholder `text-faint` |
+   | Composer | `bg-composer` at rest, `bg-raised` on `focus-within`, ember focus outline on `:focus-visible` | `font-body`; placeholder `text-faint` |
    | Thinking / reasoning | `bg-cyan-soft` | label `text-cyan-text`, mono meta 12px |
    | Citation | `bg-cyan-soft` | index `text-cyan-text`, title `text-fg` |
    | Tool call / result | `bg-surface`, inner I/O `bg-code` | status pill: status soft + status text + label |
@@ -49,9 +49,13 @@ These parts are already in place and are not redone here:
 
 3. **HTML artifact canvas token.** Model-authored HTML usually assumes a white document with black default text. Taking the frame background from the theme would make unstyled artifacts unreadable in dark mode. The creative director adds `--km-artifact-canvas` (exposed as `bg-artifact-canvas`), and the preview uses it in place of `bg-white`. The creative director sets its value per theme in the design doc. The expected default is a light document surface in both themes, since the iframe content is the author's document, not KnowMe chrome. This keeps colour in tokens without changing how artifacts render.
 
-4. **Composer focus.** The textarea sets `outline-none`. The root sets `focus-within:bg-raised`, and drag-over sets `bg-hover`. The textarea caret plus the fill change give the visible focus cue (§3.3 bans decorative outlines). This removes the ember outline seen in shell captures, which comes from the global focus ring applied to the textarea. The send and stop buttons keep the global focus ring, since they are discrete controls.
+4. **Composer focus.** The textarea sets `outline-none`. The root sets `bg-composer` at rest, `focus-within:bg-raised` on focus and `bg-hover` on drag-over. When the textarea is keyboard-focused, the root draws a 2px ember outline (`has-[:focus-visible]:outline-2 outline-offset-2 outline-ring`). The send and stop buttons keep the global focus ring.
+
+   *Revised in review.* The original plan made the fill change and the caret the only focus cue, and removed the ember outline because §3.3 bans decorative outlines. The measured fill step was about 1.1:1, which is below the 3:1 non-text focus-indicator minimum in WCAG 2.2 SC 1.4.11 and 2.4.7 (artifact-critic finding 5, fixed in `3c24255`). A focus indicator is functional, not decorative, so the outline returns on `:focus-visible` only. At rest there is still no outline, and the composer never has a border, shadow or blur.
 
 5. **A2UI "captured" state.** The label is currently gated on `submitted || status === "complete"`. The tool part's `complete` status only means the request finished streaming. The new gate is `submitted || hasResponse`, where `hasResponse` is true when the tool part carries a result or response payload for this request. Inputs stay enabled until then. The fix is in `a2ui-artifact-block.tsx` and adds no store change.
+
+   *Added in review.* The A2UI submission status is announced: Sending and "Response captured" in a polite `role="status"` region, and send and parse errors as `role="alert"`. This is feedback on the user's own action, so screen-reader users need to hear it. Streamed blocks stay without live roles, so model output does not flood the screen reader (`3c24255`).
 
 6. **Mermaid in artifacts.** `enhanced-markdown-text.tsx` routes `language === "mermaid"` to `MermaidBlock`, but `artifact-block.tsx` has no such branch, so it renders Mermaid through `ShikiCodeBlock` as source. This is the likely cause of "Mermaid renders as source text in some cases". The frontend engineer confirms it by reproducing the defect first, then adds the same routing. `MermaidBlock` keeps its error boundary. On failure it shows the source with a plain-language label ("Diagram could not be rendered") and no raw exception text.
 

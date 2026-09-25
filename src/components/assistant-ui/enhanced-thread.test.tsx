@@ -40,7 +40,33 @@ vi.mock("@assistant-ui/react", async (importOriginal) => {
 		...actual,
 		MessagePrimitive: {
 			...actual.MessagePrimitive,
+			Root: ({ children, ...props }: { children?: ReactNode } & Record<string, unknown>) => (
+				<div {...props}>{children}</div>
+			),
 			Error: ({ children }: { children?: ReactNode }) => <>{children}</>,
+		},
+		ComposerPrimitive: {
+			...actual.ComposerPrimitive,
+			Root: ({ children, ...props }: { children?: ReactNode } & Record<string, unknown>) => (
+				<div {...props}>{children}</div>
+			),
+			Input: (props: Record<string, unknown>) => <textarea {...props} />,
+			Cancel: ({ asChild, children, ...props }: AsChildProps) =>
+				asChild ? (
+					mergeAsChild(children, props)
+				) : (
+					<button type="button" {...props}>
+						{children}
+					</button>
+				),
+			Send: ({ asChild, children, ...props }: AsChildProps) =>
+				asChild ? (
+					mergeAsChild(children, props)
+				) : (
+					<button type="button" {...props}>
+						{children}
+					</button>
+				),
 		},
 		ErrorPrimitive: {
 			Root: ({ asChild, children, ...props }: AsChildProps) =>
@@ -69,7 +95,7 @@ vi.mock("@assistant-ui/react", async (importOriginal) => {
 	};
 });
 
-import { MessageError, MESSAGE_ERROR_TEXT } from "./enhanced-thread";
+import { MessageError, MESSAGE_ERROR_TEXT, EditComposer } from "./enhanced-thread";
 
 describe("MessageError", () => {
 	it("never renders the raw runtime error text, only the plain-language recovery copy", () => {
@@ -91,5 +117,30 @@ describe("MessageError", () => {
 		render(<MessageError />);
 
 		expect(screen.getByRole("button", { name: /try again/i })).toBeInTheDocument();
+	});
+});
+
+describe("EditComposer", () => {
+	// Same defect as the main composer (fixed in 3c24255): a fill-only
+	// focus cue on the container reads at ~1.1:1 for keyboard focus, below
+	// the 3:1 non-text contrast WCAG requires. The container must carry the
+	// project's focus-cue outline treatment (fill + 2px ember outline) via
+	// `has-[:focus-visible]`, with no border added.
+	it("carries the focus-visible outline treatment on its container, with no border", () => {
+		render(<EditComposer />);
+
+		const textarea = screen.getByRole("textbox");
+		const container = textarea.parentElement;
+		expect(container).not.toBeNull();
+		expect(container?.className).toEqual(
+			expect.stringContaining("has-[:focus-visible]:outline-2"),
+		);
+		expect(container?.className).toEqual(
+			expect.stringContaining("has-[:focus-visible]:outline-offset-2"),
+		);
+		expect(container?.className).toEqual(
+			expect.stringContaining("has-[:focus-visible]:outline-ring"),
+		);
+		expect(container?.className).not.toEqual(expect.stringMatching(/(?<![\w-])border(?!-0\b)/));
 	});
 });

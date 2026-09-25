@@ -27,15 +27,17 @@ Assistant replies SHALL render as unbubbled prose on the canvas in the long-form
 - **THEN** it sits on the ember-tinted fill at the trailing edge and its text contrast against that fill is at least 4.5:1
 
 ### Requirement: Filled composer
-The composer SHALL be a distinct filled surface anchored below the thread with no border, outline box or blur, and SHALL show keyboard focus through a visible fill change.
+The composer SHALL be a distinct filled surface anchored below the thread with no border, box shadow or blur. At rest it SHALL have no outline. When keyboard-focused it SHALL show a visible focus outline of at least 2px with at least 3:1 contrast against the adjacent background, and its fill SHALL also change.
+
+A fill change alone does not meet the non-text focus-indicator minimum: the measured step was about 1.1:1, and WCAG 2.2 SC 1.4.11 and 2.4.7 require 3:1. The focus outline is a focus indicator, not a decorative border, so it does not conflict with Flat 2.0.
 
 #### Scenario: Composer at rest
 - **WHEN** a thread is open and the composer is not focused
 - **THEN** the composer is a filled surface with no border, outline, ring or backdrop filter
 
 #### Scenario: Composer focused
-- **WHEN** the user focuses the composer input
-- **THEN** the composer fill changes to a different surface token and no ember or ring outline is drawn around it
+- **WHEN** the user focuses the composer input with the keyboard
+- **THEN** the composer shows a visible focus outline at least 2px wide with at least 3:1 contrast against the adjacent background, the composer fill changes to a different surface token, and no border, box shadow or backdrop filter is drawn
 
 ### Requirement: Block surfaces follow the event presentation table
 Each streamed block SHALL use the surface assigned to its kind: thinking/reasoning and citations on the cyan-tinted surface; tool calls, tool results, memory, skill and context-update blocks on surface or raised tokens with monospace metadata of at least 12px; code on the brand code background; artifacts and A2UI cards borderless on surface tokens; status shown with a status token plus a text label.

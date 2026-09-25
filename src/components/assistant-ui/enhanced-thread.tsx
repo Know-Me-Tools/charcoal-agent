@@ -640,9 +640,9 @@ const AssistantActionBar: FC = () => (
 
 // ─── Edit Composer ────────────────────────────────────────────────────────────
 
-const EditComposer: FC = () => (
+export const EditComposer: FC = () => (
 	<MessagePrimitive.Root className="mx-auto flex w-full max-w-(--thread-max-width) flex-col px-0 py-3 @md:px-4">
-		<ComposerPrimitive.Root className="ms-auto flex w-full max-w-[85%] flex-col rounded-xl bg-composer focus-within:bg-raised">
+		<ComposerPrimitive.Root className="ms-auto flex w-full max-w-[85%] flex-col rounded-xl bg-composer focus-within:bg-raised has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring">
 			<ComposerPrimitive.Input
 				className="min-h-14 w-full resize-none bg-transparent p-4 font-body text-[0.9375rem] text-fg caret-ember outline-none placeholder:text-faint"
 				autoFocus

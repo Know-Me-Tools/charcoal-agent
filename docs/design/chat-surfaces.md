@@ -170,7 +170,7 @@ A distinct filled surface anchored below the thread. It is never outlined.
 | Element | Classes |
 |---|---|
 | `ComposerPrimitive.Root` | `relative flex w-full flex-col` |
-| `AttachmentDropzone` (the visible composer) | `group relative flex w-full flex-col rounded-xl bg-composer px-1 pt-2 transition-hover focus-within:bg-raised data-[dragging=true]:bg-hover` |
+| `AttachmentDropzone` (the visible composer) | `group relative flex w-full flex-col rounded-xl bg-composer px-1 pt-2 transition-hover focus-within:bg-raised has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring data-[dragging=true]:bg-hover`. The outline is the keyboard focus indicator (§4.2); it is an outline outside the box, not a border |
 | `ComposerPrimitive.Input` | `mb-1 max-h-48 min-h-14 w-full resize-none bg-transparent px-4 py-3 font-body text-[0.9375rem] leading-relaxed text-fg caret-ember outline-none placeholder:text-faint focus-visible:outline-none`. Keep `aria-label="Message input"` as the accessible name; the placeholder is a hint, not the label |
 | Drag hint (new child of the dropzone) | `pointer-events-none absolute inset-0 hidden items-center justify-center gap-2 rounded-xl bg-hover font-ui text-sm font-semibold text-fg group-data-[dragging=true]:flex` containing `PaperclipIcon` `size-4` with `aria-hidden` and the text "Drop files to attach" |
 | Action row | `mx-2 mb-2 flex items-center justify-between gap-2` |
@@ -178,7 +178,7 @@ A distinct filled surface anchored below the thread. It is never outlined.
 | Send | default `Button`, `size-8 rounded-full` (ember fill, `text-primary-foreground`); hover `hover:bg-ember-2`. Keeps the global focus ring (it is a discrete control). |
 | Stop | default `Button`, `size-8 rounded-full`, `SquareIcon` `size-3 fill-current`, `aria-label="Stop generating"` |
 
-Remove from the dropzone: `border`, `border-input`, `bg-background/80`, `backdrop-blur-xs`, `transition-shadow`, every `has-[textarea:focus-visible]:*` border and ring class, and `data-[dragging=true]:border-*`. Remove `focus-visible:ring-0` from the textarea (replaced by `outline-none`).
+Remove from the dropzone: `border`, `border-input`, `bg-background/80`, `backdrop-blur-xs`, `transition-shadow`, every `has-[textarea:focus-visible]:*` border and ring class, and `data-[dragging=true]:border-*`. Remove `focus-visible:ring-0` from the textarea (replaced by `outline-none`). The only focus classes the dropzone keeps are the three `has-[:focus-visible]:outline-*` classes above: the indicator sits on the container, not the textarea, so it wraps the whole field.
 
 ### 4.2 States
 
@@ -186,12 +186,13 @@ Remove from the dropzone: `border`, `border-input`, `bg-background/80`, `backdro
 |---|---|---|---|
 | Rest | nothing focused | `bg-composer` | placeholder `text-faint` |
 | Hover | pointer over, not focused | `bg-composer` (no change) | none; a field that changes on hover and on focus reads as two states for one thing |
-| Focus | textarea focused (mouse or keyboard) | `bg-raised` via `focus-within` | ember caret (`caret-ember`); no outline, no ring |
+| Focus (pointer) | textarea focused by mouse or touch | `bg-raised` via `focus-within` | ember caret (`caret-ember`); no outline |
+| Focus (keyboard) | textarea `:focus-visible` | `bg-raised` via `focus-within` | ember caret, plus a 2px ember outline (`outline-ring`, which resolves to `--km-ember`) at a 2px offset around the container, via `has-[:focus-visible]`. No border, no ring shadow |
 | Drag-over | files dragged over | `bg-hover` | drag hint with icon and "Drop files to attach" |
 | Running | agent streaming | unchanged | Send becomes Stop |
 | Disabled | runtime offline (if the app disables the input) | `bg-composer` | textarea `disabled:cursor-not-allowed disabled:text-faint`; the status pill in the top bar says why |
 
-Why focus uses a fill and a caret, not an outline: §3.3 bans decorative outlines and input chrome, and the global ember focus ring on the textarea is what produced the ember box in the shell captures. The caret is ember so it is findable against both fills (ember is 3.97:1 on white, above the 3:1 needed for a non-text cue).
+Why keyboard focus adds an outline (changed after the independent critic review, commit 3c24255): the earlier design showed focus by the fill change and the caret only. The fill change measured about 1.1:1, below the 3:1 minimum for a non-text focus indicator (WCAG 1.4.11, 2.4.7), and a caret is not a reliable indicator. The composer now uses the project's `focus-cue` treatment: fill change plus a 2px ember outline at a 2px offset. The offset puts the outline on the canvas, where it measures `--km-ember` on `--km-canvas` ≈3.71:1 in light and ≈6.76:1 in dark (both above 3:1; `tokens.css` holds the values). It is scoped to `:focus-visible`, so a mouse click shows the fill and caret only; that keeps the ember box seen in the shell captures off pointer use, which was the reason §3.3's ban on decorative outlines applied here. The outline is a focus indicator, not input chrome, and there is still no border. The caret stays ember so it is findable against both fills (`--km-ember` is 3.97:1 on white).
 
 Resolved in task 4.2 (was a known weakness). QA measured the light composer at rest at 1.03:1 on the canvas (the light `--km-surface` value on `--km-canvas`), which does not read as its own surface. The composer now has its own token, `--km-composer` (`bg-composer`). Exact values live in `src/styles/tokens.css` and are enforced by `src/styles/tokens.test.ts`:
 
@@ -243,7 +244,9 @@ Tool status mapping from the assistant-ui part status:
 
 **Metadata pill** (not a status: scope, memory type, selection method, artifact type, language): `inline-flex shrink-0 items-center rounded-pill bg-muted-surface px-2 py-0.5 font-mono text-xs text-fg-secondary`. No icon.
 
-Do not put `role="status"` on pills inside streamed blocks. The message log is already a polite live region, and a live role on every pill would announce each state change mid-stream.
+Do not put `role="status"` on pills inside streamed blocks. The message log is already a polite live region, and a live role on every pill would announce each state change mid-stream. Streamed blocks keep no live roles.
+
+One exception: A2UI submission status (§7.11) is announced. Sending, Response captured and the send and parse errors report the result of the user's own action, not streamed output, so they get a live region: status in `role="status"` (polite), errors in `role="alert"`.
 
 All pill text pairs are in `tokens.test.ts` (status text on its soft fill, `text-fg-secondary` on `bg-muted-surface`).
 
@@ -397,7 +400,8 @@ Mutation:
 - Title `font-display text-base font-semibold text-fg wrap-anywhere`. Prompt and labels `font-body text-sm text-fg-secondary`.
 - Fields (`Input`, `Textarea`, `SelectTrigger`) at the call site: `border-0 bg-muted-surface text-fg placeholder:text-faint focus-visible:ring-0 focus-cue`. The primitives still carry a border (deferred to brand-fidelity-audit), so the override is required here.
 - Buttons: accept and submit use the default (ember) `Button`; cancel uses `variant="ghost"` (not `outline`, which has a border). `SendIcon` `size-3.5` with `me-1`.
-- Status row `mt-3 flex flex-wrap items-center gap-2`: Sending pill while submitting; Response captured pill when `submitted || hasResponse`; on error, `font-body text-sm text-danger-text` with plain language: "Your response was not sent. Try again." Never show the server body.
+- Status row `mt-3 flex flex-wrap items-center gap-2`: Sending pill while submitting; Response captured pill when `submitted || hasResponse`; on error, `font-body text-sm text-danger-text` with plain language: "Your response was not sent. Try again." for a failed send, and "That response isn't valid JSON. Fix it and try again." when the user's own JSON does not parse. Never show the server body.
+- Announcements (the exception to §5's rule): the Sending and Response captured pills sit inside a `role="status" aria-live="polite"` wrapper (`className="contents"`, so it adds no box); each error message is `role="alert"`. This is the user's own action reporting back, not streamed output.
 - Inputs stay enabled until `submitted || hasResponse` (design decision 5). `status === "complete"` alone does not disable them or show the pill.
 - Returned result: `mt-3 max-h-40 overflow-auto rounded-md bg-code p-3 font-mono text-xs text-fg whitespace-pre-wrap wrap-break-word` with `tabIndex={0} focus-cue`. Drop the `ScrollArea` border.
 
@@ -478,7 +482,8 @@ The thread root is a container (`@container`). Container variants (`@md` is 28re
 
 ## 11. Accessibility notes that affect visuals
 
-- Focus: every interactive element in the thread uses `focus-cue` (hover fill plus 2px ember outline), except the composer textarea (§4) and default `Button`s, which keep the primitive's ring.
+- Focus: every interactive element in the thread uses `focus-cue` (hover fill plus 2px ember outline), except default `Button`s, which keep the primitive's ring. The composer shows the same ember outline on its container when the textarea has keyboard focus, plus its fill change (§4.2).
+- Live regions: the message log is the only live region for streamed output; streamed blocks carry no live roles. A2UI submission status is the one exception (`role="status"`, errors `role="alert"`; §5, §7.11).
 - Collapsible triggers expose `aria-expanded`; segmented toggles expose `aria-pressed`; icon buttons have names through `TooltipIconButton`'s `sr-only` text.
 - No button inside a button: the tool header is one `Button` containing only text and a non-interactive pill (axe `nested-interactive`).
 - Colour is never the only carrier: every status has an icon and a text label; every block has a text label.
@@ -497,7 +502,7 @@ Review the fixture thread at 320, 768, 1024 and 1440 in both themes. Each item s
 5. Thinking and citation blocks are cyan-tinted; tool, skill, memory, context, artifact and A2UI cards are neutral filled surfaces; code is on the code well, and the code body reads as its own fill against the canvas in both themes (not only its header row).
 6. Every status is a pill with icon and text; Running is cyan, not amber.
 7. No text in the thread is smaller than 12px; no text is dimmed by opacity.
-8. The composer is a filled surface with no outline at rest and on focus, it reads as its own surface against the canvas at rest (check with the textarea blurred: the fixture autofocuses it), and its fill changes on focus.
+8. The composer is a filled surface with no border, and no outline at rest or on pointer focus. It reads as its own surface against the canvas at rest (check with the textarea blurred: the fixture autofocuses it), and its fill changes on focus. With keyboard focus (Tab into the textarea), a 2px ember outline appears around the container at a 2px offset, at least 3:1 against `--km-canvas` in both themes.
 9. At 320 there is no page-level horizontal scroll, the long tool name is fully visible, and pills sit below names where they do not fit.
 10. The HTML preview sits on white in both themes; full screen dims the page with the scrim and no blur.
 11. Streaming indicators are cyan; with reduced motion they are static and still visible.

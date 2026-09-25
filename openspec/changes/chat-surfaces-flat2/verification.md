@@ -24,7 +24,7 @@ This file used the same rule in all three versions. The count moved from 12 / 4 
 Two MET rows are weaker than the rest:
 
 - **#10, code background.** The code well's colour comes from a computed-style probe that QA ran once on the rendered page (QA §6.7), plus the token tests. No standing e2e test compares the code well's background to `--km-code`. If a later change moves code off `bg-code`, the token tests still pass. Only the source guard would stop a raw colour; a different token would get through.
-- **#7, composer focused.** The e2e test proves the fill *changes*, and that no border, outline or box-shadow appears. That the new fill is a *surface token* comes from the source guard (no raw palette, hex or literal fills) and the class `focus-within:bg-raised`. It does not come from a computed comparison to `--km-raised`.
+- **#7, composer focused.** The e2e test proves three things: the focus outline is ≥ 2px and ≥ 3:1 against the canvas, the fill *changes*, and there is no border or box-shadow. That the new fill is a *surface token* comes from the source guard (no raw palette, hex or literal fills) and the class `focus-within:bg-raised`. It does not come from a computed comparison to `--km-raised`. The test focuses with `.focus()`, not a Tab key press. It asserts `:focus-visible` matches first, which a `<textarea>` does on programmatic focus.
 
 ## 1. Gates on the final tree (`1e6bfa7`)
 
@@ -96,8 +96,8 @@ The fixture thread (`e2e/fixtures/sse.ts`) now contains every block kind in the 
 
 | # | Scenario | Status | Evidence |
 |---|---|---|---|
-| 6 | Composer at rest | MET | No border, shadow (ring) or backdrop filter at rest: sweep, both themes. No outline at rest: surfaces › "composer: focus changes the fill and adds no border or outline to the container" reads `outlineStyle`/`outlineWidth` before focusing. Filled and distinct: `tokens.test.ts` › "km-composer separates from km-canvas (composer at rest on the thread)" (≥ 1.8 L*), and 1.066:1 against canvas measured on the page (QA §6.7). |
-| 7 | Composer focused | MET (see Result) | The same test: the focused background differs from rest, border widths are 0, there is no outline, and `boxShadow` is `none`. That the new fill is a surface token comes from the guard. |
+| 6 | Composer at rest | MET | No border, shadow (ring) or backdrop filter at rest: sweep, both themes. No border or outline at rest: surfaces › "composer: at rest no border or outline; keyboard focus shows a ≥3:1 outline, still no border, and the fill changes (light\|dark)" (rewritten in `6d64b70`) reads the border widths and `outlineStyle`/`outlineWidth` before focusing, in both themes. Filled and distinct: `tokens.test.ts` › "km-composer separates from km-canvas (composer at rest on the thread)" (≥ 1.8 L*), and 1.066:1 against canvas measured on the page (QA §6.7). |
+| 7 | Composer focused | MET (see Result) | The same test, both themes. It asserts the input matches `:focus-visible`. The container outline is not `none`, is at least 2px wide, and reaches ≥ 3:1 against the canvas (`contrastRatio`). The focused background differs from rest, border widths are 0, and `boxShadow` is `none`. That the new fill is a surface token comes from the guard. The scenario was amended in review round 2 to require this outline (spec § Filled composer). |
 
 ### Block surfaces follow the event presentation table
 
@@ -252,4 +252,12 @@ Both were fixed in `3289b7f`. The remaining flake was a test artifact: two resiz
 
 ### Round 2: cross-model judge
 
-Recorded below after it runs.
+BLOCK, 2 CRITICAL, 1 WARNING.
+
+1. **CRITICAL: the spec required no outline when the composer is focused.** `3c24255` added the ember `:focus-visible` outline because the fill-only cue measured about 1.1:1, below the 3:1 non-text focus-indicator minimum (WCAG 2.2 SC 1.4.11, 2.4.7). The code was right and the written criteria were stale. Resolved by amending `specs/chat-surfaces/spec.md` § Filled composer and scenario "Composer focused": no border or outline at rest; a keyboard-focus outline of at least 2px and at least 3:1; still no border, box shadow or blur; the fill also changes. `design.md` decision 4 and its surface-table row were updated to match, and km-creative-director updated `docs/design/chat-surfaces.md`. Evidence: rows #6 and #7 above.
+2. **CRITICAL: the written criteria did not cover the A2UI live regions added in `3c24255`.** Resolved by alignment. `design.md` decision 5 now records the rule. A2UI submission status (Sending, "Response captured", send and parse errors) is announced, with a polite `role="status"` and errors as `role="alert"`, because it is feedback on the user's own action. Streamed blocks stay without live roles. `specs/chat-surfaces/spec.md` has no live-region wording, so no scenario changed. km-creative-director updated the design doc.
+3. **WARNING, accepted: failed tool results show the tool's own result text.** It appears inside the collapsed tool details, which are labelled "Failed". This is inspectable tool output that the user opens deliberately. It is not an assistant response, so the rule that assistant replies never show raw runtime error text does not apply. **Follow-up for km-frontend-engineer and km-security-officer:** classify known sensitive tool error payloads (credentials, tokens, internal hosts and paths) and redact them before display.
+
+### Round 3: cross-model judge
+
+
