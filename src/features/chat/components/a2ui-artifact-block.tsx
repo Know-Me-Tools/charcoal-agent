@@ -87,6 +87,10 @@ export const A2uiInputBlock: FC<A2uiInputBlockProps> = ({
   const baseId = useId();
   const selectFieldId = `${baseId}-select`;
   const textFieldId = `${baseId}-text`;
+  // Shared by the "form" and "unsupported artifact type" branches below —
+  // they're mutually exclusive (never both rendered for one message part),
+  // so one id is safe.
+  const jsonFieldId = `${baseId}-json`;
 
   const options = useMemo(() => {
     const raw = inputObj.options;
@@ -256,10 +260,11 @@ export const A2uiInputBlock: FC<A2uiInputBlockProps> = ({
 
       {artifactType === "form" && (
         <div className="mt-2 flex flex-col gap-2">
-          <p className="font-body text-sm text-fg-secondary">
+          <Label htmlFor={jsonFieldId} className="font-body text-sm font-normal text-fg-secondary">
             Structured form received. Submit JSON response:
-          </p>
+          </Label>
           <Textarea
+            id={jsonFieldId}
             value={formJson}
             onChange={(e) => setFormJson(e.target.value)}
             disabled={inputsDisabled}
@@ -290,10 +295,11 @@ export const A2uiInputBlock: FC<A2uiInputBlockProps> = ({
         artifactType !== "text_input" &&
         artifactType !== "form" && (
           <div className="mt-2 flex flex-col gap-2">
-            <p className="font-body text-sm text-fg-secondary">
+            <Label htmlFor={jsonFieldId} className="font-body text-sm font-normal text-fg-secondary">
               Unsupported artifact type `{artifactType}`. Submit raw JSON:
-            </p>
+            </Label>
             <Textarea
+              id={jsonFieldId}
               value={formJson}
               onChange={(e) => setFormJson(e.target.value)}
               disabled={inputsDisabled}

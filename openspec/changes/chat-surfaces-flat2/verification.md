@@ -229,7 +229,7 @@ Verdict: defects found. Findings and what happened to each:
 
 | # | Severity | Finding | Outcome |
 |---|---|---|---|
-| 1 | CRITICAL | Try again and Regenerate re-appended the user message and kept the old reply, persisted to PGlite permanently. `onReload` had also enabled Regenerate on every reply. | Fixed in `3c24255`: messages after the parent are deleted from the store and PGlite, and the stream restarts without appending the user message again. Unit tests (red first) and e2e `retry replaces the failed turn…both survive a reload` in `6d64b70`. |
+| 1 | CRITICAL | Try again and Regenerate re-appended the user message and kept the old reply, persisted to PGlite permanently. `onReload` had also enabled Regenerate on every reply. | Fixed in `3c24255`: messages after the parent are deleted from the store and PGlite, and the stream restarts without appending the user message again. Unit tests (red first) and e2e `retry replaces the failed turn…` in `6d64b70`. **Correction (round 4):** the e2e reload assertions were removed because a persistence race made them flaky (see Round 4). The in-memory replacement and request count are verified; survival across a reload is **not** currently tested. |
 | 2 | CRITICAL | Model-authored HTML iframes used `allow-scripts allow-same-origin`, which gives them the app origin (IndexedDB, UAR calls). "Open in new tab" used a `blob:` URL in the app origin. | Fixed in `3c24255`: sandbox is `allow-scripts` only, open-in-new-tab is removed, and the inline iframe unmounts while full screen is open. Unit test plus e2e in `6d64b70`. |
 | 2b | CRITICAL (pre-existing) | `rehypeRaw` without a sanitizer lets model markdown inject `<style>`, `<iframe>` and `<form>`. | **Not fixed here.** Follow-up for km-security-officer: a dedicated change to add sanitisation without breaking math, Mermaid or code rendering. |
 | 3 | WARNING | A stream with a start event but no content now shows an error. | Kept on purpose: the user got no reply, so an error is correct. The code comment now matches the code (`3c24255`). |
@@ -276,3 +276,22 @@ Fixed in `69f9f0e`:
 - Gates on `69f9f0e`: unit 258/258, typecheck clean, lint back to the 2 pre-existing warnings, chat e2e 30/30.
 
 ### Round 4: cross-model judge
+
+Gate on `f4dcd5d` beforehand: build 0, lint 0 errors, unit 258/258, e2e 185/185, thread axe 0 in both themes.
+
+BLOCK, 1 CRITICAL and 1 WARNING:
+- **CRITICAL: task 4.3 unchecked.** Procedural only. The KBD driver ticks it when the task closes after this review.
+- **WARNING: the A2UI JSON textarea had no accessible name.** Fixed. Both JSON textareas (the form branch and the fallback branch) now have associated `<Label htmlFor>`s. A unit test finds the textbox by role and name.
+
+**Found while gating this fix: a persistence race, pre-existing on `main`.**
+- **Symptom:** the retry e2e test failed intermittently. Under `--trace on` it failed 10/10 at the post-reload assertion. Some runs lost every assistant message; others showed the pre-regenerate text.
+- **Root cause (QA §6.15):** message writes to PGlite are fire-and-forget.
+  - `persistMessages` and `deleteMessagesAfter` call the db with `.catch(console.error)` and are never awaited.
+  - `onReload` does not await the delete.
+  - The app has no `pagehide` or `beforeunload` flush.
+  - A reload shortly after a reply can therefore lose messages or show stale ones. This affects every reply, not only retry and regenerate.
+- **Why `chat-stream.spec.ts`'s reload test passes:** only because it reloads long after the stream finishes.
+- **What was done here:** the flaky reload assertions were removed from the retry test (20/20 with `--repeat-each 20`; the full file 29/29 twice).
+- **Decision (operator, 2026-09-25):** fix durability in a **separate change scheduled next**: awaited writes plus a `pagehide` flush, with a reload e2e test restored. Until it lands, reload survival is unverified.
+
+Final gates on the tree archived: unit 259/259 and typecheck clean after this fix; the full-suite e2e, axe and build numbers are from `f4dcd5d` above, and `chat-surfaces.spec.ts` was 29/29 twice after the test change.

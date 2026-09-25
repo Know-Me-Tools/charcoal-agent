@@ -164,6 +164,28 @@ describe("A2uiInputBlock — response captured gating", () => {
     expect(alert).toHaveTextContent(/not valid json|isn.t valid json|invalid json/i);
     expect(alert).not.toHaveTextContent(/your response was not sent/i);
   });
+
+  it("gives the form's JSON textarea an accessible name via a properly associated label", () => {
+    render(
+      <A2uiInputBlock
+        runId="run-1"
+        artifactId="art-form"
+        artifactType="form"
+        title="Fill out the form"
+        content="{}"
+        metadata={{}}
+        status="running"
+      />,
+    );
+
+    // Findable by role and accessible name together — not just present in
+    // the DOM — proves the visible label text is programmatically
+    // associated via htmlFor/id, not just adjacent text a screen reader
+    // wouldn't connect to the field.
+    expect(
+      screen.getByRole("textbox", { name: /submit json response/i }),
+    ).toBeInTheDocument();
+  });
 });
 
 describe("A2uiDisplayBlock — mermaid routing", () => {
