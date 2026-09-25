@@ -50,7 +50,18 @@ const LABELS_ON_FILLS: Array<[label: string, fill: string]> = [
   ["km-warning-text", "km-warning-soft"],
   ["km-danger-text", "km-danger-soft"],
   ["km-cyan-text", "km-cyan-soft"],
+  // Chat surfaces (docs/design/chat-surfaces.md): user message on ember-soft,
+  // thinking and citations on cyan-soft, code labels and source on code.
+  ["km-fg", "km-ember-soft"],
+  ["km-fg", "km-cyan-soft"],
+  ["km-fg-secondary", "km-cyan-soft"],
+  ["km-fg-faint", "km-cyan-soft"],
+  ["km-fg", "km-code"],
+  ["km-fg-secondary", "km-code"],
 ];
+// Authored HTML previews assume a white page: the browser default text
+// (black) and the lightest grey that passes AA on white must stay legible.
+const AUTHORED_TEXT_ON_ARTIFACT_CANVAS = ["#000000", "#767676"];
 const AA = 4.5;
 
 describe.each([
@@ -75,6 +86,13 @@ describe.each([
   it.each(LABELS_ON_FILLS)("%s reaches 4.5:1 on %s", (label, fill) => {
     const ratio = contrast(tokens[label], tokens[fill]);
     expect(ratio, `${label} on ${fill} = ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(AA);
+  });
+
+  it("keeps authored text legible on the artifact canvas", () => {
+    for (const text of AUTHORED_TEXT_ON_ARTIFACT_CANVAS) {
+      const ratio = contrast(text, tokens["km-artifact-canvas"]);
+      expect(ratio, `${text} on km-artifact-canvas = ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(AA);
+    }
   });
 
   it("keeps the brand canvas and text anchors", () => {
