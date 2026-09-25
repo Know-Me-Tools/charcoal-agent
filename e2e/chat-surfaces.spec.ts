@@ -14,6 +14,8 @@ import { APP_ROUTES, FIXTURE_THREAD_ID, THEMES } from "./support/routes";
 import {
   ERROR_STREAM_EVENTS,
   FAILED_TOOL_NAME,
+  FIXTURE_FINAL_TEXT,
+  FIXTURE_IMAGE_ALT,
   HTML_ARTIFACT_LABEL,
   LONG_TOOL_NAME,
   PARTIAL_STREAM_EVENTS,
@@ -56,6 +58,13 @@ async function tokenColor(
   );
 }
 
+/** The rendered right edge of a locator's bounding box, in viewport px. */
+async function rightEdge(locator: import("@playwright/test").Locator): Promise<number> {
+  const box = await locator.boundingBox();
+  if (!box) throw new Error("locator has no bounding box");
+  return box.x + box.width;
+}
+
 for (const theme of THEMES) {
   test(`user message text reaches ${AA_NORMAL_TEXT}:1 against its own fill in ${theme}`, async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -88,6 +97,74 @@ for (const theme of THEMES) {
   });
 }
 
+// ─── User message trailing edge and fill token (spec scenarios 4, 5) ──────────
+
+for (const theme of THEMES) {
+  test(`User message: sits at the trailing edge and its fill matches km-ember-soft in ${theme}`, async ({ page }) => {
+    // At 320px the avatar (`@md:flex`, hidden below the container's 448px
+    // breakpoint) is not shown, so the ember-soft bubble is the last item in
+    // its `justify-end` row and its right edge should equal the message
+    // root's right edge — the root itself is the `mx-auto max-w-(--thread-max-width)`
+    // "thread column" element (`px-0` at this width, so no inner padding is
+    // in the way). At wider widths the avatar sits to the bubble's right, so
+    // this alignment is only meaningful without it.
+    await page.setViewportSize({ width: 320, height: 800 });
+    await seedTheme(page, theme);
+    await openRoute(page, THREAD_ROUTE);
+
+    const messageRoot = page.locator('[data-role="user"]').first();
+    const bubble = messageRoot.locator(".bg-ember-soft").first();
+    await expect(bubble).toBeVisible();
+
+    const [rootRight, bubbleRight, bubbleBg, emberSoft] = await Promise.all([
+      rightEdge(messageRoot),
+      rightEdge(bubble),
+      bubble.evaluate((el) => getComputedStyle(el).backgroundColor),
+      tokenColor(page, "--km-ember-soft"),
+    ]);
+
+    expect(Math.abs(rootRight - bubbleRight)).toBeLessThanOrEqual(2);
+    expect(bubbleBg).toBe(emberSoft);
+  });
+}
+
+// ─── Assistant reply is authored prose (spec scenario 3) ───────────────────────
+
+test("Assistant reply: no background fill, body (Roboto) font, and prose capped near 68ch", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openRoute(page, THREAD_ROUTE);
+
+  const paragraph = page.getByText(FIXTURE_FINAL_TEXT, { exact: true });
+  await expect(paragraph).toBeVisible();
+
+  const info = await paragraph.evaluate((el) => {
+    const s = getComputedStyle(el);
+    return { bg: s.backgroundColor, fontFamily: s.fontFamily, maxWidth: s.maxWidth };
+  });
+
+  // No fill distinct from the canvas: the paragraph itself paints nothing.
+  expect(info.bg).toBe("rgba(0, 0, 0, 0)");
+  // Body face is Roboto (`--font-body: Roboto, sans-serif`, src/index.css).
+  expect(info.fontFamily).toContain("Roboto");
+  // `max-w-[68ch]` resolved by the browser to a px value that depends on the
+  // element's own font metrics — probe a reference element in the same font
+  // context rather than hand-computing a ch-to-px conversion.
+  const expectedMaxWidth = await page.evaluate(
+    ({ fontFamily }) => {
+      const probe = document.createElement("div");
+      probe.style.fontFamily = fontFamily;
+      probe.style.fontSize = "15px"; // font-body text-[15px] (design doc §3.3)
+      probe.style.maxWidth = "68ch";
+      document.body.append(probe);
+      const value = getComputedStyle(probe).maxWidth;
+      probe.remove();
+      return value;
+    },
+    { fontFamily: info.fontFamily },
+  );
+  expect(info.maxWidth).toBe(expectedMaxWidth);
+});
+
 test("320px: no horizontal document scroll with every block shown, and the long tool name is fully visible with no ellipsis", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 800 });
   await openRoute(page, THREAD_ROUTE);
@@ -118,6 +195,16 @@ test("320px: no horizontal document scroll with every block shown, and the long 
   }));
   expect(nameOverflow.scrollWidth).toBeLessThanOrEqual(nameOverflow.clientWidth);
   expect(nameOverflow.textOverflow).not.toBe("ellipsis");
+
+  // "Every block type" (spec scenario 13) includes the image and divider
+  // markdown blocks — neither should force the document wider than 320px.
+  const image = page.locator(`img[alt="${FIXTURE_IMAGE_ALT}"]`);
+  await expect(image).toBeAttached();
+  const imageBox = await image.boundingBox();
+  expect(imageBox?.x ?? 0).toBeGreaterThanOrEqual(0);
+  expect((imageBox?.x ?? 0) + (imageBox?.width ?? 0)).toBeLessThanOrEqual(320);
+
+  await expect(page.locator("hr").first()).toBeAttached();
 });
 
 test('A2UI: "Response captured" is absent before a response and appears after submitting one', async ({ page }) => {
@@ -129,7 +216,13 @@ test('A2UI: "Response captured" is absent before a response and appears after su
   // label "Add" (e2e/fixtures/sse.ts); the UAR mock already answers the
   // artifact-response endpoint with { ok: true }.
   await page.getByRole("button", { name: "Add", exact: true }).click();
-  await expect(page.getByText(/response captured/i)).toBeVisible();
+  const captured = page.getByText(/response captured/i);
+  await expect(captured).toBeVisible();
+
+  // Scenario 16: the success tone, not just the text — the pill is
+  // `bg-success-soft text-success-text` (a2ui-artifact-block.tsx).
+  const capturedColor = await captured.evaluate((el) => getComputedStyle(el).color);
+  expect(capturedColor).toBe(await tokenColor(page, "--km-success-text", "color"));
 });
 
 test('Mermaid: the "Week flow" artifact card renders an svg by default, with no click', async ({ page }) => {
@@ -160,7 +253,14 @@ test("composer: focus changes the fill and adds no border or outline to the cont
   // `EnhancedComposer`), so the true at-rest state has to be captured after
   // deliberately moving focus away first.
   await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
-  const restBg = await container.evaluate((el) => getComputedStyle(el).backgroundColor);
+  const rest = await container.evaluate((el) => {
+    const s = getComputedStyle(el);
+    return { bg: s.backgroundColor, outlineStyle: s.outlineStyle, outlineWidth: s.outlineWidth };
+  });
+  // Scenario 6: no outline at rest (border-at-rest is already covered by the
+  // block-wide sweep below).
+  expect(rest.outlineStyle === "none" || parseFloat(rest.outlineWidth) === 0).toBe(true);
+
   await input.focus();
   const focused = await container.evaluate((el) => {
     const s = getComputedStyle(el);
@@ -169,12 +269,17 @@ test("composer: focus changes the fill and adds no border or outline to the cont
       borderWidths: [s.borderTopWidth, s.borderRightWidth, s.borderBottomWidth, s.borderLeftWidth],
       outlineStyle: s.outlineStyle,
       outlineWidth: s.outlineWidth,
+      boxShadow: s.boxShadow,
     };
   });
 
-  expect(focused.bg).not.toBe(restBg);
+  expect(focused.bg).not.toBe(rest.bg);
   expect(focused.borderWidths.every((w) => parseFloat(w) === 0)).toBe(true);
   expect(focused.outlineStyle === "none" || parseFloat(focused.outlineWidth) === 0).toBe(true);
+  // Scenario 7: no ring/box-shadow outline when focused — Tailwind `ring-*`
+  // renders as `box-shadow`, which the block-wide sweep does not check here
+  // because it always runs at rest (composer blurred first).
+  expect(focused.boxShadow).toBe("none");
 });
 
 // ─── Block-wide Flat 2.0 sweep (spec scenarios 2, 6) ───────────────────────────
@@ -211,12 +316,12 @@ for (const theme of THEMES) {
       return found;
     });
 
-    // Known, reported defect (not waived): in the dark theme, the composer's
-    // "Add Attachment" button (`src/components/assistant-ui/attachment.tsx`,
-    // `ComposerAddAttachment`) carries `dark:border-muted-foreground/15` — a
-    // real, visible 1px border the chat-surfaces-flat2 guard never scanned
-    // (`attachment.tsx` is not in its file glob). Left failing on purpose so
-    // this sweep keeps catching it; see docs/qa/chat-surfaces-flat2.md.
+    // This sweep's first dark run caught a real, visible 1px border on the
+    // composer's "Add Attachment" button (`src/components/assistant-ui/attachment.tsx`),
+    // which the chat-surfaces-flat2 guard never scanned. Fixed in `a9dd0fe`
+    // (Flat 2.0 attachment styling) and the guard glob now includes
+    // `attachment.tsx` (`e4900d3`) — see docs/qa/chat-surfaces-flat2.md §6.4.
+    // Left as a plain assertion so the sweep keeps catching a regression here.
     expect(offenders).toEqual([]);
   });
 }
@@ -239,6 +344,22 @@ test("Thinking: collapsed by default, aria-expanded toggles, and the body shows 
   await expect(body).toBeVisible();
 });
 
+test("Thinking and citation blocks: fill equals km-cyan-soft", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openRoute(page, THREAD_ROUTE);
+
+  // Reasoning (`ReasoningPart`, enhanced-thread.tsx) and the citation card
+  // (`citation-block.tsx`) both use the literal class `bg-cyan-soft`; there
+  // are no other cyan-tinted blocks in the fixture, so this also confirms
+  // there are exactly two.
+  const cyanFills = page.locator(".bg-cyan-soft");
+  await expect(cyanFills).toHaveCount(2);
+
+  const cyanSoft = await tokenColor(page, "--km-cyan-soft");
+  const backgrounds = await cyanFills.evaluateAll((els) => els.map((el) => getComputedStyle(el).backgroundColor));
+  for (const bg of backgrounds) expect(bg).toBe(cyanSoft);
+});
+
 // ─── Tool states: running, completed, failed (spec scenario 9) ────────────────
 //
 // All three ToolStatus values. "Failed" was unreachable until
@@ -249,6 +370,9 @@ test("Thinking: collapsed by default, aria-expanded toggles, and the body shows 
 // `docs/qa/chat-surfaces-flat2.md` §6.5 for how that was found). Now that the
 // wrapper derives "failed" from `isError` itself, the fixture's
 // `sync_contacts` (a `tool_result` with `success: false`) renders "Failed".
+// Each pill's tone (text colour) is asserted against its status token, not
+// just its label text, so the state is provably not colour-only in reverse:
+// the colour itself is checked, not merely assumed present.
 
 test("Tool states: a completed call shows an icon-and-text Completed pill, not colour alone", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -257,6 +381,9 @@ test("Tool states: a completed call shows an icon-and-text Completed pill, not c
   const completedHeader = page.getByRole("button", { name: /calendar_list_events/ }).first();
   await expect(completedHeader.getByText("Completed", { exact: true })).toBeVisible();
   await expect(completedHeader.locator("svg").first()).toBeVisible();
+
+  const pillColor = await completedHeader.locator(".rounded-pill").evaluate((el) => getComputedStyle(el).color);
+  expect(pillColor).toBe(await tokenColor(page, "--km-success-text", "color"));
 });
 
 test("Tool states: a failed call shows an icon-and-text Failed pill, not colour alone", async ({ page }) => {
@@ -267,6 +394,9 @@ test("Tool states: a failed call shows an icon-and-text Failed pill, not colour 
   await expect(failedHeader).toBeVisible();
   await expect(failedHeader.getByText("Failed", { exact: true })).toBeVisible();
   await expect(failedHeader.locator("svg").first()).toBeVisible();
+
+  const pillColor = await failedHeader.locator(".rounded-pill").evaluate((el) => getComputedStyle(el).color);
+  expect(pillColor).toBe(await tokenColor(page, "--km-danger-text", "color"));
 });
 
 test("Tool states: a running call (no result yet) shows an icon-and-text Running pill, not colour alone", async ({
@@ -288,6 +418,23 @@ test("Tool states: a running call (no result yet) shows an icon-and-text Running
   await expect(runningHeader).toBeVisible();
   await expect(runningHeader.getByText("Running", { exact: true })).toBeVisible();
   await expect(runningHeader.locator("svg").first()).toBeVisible();
+
+  const pillColor = await runningHeader.locator(".rounded-pill").evaluate((el) => getComputedStyle(el).color);
+  expect(pillColor).toBe(await tokenColor(page, "--km-cyan-text", "color"));
+});
+
+// ─── Code block (spec scenario 10) ─────────────────────────────────────────────
+
+test("Code block: shows its language label, and the copy button has an accessible name", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openRoute(page, THREAD_ROUTE);
+
+  const codeBody = page.locator('[aria-label="ts code"]');
+  await expect(codeBody).toBeVisible();
+  const codeRoot = codeBody.locator("xpath=..");
+
+  await expect(codeRoot.getByText("ts", { exact: true })).toBeVisible();
+  await expect(codeRoot.getByRole("button", { name: "Copy" })).toBeVisible();
 });
 
 // ─── HTML artifact (spec scenario 11) ──────────────────────────────────────────
@@ -314,6 +461,15 @@ test("HTML artifact: inline preview sits on the artifact canvas; full screen dim
   });
   expect(overlayStyle.bg).toBe(await tokenColor(page, "--km-scrim"));
   expect(overlayStyle.blur === "none" || overlayStyle.blur === "").toBe(true);
+
+  // Scenario 11's other half: the full-screen preview itself (a second,
+  // dialog-only iframe — `html-artifact-card.tsx` renders one inline and one
+  // inside `DialogContent`) sits on the same artifact-canvas backdrop as the
+  // inline preview, not just the overlay behind it.
+  const dialogPreview = dialog.locator(`iframe[title="${HTML_ARTIFACT_LABEL}"]`);
+  await expect(dialogPreview).toBeVisible();
+  const dialogPreviewBg = await dialogPreview.locator("xpath=..").evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(dialogPreviewBg).toBe(await tokenColor(page, "--km-artifact-canvas"));
 
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);

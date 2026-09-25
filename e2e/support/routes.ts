@@ -4,7 +4,13 @@
  */
 import { expect, type Page } from "@playwright/test";
 import { FIXTURE_AGENT_ID } from "../fixtures/uar-data";
-import { FAILED_TOOL_NAME, FIXTURE_FINAL_TEXT, HTML_ARTIFACT_LABEL, RUNNING_TOOL_NAME } from "../fixtures/sse";
+import {
+  FAILED_TOOL_NAME,
+  FIXTURE_FINAL_TEXT,
+  FIXTURE_IMAGE_ALT,
+  HTML_ARTIFACT_LABEL,
+  RUNNING_TOOL_NAME,
+} from "../fixtures/sse";
 
 export interface AppRoute {
   /** Stable name used in screenshot filenames and test titles. */
@@ -46,6 +52,10 @@ async function streamFixtureConversation(page: Page): Promise<void> {
   ]) {
     await expect(page.getByText(marker).first()).toBeAttached();
   }
+  // Image and divider are markdown, not text, so they need their own
+  // locators (spec scenarios 2, 13, 19 — "every block type").
+  await expect(page.locator(`img[alt="${FIXTURE_IMAGE_ALT}"]`)).toBeAttached();
+  await expect(page.locator("hr").first()).toBeAttached();
   await expandToScrollableContent(page);
 }
 

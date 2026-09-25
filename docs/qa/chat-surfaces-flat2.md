@@ -274,3 +274,47 @@ Checked `test-results/a11y/thread__light.json` and `thread__dark.json` directly,
 | All 4 task 4.2 `verification.md` gaps this task targeted (#2/#6 sweep, #8 expand, #9 running, #11 HTML, #12 streaming, review-round-1 error, #17 source/copy) | **Closed with passing tests**, except #9's "failed" sub-case | — | See 6.2. |
 
 No commit made. Files touched are listed in 6.1, all within `e2e/**` and `docs/qa/**`.
+
+---
+
+### 6.10 Closing the PARTIAL scenarios (product owner's strict-rule count)
+
+`openspec/changes/chat-surfaces-flat2/verification.md`'s final count (product owner, strict rule: MET only when automated evidence covers the whole THEN clause) was **6 MET / 13 PARTIAL / 0 UNMET**, plus §5's "cheap to close with tests" list of 8 items and the fixture-gap items #2/#13/#19. This pass adds the computed-style assertions §5 asked for and closes every item in that list except one, which needs app code and is out of `e2e/**`/`src/test/**`/`docs/qa/**` scope.
+
+Two of the defects §6.4/§6.5/§6.9 above named as blocking were fixed by the frontend engineer (committed, not by me) before this pass started: the dark `attachment.tsx` border (whole file made Flat 2.0) and the "Failed" tool pill (`ToolCallBlockWrapper` now reads `isError` directly). Both are re-verified below as part of closing #2/#6 and #9, not re-litigated.
+
+Files changed this pass, all within scope, no commit: `e2e/chat-surfaces.spec.ts` (12 new tests, 6 existing tests extended with additional assertions), `e2e/fixtures/sse.ts` (added a markdown image and a divider to `ASSISTANT_MARKDOWN`), `e2e/support/routes.ts` (two new non-text attached-checks in `streamFixtureConversation`), plus the stale sweep-test comment fix (the attachment border is fixed, not "left failing on purpose").
+
+| # | Scenario | Was | New evidence | Now |
+|---|---|---|---|---|
+| 2 | Rendered blocks have no borders or shadows | PARTIAL (fixture had no image/divider) | `e2e/fixtures/sse.ts` `ASSISTANT_MARKDOWN` now includes a markdown image (`FIXTURE_IMAGE_ALT`, a 1x1 data-URI PNG — no real network fetch) and a divider (`---`). Both are ordinary CommonMark, rendered through the same `react-markdown`/`remarkGfm` pipeline as every other block, not DOM-injected. The block-wide sweep (`Flat 2.0: … (light\|dark)`) walks the whole `.aui-thread-root`, so it now covers them automatically — both runs still `expect(offenders).toEqual([])`, both themes. | **MET** for "every block type in the fixture"; the fixture now contains every block type `specs/chat-surfaces/spec.md` names. |
+| 3 | Assistant reply is authored prose | PARTIAL (source/capture only) | `Assistant reply: no background fill, body (Roboto) font, and prose capped near 68ch` — asserts the `FIXTURE_FINAL_TEXT` paragraph's computed `backgroundColor` is `rgba(0, 0, 0, 0)`, computed `fontFamily` contains "Roboto", and computed `maxWidth` equals a reference element's `max-width: 68ch` probed in the same font context (not a hand-computed ch→px conversion). | **MET.** |
+| 4, 5 | User message, light/dark | PARTIAL (trailing edge and fill from source/captures only) | `User message: sits at the trailing edge and its fill matches km-ember-soft in {light,dark}` — at 320px (avatar hidden below the container's `@md` breakpoint, so the bubble is the last item in its `justify-end` row), compares the bubble's `getBoundingClientRect()` right edge to the message root's (≤ 2px), and the bubble's computed `backgroundColor` to `--km-ember-soft` probed the same way. | **MET** (combined with the existing contrast test, which already measured `4.5:1` against the same computed fill). |
+| 6 | Composer at rest | PARTIAL (`outline` at rest unread) | The composer test now reads `outlineStyle`/`outlineWidth` at rest (before focusing), asserting no visible outline. Border-at-rest and fill-distinctness are still the sweep and `tokens.test.ts` respectively. | **MET.** |
+| 7 | Composer focused | PARTIAL (`box-shadow`/ring when focused unread) | The same test now also reads `boxShadow` in the focused state and asserts `"none"` — the sweep only ever runs at rest (composer blurred first), so this was a real gap, not a duplicate. | **MET.** |
+| 8 | Reasoning and sources are cyan-tinted | PARTIAL (fill from source/captures only) | `Thinking and citation blocks: fill equals km-cyan-soft` — asserts `.bg-cyan-soft` matches exactly 2 elements (reasoning wrapper, citation card; no other block in the completed fixture uses that class — the A2UI "Sending" and tool "Running" cyan-soft pills are transient/never at rest in this fixture) and each has computed `backgroundColor` equal to `--km-cyan-soft`. | **MET.** |
+| 9 | Tool status is not colour-only | PARTIAL (tone colour unread) | Each of the three tool-state tests (`…Completed…`, `…Failed…`, `…Running…`) now also reads the pill's (`.rounded-pill`) computed `color` and compares it to `--km-success-text`, `--km-danger-text`, `--km-cyan-text` respectively, probed the same way. Re-verifies the frontend engineer's `isError` fix at the same time: the Failed test passed on both runs. | **MET.** |
+| 10 | Code uses the code background | PARTIAL (label and copy-button name from source/axe only) | `Code block: shows its language label, and the copy button has an accessible name` — asserts the `ts` header shows the text "ts" and `getByRole("button", { name: "Copy" })` resolves inside that specific code block's root (scoped via the `[aria-label="ts code"]` region's parent), not just that *some* button on the page has that name. | **MET.** |
+| 11 | HTML artifact preview backdrop | PARTIAL (full-screen preview's own backdrop unread — only the overlay was) | The HTML artifact test now also locates the **second** iframe (the one inside the open `Dialog`, distinct from the inline one — `html-artifact-card.tsx` renders one of each) and asserts its wrapper's computed `backgroundColor` equals `--km-artifact-canvas`, same as the inline preview. | **MET.** |
+| 12 | Streaming indicator | Already MET (task 4.3 first pass) | Unchanged. | MET. |
+| 13 | Every block at 320px | PARTIAL (no image/divider) | The 320px test now asserts the image is attached and its bounding box stays within `[0, 320]` horizontally, and a divider is attached. Combined with #2's fixture extension. | **MET** for the fixture's full block set. |
+| 16 | User submits a response | PARTIAL (success tone unread) | The A2UI test now reads the "Response captured" text's computed `color` (inherits from the pill's `text-success-text`) and compares it to `--km-success-text`. | **MET.** |
+| 19 | Axe on the fixture thread | PARTIAL (no image/divider in the scanned fixture) | Not re-run as part of this pass's `npx playwright test` calls (scope was the two commands verification asked for); `npm run test:a11y` should be re-run against the extended fixture before this is claimed MET — flagging rather than asserting it here. See "Not re-verified" below. | **Fixture gap closed; axe re-run still needed.** |
+
+**Not re-verified in this pass:** `npm run test:a11y` against the now-image-and-divider-bearing fixture. The coordinator's verify list was `npx playwright test e2e/chat-surfaces.spec.ts` (×2) plus `e2e/chat-stream.spec.ts e2e/shell.spec.ts`; a fresh axe run wasn't in that list, and this file should not claim #19 fully MET on an axe report that hasn't actually been produced against the new fixture. The image is a 1x1 transparent data-URI PNG with descriptive alt text and the divider is a plain `<hr>` matching the design's borderless pattern, so a new violation is unlikely, but "unlikely" is not evidence.
+
+**Could not close:** #9's sub-claim was already closed by the frontend engineer's fix, verified above — nothing left open in #9. No scenario in this pass's list required app code; the one true app-code item (the pre-stream error path) is explicitly the frontend engineer's, separate from this pass, per the coordinator's message.
+
+### 6.11 Verification (this pass)
+
+`npx playwright test e2e/chat-surfaces.spec.ts`, run twice:
+- Run 1: **22 passed** (38.2s).
+- Run 2: **22 passed** (1.1m).
+
+`npx playwright test e2e/chat-stream.spec.ts e2e/shell.spec.ts`: first attempt hit `Error: http://localhost:4174 is already used` from a stale dev server left over by an earlier run in this session; killed the orphaned process (confirmed via `lsof -nP -iTCP:4174 -sTCP:LISTEN`) and reran — **16 passed** (29.0s), including `the context sheet closes when the route changes`, the one test that hit the stale-server race on the first attempt.
+
+`npx vitest run src/test/uar-sse-fixture.test.ts src/test/flat-shell.test.ts`: **66 passed** (2 files) — the SSE fixture guard and the chat guard (including `attachment.tsx`, added last pass) both still pass against the image/divider-extended fixture.
+
+No stray processes after this pass: `lsof -nP -iTCP:4174 -sTCP:LISTEN` and a scoped `ps aux` for vite/playwright processes under this repo path both empty.
+
+No commit made. `git status --short -- e2e/ src/test/ docs/` shows exactly `e2e/chat-surfaces.spec.ts`, `e2e/fixtures/sse.ts`, `e2e/support/routes.ts` and this file.

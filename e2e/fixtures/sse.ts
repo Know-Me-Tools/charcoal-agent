@@ -23,6 +23,17 @@ export const FAILED_TOOL_RESULT = "Contacts provider unavailable";
 /** Title of the HTML artifact fence in `ASSISTANT_MARKDOWN` (chat-surfaces spec scenario 11). */
 export const HTML_ARTIFACT_LABEL = "html artifact";
 
+/**
+ * Alt text of the markdown image in `ASSISTANT_MARKDOWN` (chat-surfaces spec
+ * scenarios 2, 13, 19 — "every block type" includes image and divider). A
+ * 1x1 transparent PNG data URI avoids a real network fetch in headless runs;
+ * `enhanced-markdown-text.tsx`'s `img` component map entry renders it the
+ * same way it would render any markdown image.
+ */
+export const FIXTURE_IMAGE_ALT = "Rebrand palette swatch";
+const FIXTURE_IMAGE_DATA_URI =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
+
 export type SseEvent = { event: string; data: Record<string, unknown> };
 
 const rid = FIXTURE_REQUEST_ID;
@@ -38,6 +49,8 @@ const ASSISTANT_MARKDOWN = [
   "```mermaid\ngraph LR\n  Plan --> Build --> Review\n```\n\n",
   "A long identifier that must wrap: https://know-me.tools/very/long/path/that/keeps/going/without/any/spaces/at/all/to/check/wrapping/behaviour/in/narrow/viewports\n\n",
   "```html\n<!doctype html>\n<html>\n  <head>\n    <title>Rebrand quick look</title>\n  </head>\n  <body>\n    <h1>Rebrand quick look</h1>\n    <p>A tiny preview page for the new brand tokens.</p>\n  </body>\n</html>\n```\n\n",
+  `![${FIXTURE_IMAGE_ALT}](${FIXTURE_IMAGE_DATA_URI})\n\n`,
+  "---\n\n",
   FIXTURE_FINAL_TEXT,
 ];
 
