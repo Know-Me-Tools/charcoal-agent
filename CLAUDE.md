@@ -45,6 +45,10 @@ Path-scoped rules in `.claude/rules/` load when you open a matching file: `chat.
 - `components/assistant-ui/` holds the assistant-ui thread/composer shells; `components/layout/` holds the app shell (sidebar, topbar, right context panel, mobile nav).
 - Routes are defined in `src/App.tsx` (`/threads/:id`, `/agents/:id`, `/settings/*`).
 
+## Agent team
+
+Ten `km-*` role agents with owned paths: see `.agent-team/README.md`.
+
 ## Specs
 
 OpenSpec is initialized (`openspec/`, schema `spec-driven`). Use the `/opsx:*` commands / `openspec-*` skills for proposing and applying changes.

@@ -69,3 +69,8 @@ Thumbs.db
 .claude/settings.json.bak.*
 # Session opt-in for the final-artifact gate; never commit it.
 .kbd-orchestrator/tier3.allow
+
+# agent-team-creator: local coordination state and export proposals
+.agent-team/state.json
+.agent-team/exports/
+.agent-team/*.result.json
