@@ -261,3 +261,18 @@ BLOCK, 2 CRITICAL, 1 WARNING.
 ### Round 3: cross-model judge
 
 
+
+Gate on `08f024d` beforehand: build 0, lint 0 errors, e2e 185/185, thread axe 0 in both themes.
+
+BLOCK, 1 CRITICAL: `enhanced-markdown-text.tsx` rendered model markdown with `rehypeRaw` and no sanitizer, so it could inject iframes, forms and styles. This was the artifact-critic's finding 2b. It predates this branch but sits on the surface this change restyled, and two independent reviewers flagged it, so it was fixed here rather than deferred.
+
+Fixed in `69f9f0e`:
+- `rehypeRaw` → `rehype-sanitize` 6.0.0 (pinned exactly) → `rehype-katex`.
+- The sanitizer uses GitHub's default schema, extended only with `code` className for `language-*`, `math-inline` and `math-display`. `href` is limited to http, https and mailto.
+- Unit tests (red first) cover:
+  - `<iframe>`, `<form>` and `<style>` are removed, and `onerror` and `javascript:` are stripped;
+  - `<sup>` and `<details>` are kept;
+  - KaTeX, code language classes and Mermaid routing still work.
+- Gates on `69f9f0e`: unit 258/258, typecheck clean, lint back to the 2 pre-existing warnings, chat e2e 30/30.
+
+### Round 4: cross-model judge
