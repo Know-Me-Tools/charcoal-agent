@@ -85,6 +85,6 @@
   - `npm run test:a11y` shows no violations in `test-results/a11y/thread__*.json` in either theme
   - `npx playwright test e2e/chat-surfaces.spec.ts e2e/chat-stream.spec.ts` passes
   - light and dark thread captures show the composer and code wells as distinct surfaces
-- [ ] 4.3 (owner: km-product-owner) Write `openspec/changes/chat-surfaces-flat2/verification.md` from the QA evidence. It maps each spec scenario to its evidence (test name, capture path or axe result) and lists every unmet criterion. Then run an independent review with the `artifact-critic` subagent or `adversarial-review --mode diff`, and record its findings. Verify:
+- [x] 4.3 (owner: km-product-owner) Write `openspec/changes/chat-surfaces-flat2/verification.md` from the QA evidence. It maps each spec scenario to its evidence (test name, capture path or axe result) and lists every unmet criterion. Then run an independent review with the `artifact-critic` subagent or `adversarial-review --mode diff`, and record its findings. Verify:
   - every scenario in `specs/chat-surfaces/spec.md` has evidence or is marked unmet
   - the review reports no CRITICAL findings, or they are fixed and re-reviewed before archive
