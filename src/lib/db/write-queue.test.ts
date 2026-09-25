@@ -46,8 +46,18 @@ function makeFakeDb() {
 
 let fakeDb = makeFakeDb();
 
+// Toggled by the "waits for db readiness" tests below to simulate the db
+// not being open yet; every other test leaves this at its default (ready
+// immediately), matching write-queue.ts's fast path.
+let dbReady = true;
+let readyPromise: Promise<ReturnType<typeof makeFakeDb>> = Promise.resolve(fakeDb);
+
 vi.mock("@/lib/db/pglite", () => ({
-  getDbInstance: () => fakeDb,
+  getDbInstance: () => {
+    if (!dbReady) throw new Error("db not ready yet");
+    return fakeDb;
+  },
+  whenDbReady: () => readyPromise,
 }));
 
 const { enqueueWrite, pendingWriteCount, pendingWriteDescriptors, flush, subscribeWriteQueue } =
@@ -70,6 +80,8 @@ function fakeThread(id: string): LocalThread {
 
 beforeEach(() => {
   fakeDb = makeFakeDb();
+  dbReady = true;
+  readyPromise = Promise.resolve(fakeDb);
 });
 
 describe("write-queue ordering", () => {
@@ -167,5 +179,53 @@ describe("write-queue change subscription", () => {
     listener.mockClear();
     await enqueueWrite({ kind: "touchThread", id: "t2" });
     expect(listener).not.toHaveBeenCalled();
+  });
+});
+
+describe("write-queue waits for the database to become ready", () => {
+  it("does not drop a write enqueued before the db is ready — it waits and then applies", async () => {
+    dbReady = false;
+    let resolveReady!: (db: ReturnType<typeof makeFakeDb>) => void;
+    readyPromise = new Promise((resolve) => {
+      resolveReady = resolve;
+    });
+
+    const write = enqueueWrite({ kind: "touchThread", id: "t1" });
+
+    // Not ready yet: the write must be waiting, not executed-and-forgotten
+    // (the pre-1.2 behaviour silently no-opped here instead).
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(fakeDb.calls).toEqual([]);
+    expect(pendingWriteCount()).toBe(1);
+
+    dbReady = true;
+    resolveReady(fakeDb);
+    await write;
+
+    expect(fakeDb.calls.map((c) => c.kind)).toEqual(["touchThread"]);
+    expect(pendingWriteCount()).toBe(0);
+  });
+
+  it("keeps write order even when the first write has to wait for readiness", async () => {
+    dbReady = false;
+    let resolveReady!: (db: ReturnType<typeof makeFakeDb>) => void;
+    readyPromise = new Promise((resolve) => {
+      resolveReady = resolve;
+    });
+
+    const p1 = enqueueWrite({ kind: "upsertThread", thread: fakeThread("t1") });
+    const p2 = enqueueWrite({ kind: "touchThread", id: "t1" });
+
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(fakeDb.calls).toEqual([]);
+
+    dbReady = true;
+    resolveReady(fakeDb);
+    await Promise.all([p1, p2]);
+
+    expect(fakeDb.calls.map((c) => c.kind)).toEqual(["upsertThread", "touchThread"]);
   });
 });

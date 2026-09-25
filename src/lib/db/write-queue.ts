@@ -17,7 +17,7 @@
  * draft's property from inside a queued write throws
  * "Cannot perform 'get' on a proxy that has been revoked".
  */
-import { getDbInstance } from "@/lib/db/pglite";
+import { getDbInstance, whenDbReady } from "@/lib/db/pglite";
 import type { CharcoalDb } from "@/lib/db/pglite";
 import type { LocalThread } from "@/types";
 import type { RichMessage } from "@/types/chat-content";
@@ -53,16 +53,17 @@ function descriptorLabel(descriptor: WriteDescriptor): string {
 }
 
 /**
- * Maps a descriptor to the existing `CharcoalDb` method — the SQL and row
- * shapes are unchanged, this only decides which method runs. Silently
- * no-ops when the database isn't open yet, matching the `tryDb()?.write(...)`
- * behaviour every store action used before this module existed: the caller
- * already tolerates a not-yet-ready database.
+ * Applies one descriptor against a specific, already-open `CharcoalDb`
+ * instance — the SQL and row shapes are unchanged, this only decides which
+ * method runs. Exported so journal replay (`persistence-journal.ts`) can
+ * apply descriptors directly against a freshly opened instance: replay runs
+ * inside `CharcoalDb.open()`, before `setDbInstance()` has been called, so
+ * it cannot go through the module singleton the live queue below uses.
  */
-async function executeWrite(descriptor: WriteDescriptor): Promise<void> {
-  const db = tryDb();
-  if (!db) return;
-
+export async function applyDescriptor(
+  db: CharcoalDb,
+  descriptor: WriteDescriptor,
+): Promise<void> {
   switch (descriptor.kind) {
     case "upsertMessage":
       return db.insertMessage(descriptor.threadId, descriptor.message);
@@ -75,6 +76,24 @@ async function executeWrite(descriptor: WriteDescriptor): Promise<void> {
     case "deleteThread":
       return db.deleteThread(descriptor.id);
   }
+}
+
+/**
+ * Resolves the database for a live (non-replay) write: the module singleton
+ * if it's already open, otherwise waits for it — a write that reaches the
+ * queue before `DbProvider` finishes opening (or, in tests, before the
+ * mocked db becomes available) waits instead of being silently dropped.
+ * In the shipped app this only matters transiently at startup: nothing that
+ * could enqueue a write can run before `DbProvider` renders its children,
+ * which happens only once the database is open.
+ */
+async function resolveDb(): Promise<CharcoalDb> {
+  return tryDb() ?? (await whenDbReady());
+}
+
+async function executeWrite(descriptor: WriteDescriptor): Promise<void> {
+  const db = await resolveDb();
+  return applyDescriptor(db, descriptor);
 }
 
 // ---------------------------------------------------------------------------
@@ -99,9 +118,45 @@ const pending = new Map<number, WriteDescriptor>();
 let nextId = 0;
 
 const listeners = new Set<() => void>();
+const failureListeners = new Set<WriteFailureListener>();
+
+// True after a write (live or replayed) has failed, until a later write
+// succeeds — read through the exported hasFailedWrite() below.
+let failed = false;
+
+export type WriteFailureListener = (descriptor: WriteDescriptor, error: unknown) => void;
 
 function emitChange(): void {
   for (const listener of listeners) listener();
+}
+
+/**
+ * Records a write failure: logs the raw error for diagnosis (descriptor
+ * kind only — never displayed), marks the save-state `failed` until a later
+ * write succeeds, and notifies failure subscribers (the toast in
+ * `src/hooks/use-persistence-status.ts`). Exported so journal replay can
+ * report a failing entry through the same channel as a live write, since
+ * replay applies descriptors directly via `applyDescriptor` and never goes
+ * through `enqueueWrite`.
+ */
+export function reportFailure(descriptor: WriteDescriptor, error: unknown): void {
+  console.error(`[write-queue] ${descriptorLabel(descriptor)} failed`, error);
+  failed = true;
+  emitChange();
+  for (const listener of failureListeners) listener(descriptor, error);
+}
+
+/** True after a write (live or replayed) has failed, until a later write succeeds. */
+export function hasFailedWrite(): boolean {
+  return failed;
+}
+
+/** Notified on every write failure (live or replayed), with the raw error — for diagnosis and the failure toast, never for display verbatim. */
+export function subscribeWriteFailures(listener: WriteFailureListener): () => void {
+  failureListeners.add(listener);
+  return () => {
+    failureListeners.delete(listener);
+  };
 }
 
 /**
@@ -126,9 +181,12 @@ export function enqueueWrite(descriptor: WriteDescriptor): Promise<void> {
   // Advance the chain to a continuation that never rejects, so a failure in
   // this write can't block the writes enqueued after it.
   tail = result.then(
-    () => undefined,
+    () => {
+      failed = false;
+      emitChange();
+    },
     (error: unknown) => {
-      console.error(`[write-queue] ${descriptorLabel(descriptor)} failed`, error);
+      reportFailure(descriptor, error);
     },
   );
 

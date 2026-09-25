@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { CharcoalDb, setDbInstance } from "@/lib/db/pglite";
+import { replayJournal } from "@/lib/db/persistence-journal";
 
 const DB_NAME = "/charcoal-db";
 
@@ -56,10 +57,19 @@ export function DbProvider({ children }: DbProviderProps) {
         const db = await CharcoalDb.open((msg) => {
           if (!cancelled) setStatus(msg);
         });
-        if (!cancelled) {
-          setDbInstance(db);
-          setValue({ ready: true, db });
-        }
+        if (cancelled) return;
+
+        // Replay any writes that were still pending when the page last
+        // exited, directly against `db` (before setDbInstance below), so
+        // the first hydration read already sees the result — after
+        // migrations, before `ready: true` (chat-persistence-durability
+        // design decision 5).
+        setStatus("Recovering any unsaved messages…");
+        await replayJournal(db);
+        if (cancelled) return;
+
+        setDbInstance(db);
+        setValue({ ready: true, db });
       } catch (err: unknown) {
         if (cancelled) return;
 

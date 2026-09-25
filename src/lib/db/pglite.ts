@@ -7,15 +7,33 @@ import type { LocalThread } from "@/types";
 // ---------------------------------------------------------------------------
 
 let _instance: CharcoalDb | null = null;
+let readyResolve: ((db: CharcoalDb) => void) | null = null;
+const readyPromise: Promise<CharcoalDb> = new Promise((resolve) => {
+  readyResolve = resolve;
+});
 
 export function setDbInstance(db: CharcoalDb): void {
   _instance = db;
+  readyResolve?.(db);
+  readyResolve = null;
 }
 
 /** Returns the initialized CharcoalDb. Throws if called before DbProvider is ready. */
 export function getDbInstance(): CharcoalDb {
   if (!_instance) throw new Error("[CharcoalDb] Database not yet initialized");
   return _instance;
+}
+
+/**
+ * Resolves once the database is open — immediately if it already is,
+ * otherwise the first time `setDbInstance` is called. Lets the write queue
+ * (`src/lib/db/write-queue.ts`) wait for readiness instead of silently
+ * dropping a write that reaches it before `DbProvider` finishes opening
+ * (chat-persistence-durability task 1.2).
+ */
+export function whenDbReady(): Promise<CharcoalDb> {
+  if (_instance) return Promise.resolve(_instance);
+  return readyPromise;
 }
 
 // ---------------------------------------------------------------------------
