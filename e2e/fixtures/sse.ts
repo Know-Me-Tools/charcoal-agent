@@ -261,17 +261,32 @@ export const PARTIAL_STREAM_THINKING_ONLY_EVENTS: SseEvent[] = [
 
 /**
  * A distinctive raw error string that must never reach the DOM (message
- * error scenario, review round 1 fix). The completion request needs at least
- * one content event before `agui.error` — `use-message-stream.ts` only
- * creates the streaming assistant message on the first delta
- * (`getOrCreateStreamingMessage`, `src/stores/chat-message-store.ts`), and
- * `setStreamError` is a no-op with no message to attach the error to.
+ * error scenario, review round 1 fix). This shape has a content delta before
+ * `agui.error` on purpose, to exercise a mid-stream failure distinct from
+ * the "Pre-stream failures" ones in `e2e/chat-surfaces.spec.ts` (an HTTP
+ * error, an aborted request, or a zero-event body — all of which fail
+ * *before* any delta, and needed `e334863` so `setStreamError` creates the
+ * assistant message when none exists yet).
  */
 export const RAW_STREAM_ERROR_TEXT = "internal secret trace 9f3d-x1";
 export const ERROR_STREAM_EVENTS: SseEvent[] = [
   { event: "agui.stream.start", data: { kind: "stream", phase: "start", request_id: rid } },
   { event: "agui.message.delta", data: { kind: "message", phase: "delta", request_id: rid, delta: { text: "Working on your plan" } } },
   { event: "agui.error", data: { kind: "error", request_id: rid, message: RAW_STREAM_ERROR_TEXT } },
+];
+
+/**
+ * A distinct, minimal reply used to prove a retry/regenerate genuinely
+ * *replaces* the prior turn rather than appending to it (independent
+ * critic's CRITICAL 1, fixed in `3c24255`): its text must appear and the
+ * fixture's original `FIXTURE_FINAL_TEXT` must not, after a successful
+ * regenerate.
+ */
+export const REGENERATED_REPLY_TEXT = "Here is the regenerated plan instead.";
+export const REGENERATE_STREAM_EVENTS: SseEvent[] = [
+  { event: "agui.stream.start", data: { kind: "stream", phase: "start", request_id: rid } },
+  { event: "agui.message.delta", data: { kind: "message", phase: "delta", request_id: rid, delta: { text: REGENERATED_REPLY_TEXT } } },
+  { event: "agui.done", data: { kind: "done", request_id: rid } },
 ];
 
 /** Serialise events exactly as UAR does: `event:` + `data:` lines, blank-line delimited. */

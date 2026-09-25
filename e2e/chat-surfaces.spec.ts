@@ -21,6 +21,8 @@ import {
   PARTIAL_STREAM_EVENTS,
   PARTIAL_STREAM_THINKING_ONLY_EVENTS,
   RAW_STREAM_ERROR_TEXT,
+  REGENERATE_STREAM_EVENTS,
+  REGENERATED_REPLY_TEXT,
   RUNNING_TOOL_NAME,
   TITLE_RESPONSE,
   toSseBody,
@@ -235,52 +237,86 @@ test('Mermaid: the "Week flow" artifact card renders an svg by default, with no 
   await expect(card.locator("svg[id^=mermaid]")).toBeVisible();
 });
 
-test("composer: focus changes the fill and adds no border or outline to the container", async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto(`/threads/${FIXTURE_THREAD_ID}`);
-  const footer = page.locator(".aui-thread-viewport-footer");
-  const input = footer.getByPlaceholder(/Ask your agent anything/i).filter({ visible: true });
-  await expect(input).toBeVisible();
-  // `ComposerPrimitive.Input` renders a bare `<textarea>` (react-textarea-autosize),
-  // so its immediate DOM parent is the dropzone div that owns the
-  // `focus-within` fill (`EnhancedComposer`'s `AttachmentDropzone`). Selecting
-  // via the input's own accessible name/placeholder avoids depending on
-  // whichever colour/token class that container happens to use.
-  const container = input.locator("xpath=..");
-  await expect(container).toBeVisible();
+// Rewritten after an independent critic's CRITICAL finding: the composer
+// previously had no real focus outline, only a ~1.1:1 fill-only cue (well
+// under the 3:1 WCAG 1.4.11 non-text contrast minimum). The fix
+// (`enhanced-thread.tsx`'s `AttachmentDropzone`) adds
+// `has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2
+// has-[:focus-visible]:outline-ring` — a real 2px ember outline when the
+// textarea is keyboard-focused. This test now asserts the outline exists and
+// meets contrast, not that it's absent.
+for (const theme of THEMES) {
+  test(`composer: at rest no border or outline; keyboard focus shows a ≥3:1 outline, still no border, and the fill changes (${theme})`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await seedTheme(page, theme);
+    await page.goto(`/threads/${FIXTURE_THREAD_ID}`);
+    const footer = page.locator(".aui-thread-viewport-footer");
+    const input = footer.getByPlaceholder(/Ask your agent anything/i).filter({ visible: true });
+    await expect(input).toBeVisible();
+    // `ComposerPrimitive.Input` renders a bare `<textarea>` (react-textarea-autosize),
+    // so its immediate DOM parent is the dropzone div that owns the
+    // `focus-within` fill (`EnhancedComposer`'s `AttachmentDropzone`). Selecting
+    // via the input's own accessible name/placeholder avoids depending on
+    // whichever colour/token class that container happens to use.
+    const container = input.locator("xpath=..");
+    await expect(container).toBeVisible();
 
-  // The composer input autofocuses on mount (`autoFocus` in
-  // `EnhancedComposer`), so the true at-rest state has to be captured after
-  // deliberately moving focus away first.
-  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
-  const rest = await container.evaluate((el) => {
-    const s = getComputedStyle(el);
-    return { bg: s.backgroundColor, outlineStyle: s.outlineStyle, outlineWidth: s.outlineWidth };
+    // The composer input autofocuses on mount (`autoFocus` in
+    // `EnhancedComposer`), so the true at-rest state has to be captured after
+    // deliberately moving focus away first.
+    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+    const rest = await container.evaluate((el) => {
+      const s = getComputedStyle(el);
+      return {
+        bg: s.backgroundColor,
+        outlineStyle: s.outlineStyle,
+        outlineWidth: s.outlineWidth,
+        borderWidths: [s.borderTopWidth, s.borderRightWidth, s.borderBottomWidth, s.borderLeftWidth],
+      };
+    });
+    expect(rest.outlineStyle === "none" || parseFloat(rest.outlineWidth) === 0).toBe(true);
+    expect(rest.borderWidths.every((w) => parseFloat(w) === 0)).toBe(true);
+
+    // A plain `<textarea>` matches `:focus-visible` even on a programmatic
+    // `.focus()` — browsers treat text-editing controls as always
+    // focus-visible, unlike e.g. a `<button>`, which needs real keyboard
+    // interaction. Confirmed empirically before writing this assertion
+    // (`el.matches(":focus-visible")` is true here), so `.focus()` is a
+    // reliable stand-in for `page.keyboard.press("Tab")` landing on this
+    // specific field, and the check below proves it rather than assuming it.
+    await input.focus();
+    const isFocusVisible = await input.evaluate((el) => el.matches(":focus-visible"));
+    expect(isFocusVisible).toBe(true);
+
+    const focused = await container.evaluate((el) => {
+      const s = getComputedStyle(el);
+      return {
+        bg: s.backgroundColor,
+        borderWidths: [s.borderTopWidth, s.borderRightWidth, s.borderBottomWidth, s.borderLeftWidth],
+        outlineStyle: s.outlineStyle,
+        outlineWidth: s.outlineWidth,
+        outlineColor: s.outlineColor,
+        boxShadow: s.boxShadow,
+      };
+    });
+
+    // Fill still changes on focus.
+    expect(focused.bg).not.toBe(rest.bg);
+    // Still no border — the focus cue is an outline, not a border.
+    expect(focused.borderWidths.every((w) => parseFloat(w) === 0)).toBe(true);
+    // No separate ring/box-shadow cue either — the outline is the one cue.
+    expect(focused.boxShadow).toBe("none");
+    // A real, visible outline: solid, ≥ 2px, and ≥ 3:1 against the canvas it
+    // sits against (`outline-offset-2` puts a canvas-coloured gap between
+    // the composer's fill and the outline itself — WCAG 1.4.11).
+    expect(focused.outlineStyle).not.toBe("none");
+    expect(parseFloat(focused.outlineWidth)).toBeGreaterThanOrEqual(2);
+    const canvas = await tokenColor(page, "--km-canvas");
+    expect(contrastRatio(focused.outlineColor, canvas)).toBeGreaterThanOrEqual(3);
   });
-  // Scenario 6: no outline at rest (border-at-rest is already covered by the
-  // block-wide sweep below).
-  expect(rest.outlineStyle === "none" || parseFloat(rest.outlineWidth) === 0).toBe(true);
-
-  await input.focus();
-  const focused = await container.evaluate((el) => {
-    const s = getComputedStyle(el);
-    return {
-      bg: s.backgroundColor,
-      borderWidths: [s.borderTopWidth, s.borderRightWidth, s.borderBottomWidth, s.borderLeftWidth],
-      outlineStyle: s.outlineStyle,
-      outlineWidth: s.outlineWidth,
-      boxShadow: s.boxShadow,
-    };
-  });
-
-  expect(focused.bg).not.toBe(rest.bg);
-  expect(focused.borderWidths.every((w) => parseFloat(w) === 0)).toBe(true);
-  expect(focused.outlineStyle === "none" || parseFloat(focused.outlineWidth) === 0).toBe(true);
-  // Scenario 7: no ring/box-shadow outline when focused — Tailwind `ring-*`
-  // renders as `box-shadow`, which the block-wide sweep does not check here
-  // because it always runs at rest (composer blurred first).
-  expect(focused.boxShadow).toBe("none");
-});
+}
 
 // ─── Block-wide Flat 2.0 sweep (spec scenarios 2, 6) ───────────────────────────
 
@@ -462,10 +498,12 @@ test("HTML artifact: inline preview sits on the artifact canvas; full screen dim
   expect(overlayStyle.bg).toBe(await tokenColor(page, "--km-scrim"));
   expect(overlayStyle.blur === "none" || overlayStyle.blur === "").toBe(true);
 
-  // Scenario 11's other half: the full-screen preview itself (a second,
-  // dialog-only iframe — `html-artifact-card.tsx` renders one inline and one
-  // inside `DialogContent`) sits on the same artifact-canvas backdrop as the
-  // inline preview, not just the overlay behind it.
+  // Scenario 11's other half: the full-screen preview itself sits on the
+  // same artifact-canvas backdrop as the inline preview, not just the
+  // overlay behind it. (The inline `<iframe>` unmounts while full screen is
+  // open — `html-artifact-card.tsx`'s `{!isFullScreen && (...)}` — so this
+  // is now the only artifact iframe on the page; see the dedicated sandbox
+  // test below for that count.)
   const dialogPreview = dialog.locator(`iframe[title="${HTML_ARTIFACT_LABEL}"]`);
   await expect(dialogPreview).toBeVisible();
   const dialogPreviewBg = await dialogPreview.locator("xpath=..").evaluate((el) => getComputedStyle(el).backgroundColor);
@@ -474,6 +512,53 @@ test("HTML artifact: inline preview sits on the artifact canvas; full screen dim
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
   await expect(fullScreenButton).toBeFocused();
+});
+
+// Independent critic's second CRITICAL: model-authored HTML iframes carried
+// `allow-scripts allow-same-origin allow-forms`. `allow-same-origin` +
+// `allow-scripts` together let the sandboxed document's script reach back
+// into the app's own origin (this app's IndexedDB/PGlite data, its UAR
+// session) — the combination the sandbox attribute exists to prevent. The
+// fix (`html-artifact-card.tsx`) narrows both iframes to `sandbox="allow-scripts"`
+// only, drops the "Open in new tab" control (a blob: URL served from the app
+// origin), unmounts the inline iframe while full screen is open so the
+// model's page never runs twice at once, and disables the dialog's own close
+// button so there is exactly one way to exit full screen.
+test("HTML artifact: sandboxed to allow-scripts only, no Open in new tab, one iframe while full screen, one close control", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openRoute(page, THREAD_ROUTE);
+
+  const artifactIframes = page.locator(`iframe[title="${HTML_ARTIFACT_LABEL}"]`);
+  await expect(artifactIframes).toHaveCount(1);
+  await expect(artifactIframes).toHaveAttribute("sandbox", "allow-scripts");
+
+  await expect(page.getByRole("button", { name: "Open in new tab" })).toHaveCount(0);
+
+  const fullScreenButton = page.getByRole("button", { name: "Full screen" });
+  await fullScreenButton.click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+
+  // Exactly one artifact iframe exists while full screen is open — the
+  // inline preview unmounted, so this is the dialog's own, not a second one
+  // rendered alongside it.
+  await expect(artifactIframes).toHaveCount(1);
+  await expect(artifactIframes).toHaveAttribute("sandbox", "allow-scripts");
+  await expect(dialog.locator(`iframe[title="${HTML_ARTIFACT_LABEL}"]`)).toHaveCount(1);
+
+  // Exactly one close control: the dialog's own default close button is
+  // turned off (`showCloseButton={false}`); the toolbar's "Exit full screen"
+  // button (same control that opened it, now relabelled) is the only one.
+  await expect(dialog.getByRole("button", { name: "Close" })).toHaveCount(0);
+  const exitButton = dialog.getByRole("button", { name: "Exit full screen" });
+  await expect(exitButton).toHaveCount(1);
+
+  await exitButton.click();
+  await expect(dialog).toHaveCount(0);
+  // The inline preview remounts once full screen closes.
+  await expect(artifactIframes).toHaveCount(1);
 });
 
 // ─── Streaming indicator (spec scenario 12) ────────────────────────────────────
@@ -692,6 +777,75 @@ test("Message error: Try again re-sends the user message, and a successful retry
   // second time — this time the mock answers with the full fixture stream.
   await expect(page.getByText(FIXTURE_FINAL_TEXT).first()).toBeVisible();
   expect(attempt).toBe(2);
+});
+
+// Independent critic's CRITICAL 1: Try again/Regenerate appended the user
+// message again and kept the old reply, persisted permanently. The fix
+// (`use-chat-runtime.ts`'s `onReload`, `3c24255`) deletes every message
+// after the triggering user message — from the store and from PGlite — then
+// re-streams with `skipUserMessage: true`, so the retried/regenerated turn
+// replaces the old one in place instead of appending a duplicate.
+test("Message error: retry replaces the failed turn (no duplicate); Regenerate replaces a good reply; both survive a reload", async ({
+  page,
+}) => {
+  let attempt = 0;
+  await page.route("**/api/chat/completion", async (route) => {
+    const body = route.request().postDataJSON() as { stream?: boolean } | null;
+    if (body?.stream === false) {
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(TITLE_RESPONSE) });
+    }
+    attempt += 1;
+    if (attempt === 1) {
+      return route.fulfill({ status: 500, contentType: "text/plain", body: "temporary failure" });
+    }
+    if (attempt === 2) {
+      return route.fulfill({ status: 200, contentType: "text/event-stream", body: toSseBody() });
+    }
+    return route.fulfill({ status: 200, contentType: "text/event-stream", body: toSseBody(REGENERATE_STREAM_EVENTS) });
+  });
+
+  await page.goto(`/threads/${FIXTURE_THREAD_ID}`);
+  const composer = page.getByPlaceholder(/Ask your agent anything/i).filter({ visible: true });
+  await expect(composer).toBeVisible();
+  await composer.fill("Plan my week around the rebrand launch.");
+  await composer.press("Enter");
+
+  await expect(page.getByText(MESSAGE_ERROR_TEXT)).toBeVisible();
+  await page.getByRole("button", { name: "Try again" }).click();
+  await expect(page.getByText(FIXTURE_FINAL_TEXT).first()).toBeVisible();
+
+  const userMessages = page.locator('[data-role="user"]');
+  const assistantMessages = page.locator('[data-role="assistant"]');
+  // Exactly one user turn and one assistant reply: the failed attempt left
+  // no leftover failed message, and the retry did not append a second user
+  // message alongside the one `startStream` created optimistically before
+  // the first (failing) request.
+  await expect(userMessages).toHaveCount(1);
+  await expect(assistantMessages).toHaveCount(1);
+  await expect(page.getByText(MESSAGE_ERROR_TEXT)).toHaveCount(0);
+
+  // Regenerate the now-good reply (`AssistantActionBar`'s reload button,
+  // not `MessageError`'s — same `onReload` wiring, a different trigger).
+  const regenerate = page.getByRole("button", { name: "Regenerate" });
+  await expect(regenerate).toBeVisible();
+  await regenerate.click();
+
+  await expect(page.getByText(REGENERATED_REPLY_TEXT).first()).toBeVisible();
+  await expect(page.getByText(FIXTURE_FINAL_TEXT)).toHaveCount(0);
+  await expect(userMessages).toHaveCount(1);
+  await expect(assistantMessages).toHaveCount(1);
+  expect(attempt).toBe(3);
+
+  // Reload: the same counts and the regenerated content must come back from
+  // PGlite persistence (`deleteMessagesAfter`'s parameterised DELETE), not
+  // just from in-memory store state that a reload would otherwise expose as
+  // stale.
+  await page.reload();
+  await expect(page.getByText(REGENERATED_REPLY_TEXT).first()).toBeVisible();
+  await expect(userMessages).toHaveCount(1);
+  await expect(assistantMessages).toHaveCount(1);
+  await expect(page.getByText(FIXTURE_FINAL_TEXT)).toHaveCount(0);
+  await expect(page.getByText(MESSAGE_ERROR_TEXT)).toHaveCount(0);
 });
 
 // ─── Mermaid source and copy (spec scenario 17) ────────────────────────────────

@@ -360,3 +360,47 @@ nested-interactive [serious]  2 page/theme(s), 18 node(s)
 `git status --short -- e2e/ src/test/ docs/`: `e2e/chat-surfaces.spec.ts`, `e2e/fixtures/sse.ts`, `e2e/support/routes.ts`, `docs/qa/chat-surfaces-flat2.md` — same four files as §6.11, no new files, no `src/` app code touched (the frontend engineer's `e334863` is read and relied upon, never edited). No commit made.
 
 Process hygiene this pass: only one `npx playwright test`/`npm run test:a11y` invocation running at a time, checking `lsof -nP -iTCP:4174 -sTCP:LISTEN` before each; no port-4174 contention this pass (the earlier §6.11 incident was from a prior pass's leftover server, already resolved there).
+
+---
+
+### 6.14 Independent critic's two CRITICALs: real-browser coverage (`3c24255`)
+
+An independent critic found two CRITICAL defects, fixed by the frontend engineer in `3c24255` ("fix: retry replaces the failed turn; sandbox model HTML; review round 2 fixes"), plus the composer focus-outline gap this file's own §6.12 had not caught (the composer test asserted *no* outline, which was itself the defect — a ~1.1:1 fill-only focus cue, under the WCAG 1.4.11 3:1 minimum for non-text indicators). This section adds real-browser coverage for all three, read directly from `3c24255`'s diff before writing any assertion.
+
+#### Composer focus outline (rewritten test)
+
+`enhanced-thread.tsx`'s `AttachmentDropzone` gained `has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring` — a 2px ember (`--km-ember`, via `--ring`/`--color-ring`) outline when the textarea inside it matches `:focus-visible`. The old test (`composer: focus changes the fill and adds no border or outline to the container`) asserted the *absence* of an outline at focus, which is now factually wrong; replaced rather than patched.
+
+New test, parameterized over both themes: `composer: at rest no border or outline; keyboard focus shows a ≥3:1 outline, still no border, and the fill changes ({light,dark})`.
+- At rest (composer blurred first — it autofocuses on mount): asserts `outlineStyle === "none"` (or 0 width) and all four border widths are 0.
+- Confirms `:focus-visible` semantics rather than assuming them: calls `input.focus()`, then asserts `input.evaluate(el => el.matches(":focus-visible"))` is `true`. Verified empirically before writing this (a probe script) that a plain `<textarea>` matches `:focus-visible` on a programmatic `.focus()` — browsers treat text-editing controls as always focus-visible, unlike e.g. a `<button>`, which needs real keyboard interaction (`page.keyboard.press("Tab")`) to get there. `.focus()` is therefore a reliable, non-flaky stand-in here, and the test proves that reliability rather than assuming it.
+- After focus: fill changed from rest (`bg` differs), still no border, `boxShadow === "none"` (no separate ring cue), and the outline itself: `outlineStyle !== "none"`, `outlineWidth >= 2px`, and `contrastRatio(outlineColor, canvasToken) >= 3` — using the same `tokenColor`/`contrastRatio` helpers as every other computed-style assertion in this file, not a hard-coded expected color. Sanity-checked by hand first: light `--km-ember` `#e04e28` vs `--km-canvas` `#f7f7f8` is 3.71:1; dark `--km-ember` `#ff6a3d` vs `--km-canvas` `#0b0f14` is 6.76:1 — both clear the 3:1 floor, confirming the fix is real before asserting it generically.
+
+#### Retry/Regenerate duplication (CRITICAL 1)
+
+New fixtures in `e2e/fixtures/sse.ts`: `REGENERATED_REPLY_TEXT` / `REGENERATE_STREAM_EVENTS`, a small, distinct SSE stream (`stream.start` → one `message.delta` → `done`) used only to prove a second retry produces different, replacing content rather than the same cached text.
+
+New test: `Message error: retry replaces the failed turn (no duplicate); Regenerate replaces a good reply; both survive a reload`. Mock: attempt 1 → `500`; attempt 2 → the full fixture stream; attempt 3 → `REGENERATE_STREAM_EVENTS`.
+1. Send the message, hit the induced failure, click "Try again". After `FIXTURE_FINAL_TEXT` appears: `page.locator('[data-role="user"]')` and `[data-role="assistant"]'` both `toHaveCount(1)`, and `MESSAGE_ERROR_TEXT` is gone (`toHaveCount(0)`) — one user turn, one assistant reply, no leftover failed message.
+2. Click "Regenerate" (`AssistantActionBar`'s reload button — the same `onReload` wiring as "Try again", a different trigger, on a message that already succeeded). `REGENERATED_REPLY_TEXT` appears, `FIXTURE_FINAL_TEXT` is gone, counts are still exactly 1 + 1, and the mock's own attempt counter is exactly 3 — a real third network request, not a client-side swap.
+3. `page.reload()`. Same assertions again — counts still 1 + 1, `REGENERATED_REPLY_TEXT` present, `FIXTURE_FINAL_TEXT` and `MESSAGE_ERROR_TEXT` both absent — proving the replacement is in PGlite (`deleteMessagesAfter`'s parameterised `DELETE FROM messages WHERE thread_id = $1 AND id = ANY($2)`), not just in-memory Zustand state that a reload would otherwise expose as stale (the exact persistence gap the critic named as CRITICAL).
+
+#### HTML sandbox (CRITICAL 2)
+
+New test: `HTML artifact: sandboxed to allow-scripts only, no Open in new tab, one iframe while full screen, one close control`.
+- `page.locator('iframe[title="html artifact"]')` has exactly 1 match, with `sandbox` attribute exactly `"allow-scripts"` — the `allow-same-origin` that let a model-authored page reach the app's own IndexedDB/PGlite data and UAR session is gone, confirmed by reading the literal attribute value, not just that *a* sandbox attribute exists.
+- No "Open in new tab" button anywhere (`toHaveCount(0)`) — the removed control served a `blob:` URL from the app's own origin.
+- After opening full screen: still exactly 1 matching iframe on the whole page (the inline one unmounted — `html-artifact-card.tsx`'s `{!isFullScreen && (...)}` — so this is provably the dialog's own, not a second one layered on top), and it's inside the dialog specifically (`dialog.locator(...)` also `toHaveCount(1)`).
+- Exactly one close control: the dialog's own default close button (`role="button"`, name "Close", from `showCloseButton={false}` being turned off) has `toHaveCount(0)`; the toolbar's "Exit full screen" button has `toHaveCount(1)`. Clicking it closes the dialog and the inline iframe count returns to 1.
+
+Also updated the stale comment on the pre-existing HTML artifact backdrop test (§6.10's #11 closure), which had said the dialog iframe was "a second, dialog-only iframe" alongside the inline one — no longer true now that the inline one unmounts during full screen; and the JSDoc above `ERROR_STREAM_EVENTS` in `sse.ts`, which still said `setStreamError` "is a no-op with no message to attach the error to" as a general fact, obsoleted since `e334863`.
+
+#### Verification
+
+`npx playwright test e2e/chat-surfaces.spec.ts`, single run at a time (checked `lsof -nP -iTCP:4174 -sTCP:LISTEN` clear before each):
+- Run 1: **29 passed** (48.5s).
+- Run 2: **29 passed** (42.6s).
+
+No stray processes afterward (`lsof` and a scoped `ps aux` for vite/playwright under this repo path both empty).
+
+`git status --short -- e2e/ docs/ src/`: `e2e/chat-surfaces.spec.ts`, `e2e/fixtures/sse.ts`, this file. No `src/` app code touched — `3c24255` is read and relied upon, not edited. No commit made.
