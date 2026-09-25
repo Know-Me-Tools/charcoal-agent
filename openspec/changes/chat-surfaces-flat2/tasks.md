@@ -59,7 +59,7 @@
 
 ## 3. Guard and regressions
 
-- [ ] 3.1 (owner: km-qa-engineer) Extend `src/test/flat-shell.test.ts`:
+- [x] 3.1 (owner: km-qa-engineer) Extend `src/test/flat-shell.test.ts`:
   - add a `describe` that globs `src/components/assistant-ui/{enhanced-thread,enhanced-markdown-text,tooltip-icon-button}.tsx`, `src/features/chat/components/*.tsx` and `src/features/artifacts/*.tsx`, excluding tests
   - apply the existing rules plus three chat-only rules: six-digit hex, `bg-white`/`text-white`/`bg-black`, and opacity text `text-*/NN`
   - add flag/allow cases for the new rules

@@ -7,6 +7,13 @@
 
 export const FIXTURE_REQUEST_ID = "req-fixture-001";
 export const FIXTURE_FINAL_TEXT = "That covers everything for this week.";
+/**
+ * A single unbroken identifier with no spaces, long enough to overflow a
+ * 320px viewport unless the tool-name span wraps anywhere instead of
+ * truncating (chat-surfaces-flat2, §7.7 tool call block).
+ */
+export const LONG_TOOL_NAME =
+  "calendar_list_events_for_the_current_and_upcoming_fiscal_quarter_across_every_connected_calendar_and_timezone";
 
 type SseEvent = { event: string; data: Record<string, unknown> };
 
@@ -88,6 +95,15 @@ export const FIXTURE_EVENTS: SseEvent[] = [
   {
     event: "agui.tool_result",
     data: { kind: "tool_result", request_id: rid, call_index: 0, id: "call-1", name: "calendar_list_events", content: '[{"title":"Roadmap review","day":"Thu"}]', success: true },
+  },
+  { event: "agui.tool_call.delta", data: { kind: "tool_call", phase: "delta", request_id: rid, call_index: 1, id: "call-2", delta: { arguments: "{}" } } },
+  {
+    event: "agui.tool_call.complete",
+    data: { kind: "tool_call", phase: "complete", request_id: rid, call_index: 1, id: "call-2", name: LONG_TOOL_NAME, arguments_json: "{}" },
+  },
+  {
+    event: "agui.tool_result",
+    data: { kind: "tool_result", request_id: rid, call_index: 1, id: "call-2", name: LONG_TOOL_NAME, content: '{"ok":true}', success: true },
   },
   {
     event: "agui.citation.added",
