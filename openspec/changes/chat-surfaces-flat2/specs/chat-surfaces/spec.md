@@ -40,12 +40,14 @@ The composer SHALL be a distinct filled surface anchored below the thread with n
 ### Requirement: Block surfaces follow the event presentation table
 Each streamed block SHALL use the surface assigned to its kind: thinking/reasoning and citations on the cyan-tinted surface; tool calls, tool results, memory, skill and context-update blocks on surface or raised tokens with monospace metadata of at least 12px; code on the brand code background; artifacts and A2UI cards borderless on surface tokens; status shown with a status token plus a text label.
 
+Tool calls have three states: running, completed and failed. The event model has no separate pending state. A call that has started but has no result yet is running (`ToolStatus` in `src/features/chat/components/tool-call-block.tsx`).
+
 #### Scenario: Reasoning and sources are cyan-tinted
 - **WHEN** a thinking block and a citation block are shown
 - **THEN** both sit on the cyan-tinted surface, the thinking block is collapsed by default and expands on user action
 
 #### Scenario: Tool status is not colour-only
-- **WHEN** a tool call is pending, running, completed or failed
+- **WHEN** a tool call is running, completed or failed
 - **THEN** its status is shown as a status-toned label with the state in text, and all of its metadata text is at least 12px
 
 #### Scenario: Code uses the code background

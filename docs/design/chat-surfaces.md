@@ -193,14 +193,14 @@ Remove from the dropzone: `border`, `border-input`, `bg-background/80`, `backdro
 
 Why focus uses a fill and a caret, not an outline: §3.3 bans decorative outlines and input chrome, and the global ember focus ring on the textarea is what produced the ember box in the shell captures. The caret is ember so it is findable against both fills (ember is 3.97:1 on white, above the 3:1 needed for a non-text cue).
 
-Resolved in task 4.2 (was a known weakness). QA measured the light composer at rest at 1.03:1 on the canvas (`#fafbfc` on `#f7f7f8`), which does not read as its own surface. The composer now has its own token, `--km-composer` (`bg-composer`):
+Resolved in task 4.2 (was a known weakness). QA measured the light composer at rest at 1.03:1 on the canvas (the light `--km-surface` value on `--km-canvas`), which does not read as its own surface. The composer now has its own token, `--km-composer` (`bg-composer`). Exact values live in `src/styles/tokens.css` and are enforced by `src/styles/tokens.test.ts`:
 
 | Theme | Value | Rest on canvas | Rest to focus (`bg-raised`) |
 |---|---|---|---|
-| Light | `#eef0f3` (the muted field value; the standard gives inputs the muted fill) | 1.07:1, 2.53 L* (was 1.31 L*) | 1.14:1, 5.28 L* (was 1.43 L*) |
-| Dark | `#161d29` (unchanged, the surface value) | 1.14:1, 6.44 L* | 1.10:1, 3.93 L* |
+| Light | the light `--km-muted` value (the standard gives inputs the muted fill) | 1.07:1, 2.53 L* (was 1.31 L*) | 1.14:1, 5.28 L* (was 1.43 L*) |
+| Dark | the dark `--km-surface` value (unchanged) | 1.14:1, 6.44 L* | 1.10:1, 3.93 L* |
 
-Dark keeps the surface value because it already reads as distinct, and the dark muted value (`#253044`) is lighter than raised, so focus would darken the field. Drag-over (`bg-hover`) is lighter than the light composer by only 1.39 L*; the drag hint (icon plus "Drop files to attach") carries that state, not the fill. Every text token passes 4.5:1 on `bg-composer` in both themes (`tokens.test.ts`, `km-composer` is in `SURFACES`).
+Dark keeps the surface value because it already reads as distinct, and the dark `--km-muted` value is lighter than `--km-raised`, so focus would darken the field. Drag-over (`bg-hover`) is lighter than the light composer by only 1.39 L*; the drag hint (icon plus "Drop files to attach") carries that state, not the fill. Every text token passes 4.5:1 on `bg-composer` in both themes (`tokens.test.ts`, `km-composer` is in `SURFACES`).
 
 ---
 
@@ -356,7 +356,7 @@ Mutation:
 - Shiki themes and comment colours come from `src/styles/syntax-theme.ts`, not from literals in the component (task 4.2):
   - `createHighlighter({ themes: [SYNTAX_THEMES.dark, SYNTAX_THEMES.light], ... })`, which are `github-dark-dimmed` and `github-light-high-contrast`. `github-light` is dropped.
   - `theme: theme === "dark" ? SYNTAX_THEMES.dark : SYNTAX_THEMES.light`.
-  - `codeToHtml(code, { lang, theme, colorReplacements: SYNTAX_COLOR_REPLACEMENTS, transformers })`. The map is keyed by theme name, so each replacement applies only to its own theme. It swaps each theme's comment colour (`#66707b` light, `#768390` dark) for `var(--km-fg-faint)`; Shiki writes the value into the span's `style` verbatim (checked against the installed Shiki 3.22.0).
+  - `codeToHtml(code, { lang, theme, colorReplacements: SYNTAX_COLOR_REPLACEMENTS, transformers })`. The map is keyed by theme name, so each replacement applies only to its own theme. It swaps each theme's comment colour (light and dark; the source values are the keys of `SYNTAX_COLOR_REPLACEMENTS` in `src/styles/syntax-theme.ts`) for `var(--km-fg-faint)`; Shiki writes the value into the span's `style` verbatim (checked against the installed Shiki 3.22.0).
   - No other change to the component. Every colour this produces is checked on `--km-code` by `tokens.test.ts` (see §13).
 
 ### 7.8 Artifact (`artifact-block.tsx`)
@@ -513,8 +513,8 @@ Decided here:
 - Running is cyan (AI working), not amber. This differs from the current tool block and matches `StatusBadge`.
 - Assistant replies drop the avatar label; a decorative mark at `@md` and up plus an `sr-only` "Agent:" prefix replace it.
 - **Fill separation is measured as a CIELAB lightness step (L\*), with a floor of 1.8** (task 4.2). The WCAG ratio compresses dark steps, so it cannot compare a light pair with a dark one. The floor is calibrated on the 4.1 captures: 1.25 L\* (dark code well on canvas) and 1.31 L\* (light composer on canvas) read as one surface; 1.83 L\* (light code well on canvas) reads as its own. `tokens.test.ts` (`FILL_STEPS`) checks composer on canvas, composer to focus, and the code well against canvas, surface and its raised header row, in both themes.
-- **Composer token** `--km-composer` (§4.2): light `#eef0f3`, dark `#161d29`.
-- **Dark code well** `--km-code` is `#111720` (was `#0a1220`, which came from the prototype HTML, not the standard). A well darker than the dark canvas has no room: pure black would be only 1.10:1. So in dark the well sits between canvas and surface and separates from both. It is lighter than a code block's surroundings on the canvas and darker than them inside a card. Light stays `#f0f2f5`.
+- **Composer token** `--km-composer` (§4.2): light takes the `--km-muted` value, dark the `--km-surface` value. Exact values live in `src/styles/tokens.css`; `tokens.test.ts` enforces the steps below.
+- **Dark code well** `--km-code` has a new dark value (the old one came from the prototype HTML, not the standard; see `src/styles/tokens.css`). A well darker than the dark canvas has no room: pure black would be only 1.10:1. So in dark the well sits between canvas and surface and separates from both. It is lighter than a code block's surroundings on the canvas and darker than them inside a card. The light value is unchanged.
 
   | Pair (dark) | Before | After |
   |---|---|---|
@@ -523,21 +523,21 @@ Decided here:
   | code under raised header | 1.22:1, 9.12 L\* | 1.17:1, 7.00 L\* |
   | `fg` / `fg-secondary` / `fg-faint` on code | n/a | 15.28 / 8.21 / 6.56 |
 
-  It is 0.4 L\* from `--km-chrome` (`#111620`). They never touch: the canvas always sits between the sidebar and a code block.
-- **Syntax themes** (§7.7): light `github-light-high-contrast`, dark `github-dark-dimmed`, comments replaced by `var(--km-fg-faint)` in both. Other options were ruled out by measurement on `bg-code`. `github-light` fails 4 colours (`#e36209` 3.11, `#d73a49` 4.08, `#22863a` 4.13, `#6a737d` 4.29). `github-light-default` fails 2 (`#6e7781` 4.05, `#8250df` 4.499). `github-light-high-contrast` fails only its comment (`#66707b` 4.49). A custom KnowMe theme was rejected for now: it would put syntax colours on the ember/cyan roles (criterion 12) or add eight new tokens for no measured gain. Every colour painted on the well, with its ratio on `--km-code`:
+  It is 0.4 L\* from the dark `--km-chrome`. They never touch: the canvas always sits between the sidebar and a code block.
+- **Syntax themes** (§7.7): light `github-light-high-contrast`, dark `github-dark-dimmed`, comments replaced by `var(--km-fg-faint)` in both. Other options were ruled out by measurement on `bg-code`. `github-light` fails 4 colours (its orange 3.11, red 4.08, green 4.13 and comment grey 4.29). `github-light-default` fails 2 (its comment grey 4.05, purple 4.499). `github-light-high-contrast` fails only its comment colour (4.49). A custom KnowMe theme was rejected for now: it would put syntax colours on the ember/cyan roles (criterion 12) or add eight new tokens for no measured gain. Every colour painted on the well, by syntax role, with its ratio on `--km-code` (the theme values themselves come from the installed Shiki):
 
-  | Light `github-light-high-contrast` on `#f0f2f5` | Ratio | Dark `github-dark-dimmed` on `#111720` | Ratio |
+  | Light `github-light-high-contrast` on light `--km-code` | Ratio | Dark `github-dark-dimmed` on dark `--km-code` | Ratio |
   |---|---|---|---|
-  | comment → `--km-fg-faint` `#5f6977` | 4.96 | `#f47067` keyword, storage | 6.31 |
-  | `#4b535d` punctuation, brackets | 6.95 | comment → `--km-fg-faint` `#939dab` | 6.56 |
-  | `#622cbc` function | 7.19 | `#6cb6ff` constant | 8.37 |
-  | `#a0111f` keyword, storage | 7.22 | `#ff938a` invalid | 8.39 |
-  | `#023b95` constant | 9.08 | `#f69d50` entity, variable | 8.44 |
-  | `#024c1a` tag, component | 9.13 | `#adbac7` default text | 9.10 |
-  | `#702c00` entity, variable, parameter | 9.14 | `#8ddb8c` tag | 10.83 |
-  | `#6e011a` invalid | 11.13 | `#dcbdfb` function | 10.89 |
-  | `#032563` string | 12.93 | `#96d0ff` string | 10.93 |
-  | `#0e1116` default text | 16.86 | | |
+  | comment → `--km-fg-faint` | 4.96 | keyword, storage | 6.31 |
+  | punctuation, brackets | 6.95 | comment → `--km-fg-faint` | 6.56 |
+  | function | 7.19 | constant | 8.37 |
+  | keyword, storage | 7.22 | invalid | 8.39 |
+  | constant | 9.08 | entity, variable | 8.44 |
+  | tag, component | 9.13 | default text | 9.10 |
+  | entity, variable, parameter | 9.14 | tag | 10.83 |
+  | invalid | 11.13 | function | 10.89 |
+  | string | 12.93 | string | 10.93 |
+  | default text | 16.86 | | |
 
   Rules that paint their own background (diff inserted/deleted/changed, `markup.ignored`, carriage return) are excluded: they are foreground-on-own-fill pairs and only appear in diff or markdown grammars. `tokens.test.ts` loads both themes from the installed Shiki and checks every colour above, so a Shiki upgrade that changes a palette fails `npm test`.
 
@@ -548,7 +548,7 @@ For the product owner:
 
 Risks raised for 4.1 (the first three were confirmed by QA and resolved in task 4.2, see above):
 - ~~**Light composer anchor** (§4.2): `bg-surface` on `bg-canvas` is 1.03:1.~~ Resolved: `bg-composer`.
-- ~~**Dark code well on canvas**: `bg-code` on `bg-canvas` in the dark theme is 1.03:1 in luminance (it differs mostly in hue). The `bg-raised` header row marks where a code block starts. If code bodies read as bare canvas in the dark captures, `--km-code` needs a new dark value.~~ Resolved: `#111720`.
+- ~~**Dark code well on canvas**: `bg-code` on `bg-canvas` in the dark theme is 1.03:1 in luminance (it differs mostly in hue). The `bg-raised` header row marks where a code block starts. If code bodies read as bare canvas in the dark captures, `--km-code` needs a new dark value.~~ Resolved: new dark `--km-code` value.
 - ~~**Shiki palettes** (`github-light`, `github-dark-dimmed`) were designed for their own backgrounds, not `bg-code`. Low-contrast comment colours would only show in captures and the axe run.~~ Resolved: themes and replacements above, now checked in `npm test`.
-- **Mermaid theme colours** are inline SVG fills from Mermaid's theme, outside our tokens. Out of scope; note any contrast failure for a follow-up. `mermaid-block.tsx` passes `--km-code` as Mermaid's `background`, so the dark diagram background variable moves from `#0a1220` to `#111720`; the diagram itself sits on `bg-surface`.
+- **Mermaid theme colours** are inline SVG fills from Mermaid's theme, outside our tokens. Out of scope; note any contrast failure for a follow-up. `mermaid-block.tsx` passes `--km-code` as Mermaid's `background`, so the dark diagram background variable moves with the new dark `--km-code` value; the diagram itself sits on `bg-surface`.
 - **Light cards share the old composer problem.** Tool, skill, memory, context, artifact and A2UI cards are `bg-surface` on the canvas: the same 1.31 L\* step that failed for the composer. QA passed criterion 5 on hue, not separation. Cards with a `bg-raised` header row have a second cue; skill and context rows do not. Changing `--km-surface` would move every panel and the context sidebar off the standard's value. Question for the product owner: review the light card anchor in the next capture pass, or accept it?

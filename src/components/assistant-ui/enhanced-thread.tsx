@@ -551,14 +551,39 @@ const ToolCallPart: FC<ToolCallMessagePartProps> = ({
 
 // ─── Message Error ────────────────────────────────────────────────────────────
 
-const MessageError: FC = () => (
+/**
+ * Plain-language recovery copy shown in place of raw transport/runtime error
+ * text. KnowMe brand standard §7.3/§12: the assistant surface never echoes
+ * error internals (stack traces, fetch failures, provider error codes) back
+ * to the user; `docs/design/chat-surfaces.md` §3.8 asks for calm, actionable
+ * recovery copy instead.
+ */
+export const MESSAGE_ERROR_TEXT = "The reply stopped before it finished.";
+
+export const MessageError: FC = () => (
 	<MessagePrimitive.Error>
-		<Alert className="mt-2 rounded-lg border-0 bg-danger-soft px-3 py-2 text-danger-text">
-			<AlertCircleIcon className="size-4" aria-hidden="true" />
-			<AlertDescription>
-				<ErrorPrimitive.Message className="line-clamp-3 font-body text-sm text-danger-text" />
-			</AlertDescription>
-		</Alert>
+		<ErrorPrimitive.Root asChild>
+			<Alert className="mt-2 rounded-lg border-0 bg-danger-soft px-3 py-2 text-danger-text">
+				<AlertCircleIcon className="size-4" aria-hidden="true" />
+				<AlertDescription>
+					{/* Children are always supplied here, so ErrorPrimitive.Message never
+					    falls back to stringifying the raw error (see its `children ?? String(error)`
+					    behavior) — the runtime's raw error text never reaches the DOM. */}
+					<ErrorPrimitive.Message className="line-clamp-3 font-body text-sm text-danger-text">
+						{MESSAGE_ERROR_TEXT}
+					</ErrorPrimitive.Message>
+				</AlertDescription>
+				<ActionBarPrimitive.Reload asChild>
+					<Button
+						variant="link"
+						size="sm"
+						className="col-start-2 h-auto w-fit justify-self-start p-0 text-sm font-medium text-danger-text underline-offset-2 hover:text-danger-text/80 focus-cue"
+					>
+						Try again
+					</Button>
+				</ActionBarPrimitive.Reload>
+			</Alert>
+		</ErrorPrimitive.Root>
 	</MessagePrimitive.Error>
 );
 
