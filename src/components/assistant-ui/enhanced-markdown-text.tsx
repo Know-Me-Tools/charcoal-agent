@@ -7,11 +7,13 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
 import { type FC, memo } from "react";
 import { cn } from "@/lib/utils";
 import { MermaidBlock } from "@/features/artifacts/mermaid-block";
 import { HtmlArtifactCard } from "@/features/artifacts/html-artifact-card";
 import { ShikiCodeBlock } from "@/features/artifacts/shiki-code-block";
+import { MARKDOWN_SANITIZE_SCHEMA } from "./markdown-sanitize-schema";
 
 import "katex/dist/katex.min.css";
 import "@assistant-ui/react-markdown/styles/dot.css";
@@ -31,7 +33,7 @@ const InlineCode: FC<React.HTMLAttributes<HTMLElement>> = ({
 );
 
 // Smart code block dispatcher — routes by language
-const EnhancedCodeBlock: FC<
+export const EnhancedCodeBlock: FC<
   React.HTMLAttributes<HTMLElement> & { "data-language"?: string }
 > = ({ children, "data-language": language, className, ...props }) => {
   const isCodeBlock = useIsMarkdownCodeBlock();
@@ -260,7 +262,15 @@ const enhancedComponents = memoizeMarkdownComponents({
 const EnhancedMarkdownTextImpl = () => (
   <MarkdownTextPrimitive
     remarkPlugins={[remarkGfm, remarkMath]}
-    rehypePlugins={[[rehypeKatex, { strict: false }], rehypeRaw]}
+    // Order matters: rehypeRaw turns embedded raw HTML into real elements
+    // first, the sanitizer cleans that (and everything else) second, and
+    // only then does rehypeKatex generate its own trusted KaTeX markup —
+    // sanitizing after KaTeX would strip the very markup it just built.
+    rehypePlugins={[
+      rehypeRaw,
+      [rehypeSanitize, MARKDOWN_SANITIZE_SCHEMA],
+      [rehypeKatex, { strict: false }],
+    ]}
     className="aui-md max-w-none wrap-break-word text-fg data-[status=running]:**:after:text-cyan"
     components={enhancedComponents}
   />
