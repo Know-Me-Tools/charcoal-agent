@@ -1,0 +1,11 @@
+{
+  "id": "knowme-site",
+  "outcome": "Design, build, market and maintain the KnowMe AI, LLC corporate website as an agent-chat-led discovery experience, with crawlable content, an Axum backend and a Tauri desktop shell",
+  "complexity": "complex",
+  "areas": ["code", "design", "security", "docs"],
+  "deliverables": ["Agent-chat marketing experience", "Crawlable marketing pages with SEO/AEO", "Content strategy and CMS design", "Axum backend and Tauri shell", "Verification evidence"],
+  "budget": "balanced",
+  "review": true,
+  "harness": "claude",
+  "scope": "project"
+}

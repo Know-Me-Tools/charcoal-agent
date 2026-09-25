@@ -1,0 +1,27 @@
+{
+  "_note": "Proposal for ~/.config/zed/settings.json → agent.profiles. Not applied. Zed profiles set tools and model only; they cannot carry a role prompt. Tool names follow Zed's built-in agent tools as documented at https://zed.dev/docs/ai/agent-profiles; check them against your installed Zed before merging.",
+  "agent": {
+    "profiles": {
+      "knowme-reviewer": {
+        "name": "KnowMe reviewer (read-only)",
+        "tools": {
+          "read_file": true, "grep": true, "find_path": true, "list_directory": true, "diagnostics": true,
+          "fetch": true, "web_search": true, "thinking": true, "now": true,
+          "edit_file": false, "create_directory": false, "delete_path": false, "move_path": false, "copy_path": false, "terminal": false
+        },
+        "enable_all_context_servers": false,
+        "context_servers": {}
+      },
+      "knowme-builder": {
+        "name": "KnowMe builder",
+        "tools": {
+          "read_file": true, "grep": true, "find_path": true, "list_directory": true, "diagnostics": true,
+          "edit_file": true, "create_directory": true, "move_path": true, "copy_path": true, "terminal": true,
+          "fetch": true, "web_search": true, "thinking": true, "now": true, "delete_path": false
+        },
+        "enable_all_context_servers": false,
+        "context_servers": {}
+      }
+    }
+  }
+}
