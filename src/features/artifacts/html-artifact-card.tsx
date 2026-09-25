@@ -3,7 +3,6 @@ import {
   CheckIcon,
   Code2Icon,
   CopyIcon,
-  ExternalLinkIcon,
   EyeIcon,
   Maximize2Icon,
   Minimize2Icon,
@@ -39,14 +38,6 @@ export const HtmlArtifactCard: FC<HtmlArtifactCardProps> = ({
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2500);
     });
-  };
-
-  const handleOpenInNewTab = () => {
-    const blob = new Blob([code], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank");
-    // Clean up after a short delay
-    setTimeout(() => URL.revokeObjectURL(url), 10_000);
   };
 
   const displayTitle = title ?? `${language} artifact`;
@@ -95,12 +86,6 @@ export const HtmlArtifactCard: FC<HtmlArtifactCardProps> = ({
           )}
         </TooltipIconButton>
 
-        {language === "html" && (
-          <TooltipIconButton tooltip="Open in new tab" onClick={handleOpenInNewTab}>
-            <ExternalLinkIcon className="size-3.5" aria-hidden="true" />
-          </TooltipIconButton>
-        )}
-
         <TooltipIconButton
           ref={inDialog ? undefined : fullScreenButtonRef}
           tooltip={inDialog ? "Exit full screen" : "Full screen"}
@@ -122,12 +107,16 @@ export const HtmlArtifactCard: FC<HtmlArtifactCardProps> = ({
 
       {view === "preview" ? (
         <div className="h-80 bg-artifact-canvas">
-          <iframe
-            srcDoc={code}
-            sandbox="allow-scripts allow-same-origin allow-forms"
-            className="block h-full w-full border-0 scheme-light"
-            title={displayTitle}
-          />
+          {/* Blanked while the full-screen dialog is open — otherwise the
+              model-authored page would keep running in two frames at once. */}
+          {!isFullScreen && (
+            <iframe
+              srcDoc={code}
+              sandbox="allow-scripts"
+              className="block h-full w-full border-0 scheme-light"
+              title={displayTitle}
+            />
+          )}
         </div>
       ) : (
         <div className="max-h-96 overflow-y-auto">
@@ -145,6 +134,7 @@ export const HtmlArtifactCard: FC<HtmlArtifactCardProps> = ({
         <DialogContent
           className="flex h-[calc(100dvh-2rem)] max-w-[calc(100vw-2rem)] flex-col gap-0 overflow-hidden rounded-2xl bg-surface p-0 sm:max-w-[calc(100vw-2rem)]"
           aria-labelledby={titleId}
+          showCloseButton={false}
         >
           <DialogTitle id={titleId} className="sr-only">
             {displayTitle}
@@ -154,7 +144,7 @@ export const HtmlArtifactCard: FC<HtmlArtifactCardProps> = ({
             <div className="min-h-0 flex-1 bg-artifact-canvas">
               <iframe
                 srcDoc={code}
-                sandbox="allow-scripts allow-same-origin allow-forms"
+                sandbox="allow-scripts"
                 className="block h-full w-full border-0 scheme-light"
                 title={displayTitle}
               />

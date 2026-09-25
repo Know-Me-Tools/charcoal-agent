@@ -66,6 +66,14 @@ interface ChatMessageActions {
   ): void;
   finishStream(threadId: string): void;
   setStreamError(threadId: string, error: string): void;
+  /**
+   * Drops every message after `messageId` (exclusive) from the thread and
+   * deletes those rows from PGlite. Used by retry/regenerate to remove a
+   * superseded turn — the failed or stale assistant reply, and anything
+   * after it — before re-streaming, so the resend replaces it instead of
+   * appending a duplicate.
+   */
+  deleteMessagesAfter(threadId: string, messageId: string): void;
   clearThread(threadId: string): void;
 }
 
@@ -447,6 +455,30 @@ export const useChatMessageStore = create<ChatMessageStore>()(
           persistMessages(threadId, [...messages]);
         }
       }),
+
+    deleteMessagesAfter: (threadId, messageId) => {
+      // Captured by the set() producer below, then used for the PGlite
+      // write-through once the (synchronous) store update has applied.
+      let removedIds: string[] = [];
+
+      set((state) => {
+        const messages = state.messagesByThread[threadId];
+        if (!messages) return;
+        const idx = messages.findIndex((m) => m.id === messageId);
+        if (idx === -1) return;
+        const removed = messages.slice(idx + 1);
+        if (removed.length === 0) return;
+        removedIds = removed.map((m) => m.id);
+        state.messagesByThread[threadId] = messages.slice(0, idx + 1);
+      });
+
+      if (removedIds.length === 0) return;
+
+      const db = tryDb();
+      if (db) {
+        db.deleteMessages(threadId, removedIds).catch(console.error);
+      }
+    },
 
     clearThread: (threadId) =>
       set((state) => {

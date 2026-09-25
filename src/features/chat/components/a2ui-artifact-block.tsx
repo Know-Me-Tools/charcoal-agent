@@ -34,6 +34,18 @@ function readString(obj: Record<string, unknown>, key: string): string | null {
 }
 
 /**
+ * Two distinct failure sources were sharing one "Your response was not
+ * sent" message: a real send failure (the fetch to UAR failed) and a local
+ * JSON-parse failure (the user's typed JSON in the form/raw-JSON textarea
+ * doesn't parse — nothing was ever sent). Each gets its own accurate copy.
+ */
+type A2uiErrorKind = "send" | "parse";
+const A2UI_ERROR_MESSAGES: Record<A2uiErrorKind, string> = {
+  send: "Your response was not sent. Try again.",
+  parse: "That response isn't valid JSON. Fix it and try again.",
+};
+
+/**
  * Base UI field primitives (Input/Textarea/SelectTrigger) still draw an
  * outline of their own (deferred to brand-fidelity-audit); override it here
  * per the design spec so A2UI fields read as filled, borderless controls.
@@ -70,7 +82,7 @@ export const A2uiInputBlock: FC<A2uiInputBlockProps> = ({
   const [formJson, setFormJson] = useState("{}");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [hasError, setHasError] = useState(false);
+  const [errorKind, setErrorKind] = useState<A2uiErrorKind | null>(null);
 
   const baseId = useId();
   const selectFieldId = `${baseId}-select`;
@@ -100,7 +112,7 @@ export const A2uiInputBlock: FC<A2uiInputBlockProps> = ({
 
   const submitResponse = async (response: Record<string, unknown>) => {
     setSubmitting(true);
-    setHasError(false);
+    setErrorKind(null);
     try {
       const res = await fetch(
         buildUrl(`/api/uar/runs/${encodeURIComponent(runId)}/artifact-response`),
@@ -114,7 +126,7 @@ export const A2uiInputBlock: FC<A2uiInputBlockProps> = ({
       setSubmitted(true);
     } catch {
       // Never surface the server body to the user (design spec §7.11).
-      setHasError(true);
+      setErrorKind("send");
     } finally {
       setSubmitting(false);
     }
@@ -261,7 +273,7 @@ export const A2uiInputBlock: FC<A2uiInputBlockProps> = ({
             onClick={() => {
               const parsed = parseJsonObject(formJson);
               if (!parsed) {
-                setHasError(true);
+                setErrorKind("parse");
                 return;
               }
               void submitResponse(parsed);
@@ -295,7 +307,7 @@ export const A2uiInputBlock: FC<A2uiInputBlockProps> = ({
               onClick={() => {
                 const parsed = parseJsonObject(formJson);
                 if (!parsed) {
-                  setHasError(true);
+                  setErrorKind("parse");
                   return;
                 }
                 void submitResponse(parsed);
@@ -308,21 +320,29 @@ export const A2uiInputBlock: FC<A2uiInputBlockProps> = ({
         )}
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        {submitting && (
-          <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-pill bg-cyan-soft px-2.5 py-1 font-ui text-xs font-semibold leading-none text-cyan-text">
-            <Loader2Icon className="size-3.5 shrink-0 animate-spin" aria-hidden="true" />
-            <span>Sending</span>
-          </span>
-        )}
-        {!submitting && isCaptured && (
-          <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-pill bg-success-soft px-2.5 py-1 font-ui text-xs font-semibold leading-none text-success-text">
-            <CheckCircle2Icon className="size-3.5 shrink-0" aria-hidden="true" />
-            <span>Response captured</span>
-          </span>
-        )}
-        {hasError && (
-          <span className="font-body text-sm text-danger-text">
-            Your response was not sent. Try again.
+        {/* Polite live region: Sending / Response captured are status
+            updates, not urgent — `role="status"` announces them without
+            interrupting. Kept mounted (via `contents`, so it takes no
+            layout space when empty) rather than entering the DOM only once
+            there's content, since some AT/browser combinations only pick up
+            changes inside an already-present live region. */}
+        <div role="status" aria-live="polite" className="contents">
+          {submitting && (
+            <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-pill bg-cyan-soft px-2.5 py-1 font-ui text-xs font-semibold leading-none text-cyan-text">
+              <Loader2Icon className="size-3.5 shrink-0 animate-spin" aria-hidden="true" />
+              <span>Sending</span>
+            </span>
+          )}
+          {!submitting && isCaptured && (
+            <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-pill bg-success-soft px-2.5 py-1 font-ui text-xs font-semibold leading-none text-success-text">
+              <CheckCircle2Icon className="size-3.5 shrink-0" aria-hidden="true" />
+              <span>Response captured</span>
+            </span>
+          )}
+        </div>
+        {errorKind && (
+          <span role="alert" className="font-body text-sm text-danger-text">
+            {A2UI_ERROR_MESSAGES[errorKind]}
           </span>
         )}
       </div>

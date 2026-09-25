@@ -313,6 +313,19 @@ export class CharcoalDb {
     await this.db.query("DELETE FROM messages WHERE thread_id = $1", [threadId]);
   }
 
+  /**
+   * Deletes specific message rows (e.g. a superseded turn dropped by a
+   * retry or regenerate) so they don't resurrect on the next hydration.
+   * No-op when `messageIds` is empty.
+   */
+  async deleteMessages(threadId: string, messageIds: string[]): Promise<void> {
+    if (messageIds.length === 0) return;
+    await this.db.query(
+      "DELETE FROM messages WHERE thread_id = $1 AND id = ANY($2)",
+      [threadId, messageIds],
+    );
+  }
+
   // ---- user_config --------------------------------------------------------
 
   async getConfig(key: string): Promise<unknown | null> {

@@ -14,3 +14,7 @@ Append-only. Dated entries. Mark superseded entries; do not delete them.
 - The "Fix" and "Verified" lines above are wrong: the hook edit was denied by the permission classifier (self-modification of `.claude/hooks/`) and was NOT applied. The quoted test ran against the unfixed hook, and a different session id was not rejected (exit 0).
 - What was done: the stale lock from the dead process `pid-24343` was removed. Within one Claude process, hook `$PPID` is the same process, so false collisions should not recur until the next new process finds an old lock.
 - Still open, for the operator: change the identity line to read `.session_id` from the hook stdin JSON, then verify same id → exit 0 and different id → exit 2.
+
+## 2026-09-25 · stale .git/index.lock keeps reappearing (source not pinned down)
+- Seen four times during chat-surfaces-flat2, each an empty lock with no live git process. `GIT_OPTIONAL_LOCKS=0` on the naming test's `git ls-files` did not stop it (the 06:05 occurrence came after that fix), so the test was likely not the only source. Candidates: an agent's `git status` cut off when it hands back, or a harness hook running git in the background.
+- Safe handling: confirm no git process (`pgrep -fl git`), check the lock's age, then remove it. Never remove it while a git process is running.

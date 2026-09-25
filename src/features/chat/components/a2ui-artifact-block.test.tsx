@@ -82,9 +82,40 @@ describe("A2uiInputBlock — response captured gating", () => {
     await waitFor(() => expect(screen.getByText(/response captured/i)).toBeInTheDocument());
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("button", { name: "Add" })).toBeDisabled();
+    // Status changes must be announced to screen readers, not just visible.
+    expect(screen.getByRole("status")).toHaveTextContent(/response captured/i);
   });
 
-  it("shows a plain-language error and never the raw server body on failure", async () => {
+  it("announces Sending in a polite live region while the request is in flight", async () => {
+    let resolveFetch!: (v: { ok: boolean; text: () => Promise<string> }) => void;
+    const fetchMock = vi.fn().mockReturnValue(
+      new Promise((resolve) => {
+        resolveFetch = resolve;
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <A2uiInputBlock
+        runId="run-1"
+        artifactId="art-confirm"
+        artifactType="confirm"
+        title="Add Thursday review to calendar?"
+        content={CONFIRM_CONTENT}
+        metadata={{}}
+        status="running"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Add" }));
+
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent(/sending/i));
+
+    resolveFetch({ ok: true, text: async () => "" });
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent(/response captured/i));
+  });
+
+  it("shows a plain-language error in an alert region and never the raw server body on failure", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValue({ ok: false, status: 500, text: async () => "internal secret trace" });
@@ -109,6 +140,29 @@ describe("A2uiInputBlock — response captured gating", () => {
     );
     expect(screen.queryByText(/internal secret trace/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/response captured/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent(/your response was not sent/i);
+  });
+
+  it("gives a local JSON-parse failure its own accurate message, distinct from a send failure", () => {
+    render(
+      <A2uiInputBlock
+        runId="run-1"
+        artifactId="art-form"
+        artifactType="form"
+        title="Fill out the form"
+        content="{}"
+        metadata={{}}
+        status="running"
+      />,
+    );
+
+    const textarea = screen.getByRole("textbox");
+    fireEvent.change(textarea, { target: { value: "{not valid json" } });
+    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent(/not valid json|isn.t valid json|invalid json/i);
+    expect(alert).not.toHaveTextContent(/your response was not sent/i);
   });
 });
 

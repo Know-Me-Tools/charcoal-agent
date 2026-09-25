@@ -23,6 +23,17 @@ export interface StreamCallbacks {
   onError?: (error: Error) => void;
 }
 
+export interface StartStreamOptions {
+  /**
+   * Skip appending a new optimistic user message — reuse the one already in
+   * the store. Used by retry/regenerate (`onReload` in use-chat-runtime.ts),
+   * which resends an existing user message rather than creating a duplicate
+   * (the caller is expected to have already removed the superseded reply
+   * via `deleteMessagesAfter`).
+   */
+  skipUserMessage?: boolean;
+}
+
 // ─── AG-UI event shapes (from UAR src/uar/api/sse.rs) ─────────────────────────
 
 interface AguiStreamStart {
@@ -277,21 +288,24 @@ export function useMessageStream() {
       threadId: string,
       payload: UarChatPayload,
       callbacks?: StreamCallbacks,
+      options?: StartStreamOptions,
     ): Promise<void> => {
       cancelStream();
 
-      // Optimistically add the user message to the store
-      const userMsgId = `user-${Date.now()}`;
-      useChatMessageStore.getState().initThread(threadId, [
-        ...(useChatMessageStore.getState().messagesByThread[threadId] ?? []),
-        {
-          id: userMsgId,
-          role: "user",
-          content: [{ type: "text", text: payload.message }],
-          createdAt: new Date(),
-          status: "complete",
-        },
-      ]);
+      if (!options?.skipUserMessage) {
+        // Optimistically add the user message to the store
+        const userMsgId = `user-${Date.now()}`;
+        useChatMessageStore.getState().initThread(threadId, [
+          ...(useChatMessageStore.getState().messagesByThread[threadId] ?? []),
+          {
+            id: userMsgId,
+            role: "user",
+            content: [{ type: "text", text: payload.message }],
+            createdAt: new Date(),
+            status: "complete",
+          },
+        ]);
+      }
 
       const controller = new AbortController();
       abortRef.current = controller;
@@ -589,13 +603,17 @@ export function useMessageStream() {
           }
         }
 
-        // Reader exhausted without agui.done / [DONE]. When at least one
-        // block already arrived (streamingMessageId is set), treat it as a
-        // graceful finish — unchanged behavior. When the connection closed
-        // before a single AG-UI event arrived (no start, delta, tool call,
-        // or done), there is nothing to show and nothing to "finish": it is
-        // a pre-delta failure like an HTTP error or a rejected fetch, so it
-        // must surface the same way (docs/qa/chat-surfaces-flat2.md §6.6).
+        // Reader exhausted without agui.done / [DONE]. `streamingMessageId`
+        // is set only once a block that actually creates the assistant
+        // message has been handled — a text/thinking delta, tool call,
+        // citation, skill activation, etc. (getOrCreateStreamingMessage /
+        // activeStreamingMessage in chat-message-store.ts). A bare
+        // agui.stream.start does not create one, so it still counts as "no
+        // events" below. When the id is set, treat this as a graceful
+        // finish — unchanged behavior. When it is still null, the
+        // connection closed before anything was ever shown: a pre-delta
+        // failure like an HTTP error or a rejected fetch, so it must
+        // surface the same way (docs/qa/chat-surfaces-flat2.md §6.6).
         if (useChatMessageStore.getState().streamingByThread[threadId]?.streamingMessageId) {
           useChatMessageStore.getState().finishStream(threadId);
           callbacks?.onComplete?.();

@@ -161,7 +161,7 @@ interface ComposerProps {
 
 const EnhancedComposer: FC<ComposerProps> = ({ promptCachingEnabled, onTogglePromptCaching }) => (
 	<ComposerPrimitive.Root className="relative flex w-full flex-col">
-		<ComposerPrimitive.AttachmentDropzone className="group relative flex w-full flex-col rounded-xl bg-composer px-1 pt-2 transition-hover focus-within:bg-raised data-[dragging=true]:bg-hover">
+		<ComposerPrimitive.AttachmentDropzone className="group relative flex w-full flex-col rounded-xl bg-composer px-1 pt-2 transition-hover focus-within:bg-raised has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring data-[dragging=true]:bg-hover">
 			<ComposerAttachments />
 			<ComposerPrimitive.Input
 				placeholder="Ask your agent anything…"
