@@ -152,13 +152,21 @@ export const ToolCallBlockWrapper: FC<{
 	args: Record<string, unknown>;
 	result?: unknown;
 	status?: { type: string };
-}> = ({ toolName, args, result, status }) => {
+	// assistant-ui's own `normalizePartStatus` collapses a tool-call part's
+	// `status` to `{ type: "complete" }` whenever `result !== undefined`,
+	// regardless of `isError` (see `ToolCallMessagePart.isError` in
+	// `@assistant-ui/core`'s message types). `isError` is the only reliable
+	// signal for a failed tool call and must win over `status.type`.
+	isError?: boolean;
+}> = ({ toolName, args, result, status, isError }) => {
 	const toolStatus: ToolStatus =
-		status?.type === "running"
-			? "running"
-			: status?.type === "incomplete"
-				? "failed"
-				: "complete";
+		isError === true
+			? "failed"
+			: status?.type === "running"
+				? "running"
+				: status?.type === "incomplete"
+					? "failed"
+					: "complete";
 
 	return (
 		<ToolCallBlock

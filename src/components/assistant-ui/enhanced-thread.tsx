@@ -402,6 +402,7 @@ const ToolCallPart: FC<ToolCallMessagePartProps> = ({
 	args,
 	result,
 	status,
+	isError,
 }) => {
 	if (toolName === "__skill__") {
 		const a = args as {
@@ -545,6 +546,7 @@ const ToolCallPart: FC<ToolCallMessagePartProps> = ({
 			args={args as Record<string, unknown>}
 			result={result}
 			status={status}
+			isError={isError}
 		/>
 	);
 };
@@ -577,7 +579,7 @@ export const MessageError: FC = () => (
 					<Button
 						variant="link"
 						size="sm"
-						className="col-start-2 h-auto w-fit justify-self-start p-0 text-sm font-medium text-danger-text underline-offset-2 hover:text-danger-text/80 focus-cue"
+						className="col-start-2 h-auto w-fit justify-self-start p-0 text-sm font-medium text-danger-text underline-offset-2 hover:text-fg focus-cue"
 					>
 						Try again
 					</Button>
