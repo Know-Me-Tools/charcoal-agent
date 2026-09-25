@@ -72,3 +72,39 @@ describe("chat-message-store stream ordering", () => {
     expect(msgs.flatMap((m) => m.content).some((b) => b.type === "skill-activation")).toBe(false);
   });
 });
+
+describe("chat-message-store setStreamError", () => {
+  beforeEach(() => {
+    useChatMessageStore.getState().clearThread(THREAD);
+    useChatMessageStore.getState().initThread(THREAD, []);
+  });
+
+  it("creates a failed assistant message when the stream errors before any content block arrives", () => {
+    const s = useChatMessageStore.getState();
+    s.beginStream(THREAD, RUN);
+    // No addToolCall/appendTextDelta/etc. — mirrors a pre-delta failure
+    // (HTTP 500, a rejected fetch, or the stream closing with no events).
+
+    s.setStreamError(THREAD, "POST /api/chat/completion 500: Internal Server Error");
+
+    const msgs = useChatMessageStore.getState().messagesByThread[THREAD] ?? [];
+    const assistant = msgs.filter((m) => m.role === "assistant");
+    expect(assistant).toHaveLength(1);
+    expect(assistant[0].status).toBe("failed");
+    expect(assistant[0].content.map((b) => b.type)).toEqual(["error"]);
+  });
+
+  it("attaches to the existing streaming message instead of creating a second one when content already arrived", () => {
+    const s = useChatMessageStore.getState();
+    s.beginStream(THREAD, RUN);
+    s.appendTextDelta(THREAD, RUN, "Partial reply");
+
+    s.setStreamError(THREAD, "stream interrupted");
+
+    const msgs = useChatMessageStore.getState().messagesByThread[THREAD] ?? [];
+    const assistant = msgs.filter((m) => m.role === "assistant");
+    expect(assistant).toHaveLength(1);
+    expect(assistant[0].status).toBe("failed");
+    expect(assistant[0].content.map((b) => b.type)).toEqual(["text", "error"]);
+  });
+});

@@ -66,6 +66,14 @@ interface ChatMessageActions {
   ): void;
   finishStream(threadId: string): void;
   setStreamError(threadId: string, error: string): void;
+  /**
+   * Drops every message after `messageId` (exclusive) from the thread and
+   * deletes those rows from PGlite. Used by retry/regenerate to remove a
+   * superseded turn — the failed or stale assistant reply, and anything
+   * after it — before re-streaming, so the resend replaces it instead of
+   * appending a duplicate.
+   */
+  deleteMessagesAfter(threadId: string, messageId: string): void;
   clearThread(threadId: string): void;
 }
 
@@ -418,11 +426,22 @@ export const useChatMessageStore = create<ChatMessageStore>()(
         const streaming = state.streamingByThread[threadId];
         if (!streaming) return;
 
+        // A pre-delta failure (non-2xx response, a rejected fetch, or the
+        // stream closing with zero events) never reaches a block handler, so
+        // `streamingMessageId` is still null here — no assistant message was
+        // ever created for this run. Without creating one now, the error has
+        // nothing to attach to: it silently vanishes when the streaming
+        // state resets below, and MessageError (gated on an existing
+        // message's status) never renders. Create the message the same way
+        // `activeStreamingMessage` does for the first content block.
+        ensureThread(state, threadId);
+        const message = streaming.runId
+          ? getOrCreateStreamingMessage(state, threadId, streaming.runId)
+          : null;
+
         const messages = state.messagesByThread[threadId];
-        if (messages && streaming.streamingMessageId) {
-          const idx = messages.findIndex(
-            (m) => m.id === streaming.streamingMessageId,
-          );
+        if (messages && message) {
+          const idx = messages.findIndex((m) => m.id === message.id);
           if (idx !== -1) {
             messages[idx].status = "failed";
             messages[idx].content.push({ type: "error", message: error });
@@ -436,6 +455,30 @@ export const useChatMessageStore = create<ChatMessageStore>()(
           persistMessages(threadId, [...messages]);
         }
       }),
+
+    deleteMessagesAfter: (threadId, messageId) => {
+      // Captured by the set() producer below, then used for the PGlite
+      // write-through once the (synchronous) store update has applied.
+      let removedIds: string[] = [];
+
+      set((state) => {
+        const messages = state.messagesByThread[threadId];
+        if (!messages) return;
+        const idx = messages.findIndex((m) => m.id === messageId);
+        if (idx === -1) return;
+        const removed = messages.slice(idx + 1);
+        if (removed.length === 0) return;
+        removedIds = removed.map((m) => m.id);
+        state.messagesByThread[threadId] = messages.slice(0, idx + 1);
+      });
+
+      if (removedIds.length === 0) return;
+
+      const db = tryDb();
+      if (db) {
+        db.deleteMessages(threadId, removedIds).catch(console.error);
+      }
+    },
 
     clearThread: (threadId) =>
       set((state) => {

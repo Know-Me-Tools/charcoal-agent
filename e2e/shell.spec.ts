@@ -198,6 +198,14 @@ test("sheets close when their layout goes away, so they never reopen on their ow
   await page.getByRole("button", { name: "Open threads" }).click();
   await expect(page.getByRole("dialog", { name: "Threads" })).toBeVisible();
   await page.setViewportSize({ width: 1024, height: 900 });
+  // Settle point: without this, the next `setViewportSize` below can land
+  // before Chromium's `matchMedia` re-evaluates for this resize (it fires at
+  // most once per rendering opportunity), so the two calls net to no change
+  // and `isMobile` never toggles — a state no real user can produce, since a
+  // real resize always has a paint in between. "Open threads" is gated on
+  // `isMobile` (`topbar.tsx`, `useIsMobile` → `(max-width: 767px)`), so its
+  // absence proves the wide layout actually committed before shrinking back.
+  await expect(page.getByRole("button", { name: "Open threads" })).toHaveCount(0);
   await page.setViewportSize({ width: 320, height: 800 });
   await expect(page.getByRole("button", { name: "Open threads" })).toBeVisible();
   await expect(page.getByRole("dialog")).toHaveCount(0);

@@ -23,6 +23,10 @@
   --km-hover: #f2f4f7;
   --km-muted: #eef0f3;
   --km-code: #f0f2f5;
+  /* Composer and edit composer at rest (docs/design/chat-surfaces.md §4.2).
+     Light uses the muted field value: #fafbfc on the canvas is 1.03:1, below
+     what reads as a separate surface. Focus still lifts it to raised. */
+  --km-composer: #eef0f3;
 
   /* Text */
   --km-fg: #0b0f14;
@@ -55,6 +59,14 @@
 
   /* Modal priority is a dimmed canvas, not a shadow (standard §3.2). */
   --km-scrim: rgb(11 15 20 / 0.45);
+
+  /* Backdrop behind sandboxed, model-authored HTML previews. That HTML is the
+     author's document, not KnowMe chrome: it usually sets no background and
+     relies on the browser default of black text on a white page. So the
+     backdrop is white in both themes (see .dark), and the preview iframe uses
+     color-scheme: light so the browser does not paint its own canvas over it.
+     Never put KnowMe text tokens on this surface; they flip in dark mode. */
+  --km-artifact-canvas: #ffffff;
 }
 
 .dark {
@@ -66,7 +78,12 @@
   --km-raised: #1c2535;
   --km-hover: #202b40;
   --km-muted: #253044;
-  --km-code: #0a1220;
+  /* Code well. Sits between canvas and surface so it separates from both
+     (the old #0a1220 was 1.03:1 on the canvas and read as bare page). */
+  --km-code: #111720;
+  /* Dark keeps the surface value: already distinct on the canvas, and muted
+     would make focus (raised) darker than rest. */
+  --km-composer: #161d29;
 
   --km-fg: #e8edf3;
   --km-fg-secondary: #a7b0bc;
@@ -94,6 +111,12 @@
   --km-on-danger: #0b0f14; /* 5.11:1 on #EF4444 */
 
   --km-scrim: rgb(0 0 0 / 0.6);
+
+  /* Same white as light: a tinted or dark backdrop would lower the contrast
+     of authored text (AA grey on white, 4.54:1, falls below 4.5:1 on any
+     off-white) or make unstyled black text unreadable. The preview sits in a
+     raised card, which frames the bright area. */
+  --km-artifact-canvas: #ffffff;
 }
 
 /* shadcn / assistant-ui aliases, resolved per theme from the tokens above. */
@@ -148,6 +171,7 @@
   --color-hover: var(--km-hover);
   --color-muted-surface: var(--km-muted);
   --color-code: var(--km-code);
+  --color-composer: var(--km-composer);
   --color-fg: var(--km-fg);
   --color-fg-secondary: var(--km-fg-secondary);
   --color-faint: var(--km-fg-faint);
@@ -170,6 +194,7 @@
   /* The standard has no separate info color; AI/info is cyan. */
   --color-info: var(--km-cyan);
   --color-scrim: var(--km-scrim);
+  --color-artifact-canvas: var(--km-artifact-canvas);
 
   /* shadcn names */
   --color-background: var(--background);

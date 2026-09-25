@@ -76,11 +76,11 @@ const AttachmentPreviewDialog: FC<PropsWithChildren> = ({ children }) => {
           )
         }
       />
-      <DialogContent className="aui-attachment-preview-dialog-content [&>button]:bg-foreground/60 [&>button]:hover:bg-foreground/80 [&_svg]:text-background p-2 sm:max-w-3xl [&>button]:rounded-full [&>button]:p-1 [&>button]:opacity-100 [&>button]:ring-0!">
+      <DialogContent className="aui-attachment-preview-dialog-content [&>button]:bg-raised [&>button]:hover:bg-hover [&_svg]:text-fg-secondary p-2 sm:max-w-3xl [&>button]:rounded-full [&>button]:p-1 [&>button]:opacity-100 [&>button]:ring-0!">
         <DialogTitle className="aui-sr-only sr-only">
           Image Attachment Preview
         </DialogTitle>
-        <div className="aui-attachment-preview bg-background relative mx-auto flex max-h-[80dvh] w-full items-center justify-center overflow-hidden rounded-sm">
+        <div className="aui-attachment-preview bg-canvas relative mx-auto flex max-h-[80dvh] w-full items-center justify-center overflow-hidden rounded-sm">
           <AttachmentPreview src={src} />
         </div>
       </DialogContent>
@@ -99,7 +99,7 @@ const AttachmentThumb: FC = () => {
         className="aui-attachment-tile-image rounded-none object-cover"
       />
       <AvatarFallback>
-        <FileText className="aui-attachment-tile-fallback-icon text-muted-foreground/80 size-6 stroke-[1.5]" />
+        <FileText className="aui-attachment-tile-fallback-icon text-fg-secondary size-6 stroke-[1.5]" />
       </AvatarFallback>
     </Avatar>
   );
@@ -162,11 +162,7 @@ const AttachmentUI: FC = () => {
             <TooltipTrigger
               render={
                 <div
-                  className={cn(
-                    "aui-attachment-tile bg-muted hover:after:bg-foreground/10 focus-visible:ring-ring/50 relative size-14 cursor-pointer overflow-hidden rounded-[calc(var(--composer-radius,1rem)-var(--composer-padding,8px))] transition-transform outline-none after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:ring-1 after:ring-black/10 after:transition-colors after:ring-inset focus-visible:ring-1 active:scale-[0.96] motion-reduce:transition-none dark:after:ring-white/10",
-                    isError &&
-                      "after:ring-destructive/60 dark:after:ring-destructive/60",
-                  )}
+                  className="aui-attachment-tile bg-muted-surface hover:bg-hover focus-cue relative size-14 cursor-pointer overflow-hidden rounded-[calc(var(--composer-radius,1rem)-var(--composer-padding,8px))] transition-transform outline-none active:scale-[0.96] motion-reduce:transition-none"
                   role="button"
                   tabIndex={0}
                   aria-label={`${typeLabel} attachment${
@@ -183,15 +179,15 @@ const AttachmentUI: FC = () => {
               {isUploading && (
                 <div
                   aria-hidden="true"
-                  className="aui-attachment-tile-uploading bg-background/60 animate-in fade-in-0 absolute inset-0 flex items-center justify-center backdrop-blur-[2px] motion-reduce:animate-none"
+                  className="aui-attachment-tile-uploading bg-raised animate-in fade-in-0 absolute inset-0 flex items-center justify-center motion-reduce:animate-none"
                 >
-                  <Loader2Icon className="text-muted-foreground size-4 animate-spin" />
+                  <Loader2Icon className="text-fg-secondary size-4 animate-spin" />
                 </div>
               )}
               {isError && (
                 <div
                   aria-hidden="true"
-                  className="aui-attachment-tile-error bg-background/70 animate-in fade-in-0 absolute inset-0 flex items-center justify-center backdrop-blur-[2px] motion-reduce:animate-none"
+                  className="aui-attachment-tile-error bg-danger-soft animate-in fade-in-0 absolute inset-0 flex items-center justify-center motion-reduce:animate-none"
                 >
                   <AlertCircleIcon className="text-danger-text size-4" />
                 </div>
@@ -217,7 +213,7 @@ const AttachmentRemove: FC = () => {
       render={
         <TooltipIconButton
           tooltip="Remove file"
-          className="aui-attachment-tile-remove absolute end-1 top-1 size-5 rounded-full bg-black/50! text-white after:absolute after:-inset-1.5 hover:bg-black/70! hover:text-white! active:scale-[0.96] motion-reduce:transition-none"
+          className="aui-attachment-tile-remove absolute end-1 top-1 size-5 rounded-full bg-raised text-fg-secondary after:absolute after:-inset-1.5 hover:bg-hover hover:text-fg active:scale-[0.96] motion-reduce:transition-none"
           side="top"
         />
       }
@@ -256,7 +252,7 @@ export const ComposerAddAttachment: FC = () => {
           side="bottom"
           variant="ghost"
           size="icon"
-          className="aui-composer-add-attachment text-muted-foreground hover:text-foreground hover:bg-muted-foreground/15 dark:border-muted-foreground/15 dark:hover:bg-muted-foreground/30 size-7 rounded-full active:scale-[0.96] motion-reduce:transition-none"
+          className="aui-composer-add-attachment size-7 rounded-full active:scale-[0.96] motion-reduce:transition-none"
           aria-label="Add Attachment"
         />
       }

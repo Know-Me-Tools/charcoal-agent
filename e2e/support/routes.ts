@@ -4,7 +4,13 @@
  */
 import { expect, type Page } from "@playwright/test";
 import { FIXTURE_AGENT_ID } from "../fixtures/uar-data";
-import { FIXTURE_FINAL_TEXT } from "../fixtures/sse";
+import {
+  FAILED_TOOL_NAME,
+  FIXTURE_FINAL_TEXT,
+  FIXTURE_IMAGE_ALT,
+  HTML_ARTIFACT_LABEL,
+  RUNNING_TOOL_NAME,
+} from "../fixtures/sse";
 
 export interface AppRoute {
   /** Stable name used in screenshot filenames and test titles. */
@@ -34,15 +40,22 @@ async function streamFixtureConversation(page: Page): Promise<void> {
     "summarize_oldest", // context update
     "work.focus", // memory recall
     "calendar_list_events", // tool call
+    RUNNING_TOOL_NAME, // tool call, no result — stays "running"
+    FAILED_TOOL_NAME, // tool call with success:false — "failed"
     "Planning guide", // citation
     "Prefers weekly plans on Monday mornings", // memory mutation
     "Week flow", // artifact (diagram)
     "checklist.md", // artifact (code)
+    HTML_ARTIFACT_LABEL, // HTML artifact fence in markdown
     "Add Thursday review to calendar?", // A2UI input request
     "Custom Event", // A2UI display (last event before done)
   ]) {
     await expect(page.getByText(marker).first()).toBeAttached();
   }
+  // Image and divider are markdown, not text, so they need their own
+  // locators (spec scenarios 2, 13, 19 — "every block type").
+  await expect(page.locator(`img[alt="${FIXTURE_IMAGE_ALT}"]`)).toBeAttached();
+  await expect(page.locator("hr").first()).toBeAttached();
   await expandToScrollableContent(page);
 }
 
