@@ -13,6 +13,7 @@ import { openRoute, seedTheme } from "./support/page-helpers";
 import { APP_ROUTES, FIXTURE_THREAD_ID, THEMES } from "./support/routes";
 import {
   ERROR_STREAM_EVENTS,
+  FAILED_TOOL_NAME,
   HTML_ARTIFACT_LABEL,
   LONG_TOOL_NAME,
   PARTIAL_STREAM_EVENTS,
@@ -238,22 +239,16 @@ test("Thinking: collapsed by default, aria-expanded toggles, and the body shows 
   await expect(body).toBeVisible();
 });
 
-// ─── Tool states: running, completed (spec scenario 9) ─────────────────────────
+// ─── Tool states: running, completed, failed (spec scenario 9) ────────────────
 //
-// Only two of the three ToolStatus values are reachable at runtime and get a
-// test here. `docs/qa/chat-surfaces-flat2.md` records why "failed" cannot be
-// closed without app code: `@assistant-ui/core`'s `toMessagePartStatus`
-// (`node_modules/@assistant-ui/core/dist/utils/normalizePartStatus.js`)
-// hardcodes a tool-call part's status to `{type: "complete"}` whenever
-// `result !== undefined`, regardless of `isError` — so `use-chat-runtime.ts`
-// passing `isError: block.status === "failed"` can never produce the
-// `{type: "incomplete"}` that `ToolCallBlockWrapper` maps to the "Failed"
-// pill. Confirmed by probing a held-open stream where a tool_result with
-// `success: false` still renders "Completed". `sync_contacts` (with a
-// `success: false` result) stays in the fixture and its marker is still
-// asserted (`e2e/support/routes.ts`) so the store/render path for a failed
-// result is at least exercised and visible in capture review, even though
-// its pill text is wrong.
+// All three ToolStatus values. "Failed" was unreachable until
+// `ToolCallBlockWrapper` started reading `isError` directly instead of
+// trusting assistant-ui's forwarded `status.type` (`@assistant-ui/core`'s
+// `toMessagePartStatus` collapses any tool-call part with a `result` to
+// `{type: "complete"}` regardless of `isError` — see
+// `docs/qa/chat-surfaces-flat2.md` §6.5 for how that was found). Now that the
+// wrapper derives "failed" from `isError` itself, the fixture's
+// `sync_contacts` (a `tool_result` with `success: false`) renders "Failed".
 
 test("Tool states: a completed call shows an icon-and-text Completed pill, not colour alone", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -262,6 +257,16 @@ test("Tool states: a completed call shows an icon-and-text Completed pill, not c
   const completedHeader = page.getByRole("button", { name: /calendar_list_events/ }).first();
   await expect(completedHeader.getByText("Completed", { exact: true })).toBeVisible();
   await expect(completedHeader.locator("svg").first()).toBeVisible();
+});
+
+test("Tool states: a failed call shows an icon-and-text Failed pill, not colour alone", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openRoute(page, THREAD_ROUTE);
+
+  const failedHeader = page.getByRole("button", { name: new RegExp(FAILED_TOOL_NAME) });
+  await expect(failedHeader).toBeVisible();
+  await expect(failedHeader.getByText("Failed", { exact: true })).toBeVisible();
+  await expect(failedHeader.locator("svg").first()).toBeVisible();
 });
 
 test("Tool states: a running call (no result yet) shows an icon-and-text Running pill, not colour alone", async ({

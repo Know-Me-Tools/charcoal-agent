@@ -109,6 +109,7 @@ const CHAT_FIXED_FILES = [
   "src/components/assistant-ui/enhanced-thread.tsx",
   "src/components/assistant-ui/enhanced-markdown-text.tsx",
   "src/components/assistant-ui/tooltip-icon-button.tsx",
+  "src/components/assistant-ui/attachment.tsx",
 ];
 const CHAT_GLOB_DIRS = ["src/features/chat/components", "src/features/artifacts"];
 
