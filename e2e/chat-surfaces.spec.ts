@@ -547,10 +547,11 @@ test("Message error: plain-language recovery text and Try again, never the raw e
     if (body?.stream === false) {
       return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(TITLE_RESPONSE) });
     }
-    // At least one content event has to precede agui.error: the streaming
-    // assistant message is only created on the first delta
-    // (`getOrCreateStreamingMessage`, src/stores/chat-message-store.ts), and
-    // setStreamError is a no-op with no message to attach the error to.
+    // Covers a distinct shape from the "Pre-stream failures" tests below: an
+    // `agui.error` event arriving mid-stream, after real content. (Before
+    // `e334863`, `setStreamError` needed an existing message to attach to;
+    // it now creates one when none exists, which is what makes the
+    // pre-stream shapes below possible too — see that section.)
     return route.fulfill({
       status: 200,
       contentType: "text/event-stream",
@@ -567,6 +568,130 @@ test("Message error: plain-language recovery text and Try again, never the raw e
   await expect(page.getByText(MESSAGE_ERROR_TEXT)).toBeVisible();
   await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
   await expect(page.getByText(RAW_STREAM_ERROR_TEXT)).toHaveCount(0);
+});
+
+// ─── Pre-stream failures (fixed in e334863) ────────────────────────────────────
+//
+// Three shapes of "the reply fails before a single AG-UI event arrives":
+// an HTTP non-2xx, a rejected/aborted request, and a 200 whose body has zero
+// SSE events. Before `e334863`, `setStreamError` required an already-existing
+// `streamingMessageId` — a pre-delta failure never has one (`beginStream`
+// sets it to `null`; only a content-appending action creates the message),
+// so the error was dropped silently: no assistant message, no role, nothing
+// in the DOM except the user's own message. The one assertion each test below
+// makes possible is `MESSAGE_ERROR_TEXT` (and `Try again`) actually existing
+// in the page at all — pre-fix, `page.getByText(MESSAGE_ERROR_TEXT)` would
+// have timed out with "element(s) not found" on every one of these three
+// shapes, the same failure this task's earlier `Message error` test hit
+// against a bare `route.fulfill({ status: 500 })` before this fix existed.
+// Not re-run against `main`/pre-fix source (not required); `git show
+// e334863` is the evidence for what changed.
+
+test("Message error: an HTTP failure before any SSE bytes shows the plain-language error and an enabled Try again", async ({
+  page,
+}) => {
+  const RAW_ERROR_TEXT = "upstream 500: provider unavailable, trace=9f3d-x1";
+  await page.route("**/api/chat/completion", async (route) => {
+    const body = route.request().postDataJSON() as { stream?: boolean } | null;
+    if (body?.stream === false) {
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(TITLE_RESPONSE) });
+    }
+    return route.fulfill({ status: 500, contentType: "text/plain", body: RAW_ERROR_TEXT });
+  });
+
+  await page.goto(`/threads/${FIXTURE_THREAD_ID}`);
+  const composer = page.getByPlaceholder(/Ask your agent anything/i).filter({ visible: true });
+  await expect(composer).toBeVisible();
+  await composer.fill("Plan my week around the rebrand launch.");
+  await composer.press("Enter");
+
+  await expect(page.getByText(MESSAGE_ERROR_TEXT)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Try again" })).toBeEnabled();
+  await expect(page.getByText(RAW_ERROR_TEXT)).toHaveCount(0);
+  await expect(page.getByText(/^500$|status.*500|HTTP.*500/i)).toHaveCount(0);
+});
+
+test("Message error: an aborted request before any SSE bytes shows the plain-language error and an enabled Try again", async ({
+  page,
+}) => {
+  await page.route("**/api/chat/completion", async (route) => {
+    const body = route.request().postDataJSON() as { stream?: boolean } | null;
+    if (body?.stream === false) {
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(TITLE_RESPONSE) });
+    }
+    return route.abort();
+  });
+
+  await page.goto(`/threads/${FIXTURE_THREAD_ID}`);
+  const composer = page.getByPlaceholder(/Ask your agent anything/i).filter({ visible: true });
+  await expect(composer).toBeVisible();
+  await composer.fill("Plan my week around the rebrand launch.");
+  await composer.press("Enter");
+
+  await expect(page.getByText(MESSAGE_ERROR_TEXT)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Try again" })).toBeEnabled();
+  // No browser-internal network wording (e.g. "Failed to fetch",
+  // "NetworkError", "ERR_FAILED") reaches the DOM either.
+  await expect(page.getByText(/failed to fetch|network ?error|err_failed|aborterror/i)).toHaveCount(0);
+});
+
+test("Message error: a 200 response with zero SSE events shows the plain-language error and an enabled Try again", async ({
+  page,
+}) => {
+  await page.route("**/api/chat/completion", async (route) => {
+    const body = route.request().postDataJSON() as { stream?: boolean } | null;
+    if (body?.stream === false) {
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(TITLE_RESPONSE) });
+    }
+    return route.fulfill({ status: 200, contentType: "text/event-stream", body: "" });
+  });
+
+  await page.goto(`/threads/${FIXTURE_THREAD_ID}`);
+  const composer = page.getByPlaceholder(/Ask your agent anything/i).filter({ visible: true });
+  await expect(composer).toBeVisible();
+  await composer.fill("Plan my week around the rebrand launch.");
+  await composer.press("Enter");
+
+  await expect(page.getByText(MESSAGE_ERROR_TEXT)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Try again" })).toBeEnabled();
+  // `use-message-stream.ts`'s internal message for this shape
+  // ("The connection closed before the agent replied.") must not leak either
+  // — only the fixed plain-language copy renders.
+  await expect(page.getByText(/connection closed/i)).toHaveCount(0);
+});
+
+test("Message error: Try again re-sends the user message, and a successful retry shows the fixture's reply", async ({
+  page,
+}) => {
+  let attempt = 0;
+  await page.route("**/api/chat/completion", async (route) => {
+    const body = route.request().postDataJSON() as { stream?: boolean } | null;
+    if (body?.stream === false) {
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(TITLE_RESPONSE) });
+    }
+    attempt += 1;
+    if (attempt === 1) {
+      return route.fulfill({ status: 500, contentType: "text/plain", body: "temporary failure" });
+    }
+    return route.fulfill({ status: 200, contentType: "text/event-stream", body: toSseBody() });
+  });
+
+  await page.goto(`/threads/${FIXTURE_THREAD_ID}`);
+  const composer = page.getByPlaceholder(/Ask your agent anything/i).filter({ visible: true });
+  await expect(composer).toBeVisible();
+  await composer.fill("Plan my week around the rebrand launch.");
+  await composer.press("Enter");
+
+  await expect(page.getByText(MESSAGE_ERROR_TEXT)).toBeVisible();
+  const tryAgain = page.getByRole("button", { name: "Try again" });
+  await expect(tryAgain).toBeEnabled();
+  await tryAgain.click();
+
+  // onReload (use-chat-runtime.ts) re-sends the same triggering user message
+  // through the identical send path, hitting POST /api/chat/completion a
+  // second time — this time the mock answers with the full fixture stream.
+  await expect(page.getByText(FIXTURE_FINAL_TEXT).first()).toBeVisible();
+  expect(attempt).toBe(2);
 });
 
 // ─── Mermaid source and copy (spec scenario 17) ────────────────────────────────

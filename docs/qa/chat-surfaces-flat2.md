@@ -318,3 +318,45 @@ Files changed this pass, all within scope, no commit: `e2e/chat-surfaces.spec.ts
 No stray processes after this pass: `lsof -nP -iTCP:4174 -sTCP:LISTEN` and a scoped `ps aux` for vite/playwright processes under this repo path both empty.
 
 No commit made. `git status --short -- e2e/ src/test/ docs/` shows exactly `e2e/chat-surfaces.spec.ts`, `e2e/fixtures/sse.ts`, `e2e/support/routes.ts` and this file.
+
+---
+
+### 6.12 Pre-stream failures (`e334863`) and closing #19
+
+The frontend engineer's `e334863` (committed) fixed a gap this file's §6.9 and §5 flagged: an HTTP non-2xx, an aborted request, or a `200` with zero SSE events — all failures before a single AG-UI event arrives — previously showed nothing (`setStreamError` needed an already-existing `streamingMessageId`, which a pre-delta failure never has; `beginStream` sets it to `null`, and only a content-appending action creates the message). `e334863` makes `setStreamError` create the message when none exists, and adds `onReload` to the runtime adapter so "Try again" (previously always disabled — `useExternalStoreRuntime` only enables `capabilities.reload` when `onReload` is provided) re-sends the triggering user message through the same send path.
+
+Four new tests in `e2e/chat-surfaces.spec.ts`, under "Pre-stream failures (fixed in e334863)":
+
+| Test | Shape | Mock | Asserts |
+|---|---|---|---|
+| `Message error: an HTTP failure before any SSE bytes shows the plain-language error and an enabled Try again` | HTTP non-2xx | `route.fulfill({ status: 500, body: <distinctive raw text> })` | `MESSAGE_ERROR_TEXT` visible, "Try again" **enabled**, the raw response body text and a `500`/`status`/`HTTP` pattern both absent from the page. |
+| `Message error: an aborted request before any SSE bytes shows the plain-language error and an enabled Try again` | Rejected/aborted request | `route.abort()` | Same plain-language text and enabled Try again; no browser-internal network wording (`Failed to fetch`, `NetworkError`, `ERR_FAILED`, `AbortError`) in the page. |
+| `Message error: a 200 response with zero SSE events shows the plain-language error and an enabled Try again` | `200` with an empty body | `route.fulfill({ status: 200, contentType: "text/event-stream", body: "" })` | Same plain-language text and enabled Try again; `use-message-stream.ts`'s own internal message for this shape ("The connection closed before the agent replied.") does not leak — only the fixed copy renders. |
+| `Message error: Try again re-sends the user message, and a successful retry shows the fixture's reply` | Recovery | First POST → `500`; second POST → the full fixture SSE stream (`toSseBody()`, default `FIXTURE_EVENTS`) | After clicking "Try again", `FIXTURE_FINAL_TEXT` becomes visible and the mock's own call counter shows exactly 2 completion requests — proving the retry is a real second request, not a client-side replay of cached content. |
+
+**What each one would have caught before the fix, not re-run against `main`:** on every one of the first three, the single line `await expect(page.getByText(MESSAGE_ERROR_TEXT)).toBeVisible();` is the assertion that would have failed pre-`e334863` — with `setStreamError` a no-op with no message to attach to, `MESSAGE_ERROR_TEXT` was never in the DOM for any of these shapes, and the `Try again` button did not exist at all (no `onReload` meant `capabilities.reload` was `false`, so `MessagePrimitive.Error`'s `ActionBarPrimitive.Reload` didn't render). For the empty-body shape specifically, the pre-fix code path is `git show e334863`'s diff on `use-message-stream.ts`: reader-exhausted-with-no-events called `finishStream()` unconditionally, i.e. treated as a silent success, not an error — so `getByText(MESSAGE_ERROR_TEXT)` would have failed for a different reason than the other two (no error state at all, vs. an error state with nothing to show it). The fourth test (retry) has no pre-fix analogue: `onReload` did not exist, so `Try again` rendered `disabled` and could not be clicked at all. This reasoning is read directly from `git show e334863`'s diff (quoted in this section), not re-run against `main`, per the coordinator's instruction that a re-run wasn't required.
+
+Also updated the comment above the existing (unrelated) `agui.error`-mid-stream test, which had gone stale: it previously justified using `ERROR_STREAM_EVENTS` (an error after real content) by saying `setStreamError` "is a no-op with no message to attach the error to" for a bare error — true before `e334863`, no longer the general case now that it creates one. The comment now says what's still actually true: that test covers a different shape (mid-stream) from the four pre-stream ones above.
+
+**Verification** (`npx playwright test e2e/chat-surfaces.spec.ts`, single run at a time — one earlier run this session hit port 4174 contention from an overlapping run, per §6.11):
+- Run 1: **26 passed** (52.5s).
+- Run 2: **26 passed** (57.9s).
+- Re-run after the stale-comment edit (comment-only change, re-verified anyway): **26 passed** (42.3s), **26 passed** (1.8m).
+
+#### Closing #19
+
+`npm run test:a11y`, run fresh against the fixture as it now stands (running/failed tools, HTML artifact, image, divider — everything added across this task and the last): **24 scans, 5 violations across 3 rules** — identical totals to §6.8:
+```
+color-contrast     [serious]  1 page/theme(s), 1 node(s)
+button-name        [critical] 2 page/theme(s), 2 node(s)
+nested-interactive [serious]  2 page/theme(s), 18 node(s)
+```
+`test-results/a11y/thread__light.json` and `thread__dark.json` (written 05:23, this run): **both `"violations": []"`**. Same as before the image/divider addition — the new blocks introduced no new axe-detectable issue.
+
+**#19 is now MET.** The fixture contains every block type `specs/chat-surfaces/spec.md` names (§6.10 closed #2/#13's fixture gap; this run confirms axe stays clean against the completed fixture), closing the one item §6.10 had explicitly left open ("fixture gap closed; axe re-run still needed").
+
+### 6.13 Final scope and process check
+
+`git status --short -- e2e/ src/test/ docs/`: `e2e/chat-surfaces.spec.ts`, `e2e/fixtures/sse.ts`, `e2e/support/routes.ts`, `docs/qa/chat-surfaces-flat2.md` — same four files as §6.11, no new files, no `src/` app code touched (the frontend engineer's `e334863` is read and relied upon, never edited). No commit made.
+
+Process hygiene this pass: only one `npx playwright test`/`npm run test:a11y` invocation running at a time, checking `lsof -nP -iTCP:4174 -sTCP:LISTEN` before each; no port-4174 contention this pass (the earlier §6.11 incident was from a prior pass's leftover server, already resolved there).
