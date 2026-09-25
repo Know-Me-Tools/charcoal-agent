@@ -96,8 +96,124 @@ npx playwright test e2e/chat-persistence.spec.ts --repeat-each 20 --workers=1
 100 passed (7.7m)
 ```
 
-## 5. Unmet or out of scope
+## 5. Unmet or out of scope (task 2.1)
 
 - Nothing in task 2.1's stated deliverables is unmet: the restored reload assertions pass at 20/20 and 10/10-under-trace; the new spec's 5 tests pass at 100/100; the failure-injection method was found (not reported as impossible) and is deterministic across 100 repeats of the test that uses it.
 - Task 2.1 does not require unit-test evidence — that is tasks 1.1/1.2 (already committed, with their own `npx vitest run` evidence per `tasks.md`; not re-run here as it is outside this task's verify block).
 - Task 3.1 (`npm run build && npm run typecheck && npm run lint && npm test && npm run test:e2e`, then `npm run test:a11y`, plus the manual failure-notice check) and task 3.2 (verification.md + independent review) are separate km-qa-engineer / km-product-owner tasks in `tasks.md` and are not run here.
+
+---
+
+# Task 3.1: full gate, axe totals, and the manual failure-notice check
+
+Scope: `docs/qa/**` only — no `src/` changes, and no net `e2e/**` change (a temporary manual-check spec was added, run, and deleted; see §3 below). No commit made. `git --no-optional-locks` used for every read-only git check. One Playwright run at a time; port 4174 confirmed clear (`lsof -nP -iTCP:4174 -sTCP:LISTEN`, exit 1 / no output) before every `test:e2e`/`test:a11y` invocation. Run against commit `5763bbe` on `rebrand/chat-persistence-durability` (task 2.1 already committed at the point this ran).
+
+## 1. Full gate
+
+All five commands below exited 0, run in the order `tasks.md` specifies.
+
+```
+npm run build
+✓ built in 12.21s
+(exit 0)
+```
+Only pre-existing bundle-size warnings (chunks >500kB — syntax-highlighting/mermaid language packs, unrelated to this change).
+
+```
+npm run typecheck
+> tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p e2e/tsconfig.json
+(exit 0, no output)
+```
+
+```
+npm run lint
+> eslint .
+/Users/.../src/components/ui/button.tsx: 1 warning (react-refresh/only-export-components)
+/Users/.../src/components/ui/tabs.tsx: 1 warning (react-refresh/only-export-components)
+✖ 2 problems (0 errors, 2 warnings)
+(exit 0)
+```
+Both warnings are pre-existing, in files this change never touched (shadcn `button.tsx`/`tabs.tsx` fast-refresh warnings, not errors).
+
+```
+npm test
+> vitest run
+Test Files  37 passed (37)
+     Tests  298 passed (298)
+(exit 0)
+```
+The stderr lines interleaved in this run (`[write-queue] ... failed Error: ...`, `[persistence-journal] unknown journal version — discarding 99`) are expected diagnostic logging from tests that intentionally trigger a write/replay failure to assert the error-isolation and discard-unknown-version behaviour (write-queue.test.ts, persistence-journal.test.ts, use-chat-runtime.onreload.test.tsx) — not failures.
+
+```
+npm run test:e2e
+> playwright test
+190 passed (4.6m), 5 workers
+(exit 0)
+```
+Includes all of `e2e/chat-surfaces.spec.ts` and `e2e/chat-persistence.spec.ts` from task 2.1, plus every other spec (a11y, brand, chat-stream, mock-smoke, primitives, shell, skills-toggle, theme, visual). No failures, no flaked tests reported.
+
+## 2. Accessibility: `npm run test:a11y`
+
+```
+npm run test:a11y
+24 passed (46.5s)
+axe: 24 scans, 5 violations across 3 rules
+  color-contrast [serious] 1 page/theme(s), 1 node(s)
+  button-name [critical] 2 page/theme(s), 2 node(s)
+  nested-interactive [serious] 2 page/theme(s), 18 node(s)
+(exit 0)
+```
+
+Matches the stated baseline exactly (5 violations across 3 rules elsewhere, thread 0/0). Per-file breakdown of the 5 non-zero violations (1 each), from `test-results/a11y/*.json`:
+
+| File | Violations |
+|---|---|
+| `agents__light.json` | 1 |
+| `landing__dark.json` | 1 |
+| `landing__light.json` | 1 |
+| `settings-skills__dark.json` | 1 |
+| `settings-skills__light.json` | 1 |
+
+**Thread region, both themes — the gate's actual pass criterion:**
+
+`test-results/a11y/thread__light.json`:
+```json
+{ "route": "thread", "theme": "light", "violations": [], "raw": [] }
+```
+
+`test-results/a11y/thread__dark.json`:
+```json
+{ "route": "thread", "theme": "dark", "violations": [], "raw": [] }
+```
+
+0/0 in both themes, matching the chat-surfaces-flat2 baseline. **No new violations in the thread region in either theme** — the verify criterion in `tasks.md` ("axe reports no new violations in the thread region in either theme compared with the chat-surfaces-flat2 baseline") is met. The 5 violations elsewhere (agents, landing, settings-skills) are pre-existing and outside this change's scope (chat-persistence-durability touches only local-write ordering, the journal, the save-state attribute, and the failure toast — none of those pages).
+
+## 3. Manual check: the failure notice by hand
+
+**Method.** A temporary spec, `e2e/_manual-persistence-notice-check.spec.ts`, was added, run once per theme, and then deleted (confirmed by `git --no-optional-locks status --short -- e2e/ src/` returning no output afterward — the net diff to `e2e/**` from this task is zero). It used the same deterministic write-failure injection as task 2.1's automated test (a temporary throwing executor: `IDBObjectStore.prototype.put` is overridden to call the real `put()` and then abort its transaction — a spec-legal IndexedDB failure, not a fabricated one), and reverted it afterward via the saved original function reference, then confirmed a further send succeeds and `data-persistence` returns to `saved`.
+
+**What it checked, per theme (light and dark), against a real send that fails to persist:**
+
+| Check | Result |
+|---|---|
+| Toast text | Exact, singular: `"Couldn't save your latest messages on this device. They're still on screen, but may be missing after you reload."` — present once |
+| `data-persistence` | Reads `failed` |
+| Announced politely | The toast's containing `<section aria-live="polite">` region exists (queried directly from the DOM, not assumed from sonner's docs) |
+| Focus | `document.activeElement === composer` — the toast never took focus |
+| Composer usable during failure | `composer.toBeEditable()` holds |
+| Recovery | After reverting the throwing executor, a further send succeeds and `data-persistence` returns to `saved` within 20s |
+
+All of the above passed in both themes.
+
+**Finding: the toast's bounding box overlaps the composer's outer rounded border by a small margin.** Measured at the default 1280×800 viewport: toast box `{x:917, y:620.5, w:322, h:58.5}`, composer box `{x:280, y:596, w:660, h:56}` — a ~23×31px intersection at the composer's bottom-right corner. Visually (see screenshots below) this is the toast card grazing the composer's focus-ring border; it does **not** cover the placeholder text, the typed-text area, or the "+"/skill icon controls, all of which sit at the left/middle of the composer. This does not violate the spec's actual normative text (`specs/chat-persistence/spec.md`: "SHALL NOT take focus or block input" and "the composer SHALL stay usable") — both held under direct test (composer stayed editable and a further send succeeded while the toast was showing). It also isn't blocking per the interaction check: typing and sending both worked with the toast visible. It's recorded here as a **QA finding, not a spec violation**: at this viewport the toast's card sits close enough to the composer to visually intersect its corner, which a design/frontend review may want to address (e.g. a bottom offset large enough to clear the composer's rounded border) even though nothing is functionally broken. Per role boundaries, this is reported, not fixed — km-frontend-engineer or km-creative-director owns any layout change.
+
+**Screenshots** (scratchpad, both themes, toast visible with the composer still in frame):
+- `/private/tmp/claude-501/-Users-gqadonis-Projects-know-me-charcoal-agent/f387bcbd-326d-4e0b-a0d8-b156ce6cbd80/scratchpad/persistence-failure-notice-light.png`
+- `/private/tmp/claude-501/-Users-gqadonis-Projects-know-me-charcoal-agent/f387bcbd-326d-4e0b-a0d8-b156ce6cbd80/scratchpad/persistence-failure-notice-dark.png`
+
+## 4. Unmet or out of scope (task 3.1)
+
+- All five gate commands exited 0; nothing unmet there.
+- Axe: no new violations in the thread region in either theme (0/0, matching baseline); nothing unmet there.
+- Manual check: every normative requirement (toast text, politeness, focus, composer usability, recovery) passed in both themes. The one thing recorded as **not fully clean** is the geometric corner-overlap finding in §3 above — reported as a QA finding for design/frontend follow-up, not waived and not silently fixed.
+- Task 3.2 (`verification.md` + independent review) is km-product-owner's task in `tasks.md` and is not run here.

@@ -8,7 +8,12 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const SHELL_DIRS = ["src/components/layout", "src/components/common"];
-const SHELL_PRIMITIVES = ["src/components/ui/dialog.tsx", "src/components/ui/select.tsx", "src/components/ui/sheet.tsx"];
+const SHELL_PRIMITIVES = [
+  "src/components/ui/dialog.tsx",
+  "src/components/ui/select.tsx",
+  "src/components/ui/sheet.tsx",
+  "src/components/ui/sonner.tsx",
+];
 
 /** Files not restyled yet. Each is expected to fail; remove it once it passes. */
 const PENDING = new Set<string>([]);
