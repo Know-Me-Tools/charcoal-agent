@@ -27,7 +27,7 @@
   - `grep -nE "\bborder\b|border-[a-z]|shadow|backdrop-blur|ring-1|zinc-|bg-white|#[0-9a-fA-F]{6}|text-\[(9|10|11)(\.[0-9]+)?px\]|text-[a-z-]+/[0-9]+" src/components/assistant-ui/enhanced-thread.tsx src/components/assistant-ui/enhanced-markdown-text.tsx src/components/assistant-ui/tooltip-icon-button.tsx` returns nothing, apart from `border-0`/`border-transparent`
   - `npx vitest run src/features/chat` passes
   - a light-theme and a dark-theme screenshot of a thread at 1440 show a readable user message and an unbubbled assistant reply
-- [ ] 2.2 (owner: km-frontend-engineer) Restyle the content blocks in `src/features/chat/components/{thinking-block,citation-block,tool-call-block,memory-block,skill-activation-block,context-update-block}.tsx`, following the design doc:
+- [x] 2.2 (owner: km-frontend-engineer) Restyle the content blocks in `src/features/chat/components/{thinking-block,citation-block,tool-call-block,memory-block,skill-activation-block,context-update-block}.tsx`, following the design doc:
   - thinking and citation blocks on `bg-cyan-soft`
   - tool, memory, skill and context blocks on surface/raised tokens
   - mono metadata at 12px or larger

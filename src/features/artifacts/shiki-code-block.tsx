@@ -43,6 +43,7 @@ interface ShikiCodeBlockProps {
   code: string;
   language?: string;
   showLineNumbers?: boolean;
+  /** Margin only — callers must not pass sizing or outline overrides (design spec §7.7). */
   className?: string;
 }
 
@@ -103,46 +104,44 @@ export const ShikiCodeBlock: FC<ShikiCodeBlockProps> = ({
   };
 
   return (
-    <div className={cn("group relative overflow-hidden rounded-lg border border-border/50", className)}>
+    <div className={cn("group relative my-3 first:mt-0 last:mb-0 min-w-0 overflow-hidden rounded-lg bg-code", className)}>
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-border/50 bg-muted/50 px-3 py-1.5">
-        <span className="font-mono text-[11px] text-muted-foreground lowercase">
-          {language}
-        </span>
+      <div className="flex items-center justify-between gap-2 bg-raised px-3 py-1.5">
+        <span className="font-mono text-xs text-fg-secondary lowercase">{language}</span>
         <button
+          type="button"
           onClick={handleCopy}
-          className="flex items-center gap-1 rounded px-1.5 py-0.5 font-ui text-[11px] text-muted-foreground transition-colors hover:bg-border/50 hover:text-foreground"
-          aria-label={isCopied ? "Copied" : "Copy code"}
+          className="inline-flex items-center gap-1 rounded-sm px-2 py-1 font-ui text-xs font-semibold text-fg-secondary transition-hover hover:bg-hover hover:text-fg focus-cue"
         >
           {isCopied ? (
-            <>
-              <CheckIcon size={11} />
-              <span>Copied</span>
-            </>
+            <CheckIcon className="size-3.5" aria-hidden="true" />
           ) : (
-            <>
-              <CopyIcon size={11} />
-              <span>Copy</span>
-            </>
+            <CopyIcon className="size-3.5" aria-hidden="true" />
           )}
+          <span aria-live="polite">{isCopied ? "Copied" : "Copy"}</span>
         </button>
       </div>
 
-      {/* Code */}
-      {highlightedHtml ? (
-        <div
-          className={cn(
-            "overflow-x-auto bg-code p-3 text-xs leading-relaxed [&_pre]:bg-transparent! [&_pre]:p-0!",
-            showLineNumbers &&
-              "[&_.line]:relative [&_.line]:pl-10 [&_.line]:before:absolute [&_.line]:before:left-0 [&_.line]:before:w-8 [&_.line]:before:text-right [&_.line]:before:text-muted-foreground/50 [&_.line]:before:content-[attr(data-line)]",
-          )}
-          dangerouslySetInnerHTML={{ __html: highlightedHtml }}
-        />
-      ) : (
-        <pre className="overflow-x-auto bg-code p-3 font-mono text-xs leading-relaxed text-foreground">
-          <code>{code}</code>
-        </pre>
-      )}
+      {/* Code — the Shiki theme's own background is always overridden by bg-code. */}
+      <div
+        tabIndex={0}
+        role="region"
+        aria-label={`${language} code`}
+        className={cn(
+          "overflow-x-auto bg-code p-3 font-mono text-xs leading-relaxed text-fg focus-cue [&_pre]:bg-transparent! [&_pre]:p-0!",
+          showLineNumbers &&
+            "[&_.line]:relative [&_.line]:pl-10 [&_.line]:before:absolute [&_.line]:before:left-0 [&_.line]:before:w-8 [&_.line]:before:text-right [&_.line]:before:text-faint [&_.line]:before:content-[attr(data-line)]",
+        )}
+      >
+        {highlightedHtml ? (
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: Shiki output is generated locally from the code string
+          <div dangerouslySetInnerHTML={{ __html: highlightedHtml }} />
+        ) : (
+          <pre className="m-0 bg-transparent p-0">
+            <code>{code}</code>
+          </pre>
+        )}
+      </div>
     </div>
   );
 };

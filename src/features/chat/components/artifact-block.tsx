@@ -2,13 +2,16 @@ import type { FC } from "react";
 import { useState } from "react";
 import {
   BoxIcon,
+  CheckIcon,
   ChevronDownIcon,
   CopyIcon,
   FileTextIcon,
+  HourglassIcon,
   ImageIcon,
   MessageSquarePlusIcon,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
+import { MermaidBlock } from "@/features/artifacts/mermaid-block";
 import { ShikiCodeBlock } from "@/features/artifacts/shiki-code-block";
 import { cn } from "@/lib/utils";
 
@@ -32,7 +35,16 @@ function ArtifactTypeIcon({
   className?: string;
 }) {
   const Icon = artifactTypeIcon[artifactType] ?? FileTextIcon;
-  return <Icon size={13} className={className} />;
+  return <Icon className={className} aria-hidden="true" />;
+}
+
+/** Metadata pill (design spec §5): a scope/type label, no icon, no status meaning. */
+function MetaPill({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex shrink-0 items-center rounded-pill bg-muted-surface px-2 py-0.5 font-mono text-xs text-fg-secondary">
+      {children}
+    </span>
+  );
 }
 
 // ─── Code-like Artifact ────────────────────────────────────────────────────────
@@ -67,6 +79,11 @@ export const ArtifactBlock: FC<ArtifactBlockProps> = ({
   const [copied, setCopied] = useState(false);
 
   const resolvedLang = language ?? CODE_LANGUAGES[artifactType] ?? "text";
+  // A Mermaid diagram is routed by language, independent of artifactType (the
+  // fixture's "Week flow" artifact carries artifactType "diagram"); previously
+  // only CODE_ARTIFACT_TYPES were checked, so a diagram-typed Mermaid artifact
+  // fell through to the plain-text preview and rendered its source verbatim.
+  const isMermaidArtifact = language === "mermaid";
   const isCodeArtifact = CODE_ARTIFACT_TYPES.has(artifactType);
   const preview = content.slice(0, 300);
   const isTruncated = content.length > 300;
@@ -78,77 +95,79 @@ export const ArtifactBlock: FC<ArtifactBlockProps> = ({
   };
 
   return (
-    <div
-      className={cn(
-        "my-2 overflow-hidden rounded-lg border bg-card",
-        isInputRequest ? "border-primary/40" : "border-border/50",
-      )}
-    >
+    <div className="my-3 first:mt-0 last:mb-0 min-w-0 overflow-hidden rounded-lg bg-surface">
       {/* Header */}
-      <div className="flex items-center gap-2 border-b border-border/30 px-3 py-2">
+      <div className="flex items-start gap-2 bg-raised px-3 py-2">
         <ArtifactTypeIcon
           artifactType={artifactType}
-          className={cn("shrink-0", isInputRequest ? "text-ember-text" : "text-muted-foreground")}
+          className="mt-1 size-3.5 shrink-0 text-fg-secondary"
         />
 
         <div className="min-w-0 flex-1">
-          <span className="block truncate font-mono text-[12px] font-medium text-foreground">
+          <span className="block font-display text-base font-semibold text-fg wrap-anywhere">
             {title || "Artifact"}
           </span>
-          <span className="font-mono text-[10px] text-muted-foreground">
-            {isInputRequest ? "awaiting input · " : ""}{artifactType}
-          </span>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+            <MetaPill>{artifactType}</MetaPill>
+            {isInputRequest && (
+              <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-pill bg-warning-soft px-2.5 py-1 font-ui text-xs font-semibold leading-none text-warning-text">
+                <HourglassIcon className="size-3.5 shrink-0" aria-hidden="true" />
+                <span>Awaiting input</span>
+              </span>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 text-muted-foreground hover:text-foreground"
-            onClick={handleCopy}
-            title="Copy content"
-          >
-            <CopyIcon size={11} className={copied ? "text-success-text" : ""} />
-          </Button>
+        <div className="flex shrink-0 items-center gap-1">
+          <TooltipIconButton tooltip="Copy content" onClick={handleCopy}>
+            <CopyGlyph copied={copied} />
+          </TooltipIconButton>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 text-muted-foreground hover:text-foreground"
-            onClick={() => setIsExpanded((e) => !e)}
-            aria-expanded={isExpanded}
-            title={isExpanded ? "Collapse" : "Expand"}
-          >
-            <ChevronDownIcon
-              size={13}
-              className={cn("transition-transform duration-150", isExpanded && "rotate-180")}
-            />
-          </Button>
+          {/*
+            A Mermaid artifact renders its diagram in full below (no preview
+            state to expand out of) — MermaidBlock supplies its own Source
+            toggle, so this card has nothing left to expand or collapse.
+          */}
+          {!isMermaidArtifact && (
+            <TooltipIconButton
+              tooltip={isExpanded ? "Collapse" : "Expand"}
+              aria-expanded={isExpanded}
+              onClick={() => setIsExpanded((e) => !e)}
+            >
+              <ChevronGlyph expanded={isExpanded} />
+            </TooltipIconButton>
+          )}
         </div>
       </div>
 
-      {/* Content preview / expanded */}
-      {isExpanded ? (
+      {/* Content: a Mermaid artifact always shows its rendered diagram (never
+          the raw source as a text preview); other artifact types keep the
+          collapsed-preview / expanded-detail toggle. */}
+      {isMermaidArtifact ? (
+        <div className="p-3">
+          <MermaidBlock source={content} />
+        </div>
+      ) : isExpanded ? (
         <div className="p-3">
           {isCodeArtifact ? (
-            <ShikiCodeBlock code={content} language={resolvedLang} className="text-[11px]" />
+            <ShikiCodeBlock code={content} language={resolvedLang} />
           ) : (
-            <p className="whitespace-pre-wrap font-body text-[13px] leading-relaxed text-muted-foreground">
+            <p className="whitespace-pre-wrap font-body text-sm leading-relaxed text-fg-secondary wrap-break-word">
               {content}
             </p>
           )}
         </div>
       ) : (
-        <div className="px-3 pb-3 pt-2">
-          <p className="font-body text-[12px] leading-snug text-muted-foreground">
+        <div className="px-3 pt-2 pb-3">
+          <p className="font-body text-sm leading-snug text-fg-secondary wrap-break-word">
             {preview}
             {isTruncated && (
               <button
                 type="button"
-                className="ml-1 font-mono text-[11px] text-ember-text hover:underline"
+                className="ml-1 font-ui text-xs font-semibold text-ember-text hover:underline focus-cue"
                 onClick={() => setIsExpanded(true)}
               >
-                show more
+                Show more
               </button>
             )}
           </p>
@@ -156,12 +175,30 @@ export const ArtifactBlock: FC<ArtifactBlockProps> = ({
       )}
 
       {isInputRequest && (
-        <div className="border-t border-primary/20 bg-primary/5 px-3 py-2">
-          <p className="font-mono text-[11px] text-ember-text">
-            {"// The agent is waiting for your input to continue."}
+        <div className="px-3 pb-3">
+          <p className="font-body text-sm text-fg-secondary">
+            The agent is waiting for your answer.
           </p>
         </div>
       )}
     </div>
   );
 };
+
+// Small inline glyphs kept local so the icon-only buttons above stay declarative.
+function CopyGlyph({ copied }: { copied: boolean }) {
+  return copied ? (
+    <CheckIcon className="size-3.5 text-success-text" aria-hidden="true" />
+  ) : (
+    <CopyIcon className="size-3.5" aria-hidden="true" />
+  );
+}
+
+function ChevronGlyph({ expanded }: { expanded: boolean }) {
+  return (
+    <ChevronDownIcon
+      className={cn("size-3.5 transition-transform duration-150", expanded && "rotate-180")}
+      aria-hidden="true"
+    />
+  );
+}
