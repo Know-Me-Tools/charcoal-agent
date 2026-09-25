@@ -589,9 +589,21 @@ export function useMessageStream() {
           }
         }
 
-        // Reader exhausted without agui.done / [DONE] — finish gracefully
-        useChatMessageStore.getState().finishStream(threadId);
-        callbacks?.onComplete?.();
+        // Reader exhausted without agui.done / [DONE]. When at least one
+        // block already arrived (streamingMessageId is set), treat it as a
+        // graceful finish — unchanged behavior. When the connection closed
+        // before a single AG-UI event arrived (no start, delta, tool call,
+        // or done), there is nothing to show and nothing to "finish": it is
+        // a pre-delta failure like an HTTP error or a rejected fetch, so it
+        // must surface the same way (docs/qa/chat-surfaces-flat2.md §6.6).
+        if (useChatMessageStore.getState().streamingByThread[threadId]?.streamingMessageId) {
+          useChatMessageStore.getState().finishStream(threadId);
+          callbacks?.onComplete?.();
+        } else {
+          const error = new Error("The connection closed before the agent replied.");
+          useChatMessageStore.getState().setStreamError(threadId, error.message);
+          callbacks?.onError?.(error);
+        }
       } catch (err) {
         if ((err as Error).name === "AbortError") return;
         const error = err instanceof Error ? err : new Error("Stream failed");

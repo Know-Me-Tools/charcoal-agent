@@ -418,11 +418,22 @@ export const useChatMessageStore = create<ChatMessageStore>()(
         const streaming = state.streamingByThread[threadId];
         if (!streaming) return;
 
+        // A pre-delta failure (non-2xx response, a rejected fetch, or the
+        // stream closing with zero events) never reaches a block handler, so
+        // `streamingMessageId` is still null here — no assistant message was
+        // ever created for this run. Without creating one now, the error has
+        // nothing to attach to: it silently vanishes when the streaming
+        // state resets below, and MessageError (gated on an existing
+        // message's status) never renders. Create the message the same way
+        // `activeStreamingMessage` does for the first content block.
+        ensureThread(state, threadId);
+        const message = streaming.runId
+          ? getOrCreateStreamingMessage(state, threadId, streaming.runId)
+          : null;
+
         const messages = state.messagesByThread[threadId];
-        if (messages && streaming.streamingMessageId) {
-          const idx = messages.findIndex(
-            (m) => m.id === streaming.streamingMessageId,
-          );
+        if (messages && message) {
+          const idx = messages.findIndex((m) => m.id === message.id);
           if (idx !== -1) {
             messages[idx].status = "failed";
             messages[idx].content.push({ type: "error", message: error });

@@ -317,6 +317,48 @@ export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {
     [threadId, startStream, afterStreamComplete, options.promptCachingEnabled],
   );
 
+  /**
+   * Wires assistant-ui's "Try again" action (`ActionBarPrimitive.Reload`,
+   * used by `MessageError` on a failed assistant message) to the same send
+   * path as a new message. `useExternalStoreRuntime` only enables reload
+   * (`capabilities.reload`) when `onReload` is provided — without it the
+   * button renders disabled. `parentId` is the id of the message immediately
+   * before the reloaded one in `messages` (assistant-ui's default flat-array
+   * repository parents each message to its predecessor — see
+   * `external-store-thread-runtime-core.ts`), which for a failed assistant
+   * turn is always the user message that triggered it.
+   */
+  const onReload = useCallback(
+    async (parentId: string | null) => {
+      if (!parentId) return;
+
+      const storeMessages =
+        useChatMessageStore.getState().messagesByThread[threadId] ?? [];
+      const parentMessage = storeMessages.find((m) => m.id === parentId);
+      if (!parentMessage || parentMessage.role !== "user") return;
+
+      const userText = extractText(parentMessage);
+      if (!userText.trim()) return;
+
+      const thread = useThreadRegistryStore.getState().threads[threadId];
+
+      await startStream(
+        threadId,
+        {
+          message: userText,
+          agent_id: thread?.agentId,
+          prompt_caching_enabled: options.promptCachingEnabled,
+        },
+        {
+          onComplete: () => {
+            void afterStreamComplete(userText);
+          },
+        },
+      );
+    },
+    [threadId, startStream, afterStreamComplete, options.promptCachingEnabled],
+  );
+
   const onCancel = useCallback(async () => {
     cancelStream();
     useChatMessageStore.getState().finishStream(threadId);
@@ -361,6 +403,7 @@ export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {
     messages: threadMessageLikes,
     isRunning: isStreaming,
     onNew,
+    onReload,
     onCancel,
   // biome-ignore lint/suspicious/noExplicitAny: useExternalStoreRuntime props type is overly strict
   } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
