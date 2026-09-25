@@ -1,3 +1,5 @@
+@AGENTS.md
+
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
@@ -33,26 +35,9 @@ Gotchas:
 - Every request carries `X-UAR-Session-ID` = the active thread's UUID, held in a module-level variable set via `setActiveSessionId`/`clearActiveSessionId` when a thread page mounts/unmounts. UAR keys all conversation state on it. Optional bearer via `VITE_UAR_API_KEY`.
 - UAR endpoints used: `/api/chat/completion` (SSE), `/api/sessions`, `/api/agents`, `/api/compiler/compile`, `/api/providers`, `/api/skills`, `/api/uar/runs`, `/api/uar/user/settings`. Server data lives in the `@prometheus-ags/prometheus-entity-management` entity graph (`src/lib/entity-graph/`: `useRuntimeList` for lists, `useGraphMutation` for writes), wrapped by hooks in `src/hooks/`. TanStack Query is not used.
 
-## Chat architecture (the part that spans many files)
+## Subsystem notes (load on demand)
 
-Data flow for one message:
-
-1. `features/chat/use-chat-runtime.ts` adapts our state to `@assistant-ui/react` via `useExternalStoreRuntime`. It converts `RichMessage` → `ThreadMessageLike`; every converted message **must** include a `metadata` object (and user messages an `attachments: []`) or assistant-ui crashes on internal accessors.
-2. `features/chat/use-message-stream.ts` POSTs to `/api/chat/completion` and parses the SSE stream of AG-UI events (`agui.message.delta`, `agui.thinking.delta`, `agui.tool_call.*`, `agui.tool_result`, `agui.citation.added`, `agui.skill.activated`, `agui.context.update`, `agui.memory.*`, `agui.artifact`, `agui.artifact_input_request`, `agui.done`, …). Event shapes mirror UAR's `src/uar/api/sse.rs` — change both sides together. Includes retry/backoff state.
-3. Each event is dispatched into `stores/chat-message-store.ts` (Zustand + immer), which appends typed `ContentBlock`s (defined in `types/chat-content.ts`) to the streaming assistant message and writes through to PGlite.
-4. Each block type renders via its own component in `features/chat/components/` (thinking, tool-call, citation, memory, skill-activation, context-update, artifact, a2ui-artifact). Adding a new event type means: type in `chat-content.ts` → store action → stream `case` → render component.
-5. `use-thread-naming.ts` generates an LLM title after the first exchange.
-
-## Local persistence
-
-- `lib/db/pglite.ts` — `CharcoalDb`, a PGlite (Postgres-in-WASM on IndexedDB `/charcoal-db`) wrapper with an inline versioned `MIGRATIONS` array (tables: `threads`, `messages` with JSONB content, `user_config`). Add schema changes as a new migration entry; don't edit old ones.
-- `DbProvider` initializes it and registers a module singleton; stores call `getDbInstance()` for write-through (throws if used before the provider is ready).
-- `stores/thread-registry-store.ts` is the source of truth for threads. Threads start **ephemeral** (hidden from sidebar) and are promoted via `markPersisted` after the first successful send. `use-db-hydration` loads them on startup.
-- Rule of thumb: UAR owns agents/providers/skills/sessions (entity graph); the browser owns thread registry and rendered message history (Zustand + PGlite).
-
-## Skills
-
-`lib/skills/knowme-skills.ts` defines the built-in `KNOWME_SKILLS` manifest. On app mount, `useSkillsSyncOnMount` (`hooks/use-skills-sync.ts`) diffs it against `GET /api/skills`, creates missing skills, enables disabled ones, then calls `/api/skills/refresh`. Skills are pushed with full definitions (prompt overlay, triggers, version) — no server-side files needed. `external-skill-loader.ts` handles non-built-in skills.
+Path-scoped rules in `.claude/rules/` load when you open a matching file: `chat.md` (AG-UI stream → store → block components; every converted message needs `metadata`), `persistence.md` (PGlite `CharcoalDb`, migrations, ephemeral threads) and `skills.md` (built-in skill sync to UAR). Read them before changing those areas.
 
 ## UI conventions
 
