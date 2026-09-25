@@ -103,13 +103,15 @@ test('Mermaid: the "Week flow" artifact card renders an svg by default, with no 
 test("composer: focus changes the fill and adds no border or outline to the container", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`/threads/${FIXTURE_THREAD_ID}`);
-  const input = page.getByPlaceholder(/Ask your agent anything/i).filter({ visible: true });
+  const footer = page.locator(".aui-thread-viewport-footer");
+  const input = footer.getByPlaceholder(/Ask your agent anything/i).filter({ visible: true });
   await expect(input).toBeVisible();
-  // The dropzone div that ComposerPrimitive.Input renders into
-  // (`enhanced-thread.tsx`'s `EnhancedComposer`) is the focus-within target;
-  // it is the only `.rounded-xl.bg-surface` element in the sticky footer
-  // while the composer is not in edit mode.
-  const container = page.locator(".aui-thread-viewport-footer div.rounded-xl.bg-surface").first();
+  // `ComposerPrimitive.Input` renders a bare `<textarea>` (react-textarea-autosize),
+  // so its immediate DOM parent is the dropzone div that owns the
+  // `focus-within` fill (`EnhancedComposer`'s `AttachmentDropzone`). Selecting
+  // via the input's own accessible name/placeholder avoids depending on
+  // whichever colour/token class that container happens to use.
+  const container = input.locator("xpath=..");
   await expect(container).toBeVisible();
 
   // The composer input autofocuses on mount (`autoFocus` in

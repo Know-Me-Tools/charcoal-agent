@@ -23,6 +23,10 @@
   --km-hover: #f2f4f7;
   --km-muted: #eef0f3;
   --km-code: #f0f2f5;
+  /* Composer and edit composer at rest (docs/design/chat-surfaces.md §4.2).
+     Light uses the muted field value: #fafbfc on the canvas is 1.03:1, below
+     what reads as a separate surface. Focus still lifts it to raised. */
+  --km-composer: #eef0f3;
 
   /* Text */
   --km-fg: #0b0f14;
@@ -74,7 +78,12 @@
   --km-raised: #1c2535;
   --km-hover: #202b40;
   --km-muted: #253044;
-  --km-code: #0a1220;
+  /* Code well. Sits between canvas and surface so it separates from both
+     (the old #0a1220 was 1.03:1 on the canvas and read as bare page). */
+  --km-code: #111720;
+  /* Dark keeps the surface value: already distinct on the canvas, and muted
+     would make focus (raised) darker than rest. */
+  --km-composer: #161d29;
 
   --km-fg: #e8edf3;
   --km-fg-secondary: #a7b0bc;
@@ -162,6 +171,7 @@
   --color-hover: var(--km-hover);
   --color-muted-surface: var(--km-muted);
   --color-code: var(--km-code);
+  --color-composer: var(--km-composer);
   --color-fg: var(--km-fg);
   --color-fg-secondary: var(--km-fg-secondary);
   --color-faint: var(--km-fg-faint);

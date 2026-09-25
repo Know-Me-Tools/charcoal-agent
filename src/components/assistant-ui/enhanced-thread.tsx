@@ -161,7 +161,7 @@ interface ComposerProps {
 
 const EnhancedComposer: FC<ComposerProps> = ({ promptCachingEnabled, onTogglePromptCaching }) => (
 	<ComposerPrimitive.Root className="relative flex w-full flex-col">
-		<ComposerPrimitive.AttachmentDropzone className="group relative flex w-full flex-col rounded-xl bg-surface px-1 pt-2 transition-hover focus-within:bg-raised data-[dragging=true]:bg-hover">
+		<ComposerPrimitive.AttachmentDropzone className="group relative flex w-full flex-col rounded-xl bg-composer px-1 pt-2 transition-hover focus-within:bg-raised data-[dragging=true]:bg-hover">
 			<ComposerAttachments />
 			<ComposerPrimitive.Input
 				placeholder="Ask your agent anything…"
@@ -615,7 +615,7 @@ const AssistantActionBar: FC = () => (
 
 const EditComposer: FC = () => (
 	<MessagePrimitive.Root className="mx-auto flex w-full max-w-(--thread-max-width) flex-col px-0 py-3 @md:px-4">
-		<ComposerPrimitive.Root className="ms-auto flex w-full max-w-[85%] flex-col rounded-xl bg-surface focus-within:bg-raised">
+		<ComposerPrimitive.Root className="ms-auto flex w-full max-w-[85%] flex-col rounded-xl bg-composer focus-within:bg-raised">
 			<ComposerPrimitive.Input
 				className="min-h-14 w-full resize-none bg-transparent p-4 font-body text-[0.9375rem] text-fg caret-ember outline-none placeholder:text-faint"
 				autoFocus

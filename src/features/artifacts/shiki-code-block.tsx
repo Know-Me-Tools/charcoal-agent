@@ -3,6 +3,7 @@ import type { Highlighter } from "shiki";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUiStore } from "@/stores/ui-store";
+import { SYNTAX_THEMES, SYNTAX_COLOR_REPLACEMENTS } from "@/styles/syntax-theme";
 
 // Lazy singleton highlighter
 let highlighterPromise: Promise<Highlighter> | null = null;
@@ -11,7 +12,7 @@ function getHighlighter(): Promise<Highlighter> {
   if (!highlighterPromise) {
     highlighterPromise = import("shiki").then(({ createHighlighter }) =>
       createHighlighter({
-        themes: ["github-dark-dimmed", "github-light"],
+        themes: [SYNTAX_THEMES.dark, SYNTAX_THEMES.light],
         langs: [
           "typescript",
           "javascript",
@@ -69,11 +70,12 @@ export const ShikiCodeBlock: FC<ShikiCodeBlockProps> = ({
           ? language
           : "text";
 
-        const shikiTheme = theme === "dark" ? "github-dark-dimmed" : "github-light";
+        const shikiTheme = theme === "dark" ? SYNTAX_THEMES.dark : SYNTAX_THEMES.light;
 
         const html = hl.codeToHtml(code, {
           lang: safeLanguage,
           theme: shikiTheme,
+          colorReplacements: SYNTAX_COLOR_REPLACEMENTS,
           transformers: showLineNumbers
             ? [
                 {

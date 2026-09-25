@@ -34,9 +34,10 @@ Signature: the cyan streaming mark. While the agent writes, a small cyan dot pul
 | Level | Token | Used for |
 |---|---|---|
 | Canvas | `bg-canvas` | Thread background, assistant prose |
-| Surface | `bg-surface` | Composer at rest; tool, skill, memory, context, artifact and A2UI cards |
+| Composer | `bg-composer` | Composer and edit composer at rest (§4.2). Light: the muted field value; dark: the surface value |
+| Surface | `bg-surface` | Tool, skill, memory, context, artifact and A2UI cards |
 | Raised | `bg-raised` | Composer on focus; card header rows; nested detail inside a card; menus; the scroll-to-bottom button |
-| Well | `bg-code` | Code and JSON bodies |
+| Well | `bg-code` | Code and JSON bodies. Light: darker than canvas and surface. Dark: between canvas and surface, so it separates from both (§13) |
 | AI annotation | `bg-cyan-soft` | Thinking, citations |
 | Person | `bg-ember-soft` | User message; selected segment in a toggle |
 | Interaction | `bg-hover` | Hover on any control; composer drag-over |
@@ -144,7 +145,7 @@ Contrast: `text-fg` on `bg-ember-soft` is 16.2:1 (light) and 14.1:1 (dark); the 
 
 ### 3.7 Edit composer
 
-Same fill language as the composer (§4): root `ms-auto flex w-full max-w-[85%] flex-col rounded-xl bg-surface focus-within:bg-raised`; textarea `min-h-14 w-full resize-none bg-transparent p-4 font-body text-[0.9375rem] text-fg caret-ember outline-none placeholder:text-faint`. "Cancel" is `variant="ghost"`, "Update" is the default (ember) button.
+Same fill language as the composer (§4): root `ms-auto flex w-full max-w-[85%] flex-col rounded-xl bg-composer focus-within:bg-raised`; textarea `min-h-14 w-full resize-none bg-transparent p-4 font-body text-[0.9375rem] text-fg caret-ember outline-none placeholder:text-faint`. "Cancel" is `variant="ghost"`, "Update" is the default (ember) button.
 
 ### 3.8 Message error
 
@@ -169,7 +170,7 @@ A distinct filled surface anchored below the thread. It is never outlined.
 | Element | Classes |
 |---|---|
 | `ComposerPrimitive.Root` | `relative flex w-full flex-col` |
-| `AttachmentDropzone` (the visible composer) | `group relative flex w-full flex-col rounded-xl bg-surface px-1 pt-2 transition-hover focus-within:bg-raised data-[dragging=true]:bg-hover` |
+| `AttachmentDropzone` (the visible composer) | `group relative flex w-full flex-col rounded-xl bg-composer px-1 pt-2 transition-hover focus-within:bg-raised data-[dragging=true]:bg-hover` |
 | `ComposerPrimitive.Input` | `mb-1 max-h-48 min-h-14 w-full resize-none bg-transparent px-4 py-3 font-body text-[0.9375rem] leading-relaxed text-fg caret-ember outline-none placeholder:text-faint focus-visible:outline-none`. Keep `aria-label="Message input"` as the accessible name; the placeholder is a hint, not the label |
 | Drag hint (new child of the dropzone) | `pointer-events-none absolute inset-0 hidden items-center justify-center gap-2 rounded-xl bg-hover font-ui text-sm font-semibold text-fg group-data-[dragging=true]:flex` containing `PaperclipIcon` `size-4` with `aria-hidden` and the text "Drop files to attach" |
 | Action row | `mx-2 mb-2 flex items-center justify-between gap-2` |
@@ -183,16 +184,23 @@ Remove from the dropzone: `border`, `border-input`, `bg-background/80`, `backdro
 
 | State | Trigger | Fill | Other cues |
 |---|---|---|---|
-| Rest | nothing focused | `bg-surface` | placeholder `text-faint` |
-| Hover | pointer over, not focused | `bg-surface` (no change) | none; a field that changes on hover and on focus reads as two states for one thing |
+| Rest | nothing focused | `bg-composer` | placeholder `text-faint` |
+| Hover | pointer over, not focused | `bg-composer` (no change) | none; a field that changes on hover and on focus reads as two states for one thing |
 | Focus | textarea focused (mouse or keyboard) | `bg-raised` via `focus-within` | ember caret (`caret-ember`); no outline, no ring |
 | Drag-over | files dragged over | `bg-hover` | drag hint with icon and "Drop files to attach" |
 | Running | agent streaming | unchanged | Send becomes Stop |
-| Disabled | runtime offline (if the app disables the input) | `bg-surface` | textarea `disabled:cursor-not-allowed disabled:text-faint`; the status pill in the top bar says why |
+| Disabled | runtime offline (if the app disables the input) | `bg-composer` | textarea `disabled:cursor-not-allowed disabled:text-faint`; the status pill in the top bar says why |
 
 Why focus uses a fill and a caret, not an outline: §3.3 bans decorative outlines and input chrome, and the global ember focus ring on the textarea is what produced the ember box in the shell captures. The caret is ember so it is findable against both fills (ember is 3.97:1 on white, above the 3:1 needed for a non-text cue).
 
-Known weakness: in the light theme `bg-surface` to `bg-raised` is a small luminance step (1.04:1). The caret and the fill together meet the "visible focus" requirement, but the composer's resting anchor on the light canvas is subtle (1.03:1). Task 4.1 reviews this in the light captures at all four widths. If the composer does not read as a distinct surface there, file it to km-creative-director as a token change (a dedicated field token), not a component workaround.
+Resolved in task 4.2 (was a known weakness). QA measured the light composer at rest at 1.03:1 on the canvas (`#fafbfc` on `#f7f7f8`), which does not read as its own surface. The composer now has its own token, `--km-composer` (`bg-composer`):
+
+| Theme | Value | Rest on canvas | Rest to focus (`bg-raised`) |
+|---|---|---|---|
+| Light | `#eef0f3` (the muted field value; the standard gives inputs the muted fill) | 1.07:1, 2.53 L* (was 1.31 L*) | 1.14:1, 5.28 L* (was 1.43 L*) |
+| Dark | `#161d29` (unchanged, the surface value) | 1.14:1, 6.44 L* | 1.10:1, 3.93 L* |
+
+Dark keeps the surface value because it already reads as distinct, and the dark muted value (`#253044`) is lighter than raised, so focus would darken the field. Drag-over (`bg-hover`) is lighter than the light composer by only 1.39 L*; the drag hint (icon plus "Drop files to attach") carries that state, not the fill. Every text token passes 4.5:1 on `bg-composer` in both themes (`tokens.test.ts`, `km-composer` is in `SURFACES`).
 
 ---
 
@@ -344,7 +352,12 @@ Mutation:
 - Body (highlighted and fallback alike): `overflow-x-auto bg-code p-3 font-mono text-xs leading-relaxed text-fg [&_pre]:bg-transparent! [&_pre]:p-0!`, plus `tabIndex={0}`, `role="region"`, `aria-label={`${language} code`}` and `focus-cue`, so a keyboard user can scroll it (axe `scrollable-region-focusable`).
 - Line numbers: `[&_.line]:before:text-faint` (was 50% opacity).
 - Callers must not pass size or border classes (`text-[11px]`, `rounded-none border-none`); they may pass margin only.
-- The Shiki theme's own background is always overridden by `bg-code`. Its token colours are not ours; see §12.
+- The Shiki theme's own background is always overridden by `bg-code`.
+- Shiki themes and comment colours come from `src/styles/syntax-theme.ts`, not from literals in the component (task 4.2):
+  - `createHighlighter({ themes: [SYNTAX_THEMES.dark, SYNTAX_THEMES.light], ... })`, which are `github-dark-dimmed` and `github-light-high-contrast`. `github-light` is dropped.
+  - `theme: theme === "dark" ? SYNTAX_THEMES.dark : SYNTAX_THEMES.light`.
+  - `codeToHtml(code, { lang, theme, colorReplacements: SYNTAX_COLOR_REPLACEMENTS, transformers })`. The map is keyed by theme name, so each replacement applies only to its own theme. It swaps each theme's comment colour (`#66707b` light, `#768390` dark) for `var(--km-fg-faint)`; Shiki writes the value into the span's `style` verbatim (checked against the installed Shiki 3.22.0).
+  - No other change to the component. Every colour this produces is checked on `--km-code` by `tokens.test.ts` (see §13).
 
 ### 7.8 Artifact (`artifact-block.tsx`)
 
@@ -429,7 +442,7 @@ Motion explains a state change and nothing else (§4.4). Only opacity, transform
 | Status: Running / Sending | spinner rotation | 1s loop | `animate-spin` on `Loader2Icon` | static icon; the label says "Running" |
 | Expand / collapse (thinking, tool, artifact) | chevron rotates 180 degrees; panel opacity 0 to 1 | 150ms, `ease-brand-out` | §7.1; no height animation | instant |
 | Hover and focus fills | background colour | 150ms, `ease-brand-out` | `transition-hover` | instant |
-| Composer focus | `bg-surface` to `bg-raised` | 150ms | `transition-hover` on the dropzone | instant |
+| Composer focus | `bg-composer` to `bg-raised` | 150ms | `transition-hover` on the dropzone | instant |
 | Full-screen artifact | scrim and dialog fade | Dialog primitive defaults | `Dialog` | instant |
 | Copy confirmation | icon and text swap to "Copied" | instant, reverts after 2.5s | none | same |
 
@@ -481,14 +494,15 @@ Review the fixture thread at 320, 768, 1024 and 1440 in both themes. Each item s
 2. The assistant reply has no fill; its paragraphs are Roboto and no line is longer than 68ch.
 3. The user message is on the ember-tinted fill at the trailing edge, 16px radius with a 6px trailing top corner, and its text is readable (4.5:1 or more) in both themes.
 4. Reply-to-question gap is visibly smaller than the gap before the next question (16px vs 48px).
-5. Thinking and citation blocks are cyan-tinted; tool, skill, memory, context, artifact and A2UI cards are neutral filled surfaces; code is on the code well.
+5. Thinking and citation blocks are cyan-tinted; tool, skill, memory, context, artifact and A2UI cards are neutral filled surfaces; code is on the code well, and the code body reads as its own fill against the canvas in both themes (not only its header row).
 6. Every status is a pill with icon and text; Running is cyan, not amber.
 7. No text in the thread is smaller than 12px; no text is dimmed by opacity.
-8. The composer is a filled surface with no outline at rest and on focus, and its fill changes on focus.
+8. The composer is a filled surface with no outline at rest and on focus, it reads as its own surface against the canvas at rest (check with the textarea blurred: the fixture autofocuses it), and its fill changes on focus.
 9. At 320 there is no page-level horizontal scroll, the long tool name is fully visible, and pills sit below names where they do not fit.
 10. The HTML preview sits on white in both themes; full screen dims the page with the scrim and no blur.
 11. Streaming indicators are cyan; with reduced motion they are static and still visible.
 12. Ember appears only on the user fill, links, "Show more", the caching toggle when on, and primary buttons.
+13. axe reports no `color-contrast` nodes inside code wells in either theme.
 
 ---
 
@@ -498,14 +512,43 @@ Decided here:
 - `--km-artifact-canvas` is white in both themes (`src/styles/tokens.css`, exposed as `bg-artifact-canvas`). The preview is the author's document; any tint lowers authored contrast (the AA grey, 4.54:1 on white, falls below 4.5:1 on any off-white) and a dark value would hide unstyled black text. `tokens.test.ts` checks black and the AA grey on it in both themes. Cost: a bright rectangle in the dark theme, framed by the raised toolbar.
 - Running is cyan (AI working), not amber. This differs from the current tool block and matches `StatusBadge`.
 - Assistant replies drop the avatar label; a decorative mark at `@md` and up plus an `sr-only` "Agent:" prefix replace it.
+- **Fill separation is measured as a CIELAB lightness step (L\*), with a floor of 1.8** (task 4.2). The WCAG ratio compresses dark steps, so it cannot compare a light pair with a dark one. The floor is calibrated on the 4.1 captures: 1.25 L\* (dark code well on canvas) and 1.31 L\* (light composer on canvas) read as one surface; 1.83 L\* (light code well on canvas) reads as its own. `tokens.test.ts` (`FILL_STEPS`) checks composer on canvas, composer to focus, and the code well against canvas, surface and its raised header row, in both themes.
+- **Composer token** `--km-composer` (§4.2): light `#eef0f3`, dark `#161d29`.
+- **Dark code well** `--km-code` is `#111720` (was `#0a1220`, which came from the prototype HTML, not the standard). A well darker than the dark canvas has no room: pure black would be only 1.10:1. So in dark the well sits between canvas and surface and separates from both. It is lighter than a code block's surroundings on the canvas and darker than them inside a card. Light stays `#f0f2f5`.
+
+  | Pair (dark) | Before | After |
+  |---|---|---|
+  | code on canvas | 1.03:1, 1.25 L\* | 1.07:1, 3.37 L\* |
+  | code on surface (inside a card) | 1.11:1, 5.19 L\* | 1.06:1, 3.07 L\* |
+  | code under raised header | 1.22:1, 9.12 L\* | 1.17:1, 7.00 L\* |
+  | `fg` / `fg-secondary` / `fg-faint` on code | n/a | 15.28 / 8.21 / 6.56 |
+
+  It is 0.4 L\* from `--km-chrome` (`#111620`). They never touch: the canvas always sits between the sidebar and a code block.
+- **Syntax themes** (§7.7): light `github-light-high-contrast`, dark `github-dark-dimmed`, comments replaced by `var(--km-fg-faint)` in both. Other options were ruled out by measurement on `bg-code`. `github-light` fails 4 colours (`#e36209` 3.11, `#d73a49` 4.08, `#22863a` 4.13, `#6a737d` 4.29). `github-light-default` fails 2 (`#6e7781` 4.05, `#8250df` 4.499). `github-light-high-contrast` fails only its comment (`#66707b` 4.49). A custom KnowMe theme was rejected for now: it would put syntax colours on the ember/cyan roles (criterion 12) or add eight new tokens for no measured gain. Every colour painted on the well, with its ratio on `--km-code`:
+
+  | Light `github-light-high-contrast` on `#f0f2f5` | Ratio | Dark `github-dark-dimmed` on `#111720` | Ratio |
+  |---|---|---|---|
+  | comment → `--km-fg-faint` `#5f6977` | 4.96 | `#f47067` keyword, storage | 6.31 |
+  | `#4b535d` punctuation, brackets | 6.95 | comment → `--km-fg-faint` `#939dab` | 6.56 |
+  | `#622cbc` function | 7.19 | `#6cb6ff` constant | 8.37 |
+  | `#a0111f` keyword, storage | 7.22 | `#ff938a` invalid | 8.39 |
+  | `#023b95` constant | 9.08 | `#f69d50` entity, variable | 8.44 |
+  | `#024c1a` tag, component | 9.13 | `#adbac7` default text | 9.10 |
+  | `#702c00` entity, variable, parameter | 9.14 | `#8ddb8c` tag | 10.83 |
+  | `#6e011a` invalid | 11.13 | `#dcbdfb` function | 10.89 |
+  | `#032563` string | 12.93 | `#96d0ff` string | 10.93 |
+  | `#0e1116` default text | 16.86 | | |
+
+  Rules that paint their own background (diff inserted/deleted/changed, `markup.ignored`, carriage return) are excluded: they are foreground-on-own-fill pairs and only appear in diff or markdown grammars. `tokens.test.ts` loads both themes from the installed Shiki and checks every colour above, so a Shiki upgrade that changes a palette fails `npm test`.
 
 For the product owner:
 1. **Thinking metadata.** §7.5 asks for duration and token metadata on thinking blocks. The reasoning part carries neither, and parsing changes are a non-goal. Accept "no metadata" for this change, or route a follow-up to add timing to the stream?
 2. **Image actions and provenance.** §7.5 asks for open/download and provenance on images. This change only constrains and labels them. Follow-up change, or in scope?
 3. **Dark-theme artifact glare.** If a bright preview in the dark theme is judged worse than the contrast loss, the alternative is a per-theme value. I recommend keeping white.
 
-Known risks for 4.1 to check (file to km-creative-director if they show):
-- **Light composer anchor** (§4.2): `bg-surface` on `bg-canvas` is 1.03:1.
-- **Dark code well on canvas**: `bg-code` on `bg-canvas` in the dark theme is 1.03:1 in luminance (it differs mostly in hue). The `bg-raised` header row marks where a code block starts. If code bodies read as bare canvas in the dark captures, `--km-code` needs a new dark value.
-- **Shiki palettes** (`github-light`, `github-dark-dimmed`) were designed for their own backgrounds, not `bg-code`. Low-contrast comment colours would only show in captures and the axe run.
-- **Mermaid theme colours** are inline SVG fills from Mermaid's theme, outside our tokens. Out of scope; note any contrast failure for a follow-up.
+Risks raised for 4.1 (the first three were confirmed by QA and resolved in task 4.2, see above):
+- ~~**Light composer anchor** (§4.2): `bg-surface` on `bg-canvas` is 1.03:1.~~ Resolved: `bg-composer`.
+- ~~**Dark code well on canvas**: `bg-code` on `bg-canvas` in the dark theme is 1.03:1 in luminance (it differs mostly in hue). The `bg-raised` header row marks where a code block starts. If code bodies read as bare canvas in the dark captures, `--km-code` needs a new dark value.~~ Resolved: `#111720`.
+- ~~**Shiki palettes** (`github-light`, `github-dark-dimmed`) were designed for their own backgrounds, not `bg-code`. Low-contrast comment colours would only show in captures and the axe run.~~ Resolved: themes and replacements above, now checked in `npm test`.
+- **Mermaid theme colours** are inline SVG fills from Mermaid's theme, outside our tokens. Out of scope; note any contrast failure for a follow-up. `mermaid-block.tsx` passes `--km-code` as Mermaid's `background`, so the dark diagram background variable moves from `#0a1220` to `#111720`; the diagram itself sits on `bg-surface`.
+- **Light cards share the old composer problem.** Tool, skill, memory, context, artifact and A2UI cards are `bg-surface` on the canvas: the same 1.31 L\* step that failed for the composer. QA passed criterion 5 on hue, not separation. Cards with a `bg-raised` header row have a second cue; skill and context rows do not. Changing `--km-surface` would move every panel and the context sidebar off the standard's value. Question for the product owner: review the light card anchor in the next capture pass, or accept it?
