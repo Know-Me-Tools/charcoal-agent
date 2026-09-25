@@ -353,7 +353,17 @@ export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {
       const userText = extractText(parentMessage);
       if (!userText.trim()) return;
 
-      useChatMessageStore.getState().deleteMessagesAfter(threadId, parentId);
+      // Await the delete of the superseded turn so a failed removal is known
+      // before the replacement starts streaming (chat-persistence-durability
+      // design decision 4). Still regenerate when the delete rejects — the
+      // user asked for it and the screen already shows the right thing; the
+      // write queue has already logged the raw error for diagnosis, and the
+      // failure notice (task 1.2) discloses that the stale row may
+      // resurrect on reload.
+      await useChatMessageStore
+        .getState()
+        .deleteMessagesAfter(threadId, parentId)
+        .catch(() => undefined);
 
       const thread = useThreadRegistryStore.getState().threads[threadId];
 

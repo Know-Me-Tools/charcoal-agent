@@ -10,7 +10,7 @@ import type {
   SkillActivationContentBlock,
   ToolCallContentBlock,
 } from "@/types/chat-content";
-import { getDbInstance } from "@/lib/db/pglite";
+import { enqueueWrite } from "@/lib/db/write-queue";
 
 interface ChatMessageState {
   messagesByThread: Record<string, RichMessage[]>;
@@ -73,7 +73,7 @@ interface ChatMessageActions {
    * after it — before re-streaming, so the resend replaces it instead of
    * appending a duplicate.
    */
-  deleteMessagesAfter(threadId: string, messageId: string): void;
+  deleteMessagesAfter(threadId: string, messageId: string): Promise<void>;
   clearThread(threadId: string): void;
 }
 
@@ -88,10 +88,6 @@ const defaultStreamingState: StreamingState = {
   retryMaxAttempts: 0,
   retryDelayMs: 0,
 };
-
-function tryDb(): ReturnType<typeof getDbInstance> | null {
-  try { return getDbInstance(); } catch { return null; }
-}
 
 function ensureThread(
   state: ChatMessageState,
@@ -178,18 +174,21 @@ function activeStreamingMessage(
   return message;
 }
 
-/** Persist all complete messages in a thread to PGLite. Fire-and-forget. */
+/**
+ * Enqueue a durable, ordered write for every complete message in a thread.
+ * `messages` MUST be post-`set()` committed state (from `get()`), never an
+ * immer draft — see chat-persistence-durability design decision 2 and
+ * src/lib/db/write-queue.ts's module doc.
+ */
 function persistMessages(threadId: string, messages: RichMessage[]): void {
-  const db = tryDb();
-  if (!db) return;
   const complete = messages.filter((m) => m.status !== "in_progress");
   for (const msg of complete) {
-    db.insertMessage(threadId, msg).catch(console.error);
+    enqueueWrite({ kind: "upsertMessage", threadId, message: msg });
   }
 }
 
 export const useChatMessageStore = create<ChatMessageStore>()(
-  immer((set) => ({
+  immer((set, get) => ({
     messagesByThread: {},
     streamingByThread: {},
 
@@ -392,10 +391,15 @@ export const useChatMessageStore = create<ChatMessageStore>()(
         message.content.push({ type: "artifact", ...artifact });
       }),
 
-    finishStream: (threadId) =>
+    finishStream: (threadId) => {
+      // `shouldPersist` mirrors the producer's early return: nothing to
+      // persist when no stream was active for this thread.
+      let shouldPersist = false;
+
       set((state) => {
         const streaming = state.streamingByThread[threadId];
         if (!streaming) return;
+        shouldPersist = true;
 
         const messages = state.messagesByThread[threadId];
         if (messages && streaming.streamingMessageId) {
@@ -414,17 +418,26 @@ export const useChatMessageStore = create<ChatMessageStore>()(
         }
 
         state.streamingByThread[threadId] = { ...defaultStreamingState };
+      });
 
-        // Write-through: persist all complete messages to PGLite
-        if (messages) {
-          persistMessages(threadId, [...messages]);
-        }
-      }),
+      if (!shouldPersist) return;
 
-    setStreamError: (threadId, error) =>
+      // Write-through: persist all complete messages to PGLite, built from
+      // committed state (get()) — never from the producer's immer draft,
+      // which is revoked by the time the queued write runs.
+      const messages = get().messagesByThread[threadId];
+      if (messages) {
+        persistMessages(threadId, messages);
+      }
+    },
+
+    setStreamError: (threadId, error) => {
+      let shouldPersist = false;
+
       set((state) => {
         const streaming = state.streamingByThread[threadId];
         if (!streaming) return;
+        shouldPersist = true;
 
         // A pre-delta failure (non-2xx response, a rejected fetch, or the
         // stream closing with zero events) never reaches a block handler, so
@@ -449,16 +462,21 @@ export const useChatMessageStore = create<ChatMessageStore>()(
         }
 
         state.streamingByThread[threadId] = { ...defaultStreamingState };
+      });
 
-        // Write-through: persist all complete messages to PGLite
-        if (messages) {
-          persistMessages(threadId, [...messages]);
-        }
-      }),
+      if (!shouldPersist) return;
+
+      // Write-through, from committed state — see finishStream above.
+      const messages = get().messagesByThread[threadId];
+      if (messages) {
+        persistMessages(threadId, messages);
+      }
+    },
 
     deleteMessagesAfter: (threadId, messageId) => {
-      // Captured by the set() producer below, then used for the PGlite
-      // write-through once the (synchronous) store update has applied.
+      // Captured by the set() producer below as plain string ids (never a
+      // draft object), then used for the queued write once the (synchronous)
+      // store update has applied.
       let removedIds: string[] = [];
 
       set((state) => {
@@ -472,12 +490,9 @@ export const useChatMessageStore = create<ChatMessageStore>()(
         state.messagesByThread[threadId] = messages.slice(0, idx + 1);
       });
 
-      if (removedIds.length === 0) return;
+      if (removedIds.length === 0) return Promise.resolve();
 
-      const db = tryDb();
-      if (db) {
-        db.deleteMessages(threadId, removedIds).catch(console.error);
-      }
+      return enqueueWrite({ kind: "deleteMessages", threadId, ids: removedIds });
     },
 
     clearThread: (threadId) =>

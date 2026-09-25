@@ -141,6 +141,25 @@ export class CharcoalDb {
     onStatus?: (message: string) => void,
   ): Promise<CharcoalDb> {
     onStatus?.("Opening database…");
+    // Durability assumption (chat-persistence-durability design decision 8):
+    // the write queue (src/lib/db/write-queue.ts) treats a resolved
+    // query()/exec() promise as "the write reached IndexedDB". That only
+    // holds while `relaxedDurability` is unset here. Confirmed against the
+    // installed @electric-sql/pglite 0.3.15 source (no README coverage of
+    // this option; the following was read directly from the package):
+    //   - PGliteOptions.relaxedDurability defaults to unset/false
+    //     (node_modules/@electric-sql/pglite/dist/index.js — the PGlite
+    //     class constructor only sets its private flag when the caller
+    //     explicitly passes `relaxedDurability`; we don't).
+    //   - query()/exec() (dist/chunk-F2DQ4FIK.js) `await this.syncToFs()`
+    //     after every non-transactional statement.
+    //   - `syncToFs()` (dist/index.js) does
+    //     `relaxedDurability ? fire-and-forget : await`, where the awaited
+    //     path awaits the IDBFS `fs.syncToFs()` call (Emscripten
+    //     `FS.syncfs`, which persists to IndexedDB) before resolving.
+    // Do not add `relaxedDurability: true` without re-deriving the write
+    // queue's completion guarantees in
+    // openspec/changes/chat-persistence-durability/design.md.
     const db = new PGlite("idb://charcoal-db");
     const instance = new CharcoalDb(db);
     await instance.runMigrations(onStatus);
