@@ -7,26 +7,17 @@
  * test-only global, no build-mode branch — read directly by unit tests and
  * rendered as `data-persistence` on the thread view root.
  *
- * Also mounts the failure notice (design decision 6): one polite sonner
- * toast, with a stable id so a burst of failures updates one notice instead
- * of stacking, showing only the fixed plain-language copy — never the raw
- * error, which is already logged by the write queue for diagnosis.
+ * This hook is state-derivation only. The failure toast is a separate,
+ * app-wide concern owned by `src/components/common/persistence-notices.tsx`
+ * (mounted once at the app root) — not by this hook, because this hook is
+ * only ever used by the thread view (`enhanced-thread.tsx`), and a failure
+ * can happen before any thread view has mounted (journal replay) or while
+ * the user is on a non-thread route.
  */
-import { useEffect, useSyncExternalStore } from "react";
-import { toast } from "sonner";
-import {
-  hasFailedWrite,
-  pendingWriteCount,
-  subscribeWriteFailures,
-  subscribeWriteQueue,
-} from "@/lib/db/write-queue";
+import { useSyncExternalStore } from "react";
+import { hasFailedWrite, pendingWriteCount, subscribeWriteQueue } from "@/lib/db/write-queue";
 
 export type PersistenceStatus = "saving" | "saved" | "failed";
-
-const FAILURE_TOAST_ID = "knowme-persistence-failure";
-
-export const PERSISTENCE_FAILURE_TEXT =
-  "Couldn't save your latest messages on this device. They're still on screen, but may be missing after you reload.";
 
 function getSnapshot(): PersistenceStatus {
   if (pendingWriteCount() > 0) return "saving";
@@ -34,17 +25,5 @@ function getSnapshot(): PersistenceStatus {
 }
 
 export function usePersistenceStatus(): PersistenceStatus {
-  const status = useSyncExternalStore(subscribeWriteQueue, getSnapshot, getSnapshot);
-
-  useEffect(
-    () =>
-      subscribeWriteFailures(() => {
-        // Stable id: a further call while the toast is still showing
-        // updates it in place instead of stacking a new one.
-        toast(PERSISTENCE_FAILURE_TEXT, { id: FAILURE_TOAST_ID });
-      }),
-    [],
-  );
-
-  return status;
+  return useSyncExternalStore(subscribeWriteQueue, getSnapshot, getSnapshot);
 }

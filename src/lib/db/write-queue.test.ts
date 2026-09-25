@@ -60,8 +60,15 @@ vi.mock("@/lib/db/pglite", () => ({
   whenDbReady: () => readyPromise,
 }));
 
-const { enqueueWrite, pendingWriteCount, pendingWriteDescriptors, flush, subscribeWriteQueue } =
-  await import("./write-queue");
+const {
+  enqueueWrite,
+  pendingWriteCount,
+  pendingWriteDescriptors,
+  flush,
+  subscribeWriteQueue,
+  subscribeWriteFailures,
+  reportFailure,
+} = await import("./write-queue");
 
 function fakeMessage(id: string): RichMessage {
   return { id, role: "assistant", content: [{ type: "text", text: id }], createdAt: new Date(), status: "complete" };
@@ -227,5 +234,57 @@ describe("write-queue waits for the database to become ready", () => {
     await Promise.all([p1, p2]);
 
     expect(fakeDb.calls.map((c) => c.kind)).toEqual(["upsertThread", "touchThread"]);
+  });
+});
+
+describe("write-queue pending-notice latch", () => {
+  it("delivers a failure reported before any subscriber existed to the first subscriber that mounts afterward", () => {
+    // Mirrors journal replay: it calls reportFailure directly (never
+    // through enqueueWrite), and it can run before anything has ever
+    // subscribed to failures — e.g. DbProvider replays before
+    // PersistenceNotices has mounted at the app root.
+    const descriptor = { kind: "touchThread", id: "latched-1" } as const;
+    reportFailure(descriptor, new Error("replay failure, no subscriber yet"));
+
+    const received: unknown[] = [];
+    const unsubscribe = subscribeWriteFailures((d) => received.push(d));
+
+    expect(received).toEqual([descriptor]);
+    unsubscribe();
+  });
+
+  it("delivers the latched failure only once — a second, later subscriber does not get a stale redelivery", () => {
+    const descriptor = { kind: "touchThread", id: "latched-2" } as const;
+    reportFailure(descriptor, new Error("no subscriber yet"));
+
+    const first: unknown[] = [];
+    const unsubFirst = subscribeWriteFailures((d) => first.push(d));
+    expect(first).toEqual([descriptor]);
+
+    const second: unknown[] = [];
+    const unsubSecond = subscribeWriteFailures((d) => second.push(d));
+    expect(second).toEqual([]);
+
+    unsubFirst();
+    unsubSecond();
+  });
+
+  it("broadcasts normally (no latch replay) once a subscriber already exists", () => {
+    const received: unknown[] = [];
+    const unsubscribe = subscribeWriteFailures((d) => received.push(d));
+
+    const descriptor = { kind: "touchThread", id: "latched-3" } as const;
+    reportFailure(descriptor, new Error("live failure, subscriber present"));
+
+    expect(received).toEqual([descriptor]);
+
+    // Subscribing again afterward must not get a second delivery — there
+    // was no latch, because a subscriber was already present when it fired.
+    const late: unknown[] = [];
+    const unsubLate = subscribeWriteFailures((d) => late.push(d));
+    expect(late).toEqual([]);
+
+    unsubscribe();
+    unsubLate();
   });
 });

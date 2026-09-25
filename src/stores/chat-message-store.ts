@@ -175,15 +175,40 @@ function activeStreamingMessage(
 }
 
 /**
- * Enqueue a durable, ordered write for every complete message in a thread.
- * `messages` MUST be post-`set()` committed state (from `get()`), never an
- * immer draft — see chat-persistence-durability design decision 2 and
+ * Message ids already durably upserted this session, per thread. Guards
+ * against re-enqueuing the whole thread history on every turn (the pending
+ * set — and so the page-exit journal — must hold only what changed, not
+ * every message ever sent in the thread: chat-persistence-durability task
+ * 1.2 follow-up). Populated only on a SUCCESSFUL settle (see
+ * `persistMessages` below): a message whose write fails is left unmarked,
+ * so the next call retries it — the existing "a failed insert heals on the
+ * next turn" guarantee, now scoped to the message that actually failed
+ * instead of blanket-retrying the entire history.
+ */
+const persistedMessageIds: Record<string, Set<string>> = {};
+
+/**
+ * Enqueue a durable, ordered write for every complete message in a thread
+ * that isn't already known to be durably saved. `messages` MUST be
+ * post-`set()` committed state (from `get()`), never an immer draft — see
+ * chat-persistence-durability design decision 2 and
  * src/lib/db/write-queue.ts's module doc.
  */
 function persistMessages(threadId: string, messages: RichMessage[]): void {
-  const complete = messages.filter((m) => m.status !== "in_progress");
+  const alreadyPersisted = persistedMessageIds[threadId];
+  const complete = messages.filter(
+    (m) => m.status !== "in_progress" && !alreadyPersisted?.has(m.id),
+  );
   for (const msg of complete) {
-    enqueueWrite({ kind: "upsertMessage", threadId, message: msg });
+    enqueueWrite({ kind: "upsertMessage", threadId, message: msg }).then(
+      () => {
+        (persistedMessageIds[threadId] ??= new Set()).add(msg.id);
+      },
+      () => {
+        // Left unmarked — retried the next time persistMessages runs for
+        // this thread. The write queue has already logged/reported it.
+      },
+    );
   }
 }
 
@@ -492,6 +517,12 @@ export const useChatMessageStore = create<ChatMessageStore>()(
 
       if (removedIds.length === 0) return Promise.resolve();
 
+      // These ids are gone from the thread and will never reappear (every
+      // message id is freshly generated), so they should never be treated
+      // as "already persisted" again — mainly tidiness, since a stale
+      // marker for a deleted id is otherwise harmless.
+      for (const id of removedIds) persistedMessageIds[threadId]?.delete(id);
+
       return enqueueWrite({ kind: "deleteMessages", threadId, ids: removedIds });
     },
 
@@ -499,6 +530,7 @@ export const useChatMessageStore = create<ChatMessageStore>()(
       set((state) => {
         delete state.messagesByThread[threadId];
         delete state.streamingByThread[threadId];
+        delete persistedMessageIds[threadId];
       }),
   })),
 );

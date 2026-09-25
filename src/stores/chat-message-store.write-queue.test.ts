@@ -75,6 +75,86 @@ describe("chat-message-store finishStream persistence", () => {
   });
 });
 
+describe("chat-message-store persistMessages: only what changed this turn", () => {
+  beforeEach(() => {
+    insertMessage.mockReset();
+    insertMessage.mockResolvedValue(undefined);
+    useChatMessageStore.getState().clearThread(THREAD);
+    useChatMessageStore.getState().initThread(THREAD, []);
+  });
+
+  it("does not re-upsert messages that already persisted successfully in an earlier turn", async () => {
+    const s = useChatMessageStore.getState();
+
+    // Turn 1: a user message plus the streamed reply.
+    s.initThread(THREAD, [
+      { id: "u1", role: "user", content: [{ type: "text", text: "hi" }], createdAt: new Date(), status: "complete" },
+    ]);
+    s.beginStream(THREAD, "run-1");
+    s.appendTextDelta(THREAD, "run-1", "hello");
+    s.finishStream(THREAD);
+    await flush();
+
+    expect(insertMessage.mock.calls.map(([, m]: [string, { id: string }]) => m.id)).toEqual([
+      "u1",
+      expect.stringMatching(/^stream-run-1-/),
+    ]);
+    insertMessage.mockClear();
+
+    // Turn 2: append a second user message and a second reply to the SAME
+    // thread. Only the two NEW messages should be enqueued — re-upserting
+    // "u1" and the first reply (the journal holding the whole history) is
+    // exactly the defect this test guards against.
+    const current = useChatMessageStore.getState().messagesByThread[THREAD];
+    s.initThread(THREAD, [
+      ...current,
+      { id: "u2", role: "user", content: [{ type: "text", text: "again" }], createdAt: new Date(), status: "complete" },
+    ]);
+    s.beginStream(THREAD, "run-2");
+    s.appendTextDelta(THREAD, "run-2", "world");
+    s.finishStream(THREAD);
+    await flush();
+
+    const idsTurn2 = insertMessage.mock.calls.map(([, m]: [string, { id: string }]) => m.id);
+    expect(idsTurn2).toEqual(["u2", expect.stringMatching(/^stream-run-2-/)]);
+  });
+
+  it("heals: a message whose upsert failed is retried on the next turn's persistMessages call", async () => {
+    const s = useChatMessageStore.getState();
+
+    s.initThread(THREAD, [
+      { id: "u1", role: "user", content: [{ type: "text", text: "hi" }], createdAt: new Date(), status: "complete" },
+    ]);
+    insertMessage.mockRejectedValueOnce(new Error("transient failure"));
+    s.beginStream(THREAD, "run-1");
+    s.appendTextDelta(THREAD, "run-1", "hello");
+    s.finishStream(THREAD);
+    await flush();
+
+    // "u1"'s upsert failed (the mock rejects the first call — u1 is
+    // enqueued before the assistant reply). It must not be marked as
+    // durably persisted, so the next successful turn retries it.
+    insertMessage.mockReset();
+    insertMessage.mockResolvedValue(undefined);
+
+    const current = useChatMessageStore.getState().messagesByThread[THREAD];
+    s.initThread(THREAD, [
+      ...current,
+      { id: "u2", role: "user", content: [{ type: "text", text: "again" }], createdAt: new Date(), status: "complete" },
+    ]);
+    s.beginStream(THREAD, "run-2");
+    s.appendTextDelta(THREAD, "run-2", "world");
+    s.finishStream(THREAD);
+    await flush();
+
+    const idsTurn2 = insertMessage.mock.calls.map(([, m]: [string, { id: string }]) => m.id);
+    // "u1" heals (retried) alongside the genuinely new turn-2 messages —
+    // the first reply (run-1's assistant message), which succeeded, is not
+    // retried.
+    expect(idsTurn2).toEqual(["u1", "u2", expect.stringMatching(/^stream-run-2-/)]);
+  });
+});
+
 describe("chat-message-store setStreamError persistence", () => {
   beforeEach(() => {
     insertMessage.mockReset();
@@ -84,11 +164,18 @@ describe("chat-message-store setStreamError persistence", () => {
   });
 
   it("builds the failed message from committed state, not an immer draft", async () => {
+    // Assertions must NOT run inside the mock: a throw there rejects
+    // insertMessage's promise, which the write queue catches and logs
+    // (reportFailure) rather than propagating — so `await flush()` would
+    // resolve regardless of whether the assertion actually passed, and this
+    // test could never fail even against a regression. Collect the values
+    // seen and assert after flush(), like the finishStream test above.
+    const seen: Array<{ contentLength: number; status: string }> = [];
     insertMessage.mockImplementation(
       async (_threadId: string, message: { content: unknown[]; status: string }) => {
-        // Same revoked-proxy guard as above, applied to the error path.
-        expect(message.content.length).toBeGreaterThan(0);
-        expect(message.status).toBe("failed");
+        // Touching properties here throws "Cannot perform 'get' on a proxy
+        // that has been revoked" if `message` is still the immer draft.
+        seen.push({ contentLength: message.content.length, status: message.status });
       },
     );
 
@@ -96,7 +183,9 @@ describe("chat-message-store setStreamError persistence", () => {
     s.beginStream(THREAD, RUN);
     s.setStreamError(THREAD, "boom");
 
-    await expect(flush()).resolves.toBeUndefined();
+    await flush();
+
+    expect(seen).toEqual([{ contentLength: 1, status: "failed" }]);
     expect(insertMessage).toHaveBeenCalledTimes(1);
   });
 });

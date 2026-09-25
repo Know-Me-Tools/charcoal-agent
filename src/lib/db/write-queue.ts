@@ -131,18 +131,34 @@ function emitChange(): void {
 }
 
 /**
+ * A failure reported while no subscriber existed — e.g. journal replay runs
+ * inside `DbProvider` before `PersistenceNotices` (the app-root notice
+ * component) has ever mounted, so `reportFailure`'s broadcast loop would
+ * otherwise have nobody to deliver to and the event would simply be lost.
+ * Latched here and handed to the first subscriber that attaches, once, then
+ * cleared — later subscribers don't get a stale redelivery.
+ */
+let pendingNotice: { descriptor: WriteDescriptor; error: unknown } | null = null;
+
+/**
  * Records a write failure: logs the raw error for diagnosis (descriptor
  * kind only — never displayed), marks the save-state `failed` until a later
- * write succeeds, and notifies failure subscribers (the toast in
- * `src/hooks/use-persistence-status.ts`). Exported so journal replay can
- * report a failing entry through the same channel as a live write, since
- * replay applies descriptors directly via `applyDescriptor` and never goes
- * through `enqueueWrite`.
+ * write succeeds, and notifies failure subscribers (the app-root notice
+ * component, `src/components/common/persistence-notices.tsx`). Exported so
+ * journal replay can report a failing entry through the same channel as a
+ * live write, since replay applies descriptors directly via
+ * `applyDescriptor` and never goes through `enqueueWrite`. When no
+ * subscriber currently exists, the failure is latched instead of dropped —
+ * see `pendingNotice` above.
  */
 export function reportFailure(descriptor: WriteDescriptor, error: unknown): void {
   console.error(`[write-queue] ${descriptorLabel(descriptor)} failed`, error);
   failed = true;
   emitChange();
+  if (failureListeners.size === 0) {
+    pendingNotice = { descriptor, error };
+    return;
+  }
   for (const listener of failureListeners) listener(descriptor, error);
 }
 
@@ -151,9 +167,19 @@ export function hasFailedWrite(): boolean {
   return failed;
 }
 
-/** Notified on every write failure (live or replayed), with the raw error — for diagnosis and the failure toast, never for display verbatim. */
+/**
+ * Notified on every write failure (live or replayed), with the raw error —
+ * for diagnosis and the failure toast, never for display verbatim. A
+ * failure reported before any subscriber existed (`pendingNotice`) is
+ * delivered to this subscriber immediately, once, then cleared.
+ */
 export function subscribeWriteFailures(listener: WriteFailureListener): () => void {
   failureListeners.add(listener);
+  if (pendingNotice) {
+    const notice = pendingNotice;
+    pendingNotice = null;
+    listener(notice.descriptor, notice.error);
+  }
   return () => {
     failureListeners.delete(listener);
   };

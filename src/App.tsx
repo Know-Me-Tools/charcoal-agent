@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/sonner";
+import { PersistenceNotices } from "@/components/common/persistence-notices";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import type React from "react";
@@ -60,6 +61,7 @@ const App = () => (
     <DbProvider>
       <TooltipProvider>
         <Toaster />
+        <PersistenceNotices />
         <AppBootstrap>
           <RouterProvider router={router} />
         </AppBootstrap>

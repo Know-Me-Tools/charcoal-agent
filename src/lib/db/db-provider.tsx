@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { CharcoalDb, setDbInstance } from "@/lib/db/pglite";
-import { replayJournal } from "@/lib/db/persistence-journal";
+import { discardJournalAfterPurge, replayJournal } from "@/lib/db/persistence-journal";
 
 const DB_NAME = "/charcoal-db";
 
@@ -59,14 +59,24 @@ export function DbProvider({ children }: DbProviderProps) {
         });
         if (cancelled) return;
 
-        // Replay any writes that were still pending when the page last
-        // exited, directly against `db` (before setDbInstance below), so
-        // the first hydration read already sees the result — after
-        // migrations, before `ready: true` (chat-persistence-durability
-        // design decision 5).
-        setStatus("Recovering any unsaved messages…");
-        await replayJournal(db);
-        if (cancelled) return;
+        if (isRetry) {
+          // The database was just wiped and recreated (corruption
+          // recovery, below) — the journal describes writes queued
+          // against the database that no longer exists, so replaying it
+          // onto the fresh one isn't safe. Discard instead of replaying,
+          // and report the loss once (chat-persistence-durability task 1.2
+          // follow-up).
+          discardJournalAfterPurge();
+        } else {
+          // Replay any writes that were still pending when the page last
+          // exited, directly against `db` (before setDbInstance below), so
+          // the first hydration read already sees the result — after
+          // migrations, before `ready: true` (chat-persistence-durability
+          // design decision 5).
+          setStatus("Recovering any unsaved messages…");
+          await replayJournal(db);
+          if (cancelled) return;
+        }
 
         setDbInstance(db);
         setValue({ ready: true, db });
