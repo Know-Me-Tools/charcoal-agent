@@ -41,7 +41,7 @@
   - the same grep over these six files returns nothing
   - `npx playwright test e2e/chat-stream.spec.ts` passes
   - at a 320px viewport the fixture thread has `document.documentElement.scrollWidth <= 320`, checked in the Playwright trace or a one-off `page.evaluate`
-- [ ] 2.3 (owner: km-frontend-engineer) Restyle the artifacts, A2UI, code and Mermaid in `src/features/chat/components/{artifact-block,a2ui-artifact-block}.tsx` and `src/features/artifacts/{html-artifact-card,mermaid-block,shiki-code-block}.tsx`:
+- [x] 2.3 (owner: km-frontend-engineer) Restyle the artifacts, A2UI, code and Mermaid in `src/features/chat/components/{artifact-block,a2ui-artifact-block}.tsx` and `src/features/artifacts/{html-artifact-card,mermaid-block,shiki-code-block}.tsx`:
   - borderless cards on surface tokens
   - code on `bg-code`, ignoring the Shiki theme background
   - HTML preview on `bg-artifact-canvas`

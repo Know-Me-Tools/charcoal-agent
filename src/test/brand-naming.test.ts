@@ -41,7 +41,13 @@ const ALLOWED = [
 ];
 
 function trackedFiles(): string[] {
-  const out = execFileSync("git", ["ls-files", "--", ...SCANNED_PATHS], { encoding: "utf8" });
+  // GIT_OPTIONAL_LOCKS=0 stops git from taking the index lock to refresh stat
+  // info; without it a worker exit here has twice left a stale, empty
+  // .git/index.lock behind after `npm test`.
+  const out = execFileSync("git", ["ls-files", "--", ...SCANNED_PATHS], {
+    encoding: "utf8",
+    env: { ...process.env, GIT_OPTIONAL_LOCKS: "0" },
+  });
   return out.split("\n").filter((f) => f && f !== "src/test/brand-naming.test.ts");
 }
 
