@@ -62,3 +62,10 @@ Thumbs.db
 /test-results/
 /playwright-report/
 /blob-report/
+
+# prometheus-context-bootstrap
+.prometheus/.writer.lock
+.prometheus/.review-pending
+.claude/settings.json.bak.*
+# Session opt-in for the final-artifact gate; never commit it.
+.kbd-orchestrator/tier3.allow
