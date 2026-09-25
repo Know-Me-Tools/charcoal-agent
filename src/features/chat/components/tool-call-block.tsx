@@ -4,6 +4,7 @@ import {
 	Loader2Icon,
 	WrenchIcon,
 	XCircleIcon,
+	type LucideIcon,
 } from "lucide-react";
 import { type FC, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -20,26 +21,41 @@ interface ToolCallBlockProps {
 	toolCallId?: string;
 }
 
-const statusConfig = {
+// Status pill anatomy: icon + text label on a status token (design spec §5).
+// Running is cyan (the AI working), not amber.
+const statusConfig: Record<
+	ToolStatus,
+	{ Icon: LucideIcon; label: string; fillClass: string; toneClass: string; spin?: boolean }
+> = {
 	running: {
 		Icon: Loader2Icon,
-		label: "running",
-		iconClass: "animate-spin text-warning-text",
-		badgeClass: "bg-warning/10 text-warning-text",
+		label: "Running",
+		fillClass: "bg-cyan-soft",
+		toneClass: "text-cyan-text",
+		spin: true,
 	},
 	complete: {
 		Icon: CheckCircle2Icon,
-		label: "complete",
-		iconClass: "text-success-text",
-		badgeClass: "bg-success/10 text-success-text",
+		label: "Completed",
+		fillClass: "bg-success-soft",
+		toneClass: "text-success-text",
 	},
 	failed: {
 		Icon: XCircleIcon,
-		label: "failed",
-		iconClass: "text-danger-text",
-		badgeClass: "bg-destructive/10 text-danger-text",
+		label: "Failed",
+		fillClass: "bg-danger-soft",
+		toneClass: "text-danger-text",
 	},
-} as const;
+};
+
+/** Pretty-prints a JSON result string; returns null when it does not parse. */
+function tryFormatJson(value: string): string | null {
+	try {
+		return JSON.stringify(JSON.parse(value), null, 2);
+	} catch {
+		return null;
+	}
+}
 
 export const ToolCallBlock: FC<ToolCallBlockProps> = ({
 	toolName,
@@ -53,76 +69,76 @@ export const ToolCallBlock: FC<ToolCallBlockProps> = ({
 
 	const argsJson = JSON.stringify(args, null, 2);
 	const hasArgs = argsJson !== "{}";
+	const resultJson = result !== undefined ? tryFormatJson(result) : null;
 
 	return (
-		<div className="my-2 overflow-hidden rounded-lg border border-border/50 bg-card">
+		<div className="my-3 min-w-0 overflow-hidden rounded-lg bg-surface first:mt-0 last:mb-0">
 			{/* Header row */}
 			<Button
 				variant="ghost"
 				onClick={() => setIsExpanded((e) => !e)}
-				className="flex h-auto w-full items-center justify-start gap-2.5 rounded-none px-3 py-2.5 hover:bg-muted/20"
+				className="flex h-auto w-full items-start justify-start gap-2 whitespace-normal rounded-none px-3 py-2.5 text-left hover:bg-hover focus-cue"
 				aria-expanded={isExpanded}
 			>
-				<WrenchIcon size={13} className="shrink-0 text-ember-text" />
+				<WrenchIcon className="mt-0.5 size-3.5 shrink-0 text-fg-secondary" aria-hidden="true" />
 
-				{/* Tool name */}
-				<span className="font-mono text-[12px] font-medium text-ember-text">
-					{toolName}
-				</span>
+				<span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+					{/* Tool name — wraps rather than truncating (320px overflow fix) */}
+					<span className="min-w-0 font-mono text-xs font-semibold text-fg wrap-anywhere">
+						{toolName}
+					</span>
 
-				{/* Status badge */}
-				<span
-					className={cn(
-						"ml-auto flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide",
-						config.badgeClass,
-					)}
-				>
-					<Icon size={10} className={config.iconClass} />
-					{config.label}
+					{/* Status pill */}
+					<span
+						className={cn(
+							"inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-pill px-2.5 py-1 font-ui text-xs font-semibold leading-none",
+							config.fillClass,
+							config.toneClass,
+						)}
+					>
+						<Icon className={cn("size-3.5 shrink-0", config.spin && "animate-spin")} aria-hidden="true" />
+						<span>{config.label}</span>
+					</span>
 				</span>
 
 				<ChevronDownIcon
-					size={13}
 					className={cn(
-						"shrink-0 text-muted-foreground transition-transform duration-150",
+						"mt-0.5 size-3.5 shrink-0 text-fg-secondary transition-transform duration-150",
 						isExpanded && "rotate-180",
 					)}
+					aria-hidden="true"
 				/>
 			</Button>
 
 			{/* Expanded content */}
 			{isExpanded && (
-				<div className="divide-y divide-border/30 border-t border-border/30">
+				<div className="space-y-3 px-3 pb-3">
 					{hasArgs && (
-						<div className="px-3 pb-3 pt-2">
-							<p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-								{"// Arguments"}
-							</p>
-							<ShikiCodeBlock
-								code={argsJson}
-								language="json"
-								className="text-[11px]"
-							/>
+						<div>
+							<p className="mb-1.5 font-ui text-xs font-semibold text-fg-secondary">Input</p>
+							<ShikiCodeBlock code={argsJson} language="json" />
 						</div>
 					)}
 
-					{result && (
-						<div className="px-3 pb-3 pt-2">
-							<p className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-								{"// Result"}
-							</p>
-							<p className="font-body text-[13px] leading-relaxed text-muted-foreground">
-								{result}
-							</p>
+					{result !== undefined && (
+						<div>
+							<p className="mb-1.5 font-ui text-xs font-semibold text-fg-secondary">Result</p>
+							{status === "failed" ? (
+								<p className="whitespace-pre-wrap rounded-md bg-danger-soft px-3 py-2 font-body text-sm text-danger-text wrap-break-word">
+									{result}
+								</p>
+							) : resultJson !== null ? (
+								<ShikiCodeBlock code={resultJson} language="json" />
+							) : (
+								<p className="whitespace-pre-wrap font-body text-sm leading-relaxed text-fg wrap-break-word">
+									{result}
+								</p>
+							)}
 						</div>
 					)}
 
-					{status === "running" && !result && (
-						<div className="px-3 py-2">
-							<p className="font-mono text-[11px] text-muted-foreground">
-								Waiting for result…
-							</p>
-						</div>
+					{status === "running" && result === undefined && (
+						<p className="font-mono text-xs text-faint">Waiting for result</p>
 					)}
 				</div>
 			)}
@@ -151,7 +167,7 @@ export const ToolCallBlockWrapper: FC<{
 			result={
 				typeof result === "string"
 					? result
-					: result
+					: result !== undefined && result !== null
 						? JSON.stringify(result)
 						: undefined
 			}

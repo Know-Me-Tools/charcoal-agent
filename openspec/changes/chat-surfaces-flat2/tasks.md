@@ -15,7 +15,7 @@
 
 ## 2. Conversation surfaces
 
-- [ ] 2.1 (owner: km-frontend-engineer) Restyle the thread, messages and composer in `src/components/assistant-ui/enhanced-thread.tsx`, `enhanced-markdown-text.tsx` and `tooltip-icon-button.tsx`, following the design doc:
+- [x] 2.1 (owner: km-frontend-engineer) Restyle the thread, messages and composer in `src/components/assistant-ui/enhanced-thread.tsx`, `enhanced-markdown-text.tsx` and `tooltip-icon-button.tsx`, following the design doc:
   - assistant replies unbubbled `font-body` prose on the canvas
   - user message on `bg-ember-soft` at the trailing edge
   - user avatar on tokens, not zinc

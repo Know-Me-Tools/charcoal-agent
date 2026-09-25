@@ -7,6 +7,8 @@ interface CitationBlockProps {
   content: string;
   url?: string;
   index?: number;
+  /** CitationList overrides the standalone spacing so cards use the list's own gap. */
+  className?: string;
 }
 
 export const CitationBlock: FC<CitationBlockProps> = ({
@@ -14,37 +16,31 @@ export const CitationBlock: FC<CitationBlockProps> = ({
   content,
   url,
   index,
+  className,
 }) => {
-  const inner = (
+  const card = (
     <div
       className={cn(
-        "group flex items-start gap-2 rounded-md border border-border/50 bg-muted/20 px-3 py-2 transition-colors",
-        url && "cursor-pointer hover:border-primary/30 hover:bg-muted/40",
+        "group my-3 flex min-w-0 items-start gap-2 rounded-lg bg-cyan-soft px-3 py-2 transition-hover first:mt-0 last:mb-0",
+        url && "hover:bg-hover",
+        className,
       )}
     >
-      <BookOpenIcon
-        size={12}
-        className="mt-0.5 shrink-0 text-ember-text"
-      />
+      <BookOpenIcon className="mt-0.5 size-3.5 shrink-0 text-cyan-text" aria-hidden="true" />
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1.5">
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
           {index !== undefined && (
-            <span className="font-mono text-[10px] text-ember-text">
-              [{index}]
-            </span>
+            <span className="font-mono text-xs font-semibold text-cyan-text">[{index}]</span>
           )}
-          <span className="truncate font-mono text-[11px] font-medium text-foreground">
+          <span className="min-w-0 font-ui text-sm font-semibold text-fg wrap-anywhere">
             {source}
           </span>
           {url && (
-            <ExternalLinkIcon
-              size={10}
-              className="shrink-0 text-muted-foreground transition-colors group-hover:text-ember-text"
-            />
+            <ExternalLinkIcon className="size-3.5 shrink-0 text-cyan-text" aria-hidden="true" />
           )}
         </div>
         {content && (
-          <p className="mt-0.5 line-clamp-2 font-body text-[12px] leading-snug text-muted-foreground">
+          <p className="mt-1 line-clamp-3 font-body text-sm leading-snug text-fg-secondary">
             {content}
           </p>
         )}
@@ -54,12 +50,13 @@ export const CitationBlock: FC<CitationBlockProps> = ({
 
   if (url) {
     return (
-      <a href={url} target="_blank" rel="noopener noreferrer" className="block">
-        {inner}
+      <a href={url} target="_blank" rel="noopener noreferrer" className="block rounded-lg focus-cue">
+        {card}
+        <span className="sr-only"> (opens in a new tab)</span>
       </a>
     );
   }
-  return inner;
+  return card;
 };
 
 // Citation list — renders multiple citations below message content
@@ -70,11 +67,11 @@ interface CitationListProps {
 export const CitationList: FC<CitationListProps> = ({ citations }) => {
   if (citations.length === 0) return null;
   return (
-    <div className="mt-3 space-y-1.5">
-      <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-        // Sources
+    <div className="mt-4">
+      <p className="font-ui text-xs font-semibold uppercase tracking-[0.12em] text-fg-secondary">
+        Sources
       </p>
-      <div className="flex flex-col gap-1.5">
+      <div className="mt-4 flex flex-col gap-2">
         {citations.map((c, i) => (
           <CitationBlock
             key={`${c.source}-${i}`}
@@ -82,6 +79,7 @@ export const CitationList: FC<CitationListProps> = ({ citations }) => {
             content={c.content}
             url={c.url}
             index={i + 1}
+            className="my-0"
           />
         ))}
       </div>
