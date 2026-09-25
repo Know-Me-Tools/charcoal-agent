@@ -1,6 +1,6 @@
 ## 1. Design spec
 
-- [ ] 1.1 (owner: km-creative-director) Write `docs/design/chat-surfaces.md`. It must cover:
+- [x] 1.1 (owner: km-creative-director) Write `docs/design/chat-surfaces.md`. It must cover:
   - a per-block surface and token map for text, thinking, code, citation, memory, tool use/result, skill, context update, artifact, HTML artifact, A2UI, image and divider
   - message treatment: assistant prose face, prose width and spacing rhythm between messages; user ember-soft fill, radius and trailing alignment
   - composer at rest, focus and drag states
