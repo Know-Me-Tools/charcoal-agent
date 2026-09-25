@@ -65,7 +65,7 @@
   - add flag/allow cases for the new rules
 
   Verify with `npx vitest run src/test/flat-shell.test.ts`: it passes, and a scratch revert of one class (for example re-adding `bg-zinc-800`) makes it fail. Record that check in the task note, then undo the revert.
-- [ ] 3.2 (owner: km-qa-engineer) Add `e2e/chat-surfaces.spec.ts`, and extend `e2e/fixtures` where needed with a long tool name, a Mermaid artifact and an unanswered A2UI input. The spec covers:
+- [x] 3.2 (owner: km-qa-engineer) Add `e2e/chat-surfaces.spec.ts`, and extend `e2e/fixtures` where needed with a long tool name, a Mermaid artifact and an unanswered A2UI input. The spec covers:
   - light and dark themes: user message text contrast is at least 4.5:1 against its fill, computed from styles
   - 320px: no horizontal document scroll with every block shown, and the long tool name is fully visible with no ellipsis
   - A2UI: no "Response captured" before a response, and it appears after submitting
