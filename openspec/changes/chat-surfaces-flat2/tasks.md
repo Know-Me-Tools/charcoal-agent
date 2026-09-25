@@ -76,10 +76,15 @@
 
 ## 4. Verification
 
-- [ ] 4.1 (owner: km-qa-engineer) Run `npm run build && npm run typecheck && npm run lint && npm test && npm run test:e2e`. Run the visual harness for the fixture thread at 320/768/1024/1440 in both themes and review every capture against `docs/design/chat-surfaces.md` and standard §7.7. Run `npm run test:a11y`. Record the commands, outputs, capture paths, review notes and the thread axe delta against the baseline in `docs/qa/chat-surfaces-flat2.md`. Verify:
+- [x] 4.1 (owner: km-qa-engineer) Run `npm run build && npm run typecheck && npm run lint && npm test && npm run test:e2e`. Run the visual harness for the fixture thread at 320/768/1024/1440 in both themes and review every capture against `docs/design/chat-surfaces.md` and standard §7.7. Run `npm run test:a11y`. Record the commands, outputs, capture paths, review notes and the thread axe delta against the baseline in `docs/qa/chat-surfaces-flat2.md`. Verify:
   - all commands exit 0
   - axe reports no `color-contrast`, `button-name` or `nested-interactive` violations in the thread region in either theme
   - any failure traced to a token value is filed back to km-creative-director and recorded as unmet, not waived
-- [ ] 4.2 (owner: km-product-owner) Write `openspec/changes/chat-surfaces-flat2/verification.md` from the QA evidence. It maps each spec scenario to its evidence (test name, capture path or axe result) and lists every unmet criterion. Then run an independent review with the `artifact-critic` subagent or `adversarial-review --mode diff`, and record its findings. Verify:
+- [ ] 4.2 (owner: km-creative-director, with km-frontend-engineer for the Shiki theme wiring) Remediate the three unmet criteria from `docs/qa/chat-surfaces-flat2.md`: the light-theme composer at rest must read as its own surface against the canvas; the dark-theme code well must read as distinct from the canvas; light-theme syntax colours on `bg-code` must reach 4.5:1 (axe finds 6 nodes in the thread). Change token values in `src/styles/tokens.css` (with `tokens.test.ts` pairs) and/or the composer's surface choice in the design doc; the frontend engineer switches or customises the Shiki themes in `src/features/artifacts/shiki-code-block.tsx`. Verify:
+  - `npm test` passes, with new contrast pairs for any changed text-on-fill combination
+  - `npm run test:a11y` shows no violations in `test-results/a11y/thread__*.json` in either theme
+  - `npx playwright test e2e/chat-surfaces.spec.ts e2e/chat-stream.spec.ts` passes
+  - light and dark thread captures show the composer and code wells as distinct surfaces
+- [ ] 4.3 (owner: km-product-owner) Write `openspec/changes/chat-surfaces-flat2/verification.md` from the QA evidence. It maps each spec scenario to its evidence (test name, capture path or axe result) and lists every unmet criterion. Then run an independent review with the `artifact-critic` subagent or `adversarial-review --mode diff`, and record its findings. Verify:
   - every scenario in `specs/chat-surfaces/spec.md` has evidence or is marked unmet
   - the review reports no CRITICAL findings, or they are fixed and re-reviewed before archive
