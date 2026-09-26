@@ -1,0 +1,30 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "openspec/changes/chat-persistence-durability/verification.md",
+      "line": 206,
+      "claim": "Task 3.2 is not satisfied because the verification file does not record the independent review findings.",
+      "evidence": "Acceptance criterion 3.2 requires: \"Then run an independent review with the `artifact-critic` subagent or `adversarial-review --mode diff`, and record its findings in the same file\"; the diff adds only the empty heading `## Independent review` at the end of `openspec/changes/chat-persistence-durability/verification.md` with no findings recorded under it.",
+      "suggested_fix": "Populate the `## Independent review` section with the review command/subagent used, findings, dispositions, and re-review result, or mark the criterion unmet."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": ".env",
+      "claim": "Repository state violates the blocking no-env-files constraint because environment files are present in the project tree.",
+      "evidence": "Constraint `no-env-files-committed` says `.env and .env.*.local must never be committed (only .env.example)`; `file_tree` lists `./.env` and `./.env.development.local`.",
+      "suggested_fix": "Remove `.env` and `.env.development.local` from tracked files if committed, keep only `.env.example`, and add ignore coverage as needed."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

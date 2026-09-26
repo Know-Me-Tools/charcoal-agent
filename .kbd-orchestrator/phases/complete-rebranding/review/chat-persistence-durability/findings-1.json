@@ -1,0 +1,53 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "src/features/chat/use-chat-runtime.onreload.test.tsx",
+      "line": 39,
+      "claim": "The diff adds a new explicit `: any` annotation in TypeScript source, violating the blocking no-any constraint.",
+      "evidence": "The new test contains `useExternalStoreRuntime: (config: any) => {`, while constraint `no-any-type` says: `No new ': any' in TypeScript source (1 pre-existing occurrence at init; do not add more)`.",
+      "suggested_fix": "Replace `config: any` with the appropriate `useExternalStoreRuntime` config type or a narrow local interface."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "src/lib/db/pglite.ts",
+      "line": 163,
+      "claim": "The required PGlite durability confirmation was not performed from the required documentation source.",
+      "evidence": "Acceptance criterion 1.1 requires: `Confirm the PGlite 0.3.15 durability behaviour ... from the docs through Context7 or the upstream README`; the added comment says `no README coverage of this option; the following was read directly from the package` and cites `node_modules/@electric-sql/pglite/dist/...` instead.",
+      "suggested_fix": "Either provide the required Context7/upstream README documentation evidence or update the accepted task criterion before marking this complete."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "openspec/changes/chat-persistence-durability/tasks.md",
+      "line": 66,
+      "claim": "Task 3.2 is still unchecked even though the phase target is complete verification.",
+      "evidence": "The diff leaves `- [ ] 3.2 (owner: km-product-owner) Write openspec/changes/chat-persistence-durability/verification.md...`, while acceptance criteria for 3.2 require a verification file, independent review findings, and strict OpenSpec validation.",
+      "suggested_fix": "Add the verification artifact to the diff, complete the independent review record, run `openspec validate chat-persistence-durability --strict`, and mark the task complete only after those are present."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "src/lib/db/write-queue.real-pglite.test.ts",
+      "claim": "The real-PGlite tests used as final evidence for rows 7, 8, and 17 are not included in the diff, so that coverage will not ship or run.",
+      "evidence": "The reviewer note states: `Untracked files are not in the diff: src/lib/db/write-queue.real-pglite.test.ts`; docs/qa/chat-persistence-durability.md \u00a74.1 says `New file: src/lib/db/write-queue.real-pglite.test.ts` and verification evidence for rows 7, 8, and 17 depends on it.",
+      "suggested_fix": "Track and include `src/lib/db/write-queue.real-pglite.test.ts` in the change, or remove/adjust the verification claims that depend on it."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "openspec/changes/chat-persistence-durability/verification.md",
+      "claim": "The verification document required by task 3.2 is not included in the diff.",
+      "evidence": "The reviewer note states: `Untracked files are not in the diff: ... openspec/changes/chat-persistence-durability/verification.md`; acceptance criterion 3.2 requires `Write openspec/changes/chat-persistence-durability/verification.md ...` and record independent review findings in that file.",
+      "suggested_fix": "Add `openspec/changes/chat-persistence-durability/verification.md` to the tracked diff."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}
