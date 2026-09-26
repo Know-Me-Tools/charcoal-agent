@@ -1,0 +1,39 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "src/stores/chat-message-store.write-queue.test.ts",
+      "line": 12,
+      "claim": "The PGlite mock omits the `whenDbReady` export required by `write-queue.ts`, so the Vitest suite can fail during module import.",
+      "evidence": "`src/lib/db/write-queue.ts` imports `getDbInstance, whenDbReady` from `@/lib/db/pglite`, but this test's `vi.mock(\"@/lib/db/pglite\", () => ({ getDbInstance: () => ({ insertMessage }), }))` provides only `getDbInstance`; this violates the blocking `tests-pass` constraint (`npm test`).",
+      "suggested_fix": "Add `whenDbReady: () => Promise.resolve({ insertMessage })` or otherwise include all named exports consumed by `write-queue.ts` in this mock."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "src/stores/thread-registry-store.test.ts",
+      "line": 8,
+      "claim": "The PGlite mock omits the `whenDbReady` export required by `write-queue.ts`, so the new thread-registry tests can fail during module import.",
+      "evidence": "`src/stores/thread-registry-store.test.ts` imports `flush` from `@/lib/db/write-queue`, whose module imports `whenDbReady`; the local mock only returns `{ getDbInstance: () => ({ upsertThread, touchThread, deleteThread }) }`, violating the blocking `tests-pass` constraint (`npm test`).",
+      "suggested_fix": "Add `whenDbReady: () => Promise.resolve({ upsertThread, touchThread, deleteThread })` to the mock."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "src/features/chat/use-chat-runtime.onreload.test.tsx",
+      "line": 22,
+      "claim": "The PGlite mock omits the `whenDbReady` export required by the stores' write-queue dependency, so this new test can fail before assertions run.",
+      "evidence": "`use-chat-runtime.onreload.test.tsx` mocks `@/lib/db/pglite` with only `getDbInstance`, while `useChatRuntime` imports stores that use `@/lib/db/write-queue`, and `write-queue.ts` imports `whenDbReady`; this violates the blocking `tests-pass` constraint (`npm test`).",
+      "suggested_fix": "Include `whenDbReady: () => Promise.resolve({ deleteMessages, insertMessage, upsertThread, touchThread, getMessages })` in the mock."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

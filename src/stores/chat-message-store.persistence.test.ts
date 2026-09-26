@@ -43,13 +43,13 @@ describe("chat-message-store deleteMessagesAfter", () => {
     expect(msgs.map((m) => m.id)).toEqual(["u1"]);
   });
 
-  it("deletes the removed rows from PGlite — no orphaned rows left behind", () => {
-    useChatMessageStore.getState().deleteMessagesAfter(THREAD, "u1");
+  it("deletes the removed rows from PGlite — no orphaned rows left behind", async () => {
+    await useChatMessageStore.getState().deleteMessagesAfter(THREAD, "u1");
 
     expect(deleteMessages).toHaveBeenCalledWith(THREAD, ["a1"]);
   });
 
-  it("removes multiple trailing messages in one call", () => {
+  it("removes multiple trailing messages in one call", async () => {
     useChatMessageStore.getState().initThread(THREAD, [
       ...useChatMessageStore.getState().messagesByThread[THREAD],
       {
@@ -68,7 +68,7 @@ describe("chat-message-store deleteMessagesAfter", () => {
       },
     ]);
 
-    useChatMessageStore.getState().deleteMessagesAfter(THREAD, "u1");
+    await useChatMessageStore.getState().deleteMessagesAfter(THREAD, "u1");
 
     const msgs = useChatMessageStore.getState().messagesByThread[THREAD];
     expect(msgs.map((m) => m.id)).toEqual(["u1"]);

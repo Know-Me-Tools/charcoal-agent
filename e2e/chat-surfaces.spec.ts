@@ -785,7 +785,7 @@ test("Message error: Try again re-sends the user message, and a successful retry
 // after the triggering user message — from the store and from PGlite — then
 // re-streams with `skipUserMessage: true`, so the retried/regenerated turn
 // replaces the old one in place instead of appending a duplicate.
-test("Message error: retry replaces the failed turn (no duplicate); Regenerate replaces a good reply", async ({
+test("Message error: retry replaces the failed turn (no duplicate); Regenerate replaces a good reply; both survive a reload", async ({
   page,
 }) => {
   let attempt = 0;
@@ -824,6 +824,18 @@ test("Message error: retry replaces the failed turn (no duplicate); Regenerate r
   await expect(assistantMessages).toHaveCount(1);
   await expect(page.getByText(MESSAGE_ERROR_TEXT)).toHaveCount(0);
 
+  // Reload immediately after the retried reply is visible, with no wait for
+  // the save to settle (no `data-persistence="saved"` wait either) — the
+  // page-exit journal (chat-persistence-durability) is what must make an
+  // immediate reload safe, not incidental timing. This is the condition
+  // that failed 10/10 under `--trace on --repeat-each 10` in
+  // docs/qa/chat-surfaces-flat2.md §6.15 before that fix existed.
+  await page.reload();
+  await expect(page.getByText(FIXTURE_FINAL_TEXT).first()).toBeVisible();
+  await expect(userMessages).toHaveCount(1);
+  await expect(assistantMessages).toHaveCount(1);
+  await expect(page.getByText(MESSAGE_ERROR_TEXT)).toHaveCount(0);
+
   // Regenerate the now-good reply (`AssistantActionBar`'s reload button,
   // not `MessageError`'s — same `onReload` wiring, a different trigger).
   const regenerate = page.getByRole("button", { name: "Regenerate" });
@@ -836,19 +848,17 @@ test("Message error: retry replaces the failed turn (no duplicate); Regenerate r
   await expect(assistantMessages).toHaveCount(1);
   expect(attempt).toBe(3);
 
-  // No reload assertion here by design — see docs/qa/chat-surfaces-flat2.md
-  // §6.15. `chat-message-store.ts`'s `persistMessages`/`deleteMessagesAfter`
-  // write to PGlite fire-and-forget (`.catch(console.error)`, never awaited
-  // by `onReload` in `use-chat-runtime.ts`), and there is no
-  // `beforeunload`/`pagehide` flush. A `page.reload()` immediately after the
-  // regenerate click races that unawaited write against the reload's IndexedDB
-  // re-open; traced failures (`--repeat-each 10 --workers=1 --trace on`)
-  // showed two distinct outcomes — the pre-regenerate content reappearing, or
-  // zero assistant messages after reload — neither of which a longer
-  // Playwright auto-retry window fixes, because the write is lost, not
-  // merely delayed. This is an app-code persistence race, not a test issue;
-  // reported to km-frontend-engineer rather than papered over with a fixed
-  // timeout or retry.
+  // Reload immediately after Regenerate, again with no wait for the save to
+  // settle: the regenerated content and counts must come back from PGlite
+  // persistence (`deleteMessagesAfter`'s parameterised DELETE plus the
+  // replacement's INSERT, both awaited/ordered by the write queue), not
+  // from in-memory store state a reload would otherwise expose as stale.
+  await page.reload();
+  await expect(page.getByText(REGENERATED_REPLY_TEXT).first()).toBeVisible();
+  await expect(userMessages).toHaveCount(1);
+  await expect(assistantMessages).toHaveCount(1);
+  await expect(page.getByText(FIXTURE_FINAL_TEXT)).toHaveCount(0);
+  await expect(page.getByText(MESSAGE_ERROR_TEXT)).toHaveCount(0);
 });
 
 // ─── Mermaid source and copy (spec scenario 17) ────────────────────────────────

@@ -1,0 +1,277 @@
+/**
+ * App-wide serial write queue for local persistence (chat-persistence-durability).
+ *
+ * Every local write to threads or messages is described as plain,
+ * serialisable data (a `WriteDescriptor`) and enqueued here instead of being
+ * fired directly at `CharcoalDb`. One promise chain runs the writes in the
+ * order they were enqueued — never in parallel, and never out of order —
+ * because the `messages.thread_id` foreign key needs a thread's row to
+ * exist before its messages, and a retry/regenerate's delete must land
+ * before the replacement's insert. See design decision 1 in
+ * openspec/changes/chat-persistence-durability/design.md.
+ *
+ * A descriptor MUST be built from state already committed by `set()`
+ * (read back via `get()`), never from an immer draft (design decision 2):
+ * the executor below runs asynchronously, after the producer that created
+ * the draft has already returned and immer has revoked its proxy. Reading a
+ * draft's property from inside a queued write throws
+ * "Cannot perform 'get' on a proxy that has been revoked".
+ */
+import { getDbInstance, whenDbReady } from "@/lib/db/pglite";
+import type { CharcoalDb } from "@/lib/db/pglite";
+import type { LocalThread } from "@/types";
+import type { RichMessage } from "@/types/chat-content";
+
+export type WriteDescriptor =
+  | { kind: "upsertMessage"; threadId: string; message: RichMessage }
+  | { kind: "deleteMessages"; threadId: string; ids: string[] }
+  | { kind: "upsertThread"; thread: LocalThread }
+  // `at` is when the touch happened, so a replayed touch from another tab
+  // can be compared with the stored row (newer wins). Optional for journals
+  // written before it existed.
+  | { kind: "touchThread"; id: string; at?: string }
+  | { kind: "deleteThread"; id: string };
+
+function tryDb(): CharcoalDb | null {
+  try {
+    return getDbInstance();
+  } catch {
+    return null;
+  }
+}
+
+function descriptorLabel(descriptor: WriteDescriptor): string {
+  switch (descriptor.kind) {
+    case "upsertMessage":
+      return `upsertMessage(${descriptor.threadId}, ${descriptor.message.id})`;
+    case "deleteMessages":
+      return `deleteMessages(${descriptor.threadId}, [${descriptor.ids.join(",")}])`;
+    case "upsertThread":
+      return `upsertThread(${descriptor.thread.id})`;
+    case "touchThread":
+      return `touchThread(${descriptor.id})`;
+    case "deleteThread":
+      return `deleteThread(${descriptor.id})`;
+  }
+}
+
+/**
+ * The thread a descriptor belongs to, regardless of kind. Used by
+ * `persistence-journal.ts` to scrub a deleted thread's descriptors out of
+ * every tab's journal, and to guard cross-tab replay against resurrecting a
+ * deleted thread or overwriting a newer save with a stale one (operator
+ * decision 2026-09-26 in design.md).
+ */
+export function descriptorThreadId(descriptor: WriteDescriptor): string {
+  switch (descriptor.kind) {
+    case "upsertMessage":
+    case "deleteMessages":
+      return descriptor.threadId;
+    case "upsertThread":
+      return descriptor.thread.id;
+    case "touchThread":
+    case "deleteThread":
+      return descriptor.id;
+  }
+}
+
+/**
+ * Applies one descriptor against a specific, already-open `CharcoalDb`
+ * instance — the SQL and row shapes are unchanged, this only decides which
+ * method runs. Exported so journal replay (`persistence-journal.ts`) can
+ * apply descriptors directly against a freshly opened instance: replay runs
+ * inside `CharcoalDb.open()`, before `setDbInstance()` has been called, so
+ * it cannot go through the module singleton the live queue below uses.
+ */
+export async function applyDescriptor(
+  db: CharcoalDb,
+  descriptor: WriteDescriptor,
+): Promise<void> {
+  switch (descriptor.kind) {
+    case "upsertMessage":
+      return db.insertMessage(descriptor.threadId, descriptor.message);
+    case "deleteMessages":
+      return db.deleteMessages(descriptor.threadId, descriptor.ids);
+    case "upsertThread":
+      return db.upsertThread(descriptor.thread);
+    case "touchThread":
+      return db.touchThread(descriptor.id, descriptor.at);
+    case "deleteThread":
+      return db.deleteThread(descriptor.id);
+  }
+}
+
+/**
+ * Resolves the database for a live (non-replay) write: the module singleton
+ * if it's already open, otherwise waits for it — a write that reaches the
+ * queue before `DbProvider` finishes opening (or, in tests, before the
+ * mocked db becomes available) waits instead of being silently dropped.
+ * In the shipped app this only matters transiently at startup: nothing that
+ * could enqueue a write can run before `DbProvider` renders its children,
+ * which happens only once the database is open.
+ */
+async function resolveDb(): Promise<CharcoalDb> {
+  return tryDb() ?? (await whenDbReady());
+}
+
+async function executeWrite(descriptor: WriteDescriptor): Promise<void> {
+  const db = await resolveDb();
+  return applyDescriptor(db, descriptor);
+}
+
+// ---------------------------------------------------------------------------
+// Queue state
+// ---------------------------------------------------------------------------
+
+/**
+ * Tail of the serial chain. Resolves once every write enqueued so far has
+ * settled. By construction this promise NEVER rejects — each write's own
+ * failure is caught before the chain advances, so one failed write never
+ * blocks the writes enqueued after it.
+ */
+let tail: Promise<void> = Promise.resolve();
+
+/**
+ * Writes enqueued but not yet settled, keyed by an insertion-order id (a
+ * `Map` preserves insertion order). Read by `pendingWriteDescriptors()` for
+ * the page-exit journal (task 1.2) and by `pendingWriteCount()` for the
+ * save-state indicator.
+ */
+const pending = new Map<number, WriteDescriptor>();
+let nextId = 0;
+
+const listeners = new Set<() => void>();
+const failureListeners = new Set<WriteFailureListener>();
+
+// True after a write (live or replayed) has failed, until a later write
+// succeeds — read through the exported hasFailedWrite() below.
+let failed = false;
+
+export type WriteFailureListener = (descriptor: WriteDescriptor, error: unknown) => void;
+
+function emitChange(): void {
+  for (const listener of listeners) listener();
+}
+
+/**
+ * A failure reported while no subscriber existed — e.g. journal replay runs
+ * inside `DbProvider` before `PersistenceNotices` (the app-root notice
+ * component) has ever mounted, so `reportFailure`'s broadcast loop would
+ * otherwise have nobody to deliver to and the event would simply be lost.
+ * Latched here and handed to the first subscriber that attaches, once, then
+ * cleared — later subscribers don't get a stale redelivery.
+ */
+let pendingNotice: { descriptor: WriteDescriptor; error: unknown } | null = null;
+
+/**
+ * Records a write failure: logs the raw error for diagnosis (descriptor
+ * kind only — never displayed), marks the save-state `failed` until a later
+ * write succeeds, and notifies failure subscribers (the app-root notice
+ * component, `src/components/common/persistence-notices.tsx`). Exported so
+ * journal replay can report a failing entry through the same channel as a
+ * live write, since replay applies descriptors directly via
+ * `applyDescriptor` and never goes through `enqueueWrite`. When no
+ * subscriber currently exists, the failure is latched instead of dropped —
+ * see `pendingNotice` above.
+ */
+export function reportFailure(descriptor: WriteDescriptor, error: unknown): void {
+  console.error(`[write-queue] ${descriptorLabel(descriptor)} failed`, error);
+  failed = true;
+  emitChange();
+  if (failureListeners.size === 0) {
+    pendingNotice = { descriptor, error };
+    return;
+  }
+  for (const listener of failureListeners) listener(descriptor, error);
+}
+
+/** True after a write (live or replayed) has failed, until a later write succeeds. */
+export function hasFailedWrite(): boolean {
+  return failed;
+}
+
+/**
+ * Notified on every write failure (live or replayed), with the raw error —
+ * for diagnosis and the failure toast, never for display verbatim. A
+ * failure reported before any subscriber existed (`pendingNotice`) is
+ * delivered to this subscriber immediately, once, then cleared.
+ */
+export function subscribeWriteFailures(listener: WriteFailureListener): () => void {
+  failureListeners.add(listener);
+  if (pendingNotice) {
+    const notice = pendingNotice;
+    pendingNotice = null;
+    listener(notice.descriptor, notice.error);
+  }
+  return () => {
+    failureListeners.delete(listener);
+  };
+}
+
+/**
+ * Enqueues a write and returns a promise for THAT write's own outcome — it
+ * can reject. Writes always run in enqueue order: this write's executor
+ * does not start until every write enqueued before it has settled,
+ * regardless of how long any of them take.
+ */
+export function enqueueWrite(descriptor: WriteDescriptor): Promise<void> {
+  const id = nextId++;
+  pending.set(id, descriptor);
+  emitChange();
+
+  const settle = (): void => {
+    pending.delete(id);
+    emitChange();
+  };
+
+  const result = tail.then(() => executeWrite(descriptor));
+  result.then(settle, settle);
+
+  // Advance the chain to a continuation that never rejects, so a failure in
+  // this write can't block the writes enqueued after it.
+  tail = result.then(
+    () => {
+      failed = false;
+      emitChange();
+    },
+    (error: unknown) => {
+      reportFailure(descriptor, error);
+    },
+  );
+
+  return result;
+}
+
+/** Number of writes enqueued but not yet settled (succeeded or failed). */
+export function pendingWriteCount(): number {
+  return pending.size;
+}
+
+/**
+ * The descriptors of every write enqueued but not yet settled, in enqueue
+ * order — the unsettled suffix the page-exit journal (task 1.2) records to
+ * `localStorage` before the page tears down.
+ */
+export function pendingWriteDescriptors(): WriteDescriptor[] {
+  return Array.from(pending.values());
+}
+
+/**
+ * Resolves once every write enqueued so far has settled — including any
+ * that failed. Never rejects.
+ */
+export function flush(): Promise<void> {
+  return tail;
+}
+
+/**
+ * Notified whenever a write is enqueued or settles (used to derive the
+ * `saving | saved | failed` indicator in task 1.2). Returns an unsubscribe
+ * function.
+ */
+export function subscribeWriteQueue(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}

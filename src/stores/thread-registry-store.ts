@@ -11,7 +11,8 @@
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import type { LocalThread } from "@/types";
-import { getDbInstance } from "@/lib/db/pglite";
+import { enqueueWrite } from "@/lib/db/write-queue";
+import { scrubThreadFromJournals } from "@/lib/db/persistence-journal";
 
 interface ThreadRegistryState {
   threads: Record<string, LocalThread>;
@@ -57,10 +58,6 @@ interface ThreadRegistryActions {
 
 type ThreadRegistryStore = ThreadRegistryState & ThreadRegistryActions;
 
-function tryDb(): ReturnType<typeof getDbInstance> | null {
-  try { return getDbInstance(); } catch { return null; }
-}
-
 export const useThreadRegistryStore = create<ThreadRegistryStore>()(
   immer((set, get) => ({
     threads: {},
@@ -73,11 +70,16 @@ export const useThreadRegistryStore = create<ThreadRegistryStore>()(
         }
       }),
 
-    registerThread: (id, agentId, agentName) =>
+    registerThread: (id, agentId, agentName) => {
+      // `created` mirrors the producer's idempotent no-op: don't enqueue a
+      // write for a thread that already existed.
+      let created = false;
+
       set((state) => {
         if (state.threads[id]) return;
+        created = true;
         const now = new Date().toISOString();
-        const thread: LocalThread = {
+        state.threads[id] = {
           id,
           // sessionId mirrors id — stored explicitly so it can be read back
           // from PGLite after a page refresh without relying on URL params.
@@ -89,48 +91,78 @@ export const useThreadRegistryStore = create<ThreadRegistryStore>()(
           agentId,
           agentName,
         };
-        state.threads[id] = thread;
-        tryDb()?.upsertThread(thread).catch(console.error);
-      }),
+      });
 
-    markPersisted: (id) =>
+      if (!created) return;
+      // Read back committed state (get()), never the producer's immer
+      // draft — see write-queue.ts's module doc.
+      const thread = get().threads[id];
+      if (thread) enqueueWrite({ kind: "upsertThread", thread });
+    },
+
+    markPersisted: (id) => {
+      let changed = false;
+
       set((state) => {
         if (!state.threads[id]) return;
+        changed = true;
         state.threads[id].isEphemeral = false;
         state.threads[id].updatedAt = new Date().toISOString();
-        const updated = state.threads[id];
-        tryDb()?.upsertThread({ ...updated }).catch(console.error);
-      }),
+      });
 
-    setTitle: (id, title) =>
+      if (!changed) return;
+      const thread = get().threads[id];
+      if (thread) enqueueWrite({ kind: "upsertThread", thread });
+    },
+
+    setTitle: (id, title) => {
+      let changed = false;
+
       set((state) => {
         if (!state.threads[id]) return;
+        changed = true;
         state.threads[id].title = title;
         state.threads[id].updatedAt = new Date().toISOString();
-        const updated = state.threads[id];
-        tryDb()?.upsertThread({ ...updated }).catch(console.error);
-      }),
+      });
 
-    touch: (id) =>
+      if (!changed) return;
+      const thread = get().threads[id];
+      if (thread) enqueueWrite({ kind: "upsertThread", thread });
+    },
+
+    touch: (id) => {
+      let changed = false;
+
       set((state) => {
         if (!state.threads[id]) return;
+        changed = true;
         state.threads[id].updatedAt = new Date().toISOString();
-        tryDb()?.touchThread(id).catch(console.error);
-      }),
+      });
+
+      if (!changed) return;
+      enqueueWrite({ kind: "touchThread", id, at: new Date().toISOString() });
+    },
 
     setActive: (id) =>
       set((state) => {
         state.activeThreadId = id;
       }),
 
-    removeThread: (id) =>
+    removeThread: (id) => {
       set((state) => {
         delete state.threads[id];
         if (state.activeThreadId === id) {
           state.activeThreadId = null;
         }
-        tryDb()?.deleteThread(id).catch(console.error);
-      }),
+      });
+      // Synchronously scrub this thread out of every tab's page-exit
+      // journal (this tab's and others', live or dead) BEFORE enqueuing the
+      // delete, so a journal already on disk describing an upsert/touch for
+      // this thread can never replay and resurrect it or restore a stale
+      // field (operator decision 2026-09-26 in design.md).
+      scrubThreadFromJournals(id);
+      enqueueWrite({ kind: "deleteThread", id });
+    },
 
     getLatestPersisted: () => {
       const { threads } = get();

@@ -20,3 +20,9 @@ Append-only. Dated entries. Mark superseded entries; do not delete them.
 - Safe handling: confirm no git process (`pgrep -fl git`), check the lock's age, then remove it. Never remove it while a git process is running.
 - 2026-09-25 07:00 occurrence: the lock appeared exactly as a subagent handed back after running `git status`, with no git process alive afterwards and no unit tests running. That points at agent hand-back cutting off git's optional index refresh. Mitigation to try: have agents run `git -c core.untrackedCache=false --no-optional-locks status` (or `GIT_OPTIONAL_LOCKS=0`) for read-only checks.
 - Later occurrence (after an agent that used only `git --no-optional-locks`): the lock still appeared on hand-back, so agent status calls are not the source. Most likely the harness's own background git refresh on subagent completion. Handling stays the same: check `pgrep -x git`, then remove.
+
+## 2026-09-26: Node 26 breaks jsdom localStorage in vitest
+- Symptom: `npm test` fails 19 tests in `persistence-journal.test.ts` and `ui-store.test.ts` with "Cannot read properties of undefined (reading 'clear')" on `localStorage`.
+- Cause: the shell's `node` resolved to v26.5.0 through an fnm multishell that comes before nvm on PATH. Node 25+ defines its own global `localStorage`, which shadows jsdom's and is undefined without `--localstorage-file`.
+- Proof: with `PATH=~/.nvm/versions/node/v24.16.0/bin:$PATH`, the same tree gives 317/317 passing (39 files).
+- Handling: run gates under Node 24. The repo pins no Node version (no .nvmrc, no engines field); pinning is an open operator decision.

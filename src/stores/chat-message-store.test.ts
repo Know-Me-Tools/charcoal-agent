@@ -1,10 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // PGlite is unavailable in jsdom; the store falls back to memory only.
+// whenDbReady never resolving accurately models "no db, ever, in this
+// environment" — the write queue then waits rather than dropping the write,
+// but since it's never awaited by these tests, nothing hangs.
 vi.mock("@/lib/db/pglite", () => ({
   getDbInstance: () => {
     throw new Error("no db in tests");
   },
+  whenDbReady: () => new Promise<never>(() => {}),
 }));
 
 const { useChatMessageStore } = await import("./chat-message-store");

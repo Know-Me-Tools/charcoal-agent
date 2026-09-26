@@ -52,6 +52,7 @@ import { ToolCallBlockWrapper } from "@/features/chat/components/tool-call-block
 import { CitationBlock } from "@/features/chat/components/citation-block";
 import { cn } from "@/lib/utils";
 import { KnowMeMark } from "@/components/brand";
+import { usePersistenceStatus } from "@/hooks/use-persistence-status";
 
 // ─── Root Thread ─────────────────────────────────────────────────────────────
 
@@ -66,10 +67,13 @@ export const EnhancedThread: FC<EnhancedThreadProps> = ({
 	promptCachingEnabled,
 	onTogglePromptCaching,
 }) => {
+	const persistenceStatus = usePersistenceStatus();
+
 	return (
 		<ThreadPrimitive.Root
 			className="aui-root aui-thread-root @container flex h-full flex-col bg-canvas"
 			style={{ ["--thread-max-width" as string]: "48rem" }}
+			data-persistence={persistenceStatus}
 		>
 			<ThreadPrimitive.Viewport
 				turnAnchor="top"

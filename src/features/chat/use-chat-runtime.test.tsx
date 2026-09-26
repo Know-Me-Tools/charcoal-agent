@@ -6,10 +6,14 @@ import { mockFetch, type FetchMock } from "@/test/utils/mock-fetch";
 import { useChatIntentStore } from "@/stores/chat-intent-store";
 
 // PGlite is not available in jsdom; stores fall back gracefully without it.
+// whenDbReady never resolving accurately models "no db, ever, in this
+// environment" — the write queue then waits rather than dropping the write,
+// but since it's never awaited by these tests, nothing hangs.
 vi.mock("@/lib/db/pglite", () => ({
   getDbInstance: () => {
     throw new Error("no db in tests");
   },
+  whenDbReady: () => new Promise<never>(() => {}),
 }));
 
 const { useChatRuntime } = await import("./use-chat-runtime");

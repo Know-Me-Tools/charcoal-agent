@@ -10,7 +10,7 @@ import type {
   SkillActivationContentBlock,
   ToolCallContentBlock,
 } from "@/types/chat-content";
-import { getDbInstance } from "@/lib/db/pglite";
+import { enqueueWrite } from "@/lib/db/write-queue";
 
 interface ChatMessageState {
   messagesByThread: Record<string, RichMessage[]>;
@@ -73,7 +73,7 @@ interface ChatMessageActions {
    * after it — before re-streaming, so the resend replaces it instead of
    * appending a duplicate.
    */
-  deleteMessagesAfter(threadId: string, messageId: string): void;
+  deleteMessagesAfter(threadId: string, messageId: string): Promise<void>;
   clearThread(threadId: string): void;
 }
 
@@ -88,10 +88,6 @@ const defaultStreamingState: StreamingState = {
   retryMaxAttempts: 0,
   retryDelayMs: 0,
 };
-
-function tryDb(): ReturnType<typeof getDbInstance> | null {
-  try { return getDbInstance(); } catch { return null; }
-}
 
 function ensureThread(
   state: ChatMessageState,
@@ -178,18 +174,46 @@ function activeStreamingMessage(
   return message;
 }
 
-/** Persist all complete messages in a thread to PGLite. Fire-and-forget. */
+/**
+ * Message ids already durably upserted this session, per thread. Guards
+ * against re-enqueuing the whole thread history on every turn (the pending
+ * set — and so the page-exit journal — must hold only what changed, not
+ * every message ever sent in the thread: chat-persistence-durability task
+ * 1.2 follow-up). Populated only on a SUCCESSFUL settle (see
+ * `persistMessages` below): a message whose write fails is left unmarked,
+ * so the next call retries it — the existing "a failed insert heals on the
+ * next turn" guarantee, now scoped to the message that actually failed
+ * instead of blanket-retrying the entire history.
+ */
+const persistedMessageIds: Record<string, Set<string>> = {};
+
+/**
+ * Enqueue a durable, ordered write for every complete message in a thread
+ * that isn't already known to be durably saved. `messages` MUST be
+ * post-`set()` committed state (from `get()`), never an immer draft — see
+ * chat-persistence-durability design decision 2 and
+ * src/lib/db/write-queue.ts's module doc.
+ */
 function persistMessages(threadId: string, messages: RichMessage[]): void {
-  const db = tryDb();
-  if (!db) return;
-  const complete = messages.filter((m) => m.status !== "in_progress");
+  const alreadyPersisted = persistedMessageIds[threadId];
+  const complete = messages.filter(
+    (m) => m.status !== "in_progress" && !alreadyPersisted?.has(m.id),
+  );
   for (const msg of complete) {
-    db.insertMessage(threadId, msg).catch(console.error);
+    enqueueWrite({ kind: "upsertMessage", threadId, message: msg }).then(
+      () => {
+        (persistedMessageIds[threadId] ??= new Set()).add(msg.id);
+      },
+      () => {
+        // Left unmarked — retried the next time persistMessages runs for
+        // this thread. The write queue has already logged/reported it.
+      },
+    );
   }
 }
 
 export const useChatMessageStore = create<ChatMessageStore>()(
-  immer((set) => ({
+  immer((set, get) => ({
     messagesByThread: {},
     streamingByThread: {},
 
@@ -316,7 +340,12 @@ export const useChatMessageStore = create<ChatMessageStore>()(
         message.content.push(toolCall as ContentBlock);
       }),
 
-    updateToolCall: (threadId, toolCallId, update) =>
+    updateToolCall: (threadId, toolCallId, update) => {
+      // Captured by the set() producer below as a plain message id (never a
+      // draft object), then used to look up committed state for the
+      // re-persist below — see write-queue.ts's module doc.
+      let updatedMessageId: string | null = null;
+
       set((state) => {
         const messages = state.messagesByThread[threadId];
         if (!messages) return;
@@ -328,10 +357,38 @@ export const useChatMessageStore = create<ChatMessageStore>()(
           );
           if (block) {
             Object.assign(block, update);
+            updatedMessageId = msg.id;
             return;
           }
         }
-      }),
+      });
+
+      if (!updatedMessageId) return;
+
+      // A tool-call block can be updated (e.g. a delayed agui.tool_result)
+      // after its message was already finalized and durably saved by
+      // finishStream/setStreamError — persistMessages' persistedMessageIds
+      // guard (design.md's "only what changed" amendment) would otherwise
+      // hide this change forever, since nothing else re-saves an
+      // already-persisted message. Skip a still-streaming message:
+      // finishStream's own persistMessages call will pick it up once it
+      // completes, same as any first-time save.
+      const message = get().messagesByThread[threadId]?.find(
+        (m) => m.id === updatedMessageId,
+      );
+      if (!message || message.status === "in_progress") return;
+
+      persistedMessageIds[threadId]?.delete(message.id);
+      enqueueWrite({ kind: "upsertMessage", threadId, message }).then(
+        () => {
+          (persistedMessageIds[threadId] ??= new Set()).add(message.id);
+        },
+        () => {
+          // Left unmarked — retried the next time persistMessages runs for
+          // this thread, same as persistMessages' own failure handling.
+        },
+      );
+    },
 
     addCitation: (threadId, citation) =>
       set((state) => {
@@ -392,10 +449,15 @@ export const useChatMessageStore = create<ChatMessageStore>()(
         message.content.push({ type: "artifact", ...artifact });
       }),
 
-    finishStream: (threadId) =>
+    finishStream: (threadId) => {
+      // `shouldPersist` mirrors the producer's early return: nothing to
+      // persist when no stream was active for this thread.
+      let shouldPersist = false;
+
       set((state) => {
         const streaming = state.streamingByThread[threadId];
         if (!streaming) return;
+        shouldPersist = true;
 
         const messages = state.messagesByThread[threadId];
         if (messages && streaming.streamingMessageId) {
@@ -414,17 +476,26 @@ export const useChatMessageStore = create<ChatMessageStore>()(
         }
 
         state.streamingByThread[threadId] = { ...defaultStreamingState };
+      });
 
-        // Write-through: persist all complete messages to PGLite
-        if (messages) {
-          persistMessages(threadId, [...messages]);
-        }
-      }),
+      if (!shouldPersist) return;
 
-    setStreamError: (threadId, error) =>
+      // Write-through: persist all complete messages to PGLite, built from
+      // committed state (get()) — never from the producer's immer draft,
+      // which is revoked by the time the queued write runs.
+      const messages = get().messagesByThread[threadId];
+      if (messages) {
+        persistMessages(threadId, messages);
+      }
+    },
+
+    setStreamError: (threadId, error) => {
+      let shouldPersist = false;
+
       set((state) => {
         const streaming = state.streamingByThread[threadId];
         if (!streaming) return;
+        shouldPersist = true;
 
         // A pre-delta failure (non-2xx response, a rejected fetch, or the
         // stream closing with zero events) never reaches a block handler, so
@@ -449,16 +520,21 @@ export const useChatMessageStore = create<ChatMessageStore>()(
         }
 
         state.streamingByThread[threadId] = { ...defaultStreamingState };
+      });
 
-        // Write-through: persist all complete messages to PGLite
-        if (messages) {
-          persistMessages(threadId, [...messages]);
-        }
-      }),
+      if (!shouldPersist) return;
+
+      // Write-through, from committed state — see finishStream above.
+      const messages = get().messagesByThread[threadId];
+      if (messages) {
+        persistMessages(threadId, messages);
+      }
+    },
 
     deleteMessagesAfter: (threadId, messageId) => {
-      // Captured by the set() producer below, then used for the PGlite
-      // write-through once the (synchronous) store update has applied.
+      // Captured by the set() producer below as plain string ids (never a
+      // draft object), then used for the queued write once the (synchronous)
+      // store update has applied.
       let removedIds: string[] = [];
 
       set((state) => {
@@ -472,18 +548,22 @@ export const useChatMessageStore = create<ChatMessageStore>()(
         state.messagesByThread[threadId] = messages.slice(0, idx + 1);
       });
 
-      if (removedIds.length === 0) return;
+      if (removedIds.length === 0) return Promise.resolve();
 
-      const db = tryDb();
-      if (db) {
-        db.deleteMessages(threadId, removedIds).catch(console.error);
-      }
+      // These ids are gone from the thread and will never reappear (every
+      // message id is freshly generated), so they should never be treated
+      // as "already persisted" again — mainly tidiness, since a stale
+      // marker for a deleted id is otherwise harmless.
+      for (const id of removedIds) persistedMessageIds[threadId]?.delete(id);
+
+      return enqueueWrite({ kind: "deleteMessages", threadId, ids: removedIds });
     },
 
     clearThread: (threadId) =>
       set((state) => {
         delete state.messagesByThread[threadId];
         delete state.streamingByThread[threadId];
+        delete persistedMessageIds[threadId];
       }),
   })),
 );
