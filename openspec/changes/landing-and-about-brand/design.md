@@ -192,3 +192,7 @@ Q1 (copy approval) is still open. The operator approves the copy sheet written i
 - **The send control, the 404 CTA and the header controls are plain elements** with `focus-visible:outline-solid`, not the `Button` primitive. The primitive's unconditional `outline-none` stops any focus outline from painting in Tailwind 4.
 - **Value line:** the operator approved changing its ending to "Type a message to start." `composer.hint` and `browseThreadsLabel` are removed.
 - **Send hover contrast:** the operator chose to fix it to at least 3:1 against the composer in both themes (D-007), not accept 2.49:1.
+
+## Follow-ups outside this change
+
+- `src/components/assistant-ui/tooltip-icon-button.tsx:33` puts `focus-cue` on the `Button` primitive. The primitive's `outline-none` probably stops that outline from painting, so chat icon buttons may have no visible keyboard focus. Found in the task 1.1 review. This is routed to `brand-fidelity-audit`, which should verify it with a tab-through capture.
