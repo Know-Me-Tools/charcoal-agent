@@ -26,3 +26,4 @@ Append-only. Dated entries. Mark superseded entries; do not delete them.
 - Cause: the shell's `node` resolved to v26.5.0 through an fnm multishell that comes before nvm on PATH. Node 25+ defines its own global `localStorage`, which shadows jsdom's and is undefined without `--localstorage-file`.
 - Proof: with `PATH=~/.nvm/versions/node/v24.16.0/bin:$PATH`, the same tree gives 317/317 passing (39 files).
 - Handling: run gates under Node 24. The repo pins no Node version (no .nvmrc, no engines field); pinning is an open operator decision.
+- Update, 2026-09-26: Node is now pinned to 24 by the operator's decision: `.nvmrc` (24), `package.json` `engines.node` ">=24 <25", and the Dockerfile builder `node:24-alpine`. `docker build --target builder` passes on node:24-alpine. `engines` makes npm warn (EBADENGINE) on other versions, not fail, so run `nvm use` in a fresh shell.
