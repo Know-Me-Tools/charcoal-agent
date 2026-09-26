@@ -20,6 +20,9 @@
     "test:a11y": "node e2e/support/run-a11y.mjs",
     "brand:assets": "node scripts/generate-brand-assets.mjs"
   },
+  "engines": {
+    "node": ">=24 <25"
+  },
   "dependencies": {
     "@assistant-ui/react": "0.15.21",
     "@assistant-ui/react-devtools": "1.2.20",
