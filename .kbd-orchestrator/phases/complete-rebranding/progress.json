@@ -2,16 +2,16 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 450,
-  "derivedRevision": 450,
+  "sourceRevision": 475,
+  "derivedRevision": 475,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 450
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 475
   },
   "conflictCount": 0,
   "phase": "complete-rebranding",
   "phaseId": "complete-rebranding",
   "parentPhase": null,
-  "last_updated": "2026-09-26T15:09:08.034914Z",
+  "last_updated": "2026-09-26T22:04:30.179007Z",
   "last_updated_by": "kbd-runtime",
   "changes_total": 13,
   "changes_completed": 10,
@@ -183,12 +183,12 @@
     {
       "id": "landing-and-about-brand",
       "title": "Brand-template landing page and About",
-      "status": "PENDING",
-      "implementation_status": "PENDING",
-      "tasks_total": 0,
-      "tasks_done": 0,
-      "last_task_completed": null,
-      "next_task_pending": null,
+      "status": "IN_PROGRESS",
+      "implementation_status": "IN_PROGRESS",
+      "tasks_total": 6,
+      "tasks_done": 3,
+      "last_task_completed": "3.1 Guard and regression tests",
+      "next_task_pending": "1.1 Design mapping (creative director)",
       "blockers": []
     },
     {

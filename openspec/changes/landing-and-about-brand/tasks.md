@@ -26,7 +26,7 @@
 
 ## 2. Pages
 
-- [ ] 2.1 (owner: km-frontend-engineer) Build the landing page and the shared site chrome, following `docs/design/brand-pages.md` and design.md decisions 1–7:
+- [x] 2.1 (owner: km-frontend-engineer) Build the landing page and the shared site chrome, following `docs/design/brand-pages.md` and design.md decisions 1–7:
   - `src/components/site/{site-header,site-footer}.tsx`: nav lockup, a theme toggle with `aria-label` "Switch to {light|dark} theme", a non-ember "Open app" link, and a footer lockup with the legal line and `v{__APP_VERSION__}`
   - `src/pages/landing-page.tsx` rebuilt from `content/site/landing.ts`: hero `section` with the hero lockup, eyebrow, `h1` with one `text-ember-text` span, value line, and a flat composer whose named send button is always enabled (an empty submit focuses the field). Topic `section`s are labelled by their `h2`, alternate bands, and render FAQ as `h3` + `p`.
   - `vite.config.ts` defines `__APP_VERSION__` from `package.json`, declared in `src/vite-env.d.ts`
@@ -36,7 +36,7 @@
   - `grep -nE "\bborder\b|border-[a-z]|shadow|gradient|backdrop-blur|ring-1|zinc-|slate-|gray-|bg-white|#[0-9a-fA-F]{6}|text-\[(9|10|11)(\.[0-9]+)?px\]|text-[a-z-]+/[0-9]+" src/pages/landing-page.tsx src/components/site/*.tsx` returns nothing, apart from `border-0`/`border-transparent`
   - `npm run typecheck` passes, and changing the headline in `content/site/landing.ts` to an unlisted string makes it fail (scratch check, then revert)
   - `npx playwright test e2e/brand.spec.ts` passes
-- [ ] 2.2 (owner: km-frontend-engineer) Restyle `src/pages/about-page.tsx` and `src/pages/NotFound.tsx`, following design.md decisions 8–9:
+- [x] 2.2 (owner: km-frontend-engineer) Restyle `src/pages/about-page.tsx` and `src/pages/NotFound.tsx`, following design.md decisions 8–9:
   - About: an `h1` from content, the explanation paragraph, flat `bg-surface` rows, the version from `__APP_VERSION__`, a wrapping endpoint, and `StatusBadge` for status
   - 404: site header and footer, an `h1` and body from content, and one ember `Button` rendering a router `Link` to `/`
 
@@ -47,7 +47,7 @@
 
 ## 3. Guard and regressions
 
-- [ ] 3.1 (owner: km-qa-engineer) Add the guard and regression tests:
+- [x] 3.1 (owner: km-qa-engineer) Add the guard and regression tests:
   - Extend `src/test/flat-shell.test.ts` with a `describe` over `src/pages/{landing-page,about-page,NotFound}.tsx` and `src/components/site/*.tsx`, using the chat-only rules plus a `gradient` rule.
   - Add `src/test/brand-copy.test.ts`:
     - tagline-role fields are members of `APPROVED_TAGLINES`
