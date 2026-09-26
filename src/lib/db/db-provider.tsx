@@ -66,7 +66,7 @@ export function DbProvider({ children }: DbProviderProps) {
           // onto the fresh one isn't safe. Discard instead of replaying,
           // and report the loss once (chat-persistence-durability task 1.2
           // follow-up).
-          discardJournalAfterPurge();
+          await discardJournalAfterPurge();
         } else {
           // Replay any writes that were still pending when the page last
           // exited, directly against `db` (before setDbInstance below), so

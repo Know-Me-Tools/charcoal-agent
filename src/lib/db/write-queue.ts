@@ -26,7 +26,10 @@ export type WriteDescriptor =
   | { kind: "upsertMessage"; threadId: string; message: RichMessage }
   | { kind: "deleteMessages"; threadId: string; ids: string[] }
   | { kind: "upsertThread"; thread: LocalThread }
-  | { kind: "touchThread"; id: string }
+  // `at` is when the touch happened, so a replayed touch from another tab
+  // can be compared with the stored row (newer wins). Optional for journals
+  // written before it existed.
+  | { kind: "touchThread"; id: string; at?: string }
   | { kind: "deleteThread"; id: string };
 
 function tryDb(): CharcoalDb | null {
@@ -53,6 +56,26 @@ function descriptorLabel(descriptor: WriteDescriptor): string {
 }
 
 /**
+ * The thread a descriptor belongs to, regardless of kind. Used by
+ * `persistence-journal.ts` to scrub a deleted thread's descriptors out of
+ * every tab's journal, and to guard cross-tab replay against resurrecting a
+ * deleted thread or overwriting a newer save with a stale one (operator
+ * decision 2026-09-26 in design.md).
+ */
+export function descriptorThreadId(descriptor: WriteDescriptor): string {
+  switch (descriptor.kind) {
+    case "upsertMessage":
+    case "deleteMessages":
+      return descriptor.threadId;
+    case "upsertThread":
+      return descriptor.thread.id;
+    case "touchThread":
+    case "deleteThread":
+      return descriptor.id;
+  }
+}
+
+/**
  * Applies one descriptor against a specific, already-open `CharcoalDb`
  * instance — the SQL and row shapes are unchanged, this only decides which
  * method runs. Exported so journal replay (`persistence-journal.ts`) can
@@ -72,7 +95,7 @@ export async function applyDescriptor(
     case "upsertThread":
       return db.upsertThread(descriptor.thread);
     case "touchThread":
-      return db.touchThread(descriptor.id);
+      return db.touchThread(descriptor.id, descriptor.at);
     case "deleteThread":
       return db.deleteThread(descriptor.id);
   }

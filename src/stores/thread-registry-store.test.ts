@@ -4,9 +4,19 @@ import { flush } from "@/lib/db/write-queue";
 const upsertThread = vi.fn().mockResolvedValue(undefined);
 const touchThread = vi.fn().mockResolvedValue(undefined);
 const deleteThread = vi.fn().mockResolvedValue(undefined);
+const scrubThreadFromJournals = vi.fn();
 
 vi.mock("@/lib/db/pglite", () => ({
   getDbInstance: () => ({ upsertThread, touchThread, deleteThread }),
+}));
+
+// scrubThreadFromJournals' own correctness (localStorage side effects
+// across own/other-tab keys) is covered directly in
+// persistence-journal.test.ts; this file only proves removeThread calls it,
+// with the right id, before the delete is enqueued (chat-persistence-durability
+// operator decision 2026-09-26).
+vi.mock("@/lib/db/persistence-journal", () => ({
+  scrubThreadFromJournals,
 }));
 
 const { useThreadRegistryStore } = await import("./thread-registry-store");
@@ -18,6 +28,7 @@ function reset() {
   upsertThread.mockClear();
   touchThread.mockClear();
   deleteThread.mockClear();
+  scrubThreadFromJournals.mockClear();
 }
 
 describe("thread-registry-store write-through", () => {
@@ -83,7 +94,7 @@ describe("thread-registry-store write-through", () => {
     useThreadRegistryStore.getState().touch(ID);
     await flush();
 
-    expect(touchThread).toHaveBeenCalledWith(ID);
+    expect(touchThread).toHaveBeenCalledWith(ID, expect.any(String));
     expect(upsertThread).not.toHaveBeenCalled();
   });
 
@@ -97,5 +108,16 @@ describe("thread-registry-store write-through", () => {
     useThreadRegistryStore.getState().removeThread("no-such-thread");
     await flush();
     expect(deleteThread).toHaveBeenCalledWith("no-such-thread");
+  });
+
+  it("removeThread scrubs the thread out of every tab's journal before enqueuing the delete", async () => {
+    useThreadRegistryStore.getState().removeThread(ID);
+
+    // Called synchronously, before the (async) delete write even settles.
+    expect(scrubThreadFromJournals).toHaveBeenCalledWith(ID);
+    expect(scrubThreadFromJournals).toHaveBeenCalledTimes(1);
+
+    await flush();
+    expect(deleteThread).toHaveBeenCalledWith(ID);
   });
 });

@@ -1,6 +1,6 @@
 ## 1. Ordered, observable writes
 
-- [ ] 1.1 (owner: km-frontend-engineer) Add the app-wide serial write queue and route every local write through it (design decisions 1, 2, 4 and 8). Write the unit tests first and see them fail before implementing.
+- [x] 1.1 (owner: km-frontend-engineer) Add the app-wide serial write queue and route every local write through it (design decisions 1, 2, 4 and 8). Write the unit tests first and see them fail before implementing.
   - **Queue.** Add `src/lib/db/write-queue.ts` with:
     - `enqueueWrite(descriptor)`, which returns that write's promise
     - `pendingWriteCount()`
@@ -24,7 +24,7 @@
   - `grep -nE "\.catch\(console\.error\)" src/stores/chat-message-store.ts src/stores/thread-registry-store.ts` returns nothing.
   - `npm run typecheck` and `npm run lint` exit 0.
 
-- [ ] 1.2 (owner: km-frontend-engineer) Add the page-exit journal, the replay on open, the save-state attribute and the failure notice (design decisions 3, 5 and 6).
+- [x] 1.2 (owner: km-frontend-engineer) Add the page-exit journal, the replay on open, the save-state attribute and the failure notice (design decisions 3, 5 and 6).
   - **Journal.** On `pagehide`, and on `visibilitychange` to `hidden`, when writes are pending, synchronously write the unsettled descriptors, in order, to one versioned `localStorage` key. Clear the key when the queue drains.
   - **Replay.** Replay the key in order through the same executor inside `CharcoalDb.open`/`DbProvider`, after migrations and before `ready: true`. Skip and log a failing descriptor, discard an unknown key version, and remove the key when done.
   - **Save state.** Render `data-persistence="saving|saved|failed"` on the thread view root, derived from the queue.
@@ -44,7 +44,7 @@
 
 ## 2. Reload survival in the real browser
 
-- [ ] 2.1 (owner: km-qa-engineer) Restore and add reload-survival e2e coverage against the real PGlite/IndexedDB path, with no fixed waits and no retries.
+- [x] 2.1 (owner: km-qa-engineer) Restore and add reload-survival e2e coverage against the real PGlite/IndexedDB path, with no fixed waits and no retries.
   - **Restore.** In `e2e/chat-surfaces.spec.ts`, the retry/regenerate test (currently around line 788) gets its reload assertions back, and the §6.15 "no reload assertion" comment goes. After Try again, `page.reload()` runs immediately after the retried reply is visible, then the test asserts 1 user message, 1 assistant message, the retried text, and no error text. The same check runs after Regenerate, asserting the regenerated text and no replaced text. Restore the "both survive a reload" title.
   - **New test.** Add a reload-immediately-after-reply test in `e2e/chat-persistence.spec.ts` (new): send, wait for the reply text only, `page.reload()`, then assert one user message, one reply and the same text. Also assert that `[data-persistence]` reads `saved` once the thread has settled after the reload.
 
@@ -56,14 +56,14 @@
 
 ## 3. Verification
 
-- [ ] 3.1 (owner: km-qa-engineer) Run the full gate: `npm run build && npm run typecheck && npm run lint && npm test && npm run test:e2e`, then `npm run test:a11y`. Also check the failure notice by hand: force one write failure in a dev session, for example with a temporary throwing executor that is reverted afterwards and recorded, and confirm the toast text, that focus stays in the composer, and that the thread stays usable. Record the commands, outputs, the axe result for the thread region and the notice check in `docs/qa/chat-persistence-durability.md`.
+- [x] 3.1 (owner: km-qa-engineer) Run the full gate: `npm run build && npm run typecheck && npm run lint && npm test && npm run test:e2e`, then `npm run test:a11y`. Also check the failure notice by hand: force one write failure in a dev session, for example with a temporary throwing executor that is reverted afterwards and recorded, and confirm the toast text, that focus stays in the composer, and that the thread stays usable. Record the commands, outputs, the axe result for the thread region and the notice check in `docs/qa/chat-persistence-durability.md`.
 
   Verify:
   - all commands exit 0
   - axe reports no new violations in the thread region in either theme compared with the chat-surfaces-flat2 baseline
   - any unmet criterion is recorded as unmet, not waived
 
-- [ ] 3.2 (owner: km-product-owner) Write `openspec/changes/chat-persistence-durability/verification.md` from the QA evidence. It maps every scenario in `specs/chat-persistence/spec.md` to its evidence (unit test name, e2e test name and run count, or a manual check), and lists every unmet criterion and the residual MAY-be-lost cases. Then run an independent review with the `artifact-critic` subagent or `adversarial-review --mode diff`, and record its findings in the same file.
+- [x] 3.2 (owner: km-product-owner) Write `openspec/changes/chat-persistence-durability/verification.md` from the QA evidence. It maps every scenario in `specs/chat-persistence/spec.md` to its evidence (unit test name, e2e test name and run count, or a manual check), and lists every unmet criterion and the residual MAY-be-lost cases. Then run an independent review with the `artifact-critic` subagent or `adversarial-review --mode diff`, and record its findings in the same file.
 
   Verify:
   - every scenario has evidence or is marked unmet

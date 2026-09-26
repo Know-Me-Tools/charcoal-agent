@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { flush } from "@/lib/db/write-queue";
+import type { RichMessage, ToolCallContentBlock } from "@/types/chat-content";
 
 // A working (fake) DB whose insertMessage reads a nested property one
 // microtask after finishStream's/setStreamError's set() producer returns —
@@ -152,6 +153,74 @@ describe("chat-message-store persistMessages: only what changed this turn", () =
     // the first reply (run-1's assistant message), which succeeded, is not
     // retried.
     expect(idsTurn2).toEqual(["u1", "u2", expect.stringMatching(/^stream-run-2-/)]);
+  });
+});
+
+describe("chat-message-store updateToolCall: re-saves a message it mutates after it was already persisted (design.md Amendment)", () => {
+  beforeEach(() => {
+    insertMessage.mockReset();
+    insertMessage.mockResolvedValue(undefined);
+    useChatMessageStore.getState().clearThread(THREAD);
+    useChatMessageStore.getState().initThread(THREAD, []);
+  });
+
+  function toolCallBlock(status: ToolCallContentBlock["status"]): ToolCallContentBlock {
+    return { type: "tool-call", toolCallId: "call-1", toolName: "search", args: {}, status };
+  }
+
+  it("re-enqueues the message when a tool-call block on it is updated after finishStream already saved it", async () => {
+    const s = useChatMessageStore.getState();
+
+    s.beginStream(THREAD, "run-1");
+    s.addToolCall(THREAD, toolCallBlock("running"));
+    s.finishStream(THREAD);
+    await flush();
+
+    expect(insertMessage).toHaveBeenCalledTimes(1);
+    const savedId = (insertMessage.mock.calls[0] as [string, RichMessage])[1].id;
+    insertMessage.mockClear();
+
+    // A delayed agui.tool_result arrives after the message was already
+    // finalized and durably saved — persistMessages' persistedMessageIds
+    // guard (design.md's "only what changed" amendment) must not hide this
+    // change forever, since nothing else re-saves an already-persisted
+    // message.
+    s.updateToolCall(THREAD, "call-1", { status: "complete", result: "done" });
+    await flush();
+
+    expect(insertMessage).toHaveBeenCalledTimes(1);
+    const [, resaved] = insertMessage.mock.calls[0] as [string, RichMessage];
+    expect(resaved.id).toBe(savedId);
+    const block = resaved.content.find(
+      (b): b is ToolCallContentBlock => b.type === "tool-call",
+    );
+    expect(block?.status).toBe("complete");
+    expect(block?.result).toBe("done");
+  });
+
+  it("does not enqueue a write when the mutated message is still streaming", async () => {
+    const s = useChatMessageStore.getState();
+    s.beginStream(THREAD, "run-1");
+    s.addToolCall(THREAD, toolCallBlock("running"));
+
+    s.updateToolCall(THREAD, "call-1", { status: "complete" });
+    await flush();
+
+    expect(insertMessage).not.toHaveBeenCalled();
+  });
+
+  it("does nothing when the toolCallId does not match any message", async () => {
+    const s = useChatMessageStore.getState();
+    s.beginStream(THREAD, "run-1");
+    s.addToolCall(THREAD, toolCallBlock("running"));
+    s.finishStream(THREAD);
+    await flush();
+    insertMessage.mockClear();
+
+    s.updateToolCall(THREAD, "no-such-call", { status: "complete" });
+    await flush();
+
+    expect(insertMessage).not.toHaveBeenCalled();
   });
 });
 

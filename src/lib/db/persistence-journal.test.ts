@@ -108,8 +108,13 @@ const {
   subscribeWriteFailures,
   hasFailedWrite,
 } = await import("@/lib/db/write-queue");
-const { JOURNAL_KEY_PREFIX, getTabId, journalKeyForTab, replayJournal, discardJournalAfterPurge } =
-  await import("./persistence-journal");
+const {
+  JOURNAL_KEY_PREFIX,
+  getTabId,
+  journalKeyForTab,
+  replayJournal,
+  discardJournalAfterPurge,
+} = await import("./persistence-journal");
 
 const OWN_KEY = journalKeyForTab(getTabId());
 
@@ -316,7 +321,7 @@ describe("persistence-journal: cross-tab replay", () => {
       deadKey,
       JSON.stringify({
         version: 1,
-        descriptors: [{ kind: "touchThread", id: "dead-t1" }] satisfies WriteDescriptor[],
+        descriptors: [{ kind: "touchThread", id: "dead-t1", at: new Date().toISOString() }] satisfies WriteDescriptor[],
       }),
     );
 
@@ -329,6 +334,10 @@ describe("persistence-journal: cross-tab replay", () => {
         calls.push("touchThread");
       },
       deleteThread: async () => {},
+      // The thread exists and was last touched well before "now" — the
+      // foreign-thread guard (checkForeignThreadGuard) must let a
+      // not-older touchThread through.
+      getThreadUpdatedAt: async () => "2020-01-01T00:00:00.000Z",
     } as unknown as CharcoalDb;
 
     await replayJournal(db);
@@ -561,15 +570,15 @@ describe("persistence-journal: discard after a corruption-purge retry", () => {
     const failures: unknown[] = [];
     const unsubscribe = subscribeWriteFailures((descriptor) => failures.push(descriptor));
 
-    discardJournalAfterPurge();
+    await discardJournalAfterPurge();
     unsubscribe();
 
     expect(localStorage.getItem(OWN_KEY)).toBeNull();
     expect(failures).toEqual([{ kind: "touchThread", id: "t1" }]);
   });
 
-  it("does nothing when there is no journal to discard", () => {
-    expect(() => discardJournalAfterPurge()).not.toThrow();
+  it("does nothing when there is no journal to discard", async () => {
+    await expect(discardJournalAfterPurge()).resolves.not.toThrow();
     expect(localStorage.getItem(OWN_KEY)).toBeNull();
   });
 });

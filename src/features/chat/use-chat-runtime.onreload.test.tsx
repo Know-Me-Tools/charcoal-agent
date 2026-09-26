@@ -1,5 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { ExternalStoreAdapter, ThreadMessageLike } from "@assistant-ui/react";
 import { createGraphTestHarness } from "@/test/utils/graph-wrapper";
 import { mockFetch, type FetchMock } from "@/test/utils/mock-fetch";
 import { useChatMessageStore } from "@/stores/chat-message-store";
@@ -26,15 +27,21 @@ vi.mock("@/lib/db/pglite", () => ({
 // test can call onReload directly, without driving assistant-ui's full
 // runtime/UI layer — onReload is a plain closure and this is the seam
 // useChatRuntime exposes it through.
+//
+// useChatRuntime's real onReload only ever reads `parentId` (see
+// use-chat-runtime.ts) — the config's declared 2-arg signature is what
+// forces useChatRuntime's own call site to cast `as any`. Capturing it as
+// this narrower 1-arg type mirrors that same reality without a new `any`
+// here: a value assignable to the wider `ExternalStoreAdapter` signature
+// (fewer parameters than the type declares) is exactly what's produced at
+// the real call site, and it's the shape this test actually invokes below.
 let capturedOnReload: ((parentId: string | null) => Promise<void>) | null = null;
 vi.mock("@assistant-ui/react", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@assistant-ui/react")>();
   return {
     ...actual,
-    // Mirrors useChatRuntime's own `as any` cast at the useExternalStoreRuntime call site.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    useExternalStoreRuntime: (config: any) => {
-      capturedOnReload = config.onReload;
+    useExternalStoreRuntime: (config: ExternalStoreAdapter<ThreadMessageLike>) => {
+      capturedOnReload = config.onReload as ((parentId: string | null) => Promise<void>) | undefined ?? null;
       return actual.useExternalStoreRuntime(config);
     },
   };

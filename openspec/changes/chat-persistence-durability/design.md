@@ -139,3 +139,29 @@ No data migration. The code ships in one change. Rollback is a revert. A leftove
 ## Operator decision (2026-09-25)
 
 Decision 5, the `localStorage` page-exit journal with replay on open, was approved by the operator over the smaller queue-only option.
+
+## Operator decision (2026-09-26): making dead-tab replay safe
+
+**Found by:** the independent review of task 3.2. Replaying a journal left behind by another, dead tab can re-insert a thread the user has since deleted, because `upsertThread` is `INSERT … ON CONFLICT DO UPDATE` and `deleteThread` is a hard delete. It can also overwrite a newer title with an older one. The single-tab argument in Risks does not cover the per-tab journals added in d51be31.
+
+**Decision: scrub on delete, and newer wins.**
+- Deleting a thread (`deleteThread`, `deleteThreadMessages`) synchronously removes that thread's descriptors from every `knowme-pending-writes-v1:*` key in localStorage, this tab's and other tabs'. A key left with no descriptors is removed.
+- When another tab's journal is replayed, an `upsertThread` applies only if its `updatedAt` is not older than the stored row's `updated_at`. `touchThread` follows the same rule. Descriptors for a thread that no longer exists are skipped and logged, not reported as a save failure.
+- This tab's own journal still replays unconditionally, as the single-tab ordering argument covers it.
+
+**Rejected:** replaying only this tab's own journal. It would lose saves pending when a tab closes, which the spec says apply on the next start. Also rejected: age-bounded replay, which still brings back a thread deleted inside the window.
+
+**Accepted residual:** a live second tab that still holds a deleted thread in memory can write it back through its own next save. Live multi-tab editing is outside this change's scope, as before.
+
+## Amendment (2026-09-26): only changed messages are re-persisted per turn
+
+Found in review: `chat-message-store.ts`'s `persistMessages` enqueues a write only for messages not already known to be durably saved this session (`persistedMessageIds`), rather than re-upserting every complete message in the thread on every `finishStream`/`setStreamError`, as the original Non-Goals wording ("the upsert-all-complete-messages behaviour ... stay[s] the same") implied. Trade-off: a message untouched since an earlier turn is not re-upserted, which keeps the page-exit journal (decision 5) small — its pending set only ever holds what actually changed, not the whole thread history. A message mutated after it was already marked persisted (`updateToolCall`, for a tool result that arrives after `finishStream` already saved that message) is unmarked and re-enqueued at the point of that mutation, so the guard does not hide a genuine later change.
+
+## Correction (2026-09-26) to the operator decision on dead-tab replay
+
+The decision said "descriptors for a thread that no longer exists are skipped". Taken literally, that also skips the `upsertThread` which *creates* a new thread that a dead tab never managed to save, so the new thread and all its messages were lost. The cross-model review round 2 found this. The rule as implemented now:
+- An `upsertThread` for a missing row is a creation, and applies. What stops a deleted thread coming back is the scrub on delete, not a missing-row check.
+- Other descriptors for a thread that neither exists nor was created earlier in the same journal are skipped and logged.
+- `touchThread` descriptors carry `at`, the time of the touch. A foreign touch applies only if `at` is not older than the stored `updated_at`. A foreign touch with no `at` is skipped, since it only reorders the list.
+
+Tests on real PGlite: "restores a new thread, and its messages, that a dead tab created but never saved", and "does not let a dead tab's older touch move a thread saved more recently". Each fails when its fix is reverted.

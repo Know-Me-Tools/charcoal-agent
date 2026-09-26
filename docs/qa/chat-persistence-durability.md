@@ -217,3 +217,287 @@ All of the above passed in both themes.
 - Axe: no new violations in the thread region in either theme (0/0, matching baseline); nothing unmet there.
 - Manual check: every normative requirement (toast text, politeness, focus, composer usability, recovery) passed in both themes. The one thing recorded as **not fully clean** is the geometric corner-overlap finding in §3 above — reported as a QA finding for design/frontend follow-up, not waived and not silently fixed.
 - Task 3.2 (`verification.md` + independent review) is km-product-owner's task in `tasks.md` and is not run here.
+
+> Superseded note on §3's overlap finding: commit 1cccdcf moved the toaster to top-center (`src/components/ui/sonner.tsx`), so it no longer sits near the composer.
+
+# Task 3.2: journal proof and standing coverage for the PARTIAL rows
+
+## 1. New tests in `e2e/chat-persistence.spec.ts`
+
+Seven tests were added (lines 266 to 562). Each one covers a PARTIAL row in `verification.md`:
+
+- The journal and replay test: writes are held pending, the tab's own key `knowme-pending-writes-v1:<tabId>` is asserted before reload, and after reload the test asserts the reply, exactly one user and one assistant message, and that the key is gone.
+- The failed state clears back to `saved` after a later write succeeds.
+- After a failure, focus stays in the composer, the reply stays on screen, and a further send works.
+- A burst of failing writes produces one toast element.
+- A replay failure at startup shows the notice once the app is ready, and the app still finishes starting.
+- A write failure on a non-thread route shows the app-wide notice.
+- One tab's journal is untouched by another tab's startup replay.
+
+## 2. The journal test fails without the journal
+
+Setup: a copy of the tracked tree in the session scratchpad, outside the repo. It uses a symlinked `node_modules`, and its `vite.config.ts` gets a `server.fs.allow` entry for that path; without the entry, PGlite's data file is refused and the app shows "Invalid FS bundle size". Nothing in the repo was changed.
+
+| Scratch variant | Command | Result |
+|---|---|---|
+| Unmodified (control) | `npx playwright test e2e/chat-persistence.spec.ts -g "journaled to this tab" --repeat-each 3 --workers=1 --retries=0` | 3 passed |
+| `installPersistenceJournal()` call commented out | same, `--repeat-each 10` | 10 failed, all at line 295 `expect(journalBefore).not.toBeNull()` |
+| `await replayJournal(db)` in `db-provider.tsx` commented out | same, `--repeat-each 10` | 10 failed, all at line 306 (reply not visible after reload) |
+
+So the test detects a missing journal and a missing replay every time, not in 5 of 15 runs as the old reload test did.
+
+## 3. Stability in the repo
+
+```
+npx playwright test e2e/chat-persistence.spec.ts --workers=1                               # 12 passed (51.2s)
+npx playwright test e2e/chat-persistence.spec.ts --repeat-each 5 --workers=1 --retries=0   # 60 passed (4.2m)
+```
+
+The QA agent's scratch file `e2e/_scratch-hold-pending.spec.ts` was deleted.
+
+## 4. Task 3.2 continued — closing rows 7, 8, 14, 15 and 17
+
+Scope for this pass: `e2e/**` and `src/**/*.test.ts` only. No app source file was changed (confirmed with `git --no-optional-locks status --short -- src/ e2e/ docs/qa/` before and after — only `e2e/chat-persistence.spec.ts`, the new `src/lib/db/write-queue.real-pglite.test.ts`, and this doc are touched). Node 24 (`PATH=.../v24.16.0/bin:$PATH`) throughout, one Playwright run at a time, `timeout 540 ... --workers=1 --global-timeout=500000`.
+
+### 4.1 Row 7 and row 8 — real PGlite, not the fake
+
+**Why not e2e with writes held, then released (the task's preferred route).** `holdWritesPending()` (already in this file) swallows IndexedDB completion events **globally**, for every write, forever — it can't selectively hold back only the removal's write while letting the replacement's write proceed, because a turn's several logical writes (message upserts, thread touches) interleave at the same `IDBObjectStore.put` layer and a single logical write can itself span more than one `put` call (confirmed empirically in §4.2 below). There is no reliable way to intercept "this one descriptor's completion" from outside the page. So this pass uses the task's acceptable alternative instead: a vitest test against a **real, in-memory PGlite** — probed directly and confirmed to work under this project's jsdom + vitest setup (`new PGlite()` with no `idb://` DSN, ~1.3s to open a table, insert, and query).
+
+**New file:** `src/lib/db/write-queue.real-pglite.test.ts`. It mocks only `@electric-sql/pglite`'s `PGlite` constructor to ignore the `idb://charcoal-db` DSN `CharcoalDb.open()` passes and always run in-memory — jsdom has no IndexedDB, so that DSN is unreachable here, but every migration, constraint and query is the genuine one `CharcoalDb` (`src/lib/db/pglite.ts`) ships. `write-queue.ts`'s real `enqueueWrite`/`applyDescriptor` run unmodified against this instance via `setDbInstance`.
+
+- **Row 7** (`applies a removal that is still pending before a replacement requested while it's in flight, and the real row set ends up correct`): gates the real `CharcoalDb` instance's `deleteMessages` method behind a manually-released promise, enqueues the removal, confirms (via a settle flag, not a timing guess) that it has **not** settled two microtask ticks later, then enqueues the replacement for the same conversation while the removal is still pending by construction — the spec's literal WHEN clause. Releasing the gate and awaiting both, it asserts the **settlement order** (`["deleteMessages", "upsertMessage"]`) and the final row set via `db.getMessages()` (`["u1", "a1-new"]`, not `"a1-old"`).
+  - **Finding:** checking only the final row set does **not** by itself prove ordering here, because the removal and the replacement target different ids — either order lands at the same two rows (PGlite serializes internal query execution regardless of submission order, so a broken, unserialized write queue can still coincidentally produce the right final state for a non-overlapping id pair). The settlement-order assertion is what actually distinguishes a correctly serialized queue from a broken one; the final-row-set assertion is kept because it is literally what the THEN clause says, but it is not on its own sufficient evidence, and the mutation below confirms this.
+- **Row 8** (two tests): `row 8, negative control` proves the `messages.thread_id` foreign key is real by asserting `db.insertMessage("no-such-thread", …)` genuinely rejects (`error: insert or update on table "messages" violates foreign key constraint`). `row 8` then gates real `upsertThread`, enqueues the thread write, confirms it is still pending, enqueues the first reply's message write for the same thread while the thread row genuinely doesn't exist yet, releases, and asserts neither write rejects and both rows exist afterward.
+- **Row 17** (two tests, `describe("replay idempotency against real PGlite …")`): calls the exported `applyDescriptor` — the exact function `persistence-journal.ts`'s `replayKey()` uses — twice with the same `upsertMessage` descriptor and asserts exactly one row (not a duplicate); and twice with the same `deleteMessages` descriptor for an already-removed id and asserts no error and no resurrection. This is real SQL (`ON CONFLICT (id) DO UPDATE`, delete-by-id), not the fake store the existing `persistence-journal.test.ts` uses (which only covers `upsertThread`).
+
+**Runs:**
+
+```
+npx vitest run src/lib/db/write-queue.real-pglite.test.ts   # 5 passed (5 tests), ~2-6s depending on machine load
+npx vitest run                                              # 322 passed (40 files) — full suite, no regressions
+```
+
+10× repeat (vitest has no `--repeat-each`; ran the file 10 times in a loop):
+
+```
+for i in $(seq 1 10); do npx vitest run src/lib/db/write-queue.real-pglite.test.ts; done
+# PASSED: 10/10
+```
+
+**Mutations, scratch copy** (`cp -r src`, `package.json`, `vitest.config.ts`, `tsconfig*.json` into the session scratchpad outside the repo, `node_modules` symlinked — no `server.fs.allow` needed for vitest, only for the Playwright/Vite-dev-server case in §4.3/§4.4 below):
+
+| Mutation | File | Result |
+|---|---|---|
+| `enqueueWrite`'s `result = tail.then(() => executeWrite(descriptor))` changed to `result = executeWrite(descriptor)` (writes no longer chained) | `write-queue.ts` | Row 7 failed: `settleOrder` was `["upsertMessage", "deleteMessages"]`, not `["deleteMessages", "upsertMessage"]`. Row 8 failed: real `error: insert or update on table "messages" violates foreign key constraint "messages_thread_id_fkey"`. The other 3 tests (row 8 negative control, both row 17 tests) were unaffected, as expected — they don't depend on tail-chaining. |
+| `insertMessage`'s `ON CONFLICT (id) DO UPDATE` clause removed | `pglite.ts` | Row 17 upsert test failed: `error: duplicate key value violates unique constraint "messages_pkey"`. Other 4 tests unaffected. |
+| `deleteMessages` changed to throw when the delete matched zero rows | `pglite.ts` | Row 17 delete test failed: `Error: MUTATION: deleteMessages matched no rows`. Other 4 tests unaffected. |
+
+Each mutation was reverted immediately after confirming the failure; the scratch copy was not kept.
+
+### 4.2 Row 14 — deterministic wait, and proof that more than one write failed
+
+**File:** `e2e/chat-persistence.spec.ts`, test `"A burst of failing writes from one turn shows exactly one toast element"`.
+
+Replaced the fixed `await page.waitForTimeout(1000)` with: a `page.waitForResponse(...)` for the turn's non-streaming title-generation request, **registered before the message is sent** (so it can't race a response that already happened), awaited after the first `data-persistence="failed"` check; then a second `toHaveAttribute("failed")` check (real DOM-state polling, not a sleep) so the assertions below only run once the delayed `setTitle` write this unlocks has also settled.
+
+Added two counts, both read after that point:
+1. **Primary — per-write failure count.** A `page.on("console", …)` listener collects every `[write-queue] <descriptor> failed` line (one `console.error` call per failing descriptor in `reportFailure`, `write-queue.ts`). Asserts `writeQueueFailures.length > 1`.
+2. **Secondary — raw IndexedDB signal.** `patchPutAbortsWrites` now also increments `window.__putAbortCount` on every aborted `put()` call (reset to 0 each time the patch is installed). Asserts `putAbortCount > 1`.
+
+The primary count is the one that actually discriminates: a probe during development found a single logical write (`db.insertMessage`) can already trigger more than one real `put()` call (PGlite's WASM filesystem sync doesn't map 1:1 to SQL statements), so the raw `put`-abort count stayed `> 1` even under a mutation that cut the turn down to one logical write — it is kept as a secondary, genuine-IndexedDB-failure signal, not the load-bearing assertion.
+
+**Runs:**
+
+```
+npx playwright test e2e/chat-persistence.spec.ts -g "A burst of failing writes" --workers=1 --global-timeout=500000 --repeat-each 10   # 10 passed
+npx playwright test e2e/chat-persistence.spec.ts --workers=1 --global-timeout=500000                                                    # 12 passed (full file)
+```
+
+**Mutation, scratch copy** (full working tree copied — `src`, `e2e`, `index.html`, `public`, `vite.config.ts`, `playwright.config.ts`, `package.json`, `tsconfig*.json`, `.env*`, `node_modules` symlinked, plus a `server.fs.allow` entry in the scratch `vite.config.ts` for the real `node_modules` path — without it PGlite fails with "Invalid FS bundle size" exactly as CLAUDE.md's gotcha describes): `use-chat-runtime.ts`'s `afterStreamComplete` was changed to skip `markPersisted`/`touch` and to stop calling `setTitle` after the (still-awaited, so the network wait still resolves) title-generation request; `chat-message-store.ts`'s `persistMessages` was changed to `.slice(-1)` so only the newest message is persisted instead of every unpersisted one. Together this cuts the turn's failing writes from 5 (2 messages + `markPersisted`'s `upsertThread` + `touch`'s `touchThread` + `setTitle`'s `upsertThread`) down to 1.
+
+```
+npx playwright test e2e/chat-persistence.spec.ts -g "A burst of failing writes" --workers=1 --global-timeout=500000 --repeat-each 5
+# 5 failed, all at `expect(writeQueueFailures.length).toBeGreaterThan(1)` — Expected: > 1, Received: 1
+```
+
+(A first, heavier-handed attempt — skipping `afterStreamComplete` entirely before it ever calls `generateThreadTitle` — also failed 5/5, but at the `page.waitForResponse` timeout rather than at the counter, since no title request fired at all. That was a valid failure too, but the lighter mutation above isolates proof of the counter itself.) Both mutations were reverted immediately after; the scratch copy was not kept.
+
+### 4.3 Row 15 — the database error is logged, not just absent from the DOM
+
+**File:** `e2e/chat-persistence.spec.ts`, test `"A simulated local-write failure shows the plain-language notice once and keeps the conversation usable"` (extended, not replaced — it already covered the no-raw-error-in-the-DOM half of this row).
+
+Added a `page.on("console", …)` listener registered at the top of the test, and one assertion after the failure is visible: `consoleErrors.some(line => line.includes("[write-queue]") && line.includes("failed"))` must be `true` — this is `write-queue.ts`'s own `reportFailure` diagnostic log (`console.error(\`[write-queue] ${descriptorLabel(descriptor)} failed\`, error)`), read the same way a real browser console or CI log capture would see it.
+
+**Runs:**
+
+```
+npx playwright test e2e/chat-persistence.spec.ts -g "A simulated local-write failure" --workers=1 --global-timeout=500000 --repeat-each 10   # 10 passed
+npx playwright test e2e/chat-persistence.spec.ts --workers=1 --global-timeout=500000                                                          # 12 passed (full file)
+```
+
+**Mutation, scratch copy** (same e2e scratch tree as §4.2): `write-queue.ts`'s `reportFailure` had its `console.error(...)` call replaced with a no-op comment.
+
+```
+npx playwright test e2e/chat-persistence.spec.ts -g "A simulated local-write failure" --workers=1 --global-timeout=500000 --repeat-each 5
+# 5 failed, all at the new assertion — Expected: true, Received: false
+```
+
+Reverted immediately after; the scratch copy was not kept.
+
+### 4.4 Full-file stability after all of the above
+
+```
+npx playwright test e2e/chat-persistence.spec.ts --workers=1 --global-timeout=500000   # 12 passed (38.0s)
+```
+
+### 4.5 Finding not in scope: an existing row-18 test is intermittently flaky
+
+`"A replay failure at startup shows the notice once the app is ready, and the app still finishes starting"` (verification.md row 18, already MET, not one of this pass's PARTIAL rows; this test was not touched) failed once in a `--repeat-each 5` isolated run (4 passed, 1 failed at `expect(page.getByText(PERSISTENCE_FAILURE_TEXT)).toBeVisible()`, 15s timeout) and passed cleanly in every other run in this pass, including the full-file run immediately after. This is a pre-existing intermittent flake, not a regression from this pass — neither `persistence-journal.ts`, `db-provider.tsx`, `write-queue.ts`'s failure-latch path, nor that test itself were touched here. Flagging for km-product-owner / km-frontend-engineer to investigate; not fixed here (out of this task's scope, and not this role's code to change without a corresponding QA-owned test failure to diagnose against).
+
+### 4.6 Row-by-row summary
+
+| Row | What now proves it | Repeat | Mutation |
+|---|---|---|---|
+| 7 | `write-queue.real-pglite.test.ts` › "row 7: applies a removal that is still pending…" (settlement order + final row set, real PGlite) | 10/10 (file re-run) | Ordering mutation: fails (both the order and the FK-driven row 8 test) |
+| 8 | `write-queue.real-pglite.test.ts` › "row 8, negative control" + "row 8: a new conversation's thread row lands before its first message…" (real FK, real gated pending write) | 10/10 (file re-run) | Ordering mutation: row 8 fails with a real FK violation |
+| 14 | `chat-persistence.spec.ts` › "A burst of failing writes…" (deterministic network-based wait; `writeQueueFailures.length > 1` primary, `putAbortCount > 1` secondary) | 10/10 | Reduced-write-count mutation: fails at `writeQueueFailures.length` |
+| 15 | `chat-persistence.spec.ts` › "A simulated local-write failure…" (extended with a console.error assertion) | 10/10 | Removed-log mutation: fails at the new assertion |
+| 17 | `write-queue.real-pglite.test.ts` › both "replaying …" tests (real `applyDescriptor` against real PGlite, twice) | 10/10 (file re-run) | `ON CONFLICT` removal and no-op-delete-throws mutations: each fails its respective test only |
+
+Nothing in this pass required an app-code change to close; all five rows are closed by new or extended tests within `e2e/**` and `src/**/*.test.ts`.
+
+## 5. §4.5's flake: cause and fix (orchestrator)
+
+- **Reproduced:** `-g "replay failure at startup" --repeat-each 40 --workers=5 --retries=0` gave 3 failed and 37 passed, every failure at `expect(page.getByText(PERSISTENCE_FAILURE_TEXT)).toBeVisible()`.
+- **A first theory was ruled out.** The idea was that the toast's 4s auto-dismiss expired while the test waited on the composer. Asserting the notice before the composer still failed 3 of 80. That reorder was reverted.
+- **Cause, which was in the test and not the app:** the test planted the bad journal entry from the running page. `syncJournalIfPresent` (`persistence-journal.ts`) rewrites or clears this tab's key on every queue change. When one of that page's own writes settled after the plant, the entry was erased before reload, replay had nothing to fail, and no notice appeared. In the app, only the page that owns a key writes to it, so this is not a product defect.
+- **Fix:** the entry is now planted through `page.addInitScript`, guarded by a sessionStorage flag, so it is written on the next load before any app code runs. `-g "replay failure at startup" --repeat-each 80 --workers=5 --retries=0` gave **80 passed**, where the unfixed test failed 3 of 80.
+
+## 6. Final gate on the final tree (Node v24.16.0)
+
+```
+npx vitest run                                    # 40 files, 322 passed
+npx tsc --noEmit -p tsconfig.app.json             # exit 0
+npm run lint                                      # 0 errors, 2 warnings (existing react-refresh)
+npm run build                                     # built in 11.25s
+npx playwright test --workers=5                   # 197 passed (3.3m)
+npx playwright test e2e/chat-surfaces.spec.ts e2e/chat-persistence.spec.ts -g "reload" --repeat-each 20 --workers=1 --retries=0
+                                                  # 80 passed (4 tests x 20, 6.5m)
+```
+
+### 6.1 The two gate items the product owner found missing (added after the final recount)
+
+```
+npm run typecheck      # tsconfig.app.json and e2e/tsconfig.json, exit 0
+npm run test:a11y      # 24 passed; axe: 24 scans, 5 violations across 3 rules
+```
+
+The axe totals match the task 3.1 baseline exactly: thread 0/0 in both themes. The 5 violations are the existing ones on the agents, landing and settings-skills pages.
+
+# Task 3.3 (§7): Fixing four defects an independent review found in `e2e/chat-persistence.spec.ts`
+
+Scope: `e2e/chat-persistence.spec.ts` and this doc only. No `src/` file was read for editing and none was changed by this pass — `src/lib/db/persistence-journal.ts`, `src/lib/db/pglite.ts`, and `src/lib/db/write-queue.ts` show as modified in `git --no-optional-locks status` below, but that is km-frontend-engineer's concurrent work on the same branch (flagged as expected in this task's brief), not anything touched here; the runs in §7.4 below execute against whatever state those files were in at the time, which is the real integration surface this role tests against, not a frozen snapshot. No commit was made. `git --no-optional-locks` used for every read-only git check. Node 24 (`PATH=.../v24.16.0/bin:$PATH`) throughout. One Playwright run at a time, each wrapped in `timeout 540 … --global-timeout=500000`; port 4174 confirmed clear (`lsof -nP -iTCP:4174 -sTCP:LISTEN`, exit 1 / no output) before every invocation.
+
+```
+git --no-optional-locks status --short -- e2e/ docs/qa/ src/ playwright.config.ts vitest.config.ts
+ M docs/qa/chat-persistence-durability.md
+ M e2e/chat-persistence.spec.ts
+ M src/lib/db/persistence-journal.ts     # km-frontend-engineer's concurrent work, not this pass's
+ M src/lib/db/pglite.ts                  # km-frontend-engineer's concurrent work, not this pass's
+ M src/lib/db/write-queue.ts             # km-frontend-engineer's concurrent work, not this pass's
+?? src/lib/db/write-queue.real-pglite.test.ts   # from task 3.2, not this pass's
+```
+
+## 7.1 WARNING — the toast-burst test's settle point was not deterministic
+
+**Defect.** `"A burst of failing writes from one turn shows exactly one toast element"` rechecked `[data-persistence]` for `"failed"` both before and after `await titleResponse`. That attribute was already `"failed"` from the burst's earlier writes (the two message upserts and `markPersisted`'s `upsertThread`) well before `setTitle`'s own write is even enqueued, so both checks could pass without `setTitle`'s write — the last one this burst enqueues — having settled at all. The `toHaveCount(1)` toast assertion that followed could then run before that last failure was actually reported.
+
+**Fix.** Replaced the second `toHaveAttribute` recheck with `expect.poll` against the write queue's own failure log (the same `console.error` lines the test already collected for the `writeQueueFailures.length > 1` assertion), polling for the specific descriptor label `write-queue.ts`'s `descriptorLabel` produces for this write: `upsertThread(${FIXTURE_THREAD_ID})`.
+
+That label is **not unique** to `setTitle` — `markPersisted` enqueues an `upsertThread` write for the same thread id earlier in the same burst and produces the identical string — so a single occurrence proves nothing about `setTitle` specifically. The poll instead waits for a **second** occurrence of that exact label, which can only exist once `setTitle`'s own write has also failed (the first occurrence is already accounted for by `markPersisted`, which has settled by the time the reply and notice are visible, asserted separately just above). This is flagged in a comment in the test itself, and only found by reading `descriptorLabel`'s actual output — grepping for `descriptorLabel` in the test file's history would not have surfaced it.
+
+**Honesty on what the final toast-count assertion actually guards**, per the review's request: `await expect(toastElements).toHaveCount(1)` guards the **stable toast id** behaviour (`persistence-notices.tsx`'s `FAILURE_TOAST_ID`, which updates one toast in place instead of stacking a new one per failure). It does not, on its own, prove every individual failure in the burst was observed — `writeQueueFailures.length > 1` and `putAbortCount > 1` (both already in the test, both re-verified as still present and passing) are what establish that. This is now stated in a comment at the assertion site, not left implicit.
+
+## 7.2 WARNING — the non-thread-route test raced a fixed delay against two independent actions
+
+**Defect.** `"A write failure on a non-thread route still shows the app-wide notice"` delayed the title-generation route's fulfillment by a fixed `await new Promise((r) => setTimeout(r, 1500))`, then separately navigated away and called `patchPutAbortsWrites`. Nothing tied the 1500ms to when those two steps actually finished: too short, and the title response (and so `setTitle`'s write) could resolve and settle as a real, succeeding write before the IndexedDB patch was installed, silently making the test not exercise the failure path it claims to; too long, and the test is merely slower without buying more certainty. This is exactly the class of defect the file's own header (lines 7–10) says it avoids.
+
+**Fix.** Replaced the fixed delay with an explicit gate: a `Promise` the test itself resolves.
+
+```ts
+let releaseTitleResponse: () => void = () => {};
+const titleResponseGate = new Promise<void>((resolve) => {
+  releaseTitleResponse = resolve;
+});
+await page.route("**/api/chat/completion", async (route) => {
+  const body = route.request().postDataJSON() as { stream?: boolean } | null;
+  if (body?.stream === false) {
+    await titleResponseGate;
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(TITLE_RESPONSE) });
+  }
+  return route.fulfill({ status: 200, contentType: "text/event-stream", body: toSseBody() });
+});
+```
+
+The route handler now blocks indefinitely on `titleResponseGate` until the test calls `releaseTitleResponse()`, which happens only after the client-side navigation to `/agents` has completed and `patchPutAbortsWrites` has been installed. This removes the race entirely: the title response — and so `setTitle`'s write — cannot resolve before the failing-write patch is in place, regardless of how long navigation or route installation happen to take on a given run.
+
+## 7.3 SUGGESTION — stale file reference in a comment
+
+**Defect.** The comment above `PERSISTENCE_FAILURE_TEXT` (line 29) said the constant it mirrors lives in `src/hooks/use-persistence-status.ts`. It actually lives in `src/components/common/persistence-notices.tsx` (confirmed by reading that file directly — `usePersistenceStatus` only derives the `data-persistence` attribute now; the toast text and its ownership moved to `PersistenceNotices` per that file's own header comment).
+
+**Fix.** Corrected the file path in the comment; no other wording changed.
+
+## 7.4 "No fixed waits" — re-verified
+
+```
+grep -n "waitForTimeout\|setTimeout" e2e/chat-persistence.spec.ts
+(no output, exit 1)
+```
+
+The only match before this pass was the `setTimeout` fixed delay fixed in §7.2 above. None remain. The file's header claim ("no fixed waits and no retries stand in for the fix") is now actually true of its contents, not just its stated intent.
+
+## 7.5 Commands and results
+
+Individual sanity checks, single worker, before the load matrix:
+
+```
+npx tsc --noEmit -p e2e/tsconfig.json
+(exit 0, no output)
+
+npx playwright test e2e/chat-persistence.spec.ts -g "A burst of failing writes" --workers=1 --global-timeout=500000
+1 passed (7.1s)
+
+npx playwright test e2e/chat-persistence.spec.ts -g "A write failure on a non-thread route" --workers=1 --global-timeout=500000
+1 passed (5.9s)
+
+npx playwright test e2e/chat-persistence.spec.ts --workers=1 --global-timeout=500000
+12 passed (59.7s)
+```
+
+**Per-test stability, `--repeat-each 10 --workers=1` (both changed tests):**
+
+```
+npx playwright test e2e/chat-persistence.spec.ts -g "A burst of failing writes" --repeat-each 10 --workers=1 --global-timeout=500000
+10 passed (39.6s)
+
+npx playwright test e2e/chat-persistence.spec.ts -g "A write failure on a non-thread route" --repeat-each 10 --workers=1 --global-timeout=500000
+10 passed (35.7s)
+```
+
+10/10 for each changed test.
+
+**Whole-file load run, `--repeat-each 20 --workers=5 --retries=0`:**
+
+```
+npx playwright test e2e/chat-persistence.spec.ts --repeat-each 20 --workers=5 --retries=0 --global-timeout=500000
+240 passed (6.6m)
+[exited with code 0]
+```
+
+12 tests × 20 repeats = 240/240, no failures and no flaked-then-passed retries logged (`--retries=0`, so any flake would have shown as an outright failure). Grepped the full run output for `failed`/`✘`/`✗`: every match is a test **name** containing the word "failed" (e.g. `"The failed save state clears back to saved…"`), each one marked `✓`; there are no actual failures in the run.
+
+## 7.6 Unmet or out of scope
+
+- All four review items (7.1–7.4) are addressed; nothing in the review's stated list is unmet.
+- This pass did not re-run the full project gate (`npm run build`/`typecheck`/`lint`/`test`/`test:e2e`/`test:a11y`) — out of scope for a targeted test-defect fix, and `src/lib/db/*` was mid-edit by km-frontend-engineer at the time (see the concurrent-modification note at the top of this section), so a full-suite run right now would be testing a moving target rather than this fix. The scoped runs in §7.5 (the two changed tests individually, at 10/10 each, and the whole file at 240/240 under `--workers=5 --retries=0`) are the evidence for this task.
+- The pre-existing intermittent flake on the startup-replay test, already recorded and fixed in §5 above (task 3.2), was not touched here and was not observed to regress: it passed in every run in §7.5, including the 20×12 load run.

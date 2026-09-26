@@ -23,6 +23,7 @@
  */
 import {
   applyDescriptor,
+  descriptorThreadId,
   pendingWriteCount,
   pendingWriteDescriptors,
   reportFailure,
@@ -168,6 +169,66 @@ function writeJournalToKey(storage: Storage, key: string, descriptors: WriteDesc
 }
 
 // ---------------------------------------------------------------------------
+// Scrub on delete (operator decision 2026-09-26)
+// ---------------------------------------------------------------------------
+
+/**
+ * Removes every descriptor referencing `threadId` from every
+ * `knowme-pending-writes-v1:*` key currently in `localStorage` — this tab's
+ * own key and any other tab's, live or dead. Called synchronously when a
+ * thread is deleted, so a journal written before the delete (by this tab or
+ * another) can never resurrect the thread or restore a stale field on
+ * replay. A key left with no descriptors after scrubbing is removed
+ * entirely. Deliberately does not distinguish live from dead keys — unlike
+ * replay, scrubbing a live tab's key is intended: the accepted residual is
+ * that a live tab which still holds the deleted thread in memory can write
+ * it back through its own next save (design.md, "Accepted residual").
+ */
+export function scrubThreadFromJournals(threadId: string): void {
+  const storage = safeLocalStorage();
+  if (!storage) return;
+
+  const prefix = `${JOURNAL_KEY_PREFIX}:`;
+  const keys: string[] = [];
+  try {
+    for (let i = 0; i < storage.length; i++) {
+      const key = storage.key(i);
+      if (key && key.startsWith(prefix)) keys.push(key);
+    }
+  } catch (error) {
+    console.error("[persistence-journal] failed to enumerate journal keys while scrubbing a deleted thread", error);
+    return;
+  }
+
+  for (const key of keys) {
+    let raw: string | null;
+    try {
+      raw = storage.getItem(key);
+    } catch {
+      continue;
+    }
+    if (!raw) continue;
+
+    let payload: JournalPayload;
+    try {
+      payload = JSON.parse(raw) as JournalPayload;
+    } catch {
+      continue;
+    }
+    if (payload?.version !== JOURNAL_VERSION || !Array.isArray(payload.descriptors)) continue;
+
+    const kept = payload.descriptors.filter((d) => descriptorThreadId(d) !== threadId);
+    if (kept.length === payload.descriptors.length) continue;
+
+    if (kept.length === 0) {
+      clearJournalKey(storage, key);
+    } else {
+      trySetJournal(storage, key, kept);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Write on page exit; keep in sync while hidden; clear on drain
 // ---------------------------------------------------------------------------
 
@@ -181,32 +242,52 @@ function writeJournal(): void {
 }
 
 /**
- * Keeps an already-written journal current. The journal is only ever
- * written eagerly on `pagehide`/hidden; without this, a snapshot taken
- * while N writes were pending would still describe all N after some of them
- * settle, so a crash before the next hide/pagehide would replay writes that
- * had already landed (safe, since every write is idempotent, but stale and
- * wasteful, and it can re-surface a failure that already resolved). Called
- * on every queue change: if this tab's key currently holds a journal,
- * rewrite it to the CURRENT pending set — clearing it once that's empty —
- * so it only ever holds the unsettled suffix (chat-persistence-durability
- * task 1.2 follow-up).
+ * Keeps the journal current on every write-queue change: if this tab's key
+ * currently holds a journal, rewrite it to the CURRENT pending set —
+ * clearing it once that's empty — so it only ever holds the unsettled
+ * suffix (chat-persistence-durability task 1.2 follow-up), rather than a
+ * stale snapshot from the last hide/pagehide that a crash would replay
+ * pointlessly (safe, since every write is idempotent, but wasteful, and it
+ * can re-surface a failure that already resolved).
+ *
+ * While the page is currently hidden, this ALSO creates a journal that
+ * doesn't exist yet, for any write newly enqueued while hidden. Without
+ * this, a write queued after the hidden transition already fired has no
+ * event left to journal it on: `visibilitychange` only fires on the
+ * transition into "hidden", not again while the page stays hidden, so a
+ * page that crashes or is killed while backgrounded would lose a save that
+ * was never journaled at all (spec: "while saves are pending, the system
+ * SHALL record those pending saves synchronously" — task item 2 fix). While
+ * visible, a journal is still only ever kept in sync, never created
+ * pre-emptively — creating one is reserved for the hidden case and for the
+ * explicit pagehide/hidden-transition handlers below.
  */
 // Re-entrancy guard: writeJournalToKey's quota-shrink path calls
 // reportFailure, whose emitChange synchronously re-invokes every
 // subscribeWriteQueue listener — including this one — before the outer
 // call has returned. Without this guard that's unbounded mutual recursion
-// (syncJournalIfPresent -> writeJournalToKey -> reportFailure ->
-// emitChange -> syncJournalIfPresent -> ...) and a stack overflow.
+// (syncJournalOnQueueChange -> writeJournalToKey -> reportFailure ->
+// emitChange -> syncJournalOnQueueChange -> ...) and a stack overflow.
 let syncingJournal = false;
 
-function syncJournalIfPresent(): void {
+function syncJournalOnQueueChange(): void {
   if (syncingJournal) return;
   syncingJournal = true;
   try {
     const storage = safeLocalStorage();
     if (!storage) return;
     const key = journalKeyForTab(getTabId());
+    const pending = pendingWriteDescriptors();
+
+    if (pending.length === 0) {
+      clearJournalKey(storage, key);
+      return;
+    }
+
+    if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+      writeJournalToKey(storage, key, pending);
+      return;
+    }
 
     let hasJournal: boolean;
     try {
@@ -215,12 +296,6 @@ function syncJournalIfPresent(): void {
       return;
     }
     if (!hasJournal) return;
-
-    const pending = pendingWriteDescriptors();
-    if (pending.length === 0) {
-      clearJournalKey(storage, key);
-      return;
-    }
     writeJournalToKey(storage, key, pending);
   } finally {
     syncingJournal = false;
@@ -237,14 +312,80 @@ function handleVisibilityChange(): void {
 
 let installed = false;
 
+// ---------------------------------------------------------------------------
+// Duplicated-tab detection (task item 3)
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolves once this tab's id (`getTabId()`) is confirmed not to collide
+ * with a still-live tab's. Chrome's (and other browsers') "duplicate tab"
+ * copies `sessionStorage` verbatim into the new tab, so the duplicate
+ * inherits the SAME `knowme-tab-id` — and so the same journal key — as the
+ * tab it was duplicated from, which is still alive. Without this check, the
+ * duplicate would treat that shared key as its own and replay/clear it
+ * unconditionally on startup (`replayJournal`'s own-key path), destroying
+ * the original tab's live pending state.
+ *
+ * Detection: probe the inherited id's journal-key lock with
+ * `{ifAvailable: true}`. If it's already held, a live tab owns that id, so
+ * this tab mints a fresh one (persisted to `sessionStorage`) and adopts it
+ * instead. A no-op without Web Locks — there is then no way to detect the
+ * collision at all, same as the rest of this module's Web-Locks fallback.
+ *
+ * Memoized: every caller within this tab's lifetime awaits the same
+ * resolution, and `installPersistenceJournal`'s page-lifetime lock request
+ * (below) is only issued once it settles, so that request always targets
+ * the final, de-duplicated id.
+ *
+ * Not awaited by `writeJournal`/`syncJournalOnQueueChange` (the
+ * `pagehide`/hidden-write paths): those must stay synchronous, so a
+ * pagehide firing before this promise resolves — vanishingly rare, since it
+ * requires closing a just-duplicated tab within the time a single Web Locks
+ * round trip takes — is an accepted residual, not one this module can close
+ * without giving up the synchronous unload write itself.
+ */
+let tabIdentityReady: Promise<void> | null = null;
+
+function ensureUniqueTabIdentity(): Promise<void> {
+  if (tabIdentityReady) return tabIdentityReady;
+  tabIdentityReady = (async () => {
+    if (!hasWebLocks()) return;
+
+    const inheritedKey = journalKeyForTab(getTabId());
+    const isFree = await new Promise<boolean>((resolve) => {
+      navigator.locks
+        .request(inheritedKey, { ifAvailable: true }, (lock) => {
+          resolve(lock !== null);
+        })
+        .catch(() => resolve(true)); // Locks API erroring — proceed as this tab's own id, same as the no-Web-Locks fallback elsewhere.
+    });
+    if (isFree) return;
+
+    // Another live tab already holds this id's lock — this tab inherited it
+    // via a duplicated sessionStorage. Mint a fresh id so it gets its own
+    // key and lock instead of sharing the original's.
+    const freshId = crypto.randomUUID();
+    try {
+      window.sessionStorage.setItem(TAB_ID_STORAGE_KEY, freshId);
+    } catch {
+      // sessionStorage unavailable — cachedTabId below still takes effect
+      // for this tab's lifetime; only the reload-keeps-the-same-id property
+      // is lost for it, same as getTabId()'s own fallback.
+    }
+    cachedTabId = freshId;
+  })();
+  return tabIdentityReady;
+}
+
 /**
  * Wires the `pagehide`/`visibilitychange` listeners, the
  * keep-the-journal-current subscription, and — where Web Locks are
- * available — acquires this tab's lock for its journal key, held for the
- * page's lifetime (the lock's executor promise never resolves; it is only
- * released when the tab navigates away, closes, or crashes). That lock is
- * what lets another tab's startup replay tell this tab's key apart from a
- * dead tab's orphaned one, without any explicit liveness protocol.
+ * available — acquires this tab's lock for its (de-duplicated, see
+ * `ensureUniqueTabIdentity`) journal key, held for the page's lifetime (the
+ * lock's executor promise never resolves; it is only released when the tab
+ * navigates away, closes, or crashes). That lock is what lets another tab's
+ * startup replay tell this tab's key apart from a dead tab's orphaned one,
+ * without any explicit liveness protocol.
  *
  * Idempotent, and a no-op outside a browser environment (SSR, node-based
  * unit tests). Runs once at module load below; exported so a test can
@@ -256,13 +397,15 @@ export function installPersistenceJournal(): void {
   installed = true;
   window.addEventListener("pagehide", handlePageHide);
   document.addEventListener("visibilitychange", handleVisibilityChange);
-  subscribeWriteQueue(syncJournalIfPresent);
+  subscribeWriteQueue(syncJournalOnQueueChange);
 
   if (hasWebLocks()) {
-    const key = journalKeyForTab(getTabId());
-    navigator.locks.request(key, () => new Promise<void>(() => {})).catch(() => {
-      // Request aborted (e.g. a dev-mode hot reload tearing the module
-      // down) — nothing to clean up; the lock is simply not held.
+    void ensureUniqueTabIdentity().then(() => {
+      const key = journalKeyForTab(getTabId());
+      navigator.locks.request(key, () => new Promise<void>(() => {})).catch(() => {
+        // Request aborted (e.g. a dev-mode hot reload tearing the module
+        // down) — nothing to clean up; the lock is simply not held.
+      });
     });
   }
 }
@@ -274,6 +417,86 @@ installPersistenceJournal();
 // ---------------------------------------------------------------------------
 
 /**
+ * Whether a descriptor from ANOTHER (dead) tab's journal is safe to apply
+ * against the current database state (operator decision 2026-09-26):
+ * - `"skip-missing"`: the descriptor's thread no longer exists (deleted
+ *   since that tab's journal was written) — applying it would either
+ *   resurrect the thread (`upsertThread`/`touchThread`) or throw on the
+ *   `messages.thread_id` foreign key (`upsertMessage`). `deleteThread` and
+ *   `deleteMessages` are exempt: deleting an already-gone row is a harmless
+ *   no-op, not a resurrection risk.
+ * - `"skip-stale"`: the thread still exists, but an `upsertThread`'s own
+ *   `updatedAt`, or (for `touchThread`, which carries no timestamp of its
+ *   own) the current time, is older than the stored row's `updated_at` — a
+ *   newer save already applied since that tab's journal was written.
+ * - `"apply"`: safe to apply as-is.
+ * This tab's own journal is exempt from all of this (see `replayKey`'s
+ * `guard` parameter) — the single-tab ordering argument already covers it.
+ */
+async function checkForeignThreadGuard(
+  db: CharcoalDb,
+  descriptor: WriteDescriptor,
+): Promise<"apply" | "skip-missing" | "skip-stale"> {
+  const threadId = descriptorThreadId(descriptor);
+  const storedUpdatedAt = await db.getThreadUpdatedAt(threadId);
+
+  if (storedUpdatedAt === null) {
+    // No row: an upsertThread is a creation (a new thread whose row never
+    // landed before that tab died) and must apply. Resurrecting a deleted
+    // thread is prevented by the scrub on delete, not here. Deletes are
+    // harmless no-ops. Anything else targets a thread that neither exists
+    // nor was created earlier in this journal, so it is skipped.
+    return descriptor.kind === "upsertThread" ||
+      descriptor.kind === "deleteThread" ||
+      descriptor.kind === "deleteMessages"
+      ? "apply"
+      : "skip-missing";
+  }
+
+  if (descriptor.kind === "upsertThread") {
+    return descriptor.thread.updatedAt < storedUpdatedAt ? "skip-stale" : "apply";
+  }
+  if (descriptor.kind === "touchThread") {
+    // A foreign touch with no recorded time can't be proven newer: skip it.
+    // A touch only reorders the list, so skipping loses nothing else.
+    if (!descriptor.at) return "skip-stale";
+    return descriptor.at < storedUpdatedAt ? "skip-stale" : "apply";
+  }
+  return "apply";
+}
+
+/**
+ * Applies one descriptor during replay, honouring `checkForeignThreadGuard`
+ * when `guard` is true. A skip is logged like any other diagnostic, never
+ * reported through `reportFailure` — the spec treats it as a correctly
+ * defeated stale/orphaned write, not a save failure.
+ */
+async function replayDescriptor(
+  db: CharcoalDb,
+  descriptor: WriteDescriptor,
+  guard: boolean,
+): Promise<void> {
+  if (guard) {
+    const outcome = await checkForeignThreadGuard(db, descriptor);
+    if (outcome === "skip-missing") {
+      console.error(
+        "[persistence-journal] skipping replay of a descriptor for a thread that no longer exists",
+        descriptor,
+      );
+      return;
+    }
+    if (outcome === "skip-stale") {
+      console.error(
+        "[persistence-journal] skipping stale replay: a newer save already applied",
+        descriptor,
+      );
+      return;
+    }
+  }
+  await applyDescriptor(db, descriptor);
+}
+
+/**
  * Reads and replays the journal at `key`, in order, directly against `db` —
  * not through `enqueueWrite`/the module singleton, because replay runs
  * inside `CharcoalDb.open()`'s caller before `setDbInstance()` is called
@@ -283,8 +506,11 @@ installPersistenceJournal();
  * also drives the failure toast) and skipped; the rest still apply. An
  * unknown key version is discarded. The key is always removed when replay
  * finishes, whether or not anything failed.
+ *
+ * `guard` is true for another tab's (dead) key, false for this tab's own —
+ * see `checkForeignThreadGuard`.
  */
-async function replayKey(db: CharcoalDb, storage: Storage, key: string): Promise<void> {
+async function replayKey(db: CharcoalDb, storage: Storage, key: string, guard: boolean): Promise<void> {
   let raw: string | null;
   try {
     raw = storage.getItem(key);
@@ -311,7 +537,7 @@ async function replayKey(db: CharcoalDb, storage: Storage, key: string): Promise
 
   for (const descriptor of payload.descriptors) {
     try {
-      await applyDescriptor(db, descriptor);
+      await replayDescriptor(db, descriptor, guard);
     } catch (error) {
       reportFailure(descriptor, error);
     }
@@ -320,27 +546,41 @@ async function replayKey(db: CharcoalDb, storage: Storage, key: string): Promise
   clearJournalKey(storage, key);
 }
 
-/** Every `JOURNAL_KEY_PREFIX:*` key in storage other than `ownKey`. */
+/**
+ * Every `JOURNAL_KEY_PREFIX:*` key in storage other than `ownKey`. Guarded
+ * (task item 4): `storage.length`/`storage.key()` enumeration failing here
+ * must not propagate — `DbProvider` awaits `replayJournal` before it will
+ * ever render the app, so an uncaught throw here would take the whole app
+ * down the fatal "Database error" path over what is, at worst, a missed
+ * cross-tab replay this one time. Own-key replay has already completed by
+ * the time this runs (see `replayJournal`), so startup still finishes.
+ */
 function listOtherJournalKeys(storage: Storage, ownKey: string): string[] {
   const keys: string[] = [];
   const prefix = `${JOURNAL_KEY_PREFIX}:`;
-  for (let i = 0; i < storage.length; i++) {
-    const key = storage.key(i);
-    if (key && key !== ownKey && key.startsWith(prefix)) keys.push(key);
+  try {
+    for (let i = 0; i < storage.length; i++) {
+      const key = storage.key(i);
+      if (key && key !== ownKey && key.startsWith(prefix)) keys.push(key);
+    }
+  } catch (error) {
+    console.error("[persistence-journal] failed to enumerate other tabs' journal keys — skipping cross-tab replay", error);
+    return [];
   }
   return keys;
 }
 
 /**
  * Claims `key` only if nothing currently holds its Web Locks lock (i.e. its
- * owning tab is gone), replays it if so, and never touches it otherwise —
- * a live tab's journal is left strictly alone.
+ * owning tab is gone), replays it if so (guarded — see
+ * `checkForeignThreadGuard`), and never touches it otherwise — a live tab's
+ * journal is left strictly alone.
  */
 async function tryReplayDeadTabKey(db: CharcoalDb, storage: Storage, key: string): Promise<void> {
   try {
     await navigator.locks.request(key, { ifAvailable: true }, async (lock) => {
       if (!lock) return; // held by a live tab
-      await replayKey(db, storage, key);
+      await replayKey(db, storage, key, true);
     });
   } catch (error) {
     // Locks API erroring for this call — leave the key for a later
@@ -355,13 +595,20 @@ async function tryReplayDeadTabKey(db: CharcoalDb, storage: Storage, key: string
  * currently free. Without Web Locks there is no safe way to tell a dead
  * tab's orphaned key apart from a live one's, so only this tab's own key is
  * replayed (guard for browsers without `navigator.locks`).
+ *
+ * Awaits `ensureUniqueTabIdentity` first (task item 3): "this tab's own
+ * key" must mean this tab's DE-DUPLICATED id, never an id inherited from a
+ * still-live original tab — replaying that unconditionally would destroy
+ * the original's live pending state.
  */
 export async function replayJournal(db: CharcoalDb): Promise<void> {
   const storage = safeLocalStorage();
   if (!storage) return;
 
+  await ensureUniqueTabIdentity();
+
   const ownKey = journalKeyForTab(getTabId());
-  await replayKey(db, storage, ownKey);
+  await replayKey(db, storage, ownKey, false);
 
   if (!hasWebLocks()) return;
 
@@ -379,10 +626,15 @@ export async function replayJournal(db: CharcoalDb): Promise<void> {
  * this tab's journal instead of replaying it, and report the loss once.
  * Other tabs' keys are left untouched — this purge is local to this tab's
  * recovery path, and a live tab's journal must never be touched from here.
+ *
+ * Awaits `ensureUniqueTabIdentity` first, for the same reason `replayJournal`
+ * does (task item 3): "this tab's own key" must be resolved to this tab's
+ * de-duplicated id before it's discarded.
  */
-export function discardJournalAfterPurge(): void {
+export async function discardJournalAfterPurge(): Promise<void> {
   const storage = safeLocalStorage();
   if (!storage) return;
+  await ensureUniqueTabIdentity();
   const key = journalKeyForTab(getTabId());
 
   let raw: string | null;

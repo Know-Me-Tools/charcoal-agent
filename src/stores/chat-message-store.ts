@@ -340,7 +340,12 @@ export const useChatMessageStore = create<ChatMessageStore>()(
         message.content.push(toolCall as ContentBlock);
       }),
 
-    updateToolCall: (threadId, toolCallId, update) =>
+    updateToolCall: (threadId, toolCallId, update) => {
+      // Captured by the set() producer below as a plain message id (never a
+      // draft object), then used to look up committed state for the
+      // re-persist below — see write-queue.ts's module doc.
+      let updatedMessageId: string | null = null;
+
       set((state) => {
         const messages = state.messagesByThread[threadId];
         if (!messages) return;
@@ -352,10 +357,38 @@ export const useChatMessageStore = create<ChatMessageStore>()(
           );
           if (block) {
             Object.assign(block, update);
+            updatedMessageId = msg.id;
             return;
           }
         }
-      }),
+      });
+
+      if (!updatedMessageId) return;
+
+      // A tool-call block can be updated (e.g. a delayed agui.tool_result)
+      // after its message was already finalized and durably saved by
+      // finishStream/setStreamError — persistMessages' persistedMessageIds
+      // guard (design.md's "only what changed" amendment) would otherwise
+      // hide this change forever, since nothing else re-saves an
+      // already-persisted message. Skip a still-streaming message:
+      // finishStream's own persistMessages call will pick it up once it
+      // completes, same as any first-time save.
+      const message = get().messagesByThread[threadId]?.find(
+        (m) => m.id === updatedMessageId,
+      );
+      if (!message || message.status === "in_progress") return;
+
+      persistedMessageIds[threadId]?.delete(message.id);
+      enqueueWrite({ kind: "upsertMessage", threadId, message }).then(
+        () => {
+          (persistedMessageIds[threadId] ??= new Set()).add(message.id);
+        },
+        () => {
+          // Left unmarked — retried the next time persistMessages runs for
+          // this thread, same as persistMessages' own failure handling.
+        },
+      );
+    },
 
     addCitation: (threadId, citation) =>
       set((state) => {

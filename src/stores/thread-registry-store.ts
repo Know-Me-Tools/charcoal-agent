@@ -12,6 +12,7 @@ import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import type { LocalThread } from "@/types";
 import { enqueueWrite } from "@/lib/db/write-queue";
+import { scrubThreadFromJournals } from "@/lib/db/persistence-journal";
 
 interface ThreadRegistryState {
   threads: Record<string, LocalThread>;
@@ -139,7 +140,7 @@ export const useThreadRegistryStore = create<ThreadRegistryStore>()(
       });
 
       if (!changed) return;
-      enqueueWrite({ kind: "touchThread", id });
+      enqueueWrite({ kind: "touchThread", id, at: new Date().toISOString() });
     },
 
     setActive: (id) =>
@@ -154,6 +155,12 @@ export const useThreadRegistryStore = create<ThreadRegistryStore>()(
           state.activeThreadId = null;
         }
       });
+      // Synchronously scrub this thread out of every tab's page-exit
+      // journal (this tab's and others', live or dead) BEFORE enqueuing the
+      // delete, so a journal already on disk describing an upsert/touch for
+      // this thread can never replay and resurrect it or restore a stale
+      // field (operator decision 2026-09-26 in design.md).
+      scrubThreadFromJournals(id);
       enqueueWrite({ kind: "deleteThread", id });
     },
 
