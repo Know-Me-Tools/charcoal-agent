@@ -13,7 +13,7 @@
   - every colour in the doc names a token, with no hex
   - any new text-on-fill pair is added to `src/styles/tokens.test.ts`, and `npm test` passes
   - every S2 element in design.md decision 1 has a row
-- [ ] 1.2 (owner: km-chief-content-officer) Create the content modules:
+- [x] 1.2 (owner: km-chief-content-officer) Create the content modules:
   - `content/brand/taglines.ts`: `APPROVED_TAGLINES` holding the five Brand Guide v1.0 §11 strings verbatim, with the source file and line cited
   - `content/site/landing.ts`: eyebrow, the headline typed as a member of `APPROVED_TAGLINES` ("AI that understands you."), value line, nav and composer labels, and three sections `{ id, label, heading, body, faq? }` with no FAQ content
   - `content/site/about.ts`: heading, a D-004 explanation naming "KnowMe agent" and "Universal Agent Runtime", row labels, and the retained "KnowMe on the Universal Agent Runtime"
