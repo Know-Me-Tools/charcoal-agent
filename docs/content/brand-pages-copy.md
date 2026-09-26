@@ -5,10 +5,10 @@ Files: `content/brand/taglines.ts`, `content/site/landing.ts`, `content/site/abo
 
 Every item below is the final text as written in the content modules. "Voice rule" cites the Brand Guide v1.0 §02 rule or the openspec `brand-pages` spec requirement the item satisfies.
 
-**Operator approval: Travis James, 2026-09-26.** Approved all items, with one change: the Threads body no longer says "keeps the full history", because a reply interrupted mid-stream is not saved locally.
+**Operator approval: Travis James, 2026-09-26.** Approved all items, with one change: the Threads body no longer says "keeps the full history", because a reply interrupted mid-stream is not saved locally. Later the same day, the operator approved changing the value line's ending from "Type below and start talking." to "Type a message to start.", because the design puts the composer beside the text at 1024px and up. `composer.hint` and `composer.browseThreadsLabel` were removed because the design no longer renders them.
 
 Items that need an operator decision (openspec design.md Q1):
-- Landing: eyebrow, value line, nav "Open app" label, composer placeholder, composer send label, composer hint, composer "Browse threads" label, and each section's label / heading / body (3 sections).
+- Landing: eyebrow, value line, nav "Open app" label, composer placeholder, composer send label, and each section's label / heading / body (3 sections).
 - About: heading, explanation paragraph, the four row labels.
 - 404: heading, body, CTA label.
 
@@ -34,12 +34,10 @@ Source: `know-me/branding/knowme-brand-guide.html`, lines 1553-1557.
 |---|---|---|
 | `eyebrow` | "// The KnowMe agent" | Not tagline-role text (§11 applies only to the `h1` and other tagline-styled text). Names the product plainly; replaces the retired "// An OS that learns you" (banned, see spec "Retired slogans are gone"). No hype word, no exclamation. |
 | `headline` | "AI that understands you." | The approved primary tagline (Brand Guide §11), also the page `<title>` and OG description in `index.html`. Satisfies "Hero headline is the primary tagline". |
-| `valueLine` | "The KnowMe agent runs on the Universal Agent Runtime. Type below and start talking." | §02 "We do": specificity over generality — names the actual runtime instead of a vague claim. True to the product as it exists (this repo is a chat client for the KnowMe agent on UAR; CLAUDE.md). No invented feature or number. |
+| `valueLine` | "The KnowMe agent runs on the Universal Agent Runtime. Type a message to start." | §02 "We do": specificity over generality — names the actual runtime instead of a vague claim. True to the product as it exists (this repo is a chat client for the KnowMe agent on UAR; CLAUDE.md). No invented feature or number. |
 | `nav.openAppLabel` | "Open app" | Plain verb phrase, no hype. Unchanged from current copy (design.md decision 1: nav link becomes non-ember, label unchanged). |
 | `composer.placeholder` | "What's on your mind?" | §02 "We do": personal, direct, short. Calm invitation to type, no feature claim. |
 | `composer.sendLabel` | "Send" | Plain, matches spec scenario `getByRole("button", { name: /send\|start/i })`. |
-| `composer.hint` | "↵ to send" (renders as "↵ to send") | Functional micro-copy, unchanged from current UI; carried forward at ≥12px per design.md decision 5 (frontend/design concern, not a wording change). |
-| `composer.browseThreadsLabel` | "Browse threads" | Plain verb phrase, unchanged from current copy. |
 | `sections[0].label` | "Threads" | Short mono kicker, one word, matches the eyebrow's restraint. |
 | `sections[0].heading` | "Every conversation, kept." | §02 "We do": short sentence that lands. Concrete claim (thread history persists locally — `CharcoalDb`/PGlite, per CLAUDE.md), not a slogan. |
 | `sections[0].body[0]` | "Each chat becomes a thread, saved on your device, so you can pick up right where you left off." | Describes the app's actual local-thread persistence, no invented sync or feature. §02 "specificity over generality". |

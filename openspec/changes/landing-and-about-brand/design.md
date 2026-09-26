@@ -185,3 +185,10 @@ The operator confirmed all four defaults:
 - **Q5, footer:** no new links. The footer is the lockup and the legal line.
 
 Q1 (copy approval) is still open. The operator approves the copy sheet written in task 1.2 before archive.
+
+## Amendments from task 1.1 (2026-09-26)
+
+- **About rows use `bg-band`, not `bg-surface`.** This supersedes decision 8 and the "bg-surface" wording in task 2.2. The light-theme surface is only 1.31 ΔL* from the canvas, below the 1.8 floor. See `docs/design/brand-pages.md`.
+- **The send control, the 404 CTA and the header controls are plain elements** with `focus-visible:outline-solid`, not the `Button` primitive. The primitive's unconditional `outline-none` stops any focus outline from painting in Tailwind 4.
+- **Value line:** the operator approved changing its ending to "Type a message to start." `composer.hint` and `browseThreadsLabel` are removed.
+- **Send hover contrast:** the operator chose to fix it to at least 3:1 against the composer in both themes (D-007), not accept 2.49:1.

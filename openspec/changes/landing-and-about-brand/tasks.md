@@ -1,6 +1,6 @@
 ## 1. Design and copy
 
-- [ ] 1.1 (owner: km-creative-director) Write `docs/design/brand-pages.md`. It must cover:
+- [x] 1.1 (owner: km-creative-director) Write `docs/design/brand-pages.md`. It must cover:
   - the S2 → S1 reconciliation table from design.md decision 1, with every row resolved to a token and type role
   - the landing band order and the background token for each band in both themes, chosen so adjacent bands read as distinct in the light theme (see the design.md Risks)
   - hero composition at 320/768/1024/1440: lockup (56px), eyebrow, `h1` size and tracking, value-line width, composer at rest, focus and hover, and the send-control label or icon

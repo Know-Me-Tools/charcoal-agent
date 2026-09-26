@@ -36,8 +36,6 @@ export interface LandingContent {
 	composer: {
 		placeholder: string;
 		sendLabel: string;
-		hint: string;
-		browseThreadsLabel: string;
 	};
 	sections: LandingSection[];
 }
@@ -46,15 +44,13 @@ export const LANDING_CONTENT: LandingContent = {
 	eyebrow: "// The KnowMe agent",
 	headline: "AI that understands you.",
 	valueLine:
-		"The KnowMe agent runs on the Universal Agent Runtime. Type below and start talking.",
+		"The KnowMe agent runs on the Universal Agent Runtime. Type a message to start.",
 	nav: {
 		openAppLabel: "Open app",
 	},
 	composer: {
 		placeholder: "What's on your mind?",
 		sendLabel: "Send",
-		hint: "↵ to send",
-		browseThreadsLabel: "Browse threads",
 	},
 	sections: [
 		{
