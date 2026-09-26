@@ -28,6 +28,15 @@ Each role's `skills` list is in `team-request.json`. Skills live in `.agents/ski
 - `knowme-brand-standard`: Flat 2.0, tokens, type, marks, naming and voice.
 - `agent-led-marketing-site`: the chat-first marketing pattern (prerendered crawlable layer, concierge, AI disclosure, accessibility, cost/abuse limits, measurement).
 
+Six more capture what this project learned, written to be shared with other projects (agentskills.io format, MIT, every rule tagged with its evidence: `[verified]`, `[docs]`, `[review]` or `[practice]`). They were built with `pmpo-skill-creator` (Simple tier) and `skill-creator`, validated with the creator's `validate-skill.sh`, and reviewed by a second model (gpt-5.5) until it passed with no CRITICAL findings:
+
+- `pglite-browser-persistence`: PGlite on IndexedDB in Vite: pre-bundling, `idb://` names, durability semantics, safe purge, migrations, real in-memory PGlite in vitest.
+- `durable-browser-writes`: serial write queue, page-exit journal and replay, idempotency, multi-tab hazards, save-failure notices.
+- `browser-storage-e2e-testing`: IndexedDB failure injection, holding writes pending, `addInitScript`, mutation proofs, flake triage.
+- `tailwind4-shadcn-baseui-migration`: codemod, shadcn CLI, Base UI and assistant-ui pitfalls; token guard and contrast tests.
+- `chat-ui-model-output-safety`: sandboxed generated HTML, sanitizer order, no raw errors, retry without duplicates.
+- `agent-verification-hygiene`: commit gates, honest verification records, review packets, harness side effects.
+
 The rest come from the user-level skill library (`~/.claude/skills`, mirrored into `~/.agents/skills`).
 
 ## Using the team in each harness
