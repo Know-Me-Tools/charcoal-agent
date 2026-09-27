@@ -41,13 +41,16 @@ export default function AppearancePage() {
 
       <div>
         <label className="ui-label mb-3 block text-foreground">Font Size</label>
-        <div className="flex gap-3">
+        {/* Three equal columns from 400px up; below that the options stack.
+            At 320px three columns are too narrow for "Comfortable", which then
+            either overflowed the card or broke mid-word. Stacking avoids both. */}
+        <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-3">
           {fontSizes.map((fs) => (
             <button
               key={fs.value}
               onClick={() => setFontSize(fs.value)}
               aria-pressed={fontSize === fs.value}
-              className={`flex-1 rounded-lg p-4 text-center font-ui text-sm font-semibold transition-hover focus-cue ${
+              className={`min-w-0 rounded-lg px-2 py-4 text-center font-ui text-sm font-semibold transition-hover focus-cue sm:px-4 ${
                 fontSize === fs.value
                   ? "bg-ember-soft text-ember-text"
                   : "bg-muted-surface text-muted-foreground hover:bg-hover"

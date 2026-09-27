@@ -1,6 +1,6 @@
 ## 1. Fix-ups and the copy decision
 
-- [ ] 1.1 (owner: km-frontend-engineer) Make the product fix-ups marked "Fix now" in design.md decision 1 that have km-frontend-engineer as owner. No new tokens, no copy changes, no changes to `src/hooks` or `src/lib`.
+- [x] 1.1 (owner: km-frontend-engineer) Make the product fix-ups marked "Fix now" in design.md decision 1 that have km-frontend-engineer as owner. No new tokens, no copy changes, no changes to `src/hooks` or `src/lib`.
   - `agent-detail-page.tsx:124`: `/agents/new` renders create mode.
   - `skills-page.tsx`: the details panel moves onto the `Dialog` primitive; the control is named "View configuration for {title}"; the toggle becomes a switch with `aria-checked`, or a button with `aria-pressed`, and its name includes the skill title.
   - `providers-page.tsx:356`, `:376`: the models table is on `bg-band`, with `hover:bg-hover focus-within:bg-hover` rows.
@@ -11,7 +11,7 @@
   - `grep -n 'isNew' src/pages/agent-detail-page.tsx` shows the `undefined` case.
   - `grep -n 'fixed inset-0' src/pages/skills-page.tsx` returns nothing.
   - `git --no-optional-locks diff --stat -- src/hooks src/lib content` is empty.
-- [ ] 1.2 (owner: km-qa-engineer) Make the test fix-ups marked "Fix now" in design.md decision 1 that have km-qa-engineer as owner, and add the new spec tests:
+- [x] 1.2 (owner: km-qa-engineer) Make the test fix-ups marked "Fix now" in design.md decision 1 that have km-qa-engineer as owner, and add the new spec tests:
   - landing W3, W4, W7 and S1
   - the sub-12px `rem` rule (S2)
   - app-pages W1, W2 and S1
@@ -29,7 +29,7 @@
   - removing the dialog role must fail the dialog test
 
   Verify: all four failures are observed and recorded. No full suite runs yet.
-- [ ] 1.3 (owner: operator; recorded by km-product-owner) Decide landing S4, "Every conversation, kept." (design.md Open question 1).
+- [x] 1.3 (owner: operator; recorded by km-product-owner) Decide landing S4, "Every conversation, kept." (design.md Open question 1).
   - km-product-owner records the decision as D-009 in `.kbd-orchestrator/phases/complete-rebranding/decision-log.md`, with the operator's name and date.
   - If the operator picks new wording: km-cmo checks the claim against chat-persistence-durability's limits, km-chief-content-officer pre-reviews it and places it in `content/site/landing.ts`, and the operator's approval (name, date, file hash) goes into `docs/content/reviews/landing-s4.md`.
   - If there is no answer before task 2.1 starts, the approved copy stays and S4 is carried as a follow-up.
@@ -40,7 +40,7 @@
 
 ## 2. Whole-site audit and the single gate
 
-- [ ] 2.1 (owners: km-qa-engineer; km-creative-director for the reference comparison) After 1.1–1.3, run the gate in design.md decision 7 once, from a freshly started dev server, and record everything in `docs/qa/brand-fidelity-audit.md`:
+- [x] 2.1 (owners: km-qa-engineer; km-creative-director for the reference comparison) After 1.1–1.3, run the gate in design.md decision 7 once, from a freshly started dev server, and record everything in `docs/qa/brand-fidelity-audit.md`:
   - **Goldens (decision 4).** Switch `e2e/visual.spec.ts` to `toHaveScreenshot` with the pinned clock and masks. Set `snapshotPathTemplate` to `e2e/__goldens__/`. Generate with `--update-snapshots`, re-run without it, and record the total size. km-product-owner records D-010, the baseline commit.
   - **Strict axe.** Run `AXE_STRICT=1 npm run test:a11y` on every route in both themes.
   - **Flat 2.0.** Record the repo-wide rules' output and allowlist.

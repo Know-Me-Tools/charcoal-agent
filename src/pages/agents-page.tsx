@@ -102,7 +102,7 @@ function AgentMemoryPanel({ agent }: { agent: Agent }) {
   };
 
   return (
-    <div className="mt-3 rounded-lg bg-surface p-3">
+    <div className="mt-3 rounded-lg bg-raised p-3">
       <div className="mb-2 flex items-center gap-1.5">
         <Brain size={12} className="text-ember-text" />
         <span className="font-mono text-xs font-semibold uppercase tracking-widest text-muted-foreground">
@@ -222,11 +222,14 @@ function AgentCard({ agent }: { agent: Agent }) {
         )}
 
         {agent.skills.length > 0 && (
+          // These tags sit on the card's `bg-band` fill, so they use `bg-surface`
+          // rather than `bg-muted-surface`, which resolves to the same colour as
+          // `bg-band` in light.
           <div className="mt-3 flex flex-wrap gap-1">
             {agent.skills.slice(0, 3).map((skill) => (
               <span
                 key={skill}
-                className="rounded-sm bg-muted-surface px-2 py-0.5 font-mono text-xs text-muted-foreground"
+                className="rounded-sm bg-raised px-2 py-0.5 font-mono text-xs text-muted-foreground"
               >
                 {skill}
               </span>

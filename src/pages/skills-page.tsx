@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/common/empty-state";
 import { StatusBadge } from "@/components/common/status-badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import type { Skill } from "@/types";
 interface SkillDetailDialogProps {
   skill: Skill | null;
@@ -203,7 +204,7 @@ export default function SkillsPage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="mb-6 flex items-start justify-between gap-4">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div>
           <SectionLabel>Skills Library</SectionLabel>
           <h1 className="mt-1 font-display text-2xl font-bold text-foreground">Skills</h1>
@@ -330,27 +331,16 @@ export default function SkillsPage() {
                       <Settings size={14} />
                     </Button>
 
-                    {/* Toggle switch */}
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={skill.enabled}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleToggle(skill.id, skill.enabled);
-                      }}
-                      disabled={toggleSkill.isPending}
-                      aria-label={`${skill.name}: ${skill.enabled ? "enabled" : "disabled"}`}
-                      className={`relative h-5 w-9 rounded-full transition-colors focus-cue disabled:opacity-50 ${
-                        skill.enabled ? "bg-primary" : "bg-muted"
-                      }`}
-                    >
-                      <span
-                        className={`absolute top-0.5 h-4 w-4 rounded-full bg-card transition-transform ${
-                          skill.enabled ? "translate-x-4" : "translate-x-0.5"
-                        }`}
+                    {/* Toggle switch — stopPropagation on the wrapper keeps a click on
+                        the switch from also opening the detail dialog behind it. */}
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <Switch
+                        checked={skill.enabled}
+                        onCheckedChange={() => handleToggle(skill.id, skill.enabled)}
+                        disabled={toggleSkill.isPending}
+                        aria-label={`${skill.name}: ${skill.enabled ? "enabled" : "disabled"}`}
                       />
-                    </button>
+                    </div>
                   </div>
                 </div>
 
@@ -360,19 +350,21 @@ export default function SkillsPage() {
                   </p>
                 )}
 
-                {/* Show tools preview */}
+                {/* Show tools preview. These chips sit on the card's `bg-band` fill,
+                    so they use `bg-surface` rather than `bg-muted-surface`, which
+                    resolves to the same colour as `bg-band` in light. */}
                 {skill.preferred_tools && skill.preferred_tools.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-1">
                     {skill.preferred_tools.slice(0, 3).map((tool) => (
                       <span
                         key={tool}
-                        className="rounded bg-muted-surface px-1.5 py-0.5 text-xs text-muted-foreground"
+                        className="rounded bg-raised px-1.5 py-0.5 text-xs text-muted-foreground"
                       >
                         {tool}
                       </span>
                     ))}
                     {skill.preferred_tools.length > 3 && (
-                      <span className="rounded bg-muted-surface px-1.5 py-0.5 text-xs text-muted-foreground">
+                      <span className="rounded bg-raised px-1.5 py-0.5 text-xs text-muted-foreground">
                         +{skill.preferred_tools.length - 3}
                       </span>
                     )}

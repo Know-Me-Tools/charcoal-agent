@@ -35,3 +35,9 @@ Append-only. Dated entries. Mark superseded entries; do not delete them.
 - **Lesson:** `document.fonts.check()` returns true for a family that was never declared. Assert a declared FontFace with `status === "loaded"` instead.
 - **After the fix:** 4 full runs at the default workers gave 3 fully green and 0 `goto` timeouts. One run had 1 failure in chat-surfaces › "retry replaces the failed turn…". Its error was not captured, because my output filter kept only titles. That test then passed 30/30 in isolation at 5 workers. The cause is unknown. If it recurs, capture the full error before retrying.
 - **Correction (same day):** self-hosting the fonts did not remove every `goto` timeout. On a fresh dev server after lockfile or branch changes, a11y.spec still failed 10/24, some with `ERR_ABORTED (frame detached)`, while a warm server passed 24/24. The likely cause is Vite dependency re-optimisation reloading pages under concurrent first loads, which is unconfirmed. The fonts were one contributor, not the whole cause. Follow-up: brand-fidelity-audit, for example a warm-up globalSetup or `optimizeDeps.include`/`server.warmup`.
+
+## 2026-09-27: UI passed every test but looked wrong
+- **Rule:** before any UI handoff, capture 320 and 1440 in light and dark, and open the images. Rule-based tests (borders, font size, document scroll) miss overlap, clipping inside containers, invisible nested fills and broken controls.
+- **Token trap:** `--km-muted` equals `--km-band` in light, and `--km-surface` equals `--km-band` in dark. A fill nested on a band card must be `bg-raised`, which differs in both themes.
+- **Tailwind trap:** an arbitrary `calc()` needs spaces around `-`. `translate-x-[calc(100%-2px)]` is silently invalid.
+- **Details:** `.prometheus/postmortems/2026-09-27-ui-defects-found-late.md`; the skill is `.agents/skills/visual-first-ui-delivery`.
