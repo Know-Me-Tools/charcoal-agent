@@ -154,3 +154,14 @@ What remains is that the operator's sign-off is the only independent check that 
 4. **Where do repo-wide hits that render but don't fit the budget go?** Default: they are allowlisted with a follow-up id and listed as known defects in `verification.md`. The phase can close with them, and they seed the next phase's assessment.
 5. **Is Lighthouse on the mocked thread route worth running at all?** Default: yes, with the no-backend caveat recorded. The landing number is the one that matters for the later marketing-site phase.
 6. **Is the independent re-review required if the first review finds a CRITICAL that gets fixed?** Default: yes. It can be waived only by the operator, and the waiver is recorded.
+
+## Operator decision (2026-09-27): fix the five major deviations now
+
+The reference comparison (`docs/design/brand-fidelity-comparison.md`) found five major deviations that the first goldens had captured:
+- **D1:** provider row overlap at 320
+- **D2:** skills header overflow at 320
+- **D3:** font-size row overflow at 320
+- **D4:** skill switch thumb and track
+- **D5:** chips invisible on band cards in light, because `bg-muted-surface` and `bg-band` are both `#eef0f3`
+
+The operator chose to fix all five in this change, above the two-file fix-up budget. The fixes stay page-level: no new token, and no token value change. D5 moves chips on `bg-band` cards to `bg-surface`. Only the affected routes' goldens are regenerated, and each regeneration is recorded. Minor deviations D6–D13, the capture note D9, the fixture A4, the copy points and the Lighthouse bundle-size finding become follow-ups BFA-CD-06 to BFA-CD-15 for the next phase.
