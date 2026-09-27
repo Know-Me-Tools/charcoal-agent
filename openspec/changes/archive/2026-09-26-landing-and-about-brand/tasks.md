@@ -84,7 +84,7 @@
   - `test-results/a11y/{landing,settings-about,not-found}__{dark,light}.json` report zero violations
   - light-theme captures show adjacent landing bands as distinct
   - any failure traced to a token value is filed to km-creative-director and recorded as unmet, not waived
-- [ ] 4.2 (owner: km-product-owner) Write `openspec/changes/landing-and-about-brand/verification.md` from the QA evidence. It maps each spec scenario to its evidence (test name, capture path, axe file, or the dated operator approval line) and lists every unmet criterion. It must not claim any SEO or crawlability effect (design.md Risks). Then run an independent review with the `artifact-critic` subagent or `adversarial-review --mode diff`, and record its findings. Verify:
+- [x] 4.2 (owner: km-product-owner) Write `openspec/changes/landing-and-about-brand/verification.md` from the QA evidence. It maps each spec scenario to its evidence (test name, capture path, axe file, or the dated operator approval line) and lists every unmet criterion. It must not claim any SEO or crawlability effect (design.md Risks). Then run an independent review with the `artifact-critic` subagent or `adversarial-review --mode diff`, and record its findings. Verify:
   - every scenario in `specs/brand-pages/spec.md` has evidence or is marked unmet
   - the copy approval line exists
   - the review reports no CRITICAL findings, or they are fixed and re-reviewed before archive
