@@ -11,7 +11,7 @@
 
 ## 2. Build
 
-- [ ] 2.1 (owner: km-frontend-engineer) Restyle the in-scope pages and fix focus, following design.md decisions 2–3. No new tokens. Work:
+- [x] 2.1 (owner: km-frontend-engineer) Restyle the in-scope pages and fix focus, following design.md decisions 2–3. No new tokens. Work:
   - `src/components/ui/button.tsx`: focus per decision 3
   - `src/pages/{threads,agents,agent-detail,providers,skills,appearance,user-settings,settings}-page.tsx`: `bg-band` groups, filled borderless inputs, rule-free rows, status tokens or `StatusBadge` with text cues, no sub-12px sizes, and D-004 settings copy
   - any page-local component those pages import that carries the same violations
@@ -25,7 +25,7 @@
 
 ## 3. Tests and the final gate
 
-- [ ] 3.1 (owner: km-qa-engineer) Add the tests:
+- [x] 3.1 (owner: km-qa-engineer) Add the tests:
   - In `src/test/flat-shell.test.ts`, add a `describe` over the in-scope files using `RULES` plus the gradient rule.
   - Add `e2e/app-pages.spec.ts`, covering every browser scenario in `specs/app-pages/spec.md`:
     - route render
@@ -40,7 +40,7 @@
     - request method and path per CRUD scenario, captured with the mock's route log or `page.on("request")`
 
   Update `e2e/support/routes.ts` ready texts if headings changed. Record a scratch mutation for each suite in the task note, then revert it: re-add `outline-none` to `Button`, which must fail the Tab-through; add `border border-border` to one page, which must fail the guard. Verify: those two failures are observed and recorded.
-- [ ] 3.2 (owner: km-qa-engineer) Run the single final gate, once, after 2.1 and 3.1:
+- [x] 3.2 (owner: km-qa-engineer) Run the single final gate, once, after 2.1 and 3.1:
   - `npm run build && npm run typecheck && npm run lint && npm test && npm run test:e2e`
   - then `npm run test:visual`, reviewing the in-scope routes at 320 and 1440 in both themes
   - then `npm run test:a11y`
@@ -53,6 +53,6 @@
 
 ## 4. Verification and review
 
-- [ ] 4.1 (owner: km-product-owner) Write `openspec/changes/app-pages-flat2-entity-views/verification.md` from the QA evidence, mapping each spec scenario to a test name, capture path, grep output or decision-log entry. List every unmet criterion, and state whether the live UAR smoke ran. Then run one independent review, with the `artifact-critic` subagent or `adversarial-review --mode diff`, and record its findings. Verify:
+- [x] 4.1 (owner: km-product-owner) Write `openspec/changes/app-pages-flat2-entity-views/verification.md` from the QA evidence, mapping each spec scenario to a test name, capture path, grep output or decision-log entry. List every unmet criterion, and state whether the live UAR smoke ran. Then run one independent review, with the `artifact-critic` subagent or `adversarial-review --mode diff`, and record its findings. Verify:
   - every scenario has evidence or is marked unmet
   - the review reports no CRITICAL findings, or they are fixed and re-reviewed before archive
