@@ -4,6 +4,13 @@
 * **Creation**: [No Technical Content Provided](/no-technical-content-provided.md)
 
 ## 2026-09-26
+* **Ingest**: [Karpathy session 15bbc1d54e8f](/karpathy-session-15bbc1d54e8f8316.md)
+* **Ingest**: [Karpathy session c27315c8e3eb](/karpathy-session-c27315c8e3eb27a9.md)
+* **Ingest**: [Karpathy session ae7c000f457f](/karpathy-session-ae7c000f457f7d41.md)
+* **Ingest**: [Karpathy session a121cf5d2a37](/karpathy-session-a121cf5d2a371b46.md)
+* **Ingest**: [Karpathy session c899633cb294](/karpathy-session-c899633cb294e73a.md)
+* **Ingest**: [Karpathy session 01ca9fbdfb8d](/karpathy-session-01ca9fbdfb8d0d3f.md)
+* **Ingest**: [Karpathy session d2bb280ba48c](/karpathy-session-d2bb280ba48c2d76.md)
 * **Ingest**: [Karpathy session 7acd299731ef](/karpathy-session-7acd299731ef9f9e.md)
 * **Ingest**: [Karpathy session 0f5b35372c24](/karpathy-session-0f5b35372c2462c8.md)
 * **Ingest**: [Karpathy session 6eadfa4e0d8d](/karpathy-session-6eadfa4e0d8d110c.md)
