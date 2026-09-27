@@ -224,11 +224,11 @@ test("eyebrow is 12px+ JetBrains Mono, and the h1 is Space Grotesk", async ({ pa
     const s = getComputedStyle(el);
     return { family: s.fontFamily, size: parseFloat(s.fontSize) };
   });
-  expect(firstFamily(eyebrowStyle.family)).toBe("JetBrains Mono");
+  expect(firstFamily(eyebrowStyle.family)).toBe("JetBrains Mono Variable"); // self-hosted (@fontsource-variable)
   expect(eyebrowStyle.size).toBeGreaterThanOrEqual(12);
 
   const h1Family = await page.locator("h1").evaluate((el) => getComputedStyle(el).fontFamily);
-  expect(firstFamily(h1Family)).toBe("Space Grotesk");
+  expect(firstFamily(h1Family)).toBe("Space Grotesk Variable");
 });
 
 for (const theme of THEMES) {
