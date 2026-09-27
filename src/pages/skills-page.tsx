@@ -299,18 +299,13 @@ export default function SkillsPage() {
           {skills.map((skill) => {
             const category = categorizeSkill(skill);
             return (
+              // The card is a mouse shortcut only. Keyboard and screen-reader users open the
+              // same panel with the "View configuration" button inside it; making the card a
+              // button as well nested interactive controls (axe nested-interactive).
               <div
                 key={skill.id}
-                role="button"
-                tabIndex={0}
                 onClick={() => handleSkillClick(skill)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleSkillClick(skill);
-                  }
-                }}
-                className="cursor-pointer rounded-lg bg-band p-4 text-left transition-all hover:bg-hover focus-cue"
+                className="cursor-pointer rounded-lg bg-band p-4 text-left transition-all hover:bg-hover"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">

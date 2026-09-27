@@ -191,17 +191,17 @@ function AgentCard({ agent }: { agent: Agent }) {
         onClick={() => navigate(`/agents/${agent.id}`)}
         className="w-full rounded-lg p-4 text-left focus-cue"
       >
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary/10">
               <Bot size={20} className="text-ember-text" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="truncate font-display text-sm font-semibold text-foreground">
+              <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
+                <span className="max-w-full truncate font-display text-sm font-semibold text-foreground">
                   {agent.name}
                 </span>
-                <span className="font-mono text-xs uppercase tracking-wider text-fg-secondary">
+                <span className="shrink-0 font-mono text-xs uppercase tracking-wider text-fg-secondary">
                   {sourceLabel}
                 </span>
               </div>
@@ -212,7 +212,7 @@ function AgentCard({ agent }: { agent: Agent }) {
               )}
             </div>
           </div>
-          <StatusBadge status={agent.enabled ? "active" : "disabled"} />
+          <StatusBadge status={agent.enabled ? "active" : "disabled"} className="shrink-0" />
         </div>
 
         {agent.metadata?.description && (

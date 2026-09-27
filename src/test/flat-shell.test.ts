@@ -260,3 +260,51 @@ describe("Flat 2.0 brand pages", () => {
     );
   });
 });
+
+/**
+ * Flat 2.0 guard for the app pages behind the shell (app-pages spec;
+ * design.md decision 2: bg-band grouping, filled borderless inputs,
+ * row-fill separation instead of rules, tokens instead of raw palette, no
+ * sub-12px text). Reuses the shell's RULES set plus the gradient rule (task
+ * 3.1: "using RULES plus the gradient rule") — no hex/white-black/opacity
+ * bans here, since those are chat- and brand-page-only conventions the
+ * app-pages spec does not impose.
+ */
+const APP_PAGE_FILES = [
+  "src/pages/threads-page.tsx",
+  "src/pages/agents-page.tsx",
+  "src/pages/agent-detail-page.tsx",
+  "src/pages/providers-page.tsx",
+  "src/pages/skills-page.tsx",
+  "src/pages/appearance-page.tsx",
+  "src/pages/user-settings-page.tsx",
+  "src/pages/settings-page.tsx",
+];
+
+function appPageViolationsIn(source: string): string[] {
+  const code = stripComments(source);
+  return [...RULES, GRADIENT_RULE].flatMap(({ name, pattern }) =>
+    [...code.matchAll(pattern)].map((m) => `${name}: ${m[0]}`),
+  );
+}
+
+describe("Flat 2.0 app pages", () => {
+  for (const file of APP_PAGE_FILES) {
+    it(`${file} has no borders, shadows, blur, sub-12px text, raw palette colours or gradients`, () => {
+      expect(appPageViolationsIn(readFileSync(file, "utf8"))).toEqual([]);
+    });
+  }
+
+  it("covers every in-scope app page", () => {
+    expect(APP_PAGE_FILES).toEqual([
+      "src/pages/threads-page.tsx",
+      "src/pages/agents-page.tsx",
+      "src/pages/agent-detail-page.tsx",
+      "src/pages/providers-page.tsx",
+      "src/pages/skills-page.tsx",
+      "src/pages/appearance-page.tsx",
+      "src/pages/user-settings-page.tsx",
+      "src/pages/settings-page.tsx",
+    ]);
+  });
+});
