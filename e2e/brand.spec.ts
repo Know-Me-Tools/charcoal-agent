@@ -68,3 +68,30 @@ test("built-in skill details credit the KnowMe agent", async ({ page }) => {
   await expect(page.getByText(/built-in skill of the KnowMe agent/)).toBeVisible();
   await expect(page.getByText(/Charcoal/)).toHaveCount(0);
 });
+
+test("brand fonts are self-hosted and load with no third-party font request", async ({ page, baseURL }) => {
+  const foreignFontRequests: string[] = [];
+  page.on("request", (request) => {
+    const url = request.url();
+    const isFont = request.resourceType() === "font" || /fonts\.(googleapis|gstatic)\.com/.test(url);
+    if (isFont && !url.startsWith(baseURL ?? "")) foreignFontRequests.push(url);
+  });
+
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  // Ask the browser to load one face from each family, then require a declared face of that
+  // family whose status is "loaded". document.fonts.check() alone returns true for a family
+  // that was never declared, so it can't tell "loaded" from "missing".
+  const loaded = await page.evaluate(async () => {
+    const families = ["Inter Variable", "Space Grotesk Variable", "Roboto Variable", "JetBrains Mono Variable"];
+    await Promise.all(families.map((family) => document.fonts.load(`400 16px '${family}'`)));
+    const faces = Array.from(document.fonts);
+    return families.map((family) => ({
+      family,
+      ok: faces.some((face) => face.family.replace(/['"]/g, "") === family && face.status === "loaded"),
+    }));
+  });
+
+  expect(loaded.filter((f) => !f.ok)).toEqual([]);
+  expect(foreignFontRequests).toEqual([]);
+});

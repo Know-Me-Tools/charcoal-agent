@@ -2,6 +2,11 @@
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 @import './styles/tokens.css';
+/* Brand fonts, self-hosted (variable, OFL-1.1). No third-party font request. */
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/space-grotesk';
+@import '@fontsource-variable/roboto';
+@import '@fontsource-variable/jetbrains-mono';
 
 @plugin '@tailwindcss/typography';
 
@@ -19,10 +24,10 @@
 }
 
 @theme inline {
-  --font-display: Space Grotesk, sans-serif;
-  --font-ui: Inter, sans-serif;
-  --font-body: Roboto, sans-serif;
-  --font-mono: JetBrains Mono, monospace;
+  --font-display: 'Space Grotesk Variable', 'Space Grotesk', sans-serif;
+  --font-ui: 'Inter Variable', Inter, sans-serif;
+  --font-body: 'Roboto Variable', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', monospace;
 
   --animate-blink-cursor: blink-cursor 1s step-end infinite;
   --animate-shimmer: shimmer 1.5s ease-in-out infinite;

@@ -27,3 +27,10 @@ Append-only. Dated entries. Mark superseded entries; do not delete them.
 - Proof: with `PATH=~/.nvm/versions/node/v24.16.0/bin:$PATH`, the same tree gives 317/317 passing (39 files).
 - Handling: run gates under Node 24. The repo pins no Node version (no .nvmrc, no engines field); pinning is an open operator decision.
 - Update, 2026-09-26: Node is now pinned to 24 by the operator's decision: `.nvmrc` (24), `package.json` `engines.node` ">=24 <25", and the Dockerfile builder `node:24-alpine`. `docker build --target builder` passes on node:24-alpine. `engines` makes npm warn (EBADENGINE) on other versions, not fail, so run `nvm use` in a fresh shell.
+
+## 2026-09-26: e2e page loads depended on Google Fonts
+- **Symptom:** intermittent `page.goto: Test timeout of 60000ms exceeded` failures on random routes. Most were in a11y.spec, the first spec to run. 2 of 4 full runs failed, with 4–5 failures each. No failure in isolated runs, and nothing in the Vite log.
+- **Cause:** `index.html` loaded a render-blocking stylesheet from fonts.googleapis.com, and nothing in e2e stubbed it. A stalled request delays the `load` event. A diagnostic spec that hung the request reproduced the exact `goto` timeout.
+- **Fix (operator decision, self-host):** `@fontsource-variable/{inter,space-grotesk,roboto,jetbrains-mono}`@5.3.0, exact-pinned and OFL-1.1, imported in `src/index.css`. The Google link is removed. `e2e/brand.spec.ts` asserts that all four families load and that no request goes to another origin for fonts. That test is mutation-checked against a restored Google link and a missing import.
+- **Lesson:** `document.fonts.check()` returns true for a family that was never declared. Assert a declared FontFace with `status === "loaded"` instead.
+- **After the fix:** 4 full runs at the default workers gave 3 fully green and 0 `goto` timeouts. One run had 1 failure in chat-surfaces › "retry replaces the failed turn…". Its error was not captured, because my output filter kept only titles. That test then passed 30/30 in isolation at 5 workers. The cause is unknown. If it recurs, capture the full error before retrying.
