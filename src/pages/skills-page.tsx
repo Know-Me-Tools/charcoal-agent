@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { RefreshCw, Wrench, CheckCircle2, AlertCircle, Loader2, Settings, X, ChevronRight, Tag } from "lucide-react";
+import { RefreshCw, Wrench, CheckCircle2, AlertCircle, Loader2, Settings, ChevronRight, Tag } from "lucide-react";
 import { useSkills, useToggleSkill, useRefreshSkills } from "@/hooks/use-skills";
 import { useSkillsSync } from "@/hooks/use-skills-sync";
 import { KNOWME_SKILLS } from "@/lib/skills/knowme-skills";
@@ -8,29 +8,30 @@ import { SkeletonCard } from "@/components/common/skeleton-loader";
 import { EmptyState } from "@/components/common/empty-state";
 import { StatusBadge } from "@/components/common/status-badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { Skill } from "@/types";
-interface SkillDetailPanelProps {
+interface SkillDetailDialogProps {
   skill: Skill | null;
   onClose: () => void;
 }
 
-function SkillDetailPanel({ skill, onClose }: SkillDetailPanelProps) {
+function SkillDetailDialog({ skill, onClose }: SkillDetailDialogProps) {
   if (!skill) return null;
 
   const isBuiltin = skill.provider_id === "api" || KNOWME_SKILLS.some(s => s.skill_id === skill.id);
   const isFilesystem = skill.provider_id === "filesystem" || skill.provider_id?.includes("fs");
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-scrim p-4">
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-lg bg-raised">
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-h-[90vh] w-full max-w-2xl gap-0 overflow-hidden p-0 sm:max-w-2xl">
         {/* Header */}
         <div className="flex items-center justify-between bg-band px-6 py-4">
           <div className="flex items-center gap-3">
             <Wrench size={20} className={isBuiltin ? "text-ember-text" : "text-muted-foreground"} />
             <div>
-              <h2 className="font-display text-lg font-semibold text-foreground">
+              <DialogTitle className="font-display text-lg font-semibold text-foreground">
                 {skill.name}
-              </h2>
+              </DialogTitle>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span className="font-mono">{skill.id}</span>
                 {skill.version && (
@@ -39,13 +40,6 @@ function SkillDetailPanel({ skill, onClose }: SkillDetailPanelProps) {
               </div>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md p-1.5 text-muted-foreground hover:bg-hover hover:text-foreground focus-cue"
-          >
-            <X size={18} />
-          </button>
         </div>
 
         {/* Content */}
@@ -159,8 +153,8 @@ function SkillDetailPanel({ skill, onClose }: SkillDetailPanelProps) {
             {isBuiltin && " This is a built-in skill of the KnowMe agent, synced to your Universal Agent Runtime."}
           </p>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -330,7 +324,8 @@ export default function SkillsPage() {
                         handleSkillClick(skill);
                       }}
                       className="h-7 w-7 rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-                      title="View configuration"
+                      title={`View configuration for ${skill.name}`}
+                      aria-label={`View configuration for ${skill.name}`}
                     >
                       <Settings size={14} />
                     </Button>
@@ -338,12 +333,14 @@ export default function SkillsPage() {
                     {/* Toggle switch */}
                     <button
                       type="button"
+                      role="switch"
+                      aria-checked={skill.enabled}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleToggle(skill.id, skill.enabled);
                       }}
                       disabled={toggleSkill.isPending}
-                      aria-label={skill.enabled ? "Disable skill" : "Enable skill"}
+                      aria-label={`${skill.name}: ${skill.enabled ? "enabled" : "disabled"}`}
                       className={`relative h-5 w-9 rounded-full transition-colors focus-cue disabled:opacity-50 ${
                         skill.enabled ? "bg-primary" : "bg-muted"
                       }`}
@@ -387,9 +384,9 @@ export default function SkillsPage() {
         </div>
       )}
 
-      {/* Skill Detail Panel */}
+      {/* Skill Detail Dialog */}
       {selectedSkill && (
-        <SkillDetailPanel skill={selectedSkill} onClose={handleCloseDetail} />
+        <SkillDetailDialog skill={selectedSkill} onClose={handleCloseDetail} />
       )}
     </div>
   );

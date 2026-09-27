@@ -121,7 +121,7 @@ function formFromAgent(agent: Agent): FormState {
 
 export default function AgentDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const isNew = id === "new";
+  const isNew = id === undefined || id === "new";
   const navigate = useNavigate();
 
   const { data: agent } = useAgent(isNew ? undefined : id);

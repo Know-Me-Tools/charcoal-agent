@@ -38,7 +38,7 @@ Source: `know-me/branding/knowme-brand-guide.html`, lines 1553-1557.
 | `composer.placeholder` | "What's on your mind?" | §02 "We do": personal, direct, short. Calm invitation to type, no feature claim. |
 | `composer.sendLabel` | "Send" | Plain, matches spec scenario `getByRole("button", { name: /send\|start/i })`. |
 | `sections[0].label` | "Threads" | Short mono kicker, one word, matches the eyebrow's restraint. |
-| `sections[0].heading` | "Every conversation, kept." | §02 "We do": short sentence that lands. Concrete claim (thread history persists locally — `CharcoalDb`/PGlite, per CLAUDE.md), not a slogan. |
+| `sections[0].heading` | "Your conversations, saved on this device." (replaced "Every conversation, kept." on 2026-09-27, D-009) | §02 "We do": short sentence that lands. Concrete claim (thread history persists locally — `CharcoalDb`/PGlite, per CLAUDE.md), not a slogan. |
 | `sections[0].body[0]` | "Each chat becomes a thread, saved on your device, so you can pick up right where you left off." | Describes the app's actual local-thread persistence, no invented sync or feature. §02 "specificity over generality". |
 | `sections[1].label` | "Skills" | Short mono kicker. |
 | `sections[1].heading` | "Skills you can attach." | Concrete, present-tense claim matching the repo's actual skill-sync behavior (CLAUDE.md "pushes built-in skills to UAR"). |

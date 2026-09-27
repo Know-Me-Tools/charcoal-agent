@@ -19,9 +19,12 @@ import { LANDING_CONTENT } from "../../content/site/landing";
  */
 function splitHeadline(headline: string) {
 	const words = headline.split(" ");
-	const line1 = `${words.slice(0, 2).join(" ")} `;
-	const line2Lead = words.slice(2, -1).join(" ");
 	const emberWord = words[words.length - 1];
+	// Everything before the ember word — never includes it, so a two-word
+	// (or one-word) tagline doesn't have its last word appear on both lines.
+	const leadWords = words.slice(0, -1);
+	const line1 = `${leadWords.slice(0, 2).join(" ")} `;
+	const line2Lead = leadWords.slice(2).join(" ");
 	return { line1, line2Lead: line2Lead ? `${line2Lead} ` : "", emberWord };
 }
 
@@ -101,7 +104,7 @@ export default function LandingPage() {
 									onKeyDown={handleKeyDown}
 									placeholder={LANDING_CONTENT.composer.placeholder}
 									aria-label={LANDING_CONTENT.composer.placeholder}
-									className="block max-h-[7.5rem] min-h-14 w-full resize-none bg-transparent px-3 py-2.5 font-body text-base leading-relaxed text-fg caret-ember outline-none placeholder:text-faint lg:min-h-24"
+									className="block max-h-[7.5rem] min-h-14 w-full field-sizing-content resize-none bg-transparent px-3 py-2.5 font-body text-base leading-relaxed text-fg caret-ember outline-none placeholder:text-faint lg:min-h-24"
 								/>
 								<div className="mt-1 flex items-center justify-end">
 									<button type="submit" className={cn(EMBER_CTA, "h-10 px-4")}>

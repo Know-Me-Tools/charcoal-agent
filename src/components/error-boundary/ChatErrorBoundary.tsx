@@ -33,11 +33,11 @@ function ChatErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
 
         {/* Stack trace — dev only, collapsible */}
         {isDev && stack && (
-          <div className="rounded-lg border border-border bg-muted/40">
+          <div className="rounded-lg bg-band">
             <button
               type="button"
               onClick={() => setExpanded((v) => !v)}
-              className="flex w-full items-center gap-2 px-3 py-2 font-mono text-[11px] text-muted-foreground hover:text-foreground"
+              className="flex w-full items-center gap-2 px-3 py-2 font-mono text-xs text-muted-foreground hover:text-foreground"
             >
               {expanded ? (
                 <ChevronDown size={12} />
@@ -47,7 +47,7 @@ function ChatErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
               Stack trace
             </button>
             {expanded && (
-              <pre className="overflow-x-auto border-t border-border px-3 py-2 font-mono text-[11px] leading-relaxed text-foreground/80">
+              <pre className="overflow-x-auto rounded-b-lg bg-surface px-3 py-2 font-mono text-xs leading-relaxed text-foreground/80">
                 {stack}
               </pre>
             )}
@@ -73,7 +73,7 @@ function ChatErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
           </Button>
         </div>
 
-        <p className="font-mono text-[10px] text-muted-foreground">
+        <p className="font-mono text-xs text-muted-foreground">
           // The rest of the app is still running
         </p>
       </div>

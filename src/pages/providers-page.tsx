@@ -353,7 +353,7 @@ function ProviderModelsTable({
   if (!models.length) return null;
 
   return (
-    <div className="overflow-x-auto rounded-md bg-muted-surface">
+    <div className="overflow-x-auto rounded-md bg-band">
       <table className="w-full">
         <thead>
           <tr>
@@ -373,7 +373,7 @@ function ProviderModelsTable({
         </thead>
         <tbody>
           {models.map((model) => (
-            <tr key={model.id}>
+            <tr key={model.id} className="transition-hover hover:bg-hover focus-within:bg-hover">
               <td className="px-3 py-2 font-mono text-xs break-all text-foreground">
                 {model.id}
               </td>

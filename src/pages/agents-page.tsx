@@ -102,7 +102,7 @@ function AgentMemoryPanel({ agent }: { agent: Agent }) {
   };
 
   return (
-    <div className="mt-3 rounded-lg bg-band p-3">
+    <div className="mt-3 rounded-lg bg-surface p-3">
       <div className="mb-2 flex items-center gap-1.5">
         <Brain size={12} className="text-ember-text" />
         <span className="font-mono text-xs font-semibold uppercase tracking-widest text-muted-foreground">
