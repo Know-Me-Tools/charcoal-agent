@@ -4,6 +4,8 @@ const PORT = Number(process.env.E2E_PORT ?? 4174);
 
 export default defineConfig({
   testDir: "./e2e",
+  // Warm the dev server once before workers start (see the file for why).
+  globalSetup: "./e2e/support/global-setup.ts",
   outputDir: "./test-results/artifacts",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
