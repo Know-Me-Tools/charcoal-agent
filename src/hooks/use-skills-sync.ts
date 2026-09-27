@@ -17,8 +17,10 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useGraphStoreApi } from "@prometheus-ags/prometheus-entity-management";
 import { api } from "@/lib/api-client";
+import { ENTITY } from "@/lib/entity-graph/entities";
+import { invalidateEntityType } from "@/lib/entity-graph/invalidate";
 import { KNOWME_SKILLS } from "@/lib/skills/knowme-skills";
 import type { UarSkill } from "@/types";
 
@@ -38,7 +40,7 @@ export interface SkillSyncResult {
 }
 
 export function useSkillsSync(): SkillSyncResult {
-  const qc = useQueryClient();
+  const graph = useGraphStoreApi();
   const [syncing, setSyncing] = useState(false);
   const [synced, setSynced] = useState(false);
   const [syncedCount, setSyncedCount] = useState(0);
@@ -139,14 +141,14 @@ export function useSkillsSync(): SkillSyncResult {
       setMissingCount(lostCount);
       setSynced(true);
 
-      // Invalidate the skills query so the skills page reflects the new state
-      await qc.invalidateQueries({ queryKey: ["skills"] });
+      // Mark skills stale so every mounted skills view refetches the new state
+      invalidateEntityType(graph, ENTITY.Skill);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown sync error");
     } finally {
       setSyncing(false);
     }
-  }, [qc]);
+  }, [graph]);
 
   return { syncing, synced, syncedCount, missingCount, error, triggerSync };
 }
@@ -164,7 +166,7 @@ export function useSkillsSyncOnMount(): SkillSyncResult {
     if (ranRef.current) return;
     ranRef.current = true;
     void triggerSync();
-  }, [triggerSync]); // triggerSync is useCallback-stable (only changes when qc changes)
+  }, [triggerSync]); // triggerSync is useCallback-stable (only changes when the graph changes)
 
   return result;
 }

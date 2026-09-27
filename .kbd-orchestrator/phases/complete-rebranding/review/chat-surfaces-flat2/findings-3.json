@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "src/components/assistant-ui/enhanced-markdown-text.tsx",
+      "line": 264,
+      "claim": "Assistant/model markdown is rendered with raw HTML enabled and no sanitizer, allowing untrusted content to inject active or deceptive HTML such as iframes, forms, and styles into the app surface.",
+      "evidence": "The markdown renderer is configured with `rehypePlugins={[[rehypeKatex, { strict: false }], rehypeRaw]}` in `EnhancedMarkdownTextImpl`, and `openspec/changes/chat-surfaces-flat2/verification.md` records an unresolved CRITICAL: \"`rehypeRaw` without a sanitizer lets model markdown inject `<style>`, `<iframe>` and `<form>`. Not fixed here.\"",
+      "suggested_fix": "Remove `rehypeRaw`, or add a strict `rehype-sanitize` schema immediately after raw parsing that disallows active/navigational elements and dangerous attributes while preserving the required math/code/markdown output."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

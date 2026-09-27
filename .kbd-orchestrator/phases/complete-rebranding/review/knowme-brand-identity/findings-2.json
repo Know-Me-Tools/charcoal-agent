@@ -1,0 +1,39 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "openspec/changes/knowme-brand-identity/proposal.md",
+      "line": 3,
+      "claim": "The change still commits non-allow-listed \"Charcoal Agent\" and \"Lovable\" naming references despite the repo-hygiene criterion requiring the repo-wide grep to find none outside the D-005 allow-list.",
+      "evidence": "Acceptance criterion 3.3 requires \"the repo-wide grep finds no product-name \\\"Charcoal\\\"/Lovable references outside the D-005 allow-list\"; this added file says \"Charcoal Agent\" and \"Lovable URL\" on line 3, and line 11 also says `remove \"Charcoal Agent\"` and `Lovable boilerplate`.",
+      "suggested_fix": "Either remove/reword these references from committed OpenSpec docs or explicitly extend the D-005 allow-list and the naming guard to cover intentional historical references."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "src/components/brand/knowme-wordmark.tsx",
+      "line": 14,
+      "claim": "The standalone wordmark does not reliably expose the required accessible name because it puts `aria-label` on a generic span while hiding all text children from assistive technology.",
+      "evidence": "Acceptance criterion 1.1 requires brand components with accessible name \"KnowMe\"; `KnowMeWordmark` renders a plain `<span>` with `aria-label={decorative ? undefined : \"KnowMe\"}` and both visible child spans have `aria-hidden=\"true\"`.",
+      "suggested_fix": "Give the standalone wordmark an appropriate semantic role such as `role=\"img\"` when not decorative, or stop hiding the child text and use visually contiguous text that assistive tech can read as KnowMe."
+    },
+    {
+      "severity": "WARNING",
+      "file": "vite.config.ts",
+      "line": 65,
+      "claim": "Removing the `mode === \"development\" && componentTagger()` plugin leaves the `mode` parameter unused, risking an ESLint failure despite the verification claim of a clean lint run.",
+      "evidence": "The vite config hunk removes `import { componentTagger } from \"lovable-tagger\";` and changes `plugins: [react(), tailwindcss(), mode === \"development\" && componentTagger()].filter(Boolean)` to `plugins: [react(), tailwindcss()]`, eliminating the shown use of `mode`.",
+      "suggested_fix": "Remove `mode` from the `defineConfig` callback destructuring, or rename it to an ignored parameter if the lint config allows that."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

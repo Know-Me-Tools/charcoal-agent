@@ -26,41 +26,31 @@ export const ContextUpdateBlock: FC<ContextUpdateBlockProps> = ({
 }) => {
   const strategyLabel = STRATEGY_LABELS[strategy] ?? strategy;
 
-  const parts: string[] = [];
+  // Every fact renders identically (font-mono text-xs text-faint); facts are
+  // separated by the flex gap, not "·" characters (design spec §7.6).
+  const facts: string[] = [strategyLabel];
   if (messagesRemoved > 0) {
-    parts.push(`${messagesRemoved} message${messagesRemoved !== 1 ? "s" : ""} compacted`);
+    facts.push(`${messagesRemoved} message${messagesRemoved !== 1 ? "s" : ""} compacted`);
   }
   if (tokensSaved > 0) {
-    parts.push(`~${tokensSaved.toLocaleString()} tokens freed`);
+    facts.push(`~${tokensSaved.toLocaleString()} tokens freed`);
   }
   if (summaryGenerated) {
-    parts.push("summary saved");
+    facts.push("summary saved");
   }
 
   return (
-    <div className="my-1.5 flex items-center gap-2 rounded-lg border border-border/40 bg-muted/30 px-3 py-2">
-      <DatabaseZapIcon size={11} className="shrink-0 text-muted-foreground/70" />
+    <div className="my-3 flex min-w-0 items-start gap-2 rounded-lg bg-surface px-3 py-2 first:mt-0 last:mb-0">
+      <DatabaseZapIcon className="mt-0.5 size-3.5 shrink-0 text-fg-secondary" aria-hidden="true" />
 
-      <span className="font-mono text-[10px] text-muted-foreground/70">
-        Context managed
-      </span>
-
-      <span className="font-mono text-[10px] text-muted-foreground/50">
-        ·
-      </span>
-
-      <span className="font-mono text-[10px] text-muted-foreground/60">
-        {strategyLabel}
-      </span>
-
-      {parts.length > 0 && (
-        <>
-          <span className="font-mono text-[10px] text-muted-foreground/50">·</span>
-          <span className="font-mono text-[10px] text-muted-foreground/50">
-            {parts.join(" · ")}
+      <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-1">
+        <span className="font-ui text-xs font-semibold text-fg-secondary">Context managed</span>
+        {facts.map((fact, i) => (
+          <span key={`fact-${i}`} className="font-mono text-xs text-faint wrap-break-word">
+            {fact}
           </span>
-        </>
-      )}
+        ))}
+      </div>
     </div>
   );
 };

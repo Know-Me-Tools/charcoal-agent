@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "src/features/chat/use-chat-messages.ts",
+      "line": 148,
+      "claim": "A failed server-transcript fallback can leave chat reporting `isLoading: true` forever even though the graph exposes `transcriptError`.",
+      "evidence": "The runtime-data-sync requirement says \u201cLoad and mutation failures SHALL be exposed to the page as an error state with the runtime's message, and a failed load SHALL NOT leave the page in a permanent loading state\u201d; this hook returns `isLoading: localIsEmpty && !isStreaming` while the new transcript fallback error is only returned as `transcriptError`, so when local messages are empty, streaming is false, and `useEntity` fails, `isLoading` remains true indefinitely.",
+      "suggested_fix": "Include transcript state in the loading calculation, e.g. only report loading while the local store is empty and the transcript fetch is actually loading, and force `isLoading` false when `transcriptError` is set."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

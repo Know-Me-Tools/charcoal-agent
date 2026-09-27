@@ -1,0 +1,39 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "src/components/ui/chart.tsx",
+      "line": 208,
+      "claim": "The tooltip indicator border no longer uses the per-series chart color, violating the visual-parity requirement.",
+      "evidence": "The hunk changes `\"shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]\"` to `\"shrink-0 rounded-[2px] border-border bg-(--color-bg)\"`, replacing the dynamic `--color-border` value with the global theme border color; acceptance criteria state visual output should be unchanged except chat width/wrapping.",
+      "suggested_fix": "Use the Tailwind v4 CSS-variable shorthand for the existing variable, e.g. `border-(--color-border) bg-(--color-bg)`, instead of `border-border`."
+    },
+    {
+      "severity": "WARNING",
+      "file": "src/components/assistant-ui/attachment.tsx",
+      "line": 92,
+      "claim": "The dialog close-button hover selector was transformed into a selector that no longer represents 'button hover changes child svg color'.",
+      "evidence": "The hunk changes `[&>button]:hover:[&_svg]:text-destructive` to `[&_svg]:hover:[&>button]:text-destructive`; the original selector was scoped to the close button hover, while the new selector reverses the relationship and targets through `_svg` first.",
+      "suggested_fix": "Use a v4-compatible selector that preserves the original relationship, such as `[&>button:hover_svg]:text-destructive`, or verify and replace with the correct Tailwind v4 stacked variant form."
+    },
+    {
+      "severity": "WARNING",
+      "file": "openspec/changes/tailwind-v4-foundation/verification.md",
+      "line": 15,
+      "claim": "The change records remaining ESLint warnings despite the project warning constraint requiring ESLint to be clean.",
+      "evidence": "Constraint `no-lint-warnings` says `ESLint clean`; verification records `npm run lint`: `0 errors, 6 warnings`.",
+      "suggested_fix": "Resolve the six ESLint warnings or record an explicit accepted exception in the applicable process if warning constraints are allowed to remain."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

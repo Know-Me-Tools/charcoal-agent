@@ -1,11 +1,11 @@
 "use client";
 
-import { ComponentPropsWithRef, forwardRef } from "react";
-import { Slottable } from "@radix-ui/react-slot";
+import { type ComponentPropsWithRef, forwardRef } from "react";
 
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
@@ -21,21 +21,28 @@ export const TooltipIconButton = forwardRef<
   TooltipIconButtonProps
 >(({ children, tooltip, side = "bottom", className, ...rest }, ref) => {
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          {...rest}
-          className={cn("aui-button-icon size-6 p-1", className)}
-          ref={ref}
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon"
+              {...rest}
+              className={cn(
+                "aui-button-icon size-8 rounded-md p-0 text-fg-secondary hover:bg-hover hover:text-fg focus-cue active:scale-95 [&_svg]:size-4",
+                className,
+              )}
+              ref={ref}
+            />
+          }
         >
-          <Slottable>{children}</Slottable>
+          {children}
           <span className="aui-sr-only sr-only">{tooltip}</span>
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side={side}>{tooltip}</TooltipContent>
-    </Tooltip>
+        </TooltipTrigger>
+        <TooltipContent side={side}>{tooltip}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 });
 

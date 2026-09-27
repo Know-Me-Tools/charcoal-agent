@@ -1,0 +1,11 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-09-23T22:45:07Z",
+  "outputs": [
+    "plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "12 OpenSpec changes in 7 rounds: stack foundation first (tailwind-v4-foundation, visual-verification-harness, entity-graph-data-layer in parallel; then shadcn-base-ui-migration; then assistant-ui-latest + knowme-brand-tokens), then brand identity, then shell/chat/landing restyles, app pages with entity views, and a final brand-fidelity + constraint audit. First change: tailwind-v4-foundation (also clears the pre-existing 5 lint / 1 tsc errors). WARNING carried: the entity-graph/TanStack Query removal (operator-added goal 8) is not a branding requirement and is the main schedule risk; it can be split into its own phase without affecting other changes. Decisions D-001..D-007 in decision-log.md (legal name KnowMe AI, LLC; WCAG text-safe variants override verbatim brand values).",
+  "skipped": false,
+  "skipReason": null
+}

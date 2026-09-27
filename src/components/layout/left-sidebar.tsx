@@ -1,14 +1,16 @@
-import { MessageSquare, Plus, Search, Trash2, ChevronDown, Bot, UserCog } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { MessageSquare, Plus, Search, Trash2, Bot, UserCog } from "lucide-react";
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { SectionLabel } from "@/components/common/section-label";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UarStatus } from "@/components/common/uar-status";
 import { useThreadRegistryStore } from "@/stores/thread-registry-store";
 import { useChatMessageStore } from "@/stores/chat-message-store";
 import { useAgents } from "@/hooks/use-agents";
 import { useUi } from "@/hooks/use-ui";
-import { api, isJwtConfigured } from "@/lib/api-client";
+import { isJwtConfigured } from "@/lib/api-client";
+import { useDeleteSession } from "@/hooks/use-sessions";
 import { cn } from "@/lib/utils";
 import type { LocalThread } from "@/types";
 
@@ -16,87 +18,45 @@ interface LeftSidebarProps {
   className?: string;
 }
 
-// ── Agent selector dropdown for new thread creation ──────────────────────────
+// ── Agent selector for new thread creation ───────────────────────────────────
+
+/** Select value for "no specific agent" (Base UI treats `null` as empty). */
+const DEFAULT_AGENT = "default";
 
 interface AgentSelectorProps {
   selectedId: string;
-  selectedName: string;
   onChange: (id: string, name: string) => void;
 }
 
-function AgentSelector({ selectedId, selectedName, onChange }: AgentSelectorProps) {
+function AgentSelector({ selectedId, onChange }: AgentSelectorProps) {
   const { data: agents } = useAgents();
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  // Close on outside click
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
-
-  const displayName = selectedId ? selectedName : "Default agent";
+  const items = [
+    { value: DEFAULT_AGENT, label: "Default agent" },
+    ...(agents ?? []).map((agent) => ({ value: agent.id, label: agent.name })),
+  ];
 
   return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex h-6 w-full items-center justify-between gap-1 rounded border border-border bg-background px-2 font-ui text-[11px] text-muted-foreground hover:border-primary/30 hover:text-foreground"
-      >
-        <div className="flex min-w-0 items-center gap-1">
-          <Bot size={11} className="shrink-0" />
-          <span className="truncate">{displayName}</span>
-        </div>
-        <ChevronDown size={10} className="shrink-0" />
-      </button>
-
-      {open && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-border bg-card shadow-lg">
-          {/* Default option */}
-          <button
-            type="button"
-            onClick={() => { onChange("", "Default agent"); setOpen(false); }}
-            className={cn(
-              "w-full px-3 py-2 text-left font-ui text-[11px] hover:bg-muted",
-              !selectedId && "text-primary font-semibold",
-            )}
-          >
-            Default agent
-          </button>
-
-          {agents && agents.length > 0 && (
-            <>
-              <div className="border-t border-border" />
-              {agents.map((agent) => (
-                <button
-                  key={agent.id}
-                  type="button"
-                  onClick={() => { onChange(agent.id, agent.name); setOpen(false); }}
-                  className={cn(
-                    "w-full px-3 py-2 text-left font-ui text-[11px] hover:bg-muted",
-                    selectedId === agent.id && "text-primary font-semibold",
-                  )}
-                >
-                  <span className="block truncate">{agent.name}</span>
-                  {agent.source && (
-                    <span className="font-mono text-[9px] text-muted-foreground capitalize">
-                      {agent.source}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </>
-          )}
-        </div>
-      )}
-    </div>
+    <Select
+      value={selectedId || DEFAULT_AGENT}
+      items={items}
+      onValueChange={(value) => {
+        if (value === null) return;
+        const item = items.find((i) => i.value === value);
+        onChange(value === DEFAULT_AGENT ? "" : value, item?.label ?? "Default agent");
+      }}
+    >
+      <SelectTrigger aria-label="Agent for new thread" size="sm" className="w-full font-ui text-xs">
+        <Bot size={12} aria-hidden="true" className="text-muted-foreground" />
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {items.map((item) => (
+          <SelectItem key={item.value} value={item.value} className="font-ui text-xs">
+            {item.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
 
@@ -115,6 +75,7 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
   const threads = useThreadRegistryStore((s) => s.threads);
   const registerThread = useThreadRegistryStore((s) => s.registerThread);
   const removeThread = useThreadRegistryStore((s) => s.removeThread);
+  const deleteSession = useDeleteSession();
 
   const activeThreadId = (() => {
     const match = /\/threads\/([^/]+)/.exec(location.pathname);
@@ -147,7 +108,7 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
     setMobileSidebarOpen(false);
   };
 
-  const handleDeleteThread = async (
+  const handleDeleteThread = (
     e: React.MouseEvent,
     id: string,
   ) => {
@@ -161,12 +122,8 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
       navigate("/threads");
     }
 
-    // Best-effort server delete — ignore failures
-    try {
-      await api.delete(`/api/sessions/${id}`);
-    } catch {
-      // Server delete is fire-and-forget; local registry is source of truth
-    }
+    // Best-effort server delete; the local registry is the source of truth.
+    deleteSession.mutate(id);
   };
 
   const formatTime = (dateStr: string) => {
@@ -192,7 +149,7 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
   };
 
   return (
-    <aside className={`flex h-full flex-col bg-card ${className ?? ""}`}>
+    <aside aria-label="Threads" className={cn("flex h-full flex-col bg-chrome", className)}>
       {/* Header */}
       <div className="flex items-center justify-between p-3">
         <SectionLabel>Threads</SectionLabel>
@@ -201,21 +158,18 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
             variant="ghost"
             size="sm"
             onClick={() => setShowAgentPicker((v) => !v)}
+            aria-label="Choose agent for new thread"
+            aria-pressed={showAgentPicker}
             title="Choose agent for new thread"
             className={cn(
-              "h-7 w-7 p-0 text-muted-foreground hover:text-foreground",
-              showAgentPicker && "text-primary",
+              "size-7 p-0 text-muted-foreground hover:bg-hover hover:text-foreground",
+              showAgentPicker && "bg-ember-soft text-ember-text",
             )}
           >
-            <Bot size={14} />
+            <Bot size={14} aria-hidden="true" />
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleNewThread}
-            className="h-7 gap-1.5 px-2.5 font-ui text-xs font-semibold text-muted-foreground hover:border-primary hover:text-primary"
-          >
-            <Plus size={14} />
+          <Button size="sm" onClick={handleNewThread} className="h-7 gap-1.5 px-2.5 font-ui text-xs font-semibold">
+            <Plus size={14} aria-hidden="true" />
             New thread
           </Button>
         </div>
@@ -224,12 +178,8 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
       {/* Agent picker (shown when bot icon toggled) */}
       {showAgentPicker && (
         <div className="px-3 pb-2">
-          <p className="mb-1 font-mono text-[10px] text-muted-foreground">
-            Agent for new thread
-          </p>
           <AgentSelector
             selectedId={selectedAgentId}
-            selectedName={selectedAgentName}
             onChange={(id, name) => {
               setSelectedAgentId(id);
               setSelectedAgentName(name);
@@ -240,14 +190,15 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
 
       {/* Search */}
       <div className="px-3 pb-2">
-        <div className="flex items-center gap-2 rounded-md border border-border bg-background px-2.5 py-1.5">
-          <Search size={14} className="text-muted-foreground" />
+        <div className="flex items-center gap-2 rounded-md bg-muted-surface px-2.5 py-1.5 focus-within:bg-hover focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring">
+          <Search size={14} aria-hidden="true" className="text-muted-foreground" />
           <input
-            type="text"
+            type="search"
+            aria-label="Search threads"
             placeholder="Search threads…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-transparent font-ui text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none"
+            className="w-full bg-transparent font-ui text-sm text-foreground outline-none placeholder:text-muted-foreground"
           />
         </div>
       </div>
@@ -256,7 +207,7 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
       <div className="flex-1 overflow-y-auto px-1.5" style={{ minHeight: 0 }}>
         {visibleThreads.length === 0 ? (
           <div className="px-3 py-8 text-center">
-            <p className="font-mono text-[11px] text-primary">
+            <p className="font-mono text-xs text-ember-text">
               {"// No threads yet"}
             </p>
             <p className="mt-1 font-body text-xs text-muted-foreground">
@@ -269,28 +220,31 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
               <Button
                 variant="ghost"
                 onClick={() => handleSelectThread(thread)}
+                aria-current={activeThreadId === thread.id ? "page" : undefined}
                 className={cn(
-                  "h-auto w-full justify-start gap-2 rounded-md px-2.5 py-2 pr-8",
-                  activeThreadId === thread.id
-                    ? "border-l-[3px] border-l-primary bg-accent hover:bg-accent"
-                    : "hover:bg-muted/50",
+                  "h-auto w-full justify-start gap-2 rounded-md px-2.5 py-2 pr-9 focus-cue",
+                  activeThreadId === thread.id ? "bg-ember-soft hover:bg-ember-soft" : "hover:bg-hover",
                 )}
               >
                 <MessageSquare
                   size={14}
-                  className="mt-0.5 shrink-0 text-muted-foreground"
+                  aria-hidden="true"
+                  className={cn(
+                    "mt-0.5 shrink-0",
+                    activeThreadId === thread.id ? "text-ember-text" : "text-muted-foreground",
+                  )}
                 />
                 <div className="min-w-0 flex-1 text-left">
                   <p className="truncate font-display text-[13px] font-semibold text-foreground">
                     {thread.title}
                   </p>
                   <div className="mt-0.5 flex items-center gap-2">
-                    <span className="font-mono text-[10px] text-muted-foreground">
+                    <span className="font-mono text-xs text-faint">
                       {formatTime(thread.updatedAt)}
                     </span>
                     {thread.agentName && (
-                      <span className="flex items-center gap-0.5 font-mono text-[10px] text-primary/70">
-                        <Bot size={9} />
+                      <span className="flex min-w-0 items-center gap-1 truncate font-mono text-xs text-faint">
+                        <Bot size={11} aria-hidden="true" />
                         {thread.agentName}
                       </span>
                     )}
@@ -301,10 +255,10 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
                 variant="ghost"
                 size="icon"
                 onClick={(e) => void handleDeleteThread(e, thread.id)}
-                className="absolute right-1 top-1/2 hidden size-5 -translate-y-1/2 text-muted-foreground hover:text-destructive group-hover:flex"
+                className="absolute top-1/2 right-1 size-7 -translate-y-1/2 text-muted-foreground opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 hover:bg-danger-soft hover:text-danger-text focus-visible:opacity-100"
                 aria-label={`Delete ${thread.title}`}
               >
-                <Trash2 size={12} />
+                <Trash2 size={13} aria-hidden="true" />
               </Button>
             </div>
           ))
@@ -312,15 +266,15 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
       </div>
 
       {/* Footer: UAR status + account link (JWT only) */}
-      <div className="border-t border-border px-1.5 py-1.5">
+      <div className="px-1.5 pt-2 pb-1.5">
         <UarStatus />
         {isJwtConfigured() && (
           <button
             type="button"
             onClick={() => { navigate("/settings/account"); setMobileSidebarOpen(false); }}
-            className="mt-1 flex w-full items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[10px] text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            className="mt-1 flex w-full items-center gap-1.5 rounded-md px-2.5 py-1.5 font-ui text-xs text-muted-foreground transition-hover hover:bg-hover hover:text-foreground focus-cue"
           >
-            <UserCog size={11} />
+            <UserCog size={13} aria-hidden="true" />
             Account settings
           </button>
         )}

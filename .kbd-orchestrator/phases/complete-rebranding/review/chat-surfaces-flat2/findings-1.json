@@ -1,0 +1,36 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "docs/design/chat-surfaces.md",
+      "claim": "The design spec violates its own and task 1.1's no-hex-colours requirement by documenting raw hex colour values.",
+      "evidence": "Acceptance criterion 1.1 requires 'every colour in the doc names a token, with no hex'; the new design doc says 'No hex values' near the top, but later includes raw values such as `#eef0f3`, `#161d29`, `#fafbfc`, `#111720`, and multiple Shiki palette hex values in sections 4.2 and 13.",
+      "suggested_fix": "Replace raw hex values in the design doc with token names or move numeric colour measurements to a separate non-normative evidence artifact if they are required."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "src/components/assistant-ui/enhanced-thread.tsx",
+      "claim": "Message errors still render the raw assistant-ui error message instead of mapping it to plain recovery copy.",
+      "evidence": "The `MessageError` hunk keeps `<ErrorPrimitive.Message className=\"line-clamp-3 font-body text-sm text-danger-text\" />`, while `docs/design/chat-surfaces.md` \u00a73.8 requires the message shown to be plain language with recovery text and 'never a raw runtime or transport error'.",
+      "suggested_fix": "Replace `ErrorPrimitive.Message` output with a controlled plain-language string such as `The reply stopped before it finished. Try again.`, or map known error values before rendering."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "openspec/changes/chat-surfaces-flat2/tasks.md",
+      "claim": "The change is not complete because required verification task 4.3 remains undone and `verification.md` is absent.",
+      "evidence": "Acceptance criterion 4.3 requires writing `openspec/changes/chat-surfaces-flat2/verification.md` mapping every spec scenario to evidence and recording independent review findings; the diff adds `tasks.md` with `- [ ] 4.3` still unchecked and the file tree/diff contain no `openspec/changes/chat-surfaces-flat2/verification.md`.",
+      "suggested_fix": "Add the required `verification.md`, map each scenario to test/capture/axe evidence or mark it unmet, run the independent review, and update task 4.3 to complete only after critical findings are resolved."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

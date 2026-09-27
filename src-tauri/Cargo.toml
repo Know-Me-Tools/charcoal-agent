@@ -1,9 +1,9 @@
 [package]
 name = "app"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-license = ""
+description = "KnowMe desktop client for the Universal Agent Runtime"
+authors = ["KnowMe AI, LLC"]
+license = "UNLICENSED"
 repository = ""
 edition = "2021"
 rust-version = "1.77.2"

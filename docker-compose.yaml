@@ -1,25 +1,25 @@
 services:
 
-  # ── Charcoal Agent — Vite SPA served by nginx ─────────────────────────────
-  charcoal-agent:
+  # ── KnowMe web client — Vite SPA served by nginx ──────────────────────────
+  knowme-web:
     build:
       context: .
       dockerfile: Dockerfile
-    image: charcoal-agent:latest
-    container_name: charcoal-agent
+    image: knowme-web:latest
+    container_name: knowme-web
     ports:
-      - "${CHARCOAL_PORT:-8080}:8080"
+      - "${KNOWME_PORT:-${CHARCOAL_PORT:-8080}}:8080"
     depends_on:
       uar:
         condition: service_healthy
     networks:
-      - charcoal-network
+      - knowme-network
     restart: unless-stopped
 
   # ── Universal Agent Runtime — Rust backend ─────────────────────────────────
   uar:
     image: knowme/universal-agent-runtime:latest
-    container_name: charcoal-uar
+    container_name: knowme-uar
     build:
       context: ../prometheus/universal-agent-runtime
       dockerfile: Dockerfile
@@ -45,11 +45,11 @@ services:
       retries: 6
       start_period: 20s
     networks:
-      - charcoal-network
+      - knowme-network
     restart: unless-stopped
 
 networks:
-  charcoal-network:
+  knowme-network:
     driver: bridge
 
 volumes:

@@ -51,3 +51,26 @@ src-tauri/*.key
 .DS_Store
 .DS_Store?
 Thumbs.db
+
+# KBD orchestrator machine-local state
+.kbd-orchestrator/model-preflight.json
+.kbd-orchestrator/**/*.lock
+.kbd-orchestrator/**/hooks.log.jsonl
+.kbd-orchestrator/**/hooks-status.json
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+
+# prometheus-context-bootstrap
+.prometheus/.writer.lock
+.prometheus/.review-pending
+.claude/settings.json.bak.*
+# Session opt-in for the final-artifact gate; never commit it.
+.kbd-orchestrator/tier3.allow
+
+# agent-team-creator: local coordination state and export proposals
+.agent-team/state.json
+.agent-team/exports/
+.agent-team/*.result.json

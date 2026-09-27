@@ -1,0 +1,23 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "src/styles/tokens.css",
+      "line": 188,
+      "claim": "The brand radius scale is incomplete because no pill radius token is defined or exposed.",
+      "evidence": "Acceptance criteria/What Changes require a radius scale of `4/6/10/16/24/pill`, but the `@theme inline` radius block only defines `--radius-xs`, `--radius-sm`, `--radius-md`, `--radius-lg`, `--radius-xl`, and `--radius-2xl`.",
+      "suggested_fix": "Add and expose a pill radius token, e.g. `--radius-pill: 9999px`, and map any intended pill utility to it."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

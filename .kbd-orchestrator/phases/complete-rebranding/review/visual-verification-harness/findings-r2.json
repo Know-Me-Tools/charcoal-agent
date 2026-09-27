@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "e2e/support/routes.ts",
+      "line": 26,
+      "claim": "The thread screenshot can be taken before the later block-producing SSE events render, so it does not reliably satisfy the \u201cevery block type\u201d screenshot requirement.",
+      "evidence": "Acceptance criterion 3.2 requires the captured thread conversation to include every block type, but `streamFixtureConversation` waits only for `FIXTURE_FINAL_TEXT`; in `e2e/fixtures/sse.ts`, `FIXTURE_FINAL_TEXT` is emitted in the message deltas before subsequent `agui.memory.mutation`, `agui.artifact`, `agui.artifact_input_request`, `agui.custom`, and `agui.done` events.",
+      "suggested_fix": "Wait for a marker from the last required rendered block, such as the A2UI/custom artifact or another post-`agui.done` visible sentinel, before expanding/capturing the thread."
+    },
+    {
+      "severity": "WARNING",
+      "file": "package.json",
+      "line": 20,
+      "claim": "`npm run test:a11y` is not portable to all developer machines because it uses the POSIX-only `rm -rf` shell command.",
+      "evidence": "The capability says the harness runs identically on any developer machine or CI runner, while the `test:a11y` script is `rm -rf test-results/a11y && playwright test e2e/a11y.spec.ts; ...`, which fails on Windows shells without Unix tools.",
+      "suggested_fix": "Replace the shell cleanup with a Node script using `fs.rmSync('test-results/a11y', { recursive: true, force: true })`, or use a cross-platform cleanup utility."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

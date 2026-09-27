@@ -24,7 +24,7 @@ export interface KnowMeSkillDefinition {
   /**
    * Origin of the skill.
    * - `"knowme"` — a KnowMe-domain skill specific to personal data features.
-   * - `"platform"` — a cross-cutting tool skill bundled with charcoal-agent.
+   * - `"platform"` — a cross-cutting tool skill bundled with the KnowMe client.
    */
   source?: "knowme" | "platform";
   /** Semver version string sent to the UAR on create/update. */

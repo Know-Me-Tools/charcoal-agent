@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "src/hooks/use-health.ts",
+      "line": 25,
+      "claim": "A 2xx health response with a JSON body of `{ \"status\": \"error\" }` is reported as unhealthy, violating the requirement to treat any 2xx response as healthy.",
+      "evidence": "Acceptance criterion `Runtime health polling`: \"treat any 2xx response (including an empty body) as healthy\"; hunk `pingEndpoint` parses a 2xx body and returns `{ status: (json.status as \"ok\" | \"error\") ?? \"ok\" }`, so a 200 body with `status: \"error\"` becomes an error.",
+      "suggested_fix": "For any `res.ok`, return `{ status: \"ok\" }` regardless of response body, or ignore `json.status` for health reachability."
+    },
+    {
+      "severity": "WARNING",
+      "file": "src/lib/entity-graph/use-graph-mutation.ts",
+      "line": 133,
+      "claim": "`isPending` is delegated to the underlying single mutation state and is not tracked per overlapping call, so it can stop representing whether any mutation is still in flight.",
+      "evidence": "The adapter adds per-call tokens for results in `calls.current`, but it never tracks an in-flight count; it returns `const { isPending, isSuccess, isError } = entityMutation.state` directly while supporting overlapping calls in `mutateAsync`.",
+      "suggested_fix": "Maintain an adapter-level pending counter/set keyed by token and expose `isPending` as `pendingCount > 0`."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

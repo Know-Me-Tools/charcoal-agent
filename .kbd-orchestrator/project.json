@@ -1,0 +1,173 @@
+{
+  "name": "Charcoal Agent",
+  "description": "React 19 + Vite chat client (optional Tauri desktop shell) for the Universal Agent Runtime, rendering its AG-UI event stream with local PGlite thread persistence.",
+  "activePhase": "complete-rebranding",
+  "updatedAt": "2026-09-23T22:24:33Z",
+  "worktreeRoot": "${HOME}/.claude/worktrees",
+  "maxChildDepth": 4,
+  "ux_profile": "advanced",
+  "__ux_profile_note": "advanced → kbd-status is dense by default; beginner → kbd-status --explain is on by default (expands decision-log entries + next-and-why narrative). Verbosity only — never gates information.",
+  "stack": [
+    "vite-react",
+    "typescript",
+    "tauri-rust"
+  ],
+  "focus_project_path": "/Users/gqadonis/Projects/know-me/charcoal-agent",
+  "spec_paths": [
+    "openspec/specs/*.md"
+  ],
+  "openspec_available": true,
+  "constraint_file": ".kbd-orchestrator/constraints.md",
+  "build_health_command": "npm run build",
+  "test_command": "npm test",
+  "lint_command": "npm run lint",
+  "dev_command": "npm run dev",
+  "preferred_planning_agent": "antigravity",
+  "preferred_execution_agents": [],
+  "model_policy": {
+    "registry": {
+      "small": {
+        "local": "Qwen3.5-9B-Q8_0",
+        "t4": "Qwen3.5-9B-Q8_0",
+        "l4": "Qwen3.5-9B-Q8_0"
+      },
+      "medium": {
+        "local": null,
+        "t4": "Qwen3.5-27B-Q4",
+        "l4": "Qwen3.5-35B-A3B-Q4"
+      },
+      "frontier": {
+        "local": "claude-sonnet-4-6",
+        "t4": "claude-sonnet-4-6",
+        "l4": "claude-sonnet-4-6"
+      }
+    },
+    "phases": {
+      "kbd-assess": "frontier",
+      "kbd-plan": "frontier",
+      "kbd-status": "small",
+      "kbd-reflect": "frontier",
+      "opsx-new": "small",
+      "opsx-apply-low": "small",
+      "opsx-apply-medium": "medium",
+      "opsx-apply-high": "frontier",
+      "opsx-verify": "medium",
+      "opsx-archive": "small",
+      "refiner-iterate": "small",
+      "refiner-evaluate": "medium",
+      "evolver-assess": "frontier",
+      "evolver-analyze": "frontier",
+      "evolver-plan": "frontier",
+      "evolver-execute-low": "small",
+      "evolver-execute-medium": "medium",
+      "evolver-execute-high": "frontier",
+      "evolver-reflect": "frontier",
+      "evolver-status": "small",
+      "creator-specify": "frontier",
+      "creator-plan": "frontier",
+      "creator-execute": "tiered",
+      "creator-reflect": "frontier",
+      "creator-persist": "small"
+    },
+    "active_environment": "local"
+  },
+  "agents_config": {
+    "antigravity": {
+      "entry": "SKILL.md slash commands",
+      "strengths": [
+        "multi-file features",
+        "browser verification",
+        "planning"
+      ]
+    },
+    "claude-code": {
+      "entry": "Claude Code CLI — /opsx:* commands, .claude/skills",
+      "strengths": [
+        "multi-file features",
+        "planning",
+        "code review"
+      ]
+    },
+    "codex": {
+      "entry": "OpenAI Codex CLI / app — $openspec-* skills in .agents/skills",
+      "strengths": [
+        "parallel isolated tasks via git worktrees"
+      ]
+    },
+    "opencode": {
+      "entry": "OpenCode CLI — /opsx-* commands in .opencode",
+      "strengths": [
+        "quick targeted edits",
+        "file patches"
+      ]
+    },
+    "kimi-code": {
+      "entry": "Kimi Code — /skill:openspec-* in .kimi-code/skills",
+      "strengths": [
+        "focused implementation"
+      ]
+    },
+    "zed": {
+      "entry": "Zed agent — shares .agents/skills with Codex",
+      "strengths": [
+        "in-editor edits"
+      ]
+    },
+    "minimax-code": {
+      "entry": "MiniMax Code — /openspec-* skills in ~/.minimax/skills",
+      "strengths": [
+        "focused implementation"
+      ]
+    }
+  },
+  "workspace": {
+    "workspace_file": "/Users/gqadonis/Projects/know-me/charcoal-agent/charcoal-agent.code-workspace",
+    "folders": [
+      {
+        "path": "/Users/gqadonis/Projects/know-me/charcoal-agent",
+        "role": "focus",
+        "purpose": "Active project — all KBD operations target this directory",
+        "write_access": true
+      },
+      {
+        "path": "/Users/gqadonis/Projects/prometheus/universal-agent-runtime",
+        "role": "reference",
+        "purpose": "UAR backend contract — AG-UI SSE event shapes, REST routes (/api/chat/completion, sessions, agents, providers, skills). Frontend stream parsing must match it.",
+        "read_paths": [
+          "src/uar/api/sse.rs",
+          "src/uar/api/**/*.rs",
+          "docs/**/*.md",
+          "*.md"
+        ],
+        "write_access": false
+      },
+      {
+        "path": "/Users/gqadonis/Projects/travisjames/skills/artifact-refiner",
+        "role": "reference",
+        "purpose": "Artifact / A2UI refinement conventions used by the chat artifact blocks",
+        "read_paths": [
+          "skills/**/SKILL.md",
+          "docs/**/*.md",
+          "*.md"
+        ],
+        "write_access": false
+      },
+      {
+        "path": "/Users/gqadonis/Projects/references/openfang",
+        "role": "reference",
+        "purpose": "Upstream agent OS reference (librefang/openfang lineage) for agent/runtime concepts",
+        "read_paths": [
+          "docs/**/*.md",
+          "*.md"
+        ],
+        "write_access": false
+      },
+      {
+        "path": "/Users/gqadonis/Projects/cherry-studio",
+        "role": "ignore",
+        "purpose": "Listed in charcoal-agent.code-workspace but not present on disk",
+        "write_access": false
+      }
+    ]
+  }
+}

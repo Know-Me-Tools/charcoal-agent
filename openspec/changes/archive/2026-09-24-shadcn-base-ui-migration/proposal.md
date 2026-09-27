@@ -1,0 +1,28 @@
+## Why
+
+Operator decision D-003 (2026-09-23): the app's shadcn/ui primitives must be on **Base UI** at the latest shadcn (4.21.x), not Radix. shadcn encodes the primitive library in the `components.json` style (`radix-*` vs `base-*`), and the assistant-ui registry resolves Base UI component variants from that style, so this change is a prerequisite for `assistant-ui-latest` and for the token-driven rebrand, which restyles these primitives.
+
+## What Changes
+
+- Switch `components.json` to the `base-nova` style (Tailwind 4 layout, lucide icons) and add `@base-ui/react`.
+- Re-install only the 16 primitives with live consumers (`alert, avatar, button, card, collapsible, dialog, input, label, scroll-area, select, separator, sonner, switch, tabs, textarea, tooltip`) as Base UI variants.
+- **Delete** the 33 primitives without live consumers (accordion, alert-dialog, aspect-ratio, badge, breadcrumb, calendar, carousel, chart, checkbox, command, context-menu, drawer, dropdown-menu, form, hover-card, input-otp, menubar, navigation-menu, pagination, popover, progress, radio-group, resizable, sheet, sidebar, skeleton, slider, table, toggle, toggle-group, and the shadcn `toast`/`toaster`/`use-toast` trio). Counts corrected during task 1.1: consumers inside deleted dead files do not count.
+- **Delete** dead components with no consumers that would otherwise have to be migrated: `components/assistant-ui/{thread,markdown-text,tool-fallback,assistant-modal,assistant-sidebar,thread-list}.tsx` `components/chat/*`, and the then-unreferenced `hooks/use-threads.ts` + `stores/thread-store.ts` (planned for `assistant-ui-latest`; moved here because they block this migration).
+- Update every call site of the migrated primitives to Base UI APIs (`asChild` → `render`; `onValueChange`/`onCheckedChange`/`onOpenChange` receive an extra event-details argument; `data-state` selectors → `data-open`/`data-closed`).
+- One toast system: keep Sonner, driven by the app's own theme store instead of an unmounted `next-themes` provider; remove the shadcn `Toaster`.
+- **BREAKING (internal):** remove all `@radix-ui/*` direct dependencies and `next-themes`.
+
+Out of scope: visual restyling (tokens arrive in `knowme-brand-tokens`); assistant-ui primitives (they carry their own `asChild` API until `assistant-ui-latest`).
+
+## Capabilities
+
+### New Capabilities
+- `ui-primitives`: keyboard and pointer behavior of the app's overlay and form primitives (dialogs, selects, tooltips, switches, collapsibles, tabs). Sheets are out of scope: the `sheet` primitive had no consumers and was deleted.
+
+### Modified Capabilities
+<!-- none -->
+
+## Impact
+
+- Code: `components.json`, `src/components/ui/*`, consumers in `src/pages/*`, `src/components/{layout,common,assistant-ui}/*`, `src/features/**`, `src/App.tsx`.
+- Dependencies: + `@base-ui/react`; − 27 direct `@radix-ui/*` packages, `next-themes`, and the packages only the deleted primitives used (`cmdk`, `embla-carousel-react`, `input-otp`, `react-day-picker`, `react-resizable-panels`, `recharts`, `vaul`, `react-hook-form`, `@hookform/resolvers`, `date-fns`). (`@radix-ui/*` may remain transitively via assistant-ui 0.12 until the next change.)

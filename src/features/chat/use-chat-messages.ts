@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEntity } from "@prometheus-ags/prometheus-entity-management";
+import { ENTITY } from "@/lib/entity-graph/entities";
+import { api } from "@/lib/api-client";
 import {
   useChatMessageStore,
   selectIsStreaming,
@@ -28,10 +30,18 @@ function uarMessageToRich(msg: UarMessage, index: number): RichMessage {
   };
 }
 
+/** Server-side transcript kept in the graph as one record per thread. */
+interface SessionTranscript {
+  id: string;
+  messages: UarMessage[];
+}
+
+/**
+ * GET /api/sessions/{id}/messages through the API client (base URL, auth and
+ * session headers). Non-2xx responses throw so the graph records the error.
+ */
 async function fetchSessionMessages(sessionId: string): Promise<UarMessage[]> {
-  const res = await fetch(`/api/sessions/${sessionId}/messages`);
-  if (!res.ok) return [];
-  const data = await res.json();
+  const data = await api.get<unknown>(`/api/sessions/${sessionId}/messages`);
   return Array.isArray(data) ? (data as UarMessage[]) : [];
 }
 
@@ -102,13 +112,20 @@ export function useChatMessages(threadId: string | null) {
   // ── 2. Fall back to server when PGLite is also empty ─────────────────────
   // The query is enabled whenever local store is empty AND we haven't
   // already started hydrating from PGLite (give PGLite a tick to respond).
-  const { data: serverMessages } = useQuery({
-    queryKey: ["sessions", threadId, "messages-fallback"],
-    queryFn: () => fetchSessionMessages(threadId ?? ""),
+  const {
+    data: transcript,
+    error: transcriptError,
+    isLoading: transcriptLoading,
+  } = useEntity<SessionTranscript, SessionTranscript>({
+    type: ENTITY.SessionTranscript,
+    id: threadId,
+    // Carry the requested id so a late response is stored under its own thread.
+    fetch: async (id) => ({ id: String(id), messages: await fetchSessionMessages(String(id)) }),
+    normalize: (transcript) => transcript,
     enabled: !!threadId && localIsEmpty && !isStreaming && !isEphemeral,
     staleTime: 60_000,
-    retry: false,
   });
+  const serverMessages = transcript?.messages;
 
   useEffect(() => {
     if (!threadId) return;
@@ -135,6 +152,9 @@ export function useChatMessages(threadId: string | null) {
   return {
     messages,
     isStreaming,
-    isLoading: localIsEmpty && !isStreaming,
+    /** True only while the server-transcript fallback is in flight; a failure ends loading. */
+    isLoading: localIsEmpty && !isStreaming && transcriptLoading,
+    /** Server-transcript fallback failure (null when not attempted or successful). */
+    transcriptError,
   };
 }

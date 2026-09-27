@@ -7,15 +7,33 @@ import type { LocalThread } from "@/types";
 // ---------------------------------------------------------------------------
 
 let _instance: CharcoalDb | null = null;
+let readyResolve: ((db: CharcoalDb) => void) | null = null;
+const readyPromise: Promise<CharcoalDb> = new Promise((resolve) => {
+  readyResolve = resolve;
+});
 
 export function setDbInstance(db: CharcoalDb): void {
   _instance = db;
+  readyResolve?.(db);
+  readyResolve = null;
 }
 
 /** Returns the initialized CharcoalDb. Throws if called before DbProvider is ready. */
 export function getDbInstance(): CharcoalDb {
   if (!_instance) throw new Error("[CharcoalDb] Database not yet initialized");
   return _instance;
+}
+
+/**
+ * Resolves once the database is open — immediately if it already is,
+ * otherwise the first time `setDbInstance` is called. Lets the write queue
+ * (`src/lib/db/write-queue.ts`) wait for readiness instead of silently
+ * dropping a write that reaches it before `DbProvider` finishes opening
+ * (chat-persistence-durability task 1.2).
+ */
+export function whenDbReady(): Promise<CharcoalDb> {
+  if (_instance) return Promise.resolve(_instance);
+  return readyPromise;
 }
 
 // ---------------------------------------------------------------------------
@@ -141,6 +159,19 @@ export class CharcoalDb {
     onStatus?: (message: string) => void,
   ): Promise<CharcoalDb> {
     onStatus?.("Opening database…");
+    // Durability assumption (chat-persistence-durability design decision 8):
+    // the write queue (src/lib/db/write-queue.ts) treats a resolved
+    // query()/exec() promise as "the write reached IndexedDB". That only
+    // holds while `relaxedDurability` is unset here. Per the upstream docs
+    // (PGlite `docs/docs/filesystems.md`, Context7 `/electric-sql/pglite`):
+    // the IndexedDB filesystem flushes to IndexedDB "after each query", and
+    // with `relaxedDurability` enabled, "results ... are returned
+    // immediately, and the flush to the IndexedDB ... is scheduled ... to
+    // happen asynchronously" — i.e. without it (the default, and our
+    // setting), a query's promise does not resolve until that flush has
+    // completed. Do not add `relaxedDurability: true` without re-deriving
+    // the write queue's completion guarantees in
+    // openspec/changes/chat-persistence-durability/design.md.
     const db = new PGlite("idb://charcoal-db");
     const instance = new CharcoalDb(db);
     await instance.runMigrations(onStatus);
@@ -273,12 +304,37 @@ export class CharcoalDb {
     await this.db.query("DELETE FROM threads WHERE id = $1", [id]);
   }
 
-  async touchThread(id: string): Promise<void> {
-    const now = new Date().toISOString();
+  async touchThread(id: string, at?: string): Promise<void> {
+    const touchedAt = at ?? new Date().toISOString();
     await this.db.query(
       "UPDATE threads SET updated_at = $1 WHERE id = $2",
-      [now, id],
+      [touchedAt, id],
     );
+  }
+
+  /**
+   * The stored `updated_at` for one thread, as an ISO string, or `null` when
+   * it no longer exists. Used by cross-tab journal replay
+   * (`persistence-journal.ts`) to decide whether a dead tab's
+   * `upsertThread`/`touchThread` descriptor is stale or targets a thread
+   * that was deleted since that tab's journal was written
+   * (chat-persistence-durability operator decision 2026-09-26).
+   *
+   * PGlite returns a `TIMESTAMPTZ` column as a native `Date`, not a string —
+   * confirmed by a real-PGlite test failing without this normalization: an
+   * older descriptor's ISO-string `updatedAt` compared with `<` against a
+   * `Date` coerces the string to `NaN`, so the comparison is always false
+   * and a stale write is silently applied instead of skipped. Normalize
+   * here so callers can always compare ISO strings.
+   */
+  async getThreadUpdatedAt(id: string): Promise<string | null> {
+    const { rows } = await this.db.query<{ updated_at: string | Date }>(
+      "SELECT updated_at FROM threads WHERE id = $1",
+      [id],
+    );
+    const value = rows[0]?.updated_at;
+    if (value === undefined) return null;
+    return value instanceof Date ? value.toISOString() : value;
   }
 
   // ---- messages -----------------------------------------------------------
@@ -311,6 +367,19 @@ export class CharcoalDb {
 
   async deleteThreadMessages(threadId: string): Promise<void> {
     await this.db.query("DELETE FROM messages WHERE thread_id = $1", [threadId]);
+  }
+
+  /**
+   * Deletes specific message rows (e.g. a superseded turn dropped by a
+   * retry or regenerate) so they don't resurrect on the next hydration.
+   * No-op when `messageIds` is empty.
+   */
+  async deleteMessages(threadId: string, messageIds: string[]): Promise<void> {
+    if (messageIds.length === 0) return;
+    await this.db.query(
+      "DELETE FROM messages WHERE thread_id = $1 AND id = ANY($2)",
+      [threadId, messageIds],
+    );
   }
 
   // ---- user_config --------------------------------------------------------

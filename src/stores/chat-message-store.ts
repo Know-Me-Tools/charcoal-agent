@@ -10,7 +10,7 @@ import type {
   SkillActivationContentBlock,
   ToolCallContentBlock,
 } from "@/types/chat-content";
-import { getDbInstance } from "@/lib/db/pglite";
+import { enqueueWrite } from "@/lib/db/write-queue";
 
 interface ChatMessageState {
   messagesByThread: Record<string, RichMessage[]>;
@@ -66,6 +66,14 @@ interface ChatMessageActions {
   ): void;
   finishStream(threadId: string): void;
   setStreamError(threadId: string, error: string): void;
+  /**
+   * Drops every message after `messageId` (exclusive) from the thread and
+   * deletes those rows from PGlite. Used by retry/regenerate to remove a
+   * superseded turn — the failed or stale assistant reply, and anything
+   * after it — before re-streaming, so the resend replaces it instead of
+   * appending a duplicate.
+   */
+  deleteMessagesAfter(threadId: string, messageId: string): Promise<void>;
   clearThread(threadId: string): void;
 }
 
@@ -80,10 +88,6 @@ const defaultStreamingState: StreamingState = {
   retryMaxAttempts: 0,
   retryDelayMs: 0,
 };
-
-function tryDb(): ReturnType<typeof getDbInstance> | null {
-  try { return getDbInstance(); } catch { return null; }
-}
 
 function ensureThread(
   state: ChatMessageState,
@@ -147,18 +151,69 @@ function getOrCreateStreamingMessage(
   return newMsg;
 }
 
-/** Persist all complete messages in a thread to PGLite. Fire-and-forget. */
+/**
+ * The assistant message receiving the active stream, created on the first
+ * event of any kind so blocks that precede the first text/thinking token
+ * (skill activation, context update, memory recall, tool calls…) are kept in
+ * arrival order. Returns null when no stream is active for the thread.
+ */
+function activeStreamingMessage(
+  state: ChatMessageState,
+  threadId: string,
+): RichMessage | null {
+  const streaming = state.streamingByThread[threadId];
+  if (!streaming?.isStreaming || !streaming.runId) return null;
+  ensureThread(state, threadId);
+  const message = getOrCreateStreamingMessage(state, threadId, streaming.runId);
+  // Any block counts as the first token for loading/retry indicators.
+  const current = state.streamingByThread[threadId];
+  current.awaitingFirstToken = false;
+  current.retryAttempt = 0;
+  current.retryMaxAttempts = 0;
+  current.retryDelayMs = 0;
+  return message;
+}
+
+/**
+ * Message ids already durably upserted this session, per thread. Guards
+ * against re-enqueuing the whole thread history on every turn (the pending
+ * set — and so the page-exit journal — must hold only what changed, not
+ * every message ever sent in the thread: chat-persistence-durability task
+ * 1.2 follow-up). Populated only on a SUCCESSFUL settle (see
+ * `persistMessages` below): a message whose write fails is left unmarked,
+ * so the next call retries it — the existing "a failed insert heals on the
+ * next turn" guarantee, now scoped to the message that actually failed
+ * instead of blanket-retrying the entire history.
+ */
+const persistedMessageIds: Record<string, Set<string>> = {};
+
+/**
+ * Enqueue a durable, ordered write for every complete message in a thread
+ * that isn't already known to be durably saved. `messages` MUST be
+ * post-`set()` committed state (from `get()`), never an immer draft — see
+ * chat-persistence-durability design decision 2 and
+ * src/lib/db/write-queue.ts's module doc.
+ */
 function persistMessages(threadId: string, messages: RichMessage[]): void {
-  const db = tryDb();
-  if (!db) return;
-  const complete = messages.filter((m) => m.status !== "in_progress");
+  const alreadyPersisted = persistedMessageIds[threadId];
+  const complete = messages.filter(
+    (m) => m.status !== "in_progress" && !alreadyPersisted?.has(m.id),
+  );
   for (const msg of complete) {
-    db.insertMessage(threadId, msg).catch(console.error);
+    enqueueWrite({ kind: "upsertMessage", threadId, message: msg }).then(
+      () => {
+        (persistedMessageIds[threadId] ??= new Set()).add(msg.id);
+      },
+      () => {
+        // Left unmarked — retried the next time persistMessages runs for
+        // this thread. The write queue has already logged/reported it.
+      },
+    );
   }
 }
 
 export const useChatMessageStore = create<ChatMessageStore>()(
-  immer((set) => ({
+  immer((set, get) => ({
     messagesByThread: {},
     streamingByThread: {},
 
@@ -280,26 +335,17 @@ export const useChatMessageStore = create<ChatMessageStore>()(
 
     addToolCall: (threadId, toolCall) =>
       set((state) => {
-        ensureThread(state, threadId);
-        const streaming = state.streamingByThread[threadId];
-        if (!streaming?.streamingMessageId) return;
-
-        // First token arrived (tool call counts as first content)
-        streaming.awaitingFirstToken = false;
-        streaming.retryAttempt = 0;
-        streaming.retryMaxAttempts = 0;
-        streaming.retryDelayMs = 0;
-
-        const messages = state.messagesByThread[threadId];
-        const idx = messages.findIndex(
-          (m) => m.id === streaming.streamingMessageId,
-        );
-        if (idx === -1) return;
-
-        messages[idx].content.push(toolCall as ContentBlock);
+        const message = activeStreamingMessage(state, threadId);
+        if (!message) return;
+        message.content.push(toolCall as ContentBlock);
       }),
 
-    updateToolCall: (threadId, toolCallId, update) =>
+    updateToolCall: (threadId, toolCallId, update) => {
+      // Captured by the set() producer below as a plain message id (never a
+      // draft object), then used to look up committed state for the
+      // re-persist below — see write-queue.ts's module doc.
+      let updatedMessageId: string | null = null;
+
       set((state) => {
         const messages = state.messagesByThread[threadId];
         if (!messages) return;
@@ -311,23 +357,45 @@ export const useChatMessageStore = create<ChatMessageStore>()(
           );
           if (block) {
             Object.assign(block, update);
+            updatedMessageId = msg.id;
             return;
           }
         }
-      }),
+      });
+
+      if (!updatedMessageId) return;
+
+      // A tool-call block can be updated (e.g. a delayed agui.tool_result)
+      // after its message was already finalized and durably saved by
+      // finishStream/setStreamError — persistMessages' persistedMessageIds
+      // guard (design.md's "only what changed" amendment) would otherwise
+      // hide this change forever, since nothing else re-saves an
+      // already-persisted message. Skip a still-streaming message:
+      // finishStream's own persistMessages call will pick it up once it
+      // completes, same as any first-time save.
+      const message = get().messagesByThread[threadId]?.find(
+        (m) => m.id === updatedMessageId,
+      );
+      if (!message || message.status === "in_progress") return;
+
+      persistedMessageIds[threadId]?.delete(message.id);
+      enqueueWrite({ kind: "upsertMessage", threadId, message }).then(
+        () => {
+          (persistedMessageIds[threadId] ??= new Set()).add(message.id);
+        },
+        () => {
+          // Left unmarked — retried the next time persistMessages runs for
+          // this thread, same as persistMessages' own failure handling.
+        },
+      );
+    },
 
     addCitation: (threadId, citation) =>
       set((state) => {
-        const streaming = state.streamingByThread[threadId];
-        if (!streaming?.streamingMessageId) return;
+        const message = activeStreamingMessage(state, threadId);
+        if (!message) return;
 
-        const messages = state.messagesByThread[threadId];
-        const idx = messages?.findIndex(
-          (m) => m.id === streaming.streamingMessageId,
-        );
-        if (idx === undefined || idx === -1) return;
-
-        messages[idx].content.push({
+        message.content.push({
           type: "citation",
           source: citation.source,
           content: citation.content,
@@ -337,16 +405,10 @@ export const useChatMessageStore = create<ChatMessageStore>()(
 
     addSkillActivation: (threadId, skill) =>
       set((state) => {
-        const streaming = state.streamingByThread[threadId];
-        if (!streaming?.streamingMessageId) return;
+        const message = activeStreamingMessage(state, threadId);
+        if (!message) return;
 
-        const messages = state.messagesByThread[threadId];
-        const idx = messages?.findIndex(
-          (m) => m.id === streaming.streamingMessageId,
-        );
-        if (idx === undefined || idx === -1) return;
-
-        messages[idx].content.push({
+        message.content.push({
           type: "skill-activation",
           skillId: skill.skillId,
           skillName: skill.skillName,
@@ -357,64 +419,45 @@ export const useChatMessageStore = create<ChatMessageStore>()(
 
     addContextUpdate: (threadId, update) =>
       set((state) => {
-        const streaming = state.streamingByThread[threadId];
-        if (!streaming?.streamingMessageId) return;
+        const message = activeStreamingMessage(state, threadId);
+        if (!message) return;
 
-        const messages = state.messagesByThread[threadId];
-        const idx = messages?.findIndex(
-          (m) => m.id === streaming.streamingMessageId,
-        );
-        if (idx === undefined || idx === -1) return;
-
-        messages[idx].content.push({ type: "context-update", ...update });
+        message.content.push({ type: "context-update", ...update });
       }),
 
     addMemoryRecall: (threadId, recall) =>
       set((state) => {
-        const streaming = state.streamingByThread[threadId];
-        if (!streaming?.streamingMessageId) return;
+        const message = activeStreamingMessage(state, threadId);
+        if (!message) return;
 
-        const messages = state.messagesByThread[threadId];
-        const idx = messages?.findIndex(
-          (m) => m.id === streaming.streamingMessageId,
-        );
-        if (idx === undefined || idx === -1) return;
-
-        messages[idx].content.push({ type: "memory-recall", ...recall });
+        message.content.push({ type: "memory-recall", ...recall });
       }),
 
     addMemoryMutation: (threadId, mutation) =>
       set((state) => {
-        const streaming = state.streamingByThread[threadId];
-        if (!streaming?.streamingMessageId) return;
+        const message = activeStreamingMessage(state, threadId);
+        if (!message) return;
 
-        const messages = state.messagesByThread[threadId];
-        const idx = messages?.findIndex(
-          (m) => m.id === streaming.streamingMessageId,
-        );
-        if (idx === undefined || idx === -1) return;
-
-        messages[idx].content.push({ type: "memory-mutation", ...mutation });
+        message.content.push({ type: "memory-mutation", ...mutation });
       }),
 
     addArtifact: (threadId, artifact) =>
       set((state) => {
-        const streaming = state.streamingByThread[threadId];
-        if (!streaming?.streamingMessageId) return;
+        const message = activeStreamingMessage(state, threadId);
+        if (!message) return;
 
-        const messages = state.messagesByThread[threadId];
-        const idx = messages?.findIndex(
-          (m) => m.id === streaming.streamingMessageId,
-        );
-        if (idx === undefined || idx === -1) return;
-
-        messages[idx].content.push({ type: "artifact", ...artifact });
+        message.content.push({ type: "artifact", ...artifact });
       }),
 
-    finishStream: (threadId) =>
+    finishStream: (threadId) => {
+      // `shouldPersist` mirrors the producer's early return: nothing to
+      // persist when no stream was active for this thread.
+      let shouldPersist = false;
+
       set((state) => {
         const streaming = state.streamingByThread[threadId];
         if (!streaming) return;
+        shouldPersist = true;
 
         const messages = state.messagesByThread[threadId];
         if (messages && streaming.streamingMessageId) {
@@ -433,23 +476,43 @@ export const useChatMessageStore = create<ChatMessageStore>()(
         }
 
         state.streamingByThread[threadId] = { ...defaultStreamingState };
+      });
 
-        // Write-through: persist all complete messages to PGLite
-        if (messages) {
-          persistMessages(threadId, [...messages]);
-        }
-      }),
+      if (!shouldPersist) return;
 
-    setStreamError: (threadId, error) =>
+      // Write-through: persist all complete messages to PGLite, built from
+      // committed state (get()) — never from the producer's immer draft,
+      // which is revoked by the time the queued write runs.
+      const messages = get().messagesByThread[threadId];
+      if (messages) {
+        persistMessages(threadId, messages);
+      }
+    },
+
+    setStreamError: (threadId, error) => {
+      let shouldPersist = false;
+
       set((state) => {
         const streaming = state.streamingByThread[threadId];
         if (!streaming) return;
+        shouldPersist = true;
+
+        // A pre-delta failure (non-2xx response, a rejected fetch, or the
+        // stream closing with zero events) never reaches a block handler, so
+        // `streamingMessageId` is still null here — no assistant message was
+        // ever created for this run. Without creating one now, the error has
+        // nothing to attach to: it silently vanishes when the streaming
+        // state resets below, and MessageError (gated on an existing
+        // message's status) never renders. Create the message the same way
+        // `activeStreamingMessage` does for the first content block.
+        ensureThread(state, threadId);
+        const message = streaming.runId
+          ? getOrCreateStreamingMessage(state, threadId, streaming.runId)
+          : null;
 
         const messages = state.messagesByThread[threadId];
-        if (messages && streaming.streamingMessageId) {
-          const idx = messages.findIndex(
-            (m) => m.id === streaming.streamingMessageId,
-          );
+        if (messages && message) {
+          const idx = messages.findIndex((m) => m.id === message.id);
           if (idx !== -1) {
             messages[idx].status = "failed";
             messages[idx].content.push({ type: "error", message: error });
@@ -457,17 +520,50 @@ export const useChatMessageStore = create<ChatMessageStore>()(
         }
 
         state.streamingByThread[threadId] = { ...defaultStreamingState };
+      });
 
-        // Write-through: persist all complete messages to PGLite
-        if (messages) {
-          persistMessages(threadId, [...messages]);
-        }
-      }),
+      if (!shouldPersist) return;
+
+      // Write-through, from committed state — see finishStream above.
+      const messages = get().messagesByThread[threadId];
+      if (messages) {
+        persistMessages(threadId, messages);
+      }
+    },
+
+    deleteMessagesAfter: (threadId, messageId) => {
+      // Captured by the set() producer below as plain string ids (never a
+      // draft object), then used for the queued write once the (synchronous)
+      // store update has applied.
+      let removedIds: string[] = [];
+
+      set((state) => {
+        const messages = state.messagesByThread[threadId];
+        if (!messages) return;
+        const idx = messages.findIndex((m) => m.id === messageId);
+        if (idx === -1) return;
+        const removed = messages.slice(idx + 1);
+        if (removed.length === 0) return;
+        removedIds = removed.map((m) => m.id);
+        state.messagesByThread[threadId] = messages.slice(0, idx + 1);
+      });
+
+      if (removedIds.length === 0) return Promise.resolve();
+
+      // These ids are gone from the thread and will never reappear (every
+      // message id is freshly generated), so they should never be treated
+      // as "already persisted" again — mainly tidiness, since a stale
+      // marker for a deleted id is otherwise harmless.
+      for (const id of removedIds) persistedMessageIds[threadId]?.delete(id);
+
+      return enqueueWrite({ kind: "deleteMessages", threadId, ids: removedIds });
+    },
 
     clearThread: (threadId) =>
       set((state) => {
         delete state.messagesByThread[threadId];
         delete state.streamingByThread[threadId];
+        delete persistedMessageIds[threadId];
       }),
   })),
 );

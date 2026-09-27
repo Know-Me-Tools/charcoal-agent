@@ -1,0 +1,31 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "WARNING",
+      "file": "src/components/assistant-ui/attachment.tsx",
+      "line": 29,
+      "claim": "useFileSrc retains the previous File object in state after the attachment is cleared, which can keep large removed uploads referenced unnecessarily.",
+      "evidence": "The new effect returns immediately on `if (!file) return;` and never clears `entry`, while the hook state is `useState<{ file: File; src: string }>()` and the return only hides stale state with `file && entry?.file === file ? entry.src : undefined`.",
+      "suggested_fix": "Clear the state when `file` is undefined, e.g. setEntry(undefined) in the no-file branch, while keeping URL creation/revocation in the effect lifecycle."
+    },
+    {
+      "severity": "WARNING",
+      "file": "openspec/changes/tailwind-v4-foundation/verification.md",
+      "line": 17,
+      "claim": "The change does not satisfy the warning constraint requiring ESLint to be clean because lint still reports warnings.",
+      "evidence": "Constraint `no-lint-warnings` says `ESLint clean`; verification records `npm run lint: 0 errors, 6 warnings`.",
+      "suggested_fix": "Either fix the remaining lint warnings or explicitly update the project constraint/acceptance process to allow this documented exception."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

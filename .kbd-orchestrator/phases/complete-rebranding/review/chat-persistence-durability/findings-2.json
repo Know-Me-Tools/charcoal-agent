@@ -1,0 +1,29 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "src/lib/db/persistence-journal.ts",
+      "claim": "Dead-tab replay discards pending saves for a newly-created thread whose thread row had not reached PGlite before the tab closed.",
+      "evidence": "Acceptance criterion 1.2 says replay should apply the journal key in order before ready, and the spec says saves pending at page exit SHALL apply on next start; however `replayJournal` replays other/dead tab keys via `tryReplayDeadTabKey(... replayKey(..., guard: true))`, and `checkForeignThreadGuard` returns `skip-missing` whenever `db.getThreadUpdatedAt(threadId)` is null for every descriptor except `deleteThread`/`deleteMessages`, including the `upsertThread` that would create a new thread.",
+      "suggested_fix": "Do not treat a missing row as proof of deletion for a dead tab's entire journal. Replay descriptors in journal order while tracking thread rows created by the same journal, or preserve a deletion tombstone/scrub marker so only genuinely deleted threads are skipped."
+    },
+    {
+      "severity": "WARNING",
+      "file": "src/lib/db/persistence-journal.ts",
+      "claim": "The newer-wins guard for dead-tab `touchThread` descriptors cannot detect stale touches and will normally apply them over newer rows.",
+      "evidence": "The operator decision in `openspec/changes/chat-persistence-durability/design.md` says `touchThread` follows the same newer-wins rule, but `checkForeignThreadGuard` compares `const now = new Date().toISOString()` to the stored `updated_at`; because replay time is normally later than any stored row timestamp, stale dead-tab `touchThread` descriptors are treated as `apply` and can move an old thread to the top.",
+      "suggested_fix": "Include the original touch timestamp in `touchThread` descriptors and compare that timestamp to `storedUpdatedAt`, or encode touches as `upsertThread` descriptors carrying `updatedAt`."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

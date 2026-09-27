@@ -1,0 +1,45 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "src/lib/entity-graph/entities.ts",
+      "line": 13,
+      "claim": "Provider models are not stored as one canonical record per model, violating the runtime-data-sync requirement for models.",
+      "evidence": "The requirement says each provider model SHALL be held as a single canonical copy identified by type and id, and the design declares `ProviderModel` id as `${providerId}::${modelId}`; however `src/hooks/use-providers.ts` uses `useEntity` with `type: ENTITY.ProviderModel`, `id: providerId`, and `normalize: ... ({ id: providerId ?? \"\", models: [...] })`, storing a whole provider's model list in one aggregate record.",
+      "suggested_fix": "Represent provider models as list rows keyed by `providerModelId(providerId, model.id)` and return the per-provider list from graph rows rather than storing `{ id: providerId, models }`."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "src/hooks/use-agents.ts",
+      "claim": "`useDeleteAgent` was removed instead of migrated, despite the acceptance criteria requiring `useDeleteAgent` via `useGraphMutation` with Agent invalidation.",
+      "evidence": "Acceptance criterion 2.1 states: `useCompileAgent`/`useUpdateAgentMemory`/`useDeleteAgent` via `useGraphMutation` with `Agent` invalidation; the diff deletes the entire `useDeleteAgent` export from `src/hooks/use-agents.ts` and adds no replacement.",
+      "suggested_fix": "Restore `useDeleteAgent` implemented with `useGraphMutation<string, unknown>({ type: ENTITY.Agent, mutate: id => api.delete(`/api/agents/${id}`), invalidateTypes: [ENTITY.Agent] })`."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "src/hooks/use-skills.ts",
+      "claim": "Skill create, update, and delete mutations were removed instead of migrated, despite the acceptance criteria requiring them.",
+      "evidence": "Acceptance criterion 2.3 requires Skills: list, optimistic toggle, refresh, create/update/delete; the diff deletes `useUpdateSkill`, `useCreateSkill`, `CreateSkillPayload`, and `useDeleteSkill` from `src/hooks/use-skills.ts`, leaving only `useSkills`, `useToggleSkill`, and `useRefreshSkills`.",
+      "suggested_fix": "Restore the skill create/update/delete hooks using `useGraphMutation` and invalidate `ENTITY.Skill` after successful mutations."
+    },
+    {
+      "severity": "WARNING",
+      "file": "src/lib/entity-graph/use-graph-mutation.ts",
+      "line": 72,
+      "claim": "Concurrent calls to the same mutation hook can corrupt per-call results because success/error handlers write to a shared `lastCall.current` instead of the call that initiated the request.",
+      "evidence": "`mutateAsync` creates a local `call` but `onSuccess` and `onError` assign `lastCall.current.result/error`; if mutation A is still in flight when mutation B starts, A's completion writes into B's record and A returns `undefined` or the wrong result.",
+      "suggested_fix": "Associate callbacks with a per-call token/promise context, or avoid using shared `lastCall.current` for resolving `mutateAsync`; return the underlying mutation result directly where possible."
+    }
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

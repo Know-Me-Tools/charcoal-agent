@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useGraphStoreApi } from "@prometheus-ags/prometheus-entity-management";
+import { ENTITY } from "@/lib/entity-graph/entities";
 import {
   useExternalStoreRuntime,
   type AppendMessage,
@@ -22,7 +23,7 @@ import type { RichMessage, ContentBlock } from "@/types/chat-content";
  * `message.metadata.submittedFeedback` without an optional-chain guard. Every
  * object we return MUST therefore have a `metadata` property, even if empty.
  */
-function richMessageToThreadMessageLike(msg: RichMessage): ThreadMessageLike {
+export function richMessageToThreadMessageLike(msg: RichMessage): ThreadMessageLike {
   /** Minimal metadata shape that satisfies the library's internal accessor. */
   const baseMetadata = { custom: {} };
 
@@ -222,7 +223,7 @@ export interface ChatRuntimeOptions {
 }
 
 export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {}) {
-  const qc = useQueryClient();
+  const graph = useGraphStoreApi();
   const consumePendingPrompt = useChatIntentStore((s) => s.consumePendingPrompt);
   const { startStream, cancelStream } = useMessageStream();
   const { messages, isStreaming } = useChatMessages(threadId);
@@ -260,8 +261,8 @@ export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {
       markPersisted(threadId);
       touch(threadId);
 
-      // Invalidate server-side queries so the sidebar stays in sync
-      void qc.invalidateQueries({ queryKey: ["sessions", threadId] });
+      // Mark the server transcript stale so the next fallback read is fresh
+      graph.getState().invalidateEntity(ENTITY.SessionTranscript, threadId);
 
       // Generate title only once per thread (check current title first)
       if (titleGeneratedRef.current) return;
@@ -282,7 +283,7 @@ export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {
       const title = await generateThreadTitle(userMsgText, assistantText);
       setTitle(threadId, title);
     },
-    [threadId, markPersisted, touch, setTitle, qc],
+    [threadId, markPersisted, touch, setTitle, graph],
   );
 
   const onNew = useCallback(
@@ -311,6 +312,74 @@ export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {
             void afterStreamComplete(userText);
           },
         },
+      );
+    },
+    [threadId, startStream, afterStreamComplete, options.promptCachingEnabled],
+  );
+
+  /**
+   * Wires assistant-ui's "Try again" / "Regenerate" action
+   * (`ActionBarPrimitive.Reload` — `MessageError` on a failed message, and
+   * `AssistantActionBar` on the last assistant message generally) to the
+   * same send path as a new message. `useExternalStoreRuntime` only enables
+   * reload (`capabilities.reload`) when `onReload` is provided — without it
+   * the button renders disabled. `parentId` is the id of the message
+   * immediately before the reloaded one in `messages` (assistant-ui's
+   * default flat-array repository parents each message to its predecessor —
+   * see `external-store-thread-runtime-core.ts`), which is always the user
+   * message that triggered the reloaded assistant turn.
+   *
+   * Reload must not duplicate that user message: `startStream` always
+   * appends a new optimistic user message on its own, and assistant-ui's
+   * external-store `startRun` leaves removing superseded messages entirely
+   * to the store (it does not do so itself). So before resending, every
+   * message after `parentId` — the failed/old assistant reply, and anything
+   * after it — is deleted from the store *and* PGlite
+   * (`deleteMessagesAfter`), and `startStream` is called with
+   * `skipUserMessage: true` to reuse the existing user message instead of
+   * appending a duplicate. Net effect for both "Try again" on a failed
+   * reply and "Regenerate" on a good one: the turn is replaced in place,
+   * not duplicated.
+   */
+  const onReload = useCallback(
+    async (parentId: string | null) => {
+      if (!parentId) return;
+
+      const storeMessages =
+        useChatMessageStore.getState().messagesByThread[threadId] ?? [];
+      const parentMessage = storeMessages.find((m) => m.id === parentId);
+      if (!parentMessage || parentMessage.role !== "user") return;
+
+      const userText = extractText(parentMessage);
+      if (!userText.trim()) return;
+
+      // Await the delete of the superseded turn so a failed removal is known
+      // before the replacement starts streaming (chat-persistence-durability
+      // design decision 4). Still regenerate when the delete rejects — the
+      // user asked for it and the screen already shows the right thing; the
+      // write queue has already logged the raw error for diagnosis, and the
+      // failure notice (task 1.2) discloses that the stale row may
+      // resurrect on reload.
+      await useChatMessageStore
+        .getState()
+        .deleteMessagesAfter(threadId, parentId)
+        .catch(() => undefined);
+
+      const thread = useThreadRegistryStore.getState().threads[threadId];
+
+      await startStream(
+        threadId,
+        {
+          message: userText,
+          agent_id: thread?.agentId,
+          prompt_caching_enabled: options.promptCachingEnabled,
+        },
+        {
+          onComplete: () => {
+            void afterStreamComplete(userText);
+          },
+        },
+        { skipUserMessage: true },
       );
     },
     [threadId, startStream, afterStreamComplete, options.promptCachingEnabled],
@@ -360,6 +429,7 @@ export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {
     messages: threadMessageLikes,
     isRunning: isStreaming,
     onNew,
+    onReload,
     onCancel,
   // biome-ignore lint/suspicious/noExplicitAny: useExternalStoreRuntime props type is overly strict
   } as any); // eslint-disable-line @typescript-eslint/no-explicit-any

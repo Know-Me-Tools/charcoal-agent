@@ -1,11 +1,19 @@
+import { readFileSync } from "node:fs";
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { configDefaults } from "vitest/config";
 
 const host = process.env.TAURI_DEV_HOST;
+
+// Read the app version once at config-load time so it can be inlined as a
+// build-time constant (see `__APP_VERSION__` below and `src/vite-env.d.ts`).
+// Reading the whole manifest into client code would also ship dependency
+// names, so only the version string is extracted here.
+const pkg = JSON.parse(
+  readFileSync(path.resolve(__dirname, "package.json"), "utf-8"),
+) as { version: string };
 
 export default defineConfig(({ mode }) => {
   // Load .env / .env.development / .env.development.local into a local map.
@@ -15,12 +23,15 @@ export default defineConfig(({ mode }) => {
 
   return {
   envPrefix: ['VITE_', 'TAURI_ENV_*'],
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   build: {
     // Tauri uses Chromium on Windows and WebKit on macOS and Linux
     target:
       process.env.TAURI_ENV_PLATFORM === 'windows'
-        ? 'chrome105'
-        : 'safari13',
+        ? 'chrome111'
+        : 'safari16.4',
     // don't minify for debug builds
     minify: !process.env.TAURI_ENV_DEBUG ? 'esbuild' : false,
     // produce sourcemaps for debug builds
@@ -66,7 +77,7 @@ export default defineConfig(({ mode }) => {
       };
     })(),
   },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

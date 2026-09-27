@@ -1,0 +1,219 @@
+{
+  "schemaVersion": "2",
+  "generatedBy": "kbd-runtime",
+  "projectionContractVersion": 2,
+  "sourceRevision": 483,
+  "derivedRevision": 483,
+  "frontier": {
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 483
+  },
+  "conflictCount": 0,
+  "phase": "complete-rebranding",
+  "phaseId": "complete-rebranding",
+  "parentPhase": null,
+  "last_updated": "2026-09-27T01:27:51.961712Z",
+  "last_updated_by": "kbd-runtime",
+  "changes_total": 13,
+  "changes_completed": 10,
+  "implementation_total": 13,
+  "implementation_completed": 10,
+  "completion": {
+    "primaryCounter": "implementation",
+    "implementation": {
+      "completed": 10,
+      "total": 13,
+      "status": "IN_PROGRESS"
+    },
+    "evidence": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    },
+    "certification": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    },
+    "publication": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    }
+  },
+  "completionScopes": {
+    "completion": "phase",
+    "runCompletion": "run"
+  },
+  "runCompletion": {
+    "scope": "run",
+    "runId": "complete-rebranding-20260923T223312Z",
+    "primaryCounter": "implementation",
+    "implementation": {
+      "completed": 10,
+      "total": 13,
+      "status": "IN_PROGRESS"
+    },
+    "evidence": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    },
+    "certification": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    },
+    "publication": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    }
+  },
+  "changes": [
+    {
+      "id": "tailwind-v4-foundation",
+      "title": "Upgrade to Tailwind 4 and clear the pre-existing lint/type baseline",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 11,
+      "tasks_done": 11,
+      "last_task_completed": "5.1 Full verification",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "visual-verification-harness",
+      "title": "Add Playwright screenshots and axe checks",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 9,
+      "tasks_done": 9,
+      "last_task_completed": "5.1 Full verification",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "entity-graph-data-layer",
+      "title": "Replace TanStack Query with the Prometheus entity graph",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 10,
+      "tasks_done": 10,
+      "last_task_completed": "4.1 Full verification",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "shadcn-base-ui-migration",
+      "title": "Reinstall shadcn primitives on Base UI at the latest shadcn",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 8,
+      "tasks_done": 8,
+      "last_task_completed": "4.1 Full verification",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "assistant-ui-latest",
+      "title": "Upgrade assistant-ui to 0.15.x on the Base UI registry",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 7,
+      "tasks_done": 7,
+      "last_task_completed": "4.1 Full verification",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "knowme-brand-tokens",
+      "title": "Port the KnowMe token system (Flat 2.0) into Tailwind 4",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 7,
+      "tasks_done": 7,
+      "last_task_completed": "4.1 Full verification",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "knowme-brand-identity",
+      "title": "Logo, icons, metadata, naming and copy",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 8,
+      "tasks_done": 8,
+      "last_task_completed": "4.1 Full verification",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "app-shell-flat2",
+      "title": "Restyle the application shell",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 6,
+      "tasks_done": 6,
+      "last_task_completed": "4.1 Verification",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "chat-persistence-durability",
+      "title": "Durable chat persistence: awaited writes, pagehide flush, reload e2e",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 5,
+      "tasks_done": 5,
+      "last_task_completed": "3.2 Verification and independent review",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "chat-surfaces-flat2",
+      "title": "Restyle thread, composer and every content block",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 9,
+      "tasks_done": 9,
+      "last_task_completed": "4.3 Verification record and independent review",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "landing-and-about-brand",
+      "title": "Brand-template landing page and About",
+      "status": "IN_PROGRESS",
+      "implementation_status": "IN_PROGRESS",
+      "tasks_total": 7,
+      "tasks_done": 5,
+      "last_task_completed": "4.2 Verification and independent review",
+      "next_task_pending": "1.1 Design mapping (creative director)",
+      "blockers": []
+    },
+    {
+      "id": "app-pages-flat2-entity-views",
+      "title": "Restyle app pages and adopt entity list/detail components",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 0,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "brand-fidelity-audit",
+      "title": "Whole-site verification and golden snapshots",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 0,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": null,
+      "blockers": []
+    }
+  ],
+  "children": {},
+  "migrationStatus": null
+}

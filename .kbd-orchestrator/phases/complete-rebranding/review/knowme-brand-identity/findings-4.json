@@ -1,0 +1,22 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "gpt-5.5",
+  "producer_model": "claude-opus-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "verified-distinct",
+  "findings": [],
+  "checked_classes": [
+    "Spec violations \u2014 acceptance criteria for brand components, metadata, naming, Docker/.env compatibility, Tauri npm/devUrl wiring, and verification artifacts are represented in the diff with no concrete unmet criterion visible in the packet.",
+    "Correctness \u2014 reviewed changed component logic, accessibility naming behavior, docker-compose interpolation, asset-generation script flow, and naming guard logic; no packet-proven runtime defect found.",
+    "Regressions \u2014 reviewed removed lovable-tagger/bun.lockb/placeholder.svg and changed service names against stated acceptance criteria and reviewer note; no concrete dependency break shown in the packet.",
+    "Security \u2014 reviewed for hardcoded secrets, external social image URLs, unsafe path writes, and auth/env handling; no packet-proven security issue found.",
+    "Constraint breaches \u2014 checked blocking constraints visible in the diff: no console.log in src TypeScript, no new : any, no env files, no pglite migration edits, no pglite vite exclusion change, no hardcoded API keys/tokens; none apply.",
+    "Silent failure \u2014 reviewed newly added tests and scripts for swallowed errors/defaults masking failure; no concrete silent-failure defect proven by the packet."
+  ],
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}
