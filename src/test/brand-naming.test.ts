@@ -40,7 +40,11 @@ const ALLOWED = [
   /getByText\(\/Charcoal\/\)/, // e2e assertions that the name is absent
 ];
 
-const GUARD_FILES = new Set(["src/test/brand-naming.test.ts", "src/test/brand-copy.test.ts"]);
+const GUARD_FILES = new Set([
+  "src/test/brand-naming.test.ts",
+  "src/test/brand-copy.test.ts",
+  "e2e/app-pages.spec.ts", // asserts the settings pages never render the old name
+]);
 
 function trackedFiles(): string[] {
   // GIT_OPTIONAL_LOCKS=0 stops git from taking the index lock to refresh stat
