@@ -5,8 +5,9 @@ description: The KnowMe AI, LLC brand and Flat 2.0 UI rules for this website. Us
 
 # KnowMe brand standard
 
-The binding sources live outside this repo, in `../know-me-system/docs/`:
-`knowme-ui-ux-standard.md` (binding for UI), the Brand Guide v1.0 and `branding/logos/`.
+The binding sources live outside this repo: `../know-me-system/docs/knowme-ui-ux-standard.md`
+(binding for UI), and in `../branding/` the Brand Guide v1.0 (`knowme-brand-guide.html`),
+the brand template (`knowme-brand-template.html`) and `logos/`.
 Read the relevant section there before inventing anything. This skill is the working summary.
 When they disagree, the standard wins, except where WCAG AA requires otherwise (decision D-007).
 

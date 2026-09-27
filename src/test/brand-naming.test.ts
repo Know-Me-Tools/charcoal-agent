@@ -40,6 +40,8 @@ const ALLOWED = [
   /getByText\(\/Charcoal\/\)/, // e2e assertions that the name is absent
 ];
 
+const GUARD_FILES = new Set(["src/test/brand-naming.test.ts", "src/test/brand-copy.test.ts"]);
+
 function trackedFiles(): string[] {
   // GIT_OPTIONAL_LOCKS=0 stops git from taking the index lock to refresh stat
   // info; without it a worker exit here has twice left a stale, empty
@@ -48,7 +50,8 @@ function trackedFiles(): string[] {
     encoding: "utf8",
     env: { ...process.env, GIT_OPTIONAL_LOCKS: "0" },
   });
-  return out.split("\n").filter((f) => f && f !== "src/test/brand-naming.test.ts");
+  // Guard files must spell out the words they ban, so they are not scanned.
+  return out.split("\n").filter((f) => f && !GUARD_FILES.has(f));
 }
 
 /** Removes only the allowed occurrences, so other names on the same line are still checked. */

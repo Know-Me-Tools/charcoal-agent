@@ -1,47 +1,50 @@
-import { useHealth } from "@/hooks/use-health";
-import { SectionLabel } from "@/components/common/section-label";
-import { StatusBadge } from "@/components/common/status-badge";
 import { KnowMeLockup } from "@/components/brand";
+import { StatusBadge } from "@/components/common/status-badge";
+import { useHealth } from "@/hooks/use-health";
+import { ABOUT_CONTENT } from "../../content/site/about";
 
-const APP_VERSION = "0.1.0";
 const UAR_BASE = (import.meta.env.VITE_UAR_BASE_URL as string | undefined) ?? "http://localhost:6565";
 
+interface AboutRowProps {
+	label: string;
+	children: React.ReactNode;
+}
+
+/** One flat fact row: a label and its value, on the shared `bg-band` fill. */
+function AboutRow({ label, children }: AboutRowProps) {
+	return (
+		<div className="grid gap-1 rounded-lg bg-band px-4 py-3 sm:grid-cols-[9rem_minmax(0,1fr)] sm:items-center sm:gap-4">
+			<dt className="font-ui text-sm text-fg-secondary">{label}</dt>
+			<dd className="min-w-0 break-all font-mono text-sm text-fg">{children}</dd>
+		</div>
+	);
+}
+
 export default function AboutPage() {
-  const { data: health } = useHealth();
+	const { data: health } = useHealth();
 
-  return (
-    <div className="max-w-lg space-y-8">
-      <div>
-        <SectionLabel>About</SectionLabel>
-        <h1 className="mt-2">
-          <KnowMeLockup variant="nav" />
-        </h1>
-        <p className="mt-2 font-mono text-xs text-faint">© 2026 KnowMe AI, LLC</p>
-      </div>
+	return (
+		<div className="max-w-xl">
+			<span aria-hidden="true" className="block">
+				<KnowMeLockup variant="nav" />
+			</span>
+			<h1 className="mt-4 font-display text-2xl font-bold tracking-[-0.03em] text-fg">
+				{ABOUT_CONTENT.heading}
+			</h1>
+			<p className="mt-3 max-w-[60ch] font-body text-[0.9375rem] leading-[1.7] text-fg-secondary">
+				{ABOUT_CONTENT.explanation}
+			</p>
 
-      <div className="space-y-4">
-        <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
-          <span className="font-ui text-sm text-muted-foreground">Version</span>
-          <span className="font-mono text-sm text-foreground">{APP_VERSION}</span>
-        </div>
+			<dl className="mt-8 space-y-2">
+				<AboutRow label={ABOUT_CONTENT.rows.version}>{__APP_VERSION__}</AboutRow>
+				<AboutRow label={ABOUT_CONTENT.rows.runtimeStatus}>
+					<StatusBadge status={health?.status === "ok" ? "connected" : "disconnected"} />
+				</AboutRow>
+				<AboutRow label={ABOUT_CONTENT.rows.runtimeEndpoint}>{UAR_BASE}</AboutRow>
+				<AboutRow label={ABOUT_CONTENT.rows.agent}>{ABOUT_CONTENT.agentValue}</AboutRow>
+			</dl>
 
-        <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
-          <span className="font-ui text-sm text-muted-foreground">Runtime status</span>
-          <StatusBadge
-            status={health?.status === "ok" ? "connected" : "disconnected"}
-          />
-        </div>
-
-        <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
-          <span className="font-ui text-sm text-muted-foreground">Runtime endpoint</span>
-          <span className="max-w-xs truncate font-mono text-sm text-foreground">{UAR_BASE}</span>
-        </div>
-
-        <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
-          <span className="font-ui text-sm text-muted-foreground">Agent</span>
-          <span className="font-mono text-sm text-foreground">KnowMe on the Universal Agent Runtime</span>
-        </div>
-      </div>
-    </div>
-  );
+			<p className="mt-8 font-mono text-xs text-faint">{ABOUT_CONTENT.legalLine}</p>
+		</div>
+	);
 }

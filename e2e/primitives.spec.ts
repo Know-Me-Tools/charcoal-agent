@@ -18,7 +18,26 @@ test.describe("primitive harness", () => {
 
     for (let i = 0; i < 6; i++) {
       await page.keyboard.press("Tab");
-      expect(await dialog.evaluate((d) => d.contains(document.activeElement))).toBe(true);
+      // Base UI's focus trap (floating-ui-react's `FloatingFocusManager`)
+      // wraps Tab at the edges with invisible focus-guard sentinels: native
+      // Tab first lands on a guard, whose focus handler then calls
+      // `enqueueFocus` to redirect focus to the real element inside the
+      // dialog — via `requestAnimationFrame`, not synchronously
+      // (node_modules/@base-ui/react/floating-ui-react/utils/enqueueFocus.js).
+      // `page.keyboard.press` only waits for the key event dispatch, not for
+      // that pending frame, so a same-tick read of `document.activeElement`
+      // can catch focus mid-flight on the guard. Poll for the real signal —
+      // focus having settled inside the dialog — instead of a single
+      // synchronous read. Reproduced failing 7-10/10 under
+      // `--repeat-each 10 --workers=1 --retries=0` before this fix; traced
+      // with a debug harness that logged `document.activeElement` per Tab
+      // (not committed) confirming it always lands correctly by the very
+      // next microtask/frame, never later, and never outside recoverably.
+      await expect
+        .poll(() => dialog.evaluate((d) => d.contains(document.activeElement)), {
+          message: `Tab #${i + 1} should land (or settle, after the focus-guard's queued refocus) inside the dialog`,
+        })
+        .toBe(true);
     }
 
     await page.keyboard.press("Escape");

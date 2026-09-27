@@ -189,3 +189,74 @@ describe("Flat 2.0 chat surfaces", () => {
     });
   }
 });
+
+/**
+ * Flat 2.0 guard for the public brand pages (landing, About, not-found) and
+ * the shared site chrome (specs/brand-pages/spec.md: "Flat 2.0 on the brand
+ * pages"; design.md decision 10). Reuses the chat-only rule set (hex,
+ * bg-white/text-white/bg-black, opacity text colour) plus a `gradient` rule:
+ * design.md decision 1 retires every S2 gradient ("--ember-bright" as a
+ * "gradient tip", `.btn-primary` hover) and the spec bans a `background-image`
+ * containing "gradient" outright.
+ */
+const BRAND_PAGE_FIXED_FILES = [
+  "src/pages/landing-page.tsx",
+  "src/pages/about-page.tsx",
+  "src/pages/NotFound.tsx",
+];
+
+const GRADIENT_RULE = {
+  name: "gradient",
+  pattern:
+    /(?<![\w-])(?:bg-gradient-[\w-]+|bg-linear-[\w-]+|from-[\w./-]+|via-[\w./-]+|to-[\w./-]+|bg-\[[^\]]*gradient[^\]]*\])/g,
+};
+
+function brandPageFiles(): string[] {
+  const globbed = readdirSync("src/components/site")
+    // .ts too: shared class strings (ember-cta.ts) must meet the same rules.
+    .filter((f) => /\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f))
+    .map((f) => join("src/components/site", f));
+  return [...BRAND_PAGE_FIXED_FILES, ...globbed];
+}
+
+function brandPageViolationsIn(source: string): string[] {
+  const code = stripComments(source);
+  return [...RULES, ...CHAT_RULES, GRADIENT_RULE].flatMap(({ name, pattern }) =>
+    [...code.matchAll(pattern)]
+      .filter((m) => !TABLE_LAYOUT_EXCEPTIONS.some((exception) => exception.test(m[0])))
+      .map((m) => `${name}: ${m[0]}`),
+  );
+}
+
+describe("Flat 2.0 gradient rule", () => {
+  it.each(["bg-gradient-to-r", "bg-linear-to-br", "from-ember to-ember-2", "bg-[linear-gradient(to_right,red,blue)]"])(
+    "flags %s",
+    (cls) => {
+      expect(brandPageViolationsIn(`<div className="${cls}" />`)).not.toEqual([]);
+    },
+  );
+
+  it.each(["bg-ember text-primary-foreground", "bg-canvas text-fg", "bg-band"])("allows %s", (cls) => {
+    expect(brandPageViolationsIn(`<div className="${cls}" />`)).toEqual([]);
+  });
+});
+
+describe("Flat 2.0 brand pages", () => {
+  for (const file of brandPageFiles()) {
+    it(`${file} has no borders, shadows, blur, sub-12px text, raw palette colours, hex, literal white/black fills, opacity text colour or gradients`, () => {
+      expect(brandPageViolationsIn(readFileSync(file, "utf8"))).toEqual([]);
+    });
+  }
+
+  it("covers the brand pages and every site-chrome component", () => {
+    expect(brandPageFiles()).toEqual(
+      expect.arrayContaining([
+        "src/pages/landing-page.tsx",
+        "src/pages/about-page.tsx",
+        "src/pages/NotFound.tsx",
+        "src/components/site/site-header.tsx",
+        "src/components/site/site-footer.tsx",
+      ]),
+    );
+  });
+});

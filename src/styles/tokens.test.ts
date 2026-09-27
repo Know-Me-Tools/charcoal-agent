@@ -47,6 +47,7 @@ const SURFACES = [
   "km-hover",
   "km-muted",
   "km-composer",
+  "km-band",
 ];
 const TEXT = [
   "km-fg",
@@ -60,6 +61,8 @@ const TEXT = [
 ];
 const LABELS_ON_FILLS: Array<[label: string, fill: string]> = [
   ["km-on-ember", "km-ember"],
+  // Ember CTA hover (docs/design/brand-pages.md §6).
+  ["km-on-ember", "km-ember-hover"],
   ["km-on-danger", "km-danger"],
   // Status pills: tone text on its soft fill.
   ["km-success-text", "km-success-soft"],
@@ -87,8 +90,20 @@ const FILL_STEPS: Array<[a: string, b: string, where: string]> = [
   ["km-code", "km-canvas", "code well in a message"],
   ["km-code", "km-surface", "code well inside a card"],
   ["km-code", "km-raised", "code body under its header row"],
+  // Brand pages (docs/design/brand-pages.md §3): every adjacent band pair.
+  ["km-chrome", "km-canvas", "site header or footer next to a canvas band"],
+  ["km-band", "km-canvas", "alternate band next to a canvas band; About row on the canvas"],
+  ["km-band", "km-chrome", "alternate band next to the site footer"],
+  ["km-ember-hover", "km-ember", "ember CTA hover"],
 ];
 const MIN_FILL_STEP = 1.8;
+// The 2px ember focus outline (focus-cue and the CTA outline) sits at a 2px
+// offset on whatever fill surrounds the control: WCAG 1.4.11 needs 3:1.
+const FOCUS_RING_ON = ["km-canvas", "km-chrome", "km-band", "km-composer", "km-raised"];
+const NON_TEXT = 3;
+// The ember CTA on hover must still stand apart from every fill it sits on:
+// the composer (send), raised (send while the form has focus), canvas (404).
+const EMBER_HOVER_ON = ["km-composer", "km-raised", "km-canvas"];
 // Authored HTML previews assume a white page: the browser default text
 // (black) and the lightest grey that passes AA on white must stay legible.
 const AUTHORED_TEXT_ON_ARTIFACT_CANVAS = ["#000000", "#767676"];
@@ -121,6 +136,16 @@ describe.each([
   it.each(FILL_STEPS)("%s separates from %s (%s)", (a, b) => {
     const step = Math.abs(lightness(tokens[a]) - lightness(tokens[b]));
     expect(step, `${a} vs ${b} = ${step.toFixed(2)} L*`).toBeGreaterThanOrEqual(MIN_FILL_STEP);
+  });
+
+  it.each(FOCUS_RING_ON)("ember focus outline reaches 3:1 on %s", (fill) => {
+    const ratio = contrast(tokens["km-ember"], tokens[fill]);
+    expect(ratio, `km-ember on ${fill} = ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(NON_TEXT);
+  });
+
+  it.each(EMBER_HOVER_ON)("ember CTA hover fill reaches 3:1 on %s", (fill) => {
+    const ratio = contrast(tokens["km-ember-hover"], tokens[fill]);
+    expect(ratio, `km-ember-hover on ${fill} = ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(NON_TEXT);
   });
 
   it("keeps authored text legible on the artifact canvas", () => {

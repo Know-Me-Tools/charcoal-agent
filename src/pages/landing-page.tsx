@@ -1,67 +1,50 @@
-import {
-	ArrowRight,
-	Bot,
-	MessageSquare,
-	Moon,
-	Send,
-	Sun,
-	Wrench,
-	Zap,
-} from "lucide-react";
-import { type KeyboardEvent, useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
+import { type FormEvent, type KeyboardEvent, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { KnowMeLockup } from "@/components/brand";
+import { EMBER_CTA } from "@/components/site/ember-cta";
+import { SiteFooter } from "@/components/site/site-footer";
+import { SiteHeader } from "@/components/site/site-header";
+import { cn } from "@/lib/utils";
 import { useChatIntentStore } from "@/stores/chat-intent-store";
 import { useThreadRegistryStore } from "@/stores/thread-registry-store";
-import { useUi } from "@/hooks/use-ui";
-import { KnowMeLockup } from "@/components/brand";
+import { LANDING_CONTENT } from "../../content/site/landing";
 
-const features = [
-	{
-		icon: Bot,
-		title: "Intelligent Agents",
-		description:
-			"Configure AI agents with custom system prompts, provider policies, and attached skills.",
-	},
-	{
-		icon: MessageSquare,
-		title: "Persistent Threads",
-		description:
-			"Organize conversations into threads with full history and streaming responses.",
-	},
-	{
-		icon: Wrench,
-		title: "Extensible Skills",
-		description:
-			"Attach reusable capabilities to agents — from web search to code execution.",
-	},
-	{
-		icon: Zap,
-		title: "Real-time Streaming",
-		description:
-			"Watch agent responses stream in real time with tool call visualization.",
-	},
-];
+/**
+ * Splits the approved headline into the two-line, one-ember-word shape the
+ * hero always renders: the first two words on line one, the last word in
+ * ember on line two, with any remaining words plain. Derived from content
+ * rather than hard-coded so the h1's `textContent` stays exactly the
+ * approved tagline string (docs/design/brand-pages.md section 6.1).
+ */
+function splitHeadline(headline: string) {
+	const words = headline.split(" ");
+	const line1 = `${words.slice(0, 2).join(" ")} `;
+	const line2Lead = words.slice(2, -1).join(" ");
+	const emberWord = words[words.length - 1];
+	return { line1, line2Lead: line2Lead ? `${line2Lead} ` : "", emberWord };
+}
+
+function sectionBackground(position: number): "bg-band" | "bg-canvas" {
+	return position % 2 === 1 ? "bg-band" : "bg-canvas";
+}
 
 export default function LandingPage() {
 	const [message, setMessage] = useState("");
 	const navigate = useNavigate();
-	const { theme, setTheme } = useUi();
 	const setPendingPrompt = useChatIntentStore((s) => s.setPendingPrompt);
 	const registerThread = useThreadRegistryStore((s) => s.registerThread);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: message change drives textarea height recalculation
-	useEffect(() => {
-		if (textareaRef.current) {
-			textareaRef.current.style.height = "auto";
-			textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
-		}
-	}, [message]);
+	const { line1, line2Lead, emberWord } = splitHeadline(LANDING_CONTENT.headline);
 
-	const handleSend = () => {
+	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
 		const trimmed = message.trim();
-		if (!trimmed) return;
+		if (!trimmed) {
+			textareaRef.current?.focus();
+			return;
+		}
 
 		// Register the thread in the local registry as ephemeral before navigating.
 		// It will be promoted to persisted once the first message reply arrives.
@@ -74,115 +57,113 @@ export default function LandingPage() {
 		navigate(`/threads/${sessionId}`);
 	};
 
-	const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-		if (e.key === "Enter" && !e.shiftKey) {
-			e.preventDefault();
-			handleSend();
+	const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+		if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+			event.preventDefault();
+			event.currentTarget.form?.requestSubmit();
 		}
 	};
 
 	return (
-		<div className="flex min-h-screen flex-col bg-background">
-			{/* Hero */}
-			<header className="flex items-center justify-between px-6 py-4 md:px-12">
-				<KnowMeLockup variant="nav" />
-				<div className="flex items-center gap-2">
-					<button
-						onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-						className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-hover hover:bg-muted hover:text-foreground"
-						title="Toggle theme"
-					>
-						{theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-					</button>
-					<Link
-						to="/threads"
-						className="rounded-md bg-primary px-4 py-2 font-ui text-sm font-semibold text-primary-foreground transition-hover hover:bg-primary/90"
-					>
-						Open app
-					</Link>
-				</div>
-			</header>
+		<div className="flex min-h-dvh flex-col bg-canvas">
+			<SiteHeader />
 
-			<main className="flex flex-1 flex-col items-center justify-center px-6 pb-16 text-center">
-				<div className="mx-auto max-w-2xl">
-					<p className="section-label mb-4">{"// An OS that learns you"}</p>
-					<h1 className="font-display text-4xl font-bold text-foreground tracking-[-0.04em] sm:text-5xl md:text-6xl">
-						AI that knows
-						<br />
-						<span className="text-ember-text">you.</span>
-					</h1>
-					<p className="mx-auto mt-6 max-w-lg font-body text-base leading-relaxed text-muted-foreground sm:text-lg">
-						Your personal agent operating system — it remembers, adapts, and
-						works the way you think.
-					</p>
-					<div className="mx-auto mt-10 w-full max-w-xl">
-						<div className="rounded-xl border border-border bg-card p-3 shadow-lg shadow-background/50">
-							<div className="flex items-end gap-2">
+			<main id="main" tabIndex={-1} className="flex-1 outline-none">
+				<section aria-labelledby="hero-heading" className="bg-canvas">
+					<div className="mx-auto w-full max-w-6xl px-4 pt-10 pb-12 sm:px-6 md:px-8 md:pt-16 md:pb-20 lg:grid lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-end lg:gap-12 lg:px-12 lg:pt-24 lg:pb-24">
+						<div className="md:max-w-2xl lg:max-w-none">
+							<KnowMeLockup variant="hero" />
+							<p className="section-label mt-8 md:mt-12">{LANDING_CONTENT.eyebrow}</p>
+							<h1
+								id="hero-heading"
+								className="mt-3 font-display text-[2rem] font-bold leading-[1.05] tracking-[-0.035em] text-fg md:text-[3.25rem] lg:text-[3.5rem] xl:text-[4rem]"
+							>
+								{line1}
+								<span className="block">
+									{line2Lead}
+									<span className="text-ember-text">{emberWord}</span>
+								</span>
+							</h1>
+							<p className="mt-4 max-w-[58ch] font-body text-base font-normal leading-[1.7] text-fg-secondary md:mt-6 md:text-[1.0625rem]">
+								{LANDING_CONTENT.valueLine}
+							</p>
+						</div>
+
+						<div className="mt-8 w-full md:max-w-xl lg:mt-0 lg:max-w-none">
+							<form
+								onSubmit={handleSubmit}
+								className="rounded-xl bg-composer p-2 transition-hover focus-within:bg-raised has-[textarea:focus-visible]:outline-2 has-[textarea:focus-visible]:outline-offset-2 has-[textarea:focus-visible]:outline-ring"
+							>
 								<textarea
 									ref={textareaRef}
 									value={message}
-									onChange={(e) => setMessage(e.target.value)}
+									onChange={(event) => setMessage(event.target.value)}
 									onKeyDown={handleKeyDown}
-									placeholder="What would you like to explore?"
-									rows={1}
-									className="max-h-[120px] min-h-[44px] flex-1 resize-none rounded-lg bg-background px-4 py-3 font-body text-[15px] text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-ring"
+									placeholder={LANDING_CONTENT.composer.placeholder}
+									aria-label={LANDING_CONTENT.composer.placeholder}
+									className="block max-h-[7.5rem] min-h-14 w-full resize-none bg-transparent px-3 py-2.5 font-body text-base leading-relaxed text-fg caret-ember outline-none placeholder:text-faint lg:min-h-24"
 								/>
-								<Button
-									type="button"
-									onClick={handleSend}
-									disabled={!message.trim()}
-									className="size-11 shrink-0 rounded-lg"
-								>
-									<Send size={18} />
-								</Button>
-							</div>
-							<div className="mt-2 flex items-center justify-between px-1">
-								<span className="font-mono text-[10px] text-muted-foreground">
-									{"\u21B5"} to send
-								</span>
-								<Link
-									to="/threads"
-									className="flex items-center gap-1 font-ui text-[11px] font-semibold text-muted-foreground transition-hover hover:text-ember-text"
-								>
-									Browse threads <ArrowRight size={10} />
-								</Link>
-							</div>
+								<div className="mt-1 flex items-center justify-end">
+									<button type="submit" className={cn(EMBER_CTA, "h-10 px-4")}>
+										{LANDING_CONTENT.composer.sendLabel}
+										<ArrowRight className="size-4" aria-hidden="true" />
+									</button>
+								</div>
+							</form>
 						</div>
 					</div>
-				</div>
+				</section>
+
+				{LANDING_CONTENT.sections.map((section, index) => (
+					<section
+						key={section.id}
+						aria-labelledby={`${section.id}-heading`}
+						className={sectionBackground(index + 1)}
+					>
+						<div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 md:px-8 md:py-20 lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-12 lg:px-12 lg:py-24">
+							<div>
+								<p className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-fg-secondary">
+									{section.label}
+								</p>
+								<h2
+									id={`${section.id}-heading`}
+									className="mt-3 text-balance font-display text-2xl font-bold leading-[1.15] tracking-[-0.02em] text-fg md:text-3xl"
+								>
+									{section.heading}
+								</h2>
+							</div>
+							<div className="mt-6 lg:mt-0">
+								<div className="space-y-4">
+									{section.body.map((paragraph) => (
+										<p
+											key={paragraph}
+											className="max-w-[62ch] font-body text-base leading-[1.7] text-fg"
+										>
+											{paragraph}
+										</p>
+									))}
+								</div>
+								{section.faq && section.faq.length > 0 && (
+									<div className="mt-10 space-y-8">
+										{section.faq.map((item) => (
+											<div key={item.question}>
+												<h3 className="font-display text-lg font-semibold tracking-[-0.01em] text-fg">
+													{item.question}
+												</h3>
+												<p className="mt-2 max-w-[62ch] font-body text-base leading-[1.7] text-fg-secondary">
+													{item.answer}
+												</p>
+											</div>
+										))}
+									</div>
+								)}
+							</div>
+						</div>
+					</section>
+				))}
 			</main>
 
-			{/* Features */}
-			<section className="border-t border-border px-6 py-16 md:px-12">
-				<div className="mx-auto grid max-w-4xl grid-cols-1 gap-8 sm:grid-cols-2">
-					{features.map((f) => (
-						<div
-							key={f.title}
-							className="rounded-lg border border-border bg-card p-6"
-						>
-							<div className="mb-3 flex h-10 w-10 items-center justify-center rounded-md bg-primary/10">
-								<f.icon size={20} className="text-ember-text" />
-							</div>
-							<h3 className="font-display text-base font-semibold text-foreground">
-								{f.title}
-							</h3>
-							<p className="mt-2 font-body text-sm leading-relaxed text-muted-foreground">
-								{f.description}
-							</p>
-						</div>
-					))}
-				</div>
-			</section>
-
-			{/* Footer */}
-			<footer className="border-t border-border px-6 py-6 text-center">
-				<div className="flex flex-col items-center gap-3">
-					<KnowMeLockup variant="footer" />
-					<span className="font-mono text-xs text-faint">
-						© 2026 KnowMe AI, LLC · v0.1.0
-					</span>
-				</div>
-			</footer>
+			<SiteFooter />
 		</div>
 	);
 }
