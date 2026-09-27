@@ -33,5 +33,23 @@ Copied from public repos after reading each SKILL.md and scanning for scripts an
 | `gsap-scrolltrigger` | https://github.com/greensock/gsap-skills | aed9cfd | MIT |
 | `gsap-timeline` | https://github.com/greensock/gsap-skills | aed9cfd | MIT |
 | `gsap-performance` | https://github.com/greensock/gsap-skills | aed9cfd | MIT |
+| `pricing` | https://github.com/coreyhaines31/marketingskills | 5b2c000 | MIT |
+| `marketing-plan` | https://github.com/coreyhaines31/marketingskills | 5b2c000 | MIT |
+| `marketing-ideas` | https://github.com/coreyhaines31/marketingskills | 5b2c000 | MIT |
+| `public-relations` | https://github.com/coreyhaines31/marketingskills | 5b2c000 | MIT |
+| `social` | https://github.com/coreyhaines31/marketingskills | 5b2c000 | MIT |
+| `emails` | https://github.com/coreyhaines31/marketingskills | 5b2c000 | MIT |
+| `obviously-awesome` | https://github.com/wondelai/skills | c172996 | MIT |
+| `crossing-the-chasm` | https://github.com/wondelai/skills | c172996 | MIT |
+| `storybrand-messaging` | https://github.com/wondelai/skills | c172996 | MIT |
+| `made-to-stick` | https://github.com/wondelai/skills | c172996 | MIT |
+| `campaign-plan` | https://github.com/anthropics/knowledge-work-plugins (`marketing/skills/`) | da38ec1 | Apache-2.0 |
+| `brand-review` | https://github.com/anthropics/knowledge-work-plugins (`marketing/skills/`) | da38ec1 | Apache-2.0 |
 | `knowme-brand-standard` | authored in this repo (2026-09-25) | — | project |
 | `agent-led-marketing-site` | authored in this repo (2026-09-25) | — | project |
+| `humanizer` | https://github.com/blader/humanizer | 8b3a178 | MIT |
+
+Notes (2026-09-27):
+- `campaign-plan` and `brand-review` link to `../../CONNECTORS.md`, and `emails` links to `../../tools/…`. Those are upstream files that are not vendored, so the links are dead. Don't go looking for connectors; the skills fall back to asking the user.
+- `campaign-plan` and `brand-review` are Apache-2.0. Keep this record of the licence with any redistribution.
+- `marketing-plan` writes to `~/marketing-plans/` by default. Agents write inside their owned path instead.

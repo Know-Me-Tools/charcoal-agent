@@ -1,6 +1,6 @@
 # KnowMe site agent team (`knowme-site`)
 
-Ten roles that design, build, market and maintain the KnowMe AI, LLC website. The source of truth is `team-request.json`; the native agent files in each harness directory are generated from it by the `agent-team-creator` skill. Edit the manifest, re-export, and review before replacing any installed file.
+Twelve roles that design, build, market and maintain the KnowMe AI, LLC website, and market the KnowMe product line (flagship: `know-me-system`). The source of truth is `team-request.json`; the native agent files in each harness directory are generated from it by the `agent-team-creator` skill. Edit the manifest, re-export, and review before replacing any installed file.
 
 ## Roles and owned paths
 
@@ -9,15 +9,28 @@ Ownership is a working agreement: a role edits only its own paths and asks the o
 | Role | Does | Owns | Depends on |
 |---|---|---|---|
 | `km-product-owner` | Roadmap, acceptance criteria, routing, decisions, measurement plan | `openspec/changes/**`, `docs/product/**` | — |
-| `km-creative-director` | Creative concept for the chat-led site, design system, tokens, motion | `docs/design/**`, `src/styles/**`, `src/components/brand/**`, `src/index.css`, `scripts/brand/**` | product owner |
+| `km-creative-director` | Creative concept for the chat-led site, design system, tokens, motion, campaign and OG visuals | `docs/design/**`, `src/styles/**`, `src/components/brand/**`, `src/index.css`, `scripts/brand/**`, `marketing/assets/**`, `public/og/**` | product owner |
 | `km-conversational-designer` | Concierge agent persona, opener, chips, flows, guardrails, AI disclosure | `src/features/concierge/**`, `src/lib/skills/**`, `docs/conversation/**`, `prompts/**` | creative director, content officer |
 | `km-frontend-engineer` | React 19/Vite/shadcn/assistant-ui build, prerendering, tests | app code under `src/` (pages, shell, chat, hooks, stores, db, types), `index.html`, `vite.config.ts`, `package.json` | creative director, conversational designer |
-| `km-marketing-officer` | SEO, AI engine optimization, structured data, crawler policy, analytics, experiments, launches | `public/robots.txt`, `public/sitemap.xml`, `public/llms.txt`, `src/seo/**`, `docs/marketing/**`, `.agents/product-marketing.md` | product owner, content officer |
-| `km-chief-content-officer` | Messaging, voice, copy, editorial review, content model and AI-assisted CMS | `content/**`, `docs/content/**`, `docs/cms/**` | product owner |
+| `km-cmo` | Chief marketing officer for the KnowMe product line: positioning, claims register, go-to-market, launches, campaigns, marketing metrics | `marketing/strategy/**`, `marketing/launches/**`, `marketing/campaigns/**`, `.agents/product-marketing.md` | product owner |
+| `km-marketing-officer` | Site growth: SEO, AI engine optimization, structured data, crawler policy, site launch checklists, instrumenting the CMO's metrics | `public/robots.txt`, `public/sitemap.xml`, `public/llms.txt`, `src/seo/**`, `docs/marketing/**` | product owner, content officer, CMO |
+| `km-content-creator` | Articles, social, email, video and podcast scripts, launch announcements, release notes, all to CMO briefs | `marketing/content/**` | CMO, content officer |
+| `km-chief-content-officer` | Voice, messaging and language, editorial pre-review, site copy, content model and AI-assisted CMS | `content/**`, `docs/content/**`, `docs/cms/**` | product owner, CMO |
 | `km-rust-engineer` | Axum backend, Tauri shell, entity-graph layer (`@prometheus-ags/prometheus-entity-management` 4.x) | `backend/**`, `src-tauri/**`, `src/lib/entity-graph/**` | product owner |
 | `km-qa-engineer` | E2E, visual, accessibility (WCAG 2.2 AA) and Core Web Vitals gates | `e2e/**`, `src/test/**`, `playwright.config.ts`, `vitest.config.ts`, `docs/qa/**` | frontend, rust |
 | `km-security-officer` | Threat models, CSP/headers, AI abuse controls, privacy, AI disclosure | `docs/security/**`, `docs/legal/**`, `SECURITY.md` | frontend, rust, conversational |
 | `km-devops-engineer` | CI/CD, Docker/nginx, deploys, Tauri release signing, monitoring | `Dockerfile`, `docker-compose.yaml`, `nginx.conf`, `.github/**`, `scripts/deploy/**`, `.env.example` | rust |
+
+### Marketing and content flow
+
+1. **Product truth:** the product repo's README, implementation roadmap and `versions.toml`, or an operator decision in the decision log.
+2. **CMO brief:** `km-cmo` writes it, drawing only on verified claims in `marketing/strategy/claims-register.md`.
+3. **Creator draft:** `km-content-creator` writes it, with claim sources. The CMO checks it fits the brief.
+4. **Editorial pre-review:** `km-chief-content-officer` reviews the draft, an AI pre-review, and writes the record to `docs/content/reviews/`.
+5. **Operator approval:** the human gate. It's recorded with name, date and git hash.
+6. **Publishing:** the operator alone publishes anything off the site. Site-bound pieces become one OpenSpec change per launch or campaign, opened by the product owner.
+
+Prices, tiers and roadmap claims are decided by the operator only.
 
 Unowned shared files (`AGENTS.md`, `CLAUDE.md`, `.agents/skills/**`) change only with the product owner's agreement.
 
