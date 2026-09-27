@@ -37,7 +37,7 @@ function applyMermaidTheme(mermaid: typeof import("mermaid").default, isDark: bo
 		startOnLoad: false,
 		// Built-in themes keep Mermaid's layout metrics; token colors override them.
 		theme: isDark ? "dark" : "default",
-		fontFamily: "JetBrains Mono, monospace",
+		fontFamily: "'JetBrains Mono Variable', 'JetBrains Mono', monospace",
 		themeVariables: {
 			primaryColor: token("--km-raised"),
 			primaryTextColor: token("--km-fg"),
