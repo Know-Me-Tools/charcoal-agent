@@ -2,25 +2,25 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 510,
-  "derivedRevision": 510,
+  "sourceRevision": 526,
+  "derivedRevision": 526,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 510
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 526
   },
   "conflictCount": 0,
   "phase": "complete-rebranding",
   "phaseId": "complete-rebranding",
   "parentPhase": null,
-  "last_updated": "2026-09-27T15:23:10.690702Z",
+  "last_updated": "2026-09-27T20:40:45.325065Z",
   "last_updated_by": "kbd-runtime",
   "changes_total": 13,
-  "changes_completed": 11,
+  "changes_completed": 12,
   "implementation_total": 13,
-  "implementation_completed": 11,
+  "implementation_completed": 12,
   "completion": {
     "primaryCounter": "implementation",
     "implementation": {
-      "completed": 11,
+      "completed": 12,
       "total": 13,
       "status": "IN_PROGRESS"
     },
@@ -49,7 +49,7 @@
     "runId": "complete-rebranding-20260923T223312Z",
     "primaryCounter": "implementation",
     "implementation": {
-      "completed": 11,
+      "completed": 12,
       "total": 13,
       "status": "IN_PROGRESS"
     },
@@ -205,11 +205,11 @@
     {
       "id": "brand-fidelity-audit",
       "title": "Whole-site verification and golden snapshots",
-      "status": "PENDING",
-      "implementation_status": "PENDING",
-      "tasks_total": 0,
-      "tasks_done": 0,
-      "last_task_completed": null,
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 3,
+      "tasks_done": 3,
+      "last_task_completed": "2.1 Whole-site audit and final gate",
       "next_task_pending": null,
       "blockers": []
     }
