@@ -11,6 +11,7 @@
  * src/test/flat-shell.test.ts ("Flat 2.0 app pages"), per spec's "Source
  * guard covers the pages" scenario — not duplicated here.
  */
+import { readdirSync } from "node:fs";
 import type { Page } from "@playwright/test";
 import { expect, test } from "./support/test";
 import { openRoute, seedTheme } from "./support/page-helpers";
@@ -30,10 +31,48 @@ const IN_SCOPE_ROUTE_NAMES: readonly string[] = [
 const IN_SCOPE_ROUTES = APP_ROUTES.filter((r) => IN_SCOPE_ROUTE_NAMES.includes(r.name));
 const SETTINGS_ROUTES = IN_SCOPE_ROUTES.filter((r) => r.path.startsWith("/settings/"));
 
-// Sanity check on the fixture list itself: if routes.ts changes shape this
-// fails loudly instead of silently testing fewer routes than the spec lists.
-test("fixture covers all 8 in-scope routes", () => {
-  expect(IN_SCOPE_ROUTES.map((r) => r.name).sort()).toEqual([...IN_SCOPE_ROUTE_NAMES].sort());
+/**
+ * app-pages S1 (design.md decision 1): the old version of this check
+ * compared `IN_SCOPE_ROUTE_NAMES` (the hardcoded constant above) against
+ * itself, so it could never fail no matter what `src/pages/` contained.
+ * Derive the expected list from the files on disk instead: every
+ * `src/pages/*.tsx` file must be either mapped to the in-scope route
+ * name(s) it renders, or excluded with a reason — a page added later
+ * without being added to one of these two records fails this test.
+ */
+const PAGE_FILES_EXCLUDED: Record<string, string> = {
+  "about-page.tsx": "covered by e2e/brand-pages.spec.ts (settings-about), not app-pages",
+  "landing-page.tsx": "covered by e2e/brand-pages.spec.ts (landing), not app-pages",
+  "NotFound.tsx": "covered by e2e/brand-pages.spec.ts (not-found), not app-pages",
+  "thread-detail-page.tsx": "covered by e2e/chat-surfaces.spec.ts (thread), not app-pages",
+  "settings-page.tsx": "the /settings layout wrapper (nav + Outlet), not a routed leaf page",
+  "Index.tsx": "not referenced by any route in src/App.tsx (dead file, not a page)",
+};
+
+const PAGE_FILE_ROUTE_NAMES: Record<string, string[]> = {
+  "threads-page.tsx": ["threads"],
+  "agents-page.tsx": ["agents"],
+  // one file serves two routes: the literal /agents/new path and /agents/:id.
+  "agent-detail-page.tsx": ["agent-new", "agent-detail"],
+  "providers-page.tsx": ["settings-providers"],
+  "skills-page.tsx": ["settings-skills"],
+  "appearance-page.tsx": ["settings-appearance"],
+  "user-settings-page.tsx": ["settings-account"],
+};
+
+test("fixture covers all in-scope routes, derived from the files on disk", () => {
+  const files = readdirSync("src/pages").filter((f) => f.endsWith(".tsx"));
+  const unclassified = files.filter(
+    (f) => !(f in PAGE_FILES_EXCLUDED) && !(f in PAGE_FILE_ROUTE_NAMES),
+  );
+  expect(
+    unclassified,
+    "every src/pages/*.tsx file must be excluded (with a reason) or mapped to in-scope route name(s)",
+  ).toEqual([]);
+
+  const derivedNames = Object.values(PAGE_FILE_ROUTE_NAMES).flat().sort();
+  expect(derivedNames).toEqual([...IN_SCOPE_ROUTE_NAMES].sort());
+  expect(IN_SCOPE_ROUTES.map((r) => r.name).sort()).toEqual(derivedNames);
 });
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -58,15 +97,16 @@ async function tokenColor(
 }
 
 /**
- * No visible element inside `main` has a border width above 0 with a
- * non-transparent colour, a box-shadow other than `none`, a backdrop-filter
- * other than `none`, or a gradient background-image (spec: "Nothing renders
- * a border, shadow or blur").
+ * No visible element inside `main` (or, when a panel portals outside it —
+ * the skill detail dialog — inside `rootSelector`) has a border width above
+ * 0 with a non-transparent colour, a box-shadow other than `none`, a
+ * backdrop-filter other than `none`, or a gradient background-image (spec:
+ * "Nothing renders a border, shadow or blur").
  */
-async function scanMainForFlatViolations(page: Page): Promise<string[]> {
-  return page.evaluate(() => {
-    const main = document.querySelector("main");
-    if (!main) return ["no <main> found"];
+async function scanMainForFlatViolations(page: Page, rootSelector = "main"): Promise<string[]> {
+  return page.evaluate((selector) => {
+    const main = document.querySelector(selector);
+    if (!main) return [`no ${selector} found`];
     const offenders: string[] = [];
     for (const el of [main, ...Array.from(main.querySelectorAll<HTMLElement>("*"))]) {
       const s = getComputedStyle(el);
@@ -83,14 +123,17 @@ async function scanMainForFlatViolations(page: Page): Promise<string[]> {
       if (s.backgroundImage && s.backgroundImage.includes("gradient")) offenders.push(`gradient: ${label}`);
     }
     return offenders;
-  });
+  }, rootSelector);
 }
 
-/** Every visible element with a non-empty direct text node has font-size >= 12px. */
-async function scanMainForTinyText(page: Page): Promise<string[]> {
-  return page.evaluate(() => {
-    const main = document.querySelector("main");
-    if (!main) return ["no <main> found"];
+/**
+ * Every visible element with a non-empty direct text node has font-size
+ * >= 12px, inside `main` (or `rootSelector`, for a portalled panel).
+ */
+async function scanMainForTinyText(page: Page, rootSelector = "main"): Promise<string[]> {
+  return page.evaluate((selector) => {
+    const main = document.querySelector(selector);
+    if (!main) return [`no ${selector} found`];
     const offenders: string[] = [];
     for (const el of [main, ...Array.from(main.querySelectorAll<HTMLElement>("*"))]) {
       const s = getComputedStyle(el);
@@ -103,7 +146,7 @@ async function scanMainForTinyText(page: Page): Promise<string[]> {
       }
     }
     return offenders;
-  });
+  }, rootSelector);
 }
 
 /**
@@ -116,6 +159,7 @@ async function scanMainForTinyText(page: Page): Promise<string[]> {
  */
 async function tabThroughMain(
   page: Page,
+  rootSelector = "main",
   maxSteps = 200,
 ): Promise<{ stops: number; violations: string[]; sequence: string[] }> {
   const violations: string[] = [];
@@ -124,9 +168,9 @@ async function tabThroughMain(
   let enteredMain = false;
   for (let i = 0; i < maxSteps; i++) {
     await page.keyboard.press("Tab");
-    const info = await page.evaluate(() => {
+    const info = await page.evaluate((selector) => {
       const el = document.activeElement as HTMLElement | null;
-      const main = document.querySelector("main");
+      const main = document.querySelector(selector);
       if (!el || el === document.body || !main) return null;
       const inMain = main.contains(el);
       // Identity, not a class string: sibling controls often share every class
@@ -142,7 +186,7 @@ async function tabThroughMain(
         outlineStyle: s.outlineStyle,
         outlineWidth: parseFloat(s.outlineWidth) || 0,
       };
-    });
+    }, rootSelector);
     if (!info || !info.inMain) {
       sequence.push(info ? "(left main)" : "(no element)");
       if (enteredMain) break;
@@ -195,6 +239,65 @@ test.describe("Flat 2.0 surfaces render with no borders, shadows, blur, gradient
       });
     }
   }
+});
+
+// ── Scenario: Flat 2.0 and Tab-through cover opened panels (app-pages W1) ───
+//
+// The sweep above only ever sees each page's closed, default state. Several
+// surfaces only exist once a user opens them: the expanded provider card
+// and its models table, the "Add provider" form, the agent memory panel,
+// and the skill detail dialog. The dialog renders through a portal
+// (DialogPortal → document.body by default), outside <main>, so it needs
+// its own root selector — scanMainForFlatViolations/scanMainForTinyText/
+// tabThroughMain all default to "main" but take an explicit selector.
+
+test.describe("Flat 2.0 and Tab-through cover opened panels", () => {
+  test("settings-providers: the expanded card, its models table and the New Provider form", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const route = IN_SCOPE_ROUTES.find((r) => r.name === "settings-providers")!;
+    await openRoute(page, route);
+
+    await page.getByRole("button", { name: /Anthropic/ }).first().click();
+    await expect(page.getByRole("button", { name: "Test", exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Add provider" }).click();
+    await expect(page.getByLabel("Display name")).toBeVisible();
+
+    expect(await scanMainForFlatViolations(page), "border/shadow/blur/gradient offenders").toEqual([]);
+    expect(await scanMainForTinyText(page), "sub-12px text offenders").toEqual([]);
+    const { violations } = await tabThroughMain(page);
+    expect(violations, "focus-outline violations").toEqual([]);
+  });
+
+  test("agents: the memory settings panel", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const route = IN_SCOPE_ROUTES.find((r) => r.name === "agents")!;
+    await openRoute(page, route);
+
+    await agentCard(page, "Research Analyst").getByRole("button", { name: "Memory settings" }).click();
+    await expect(page.getByRole("button", { name: "Save", exact: true })).toBeVisible();
+
+    expect(await scanMainForFlatViolations(page), "border/shadow/blur/gradient offenders").toEqual([]);
+    expect(await scanMainForTinyText(page), "sub-12px text offenders").toEqual([]);
+    const { violations } = await tabThroughMain(page);
+    expect(violations, "focus-outline violations").toEqual([]);
+  });
+
+  test("settings-skills: the skill detail dialog", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const route = IN_SCOPE_ROUTES.find((r) => r.name === "settings-skills")!;
+    await openRoute(page, route);
+
+    await page.getByRole("button", { name: "View configuration for Web Search" }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+
+    expect(
+      await scanMainForFlatViolations(page, '[role="dialog"]'),
+      "dialog border/shadow/blur/gradient offenders",
+    ).toEqual([]);
+    expect(await scanMainForTinyText(page, '[role="dialog"]'), "dialog sub-12px text offenders").toEqual([]);
+  });
 });
 
 // ── Scenario: Grouped sections are distinct from the canvas in light theme ──
@@ -292,23 +395,62 @@ test.describe("no 'charcoal' text in settings", () => {
   }
 });
 
-// ── Scenario: Skill state is readable without colour ────────────────────────
+// ── Scenario: Skill state is readable without colour, and toggles expose
+// their state (app-pages spec "Skill toggles expose their state") ──────────
 
+/**
+ * The toggle is `role="switch" aria-checked={enabled}`, named
+ * `"${skill.name}: enabled" | "${skill.name}: disabled"` (skills-page.tsx).
+ * Escape `title` for the accessible-name regex — the fixture titles are
+ * plain text today, but a title with regex metacharacters shouldn't break
+ * this helper silently.
+ */
 function skillToggle(page: Page, title: string) {
-  return page
-    .locator("div")
-    .filter({ has: page.getByText(title, { exact: true }) })
-    .filter({ has: page.getByRole("button", { name: /(En|Dis)able skill/ }) })
-    .last()
-    .getByRole("button", { name: /(En|Dis)able skill/ });
+  const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return page.getByRole("switch", { name: new RegExp(`^${escaped}: (enabled|disabled)$`) });
 }
 
-test("skill rows expose enabled/disabled state as differing text, not colour alone", async ({ page }) => {
+test("skill toggles report checked state as a switch, not colour alone, with the skill's title in the name", async ({
+  page,
+}) => {
   await page.goto("/settings/skills");
   const enabledToggle = skillToggle(page, "Web Search"); // fixture: enabled
   const disabledToggle = skillToggle(page, "Code Runner"); // fixture: disabled
-  await expect(enabledToggle).toHaveAttribute("aria-label", "Disable skill");
-  await expect(disabledToggle).toHaveAttribute("aria-label", "Enable skill");
+  await expect(enabledToggle).toHaveAttribute("aria-checked", "true");
+  await expect(disabledToggle).toHaveAttribute("aria-checked", "false");
+  await expect(enabledToggle).toHaveAccessibleName(/Web Search/);
+  await expect(disabledToggle).toHaveAccessibleName(/Code Runner/);
+});
+
+// ── Scenario: Skill details open in an accessible dialog (app-pages spec) ──
+
+test("each skill's details control has a distinguishable accessible name containing its title", async ({ page }) => {
+  await page.goto("/settings/skills");
+  const webSearch = page.getByRole("button", { name: "View configuration for Web Search" });
+  const codeRunner = page.getByRole("button", { name: "View configuration for Code Runner" });
+  await expect(webSearch).toHaveCount(1);
+  await expect(codeRunner).toHaveCount(1);
+});
+
+test("a skill's details dialog is a modal: role, focus moves in, Escape closes it, focus returns", async ({
+  page,
+}) => {
+  await page.goto("/settings/skills");
+  const opener = page.getByRole("button", { name: "View configuration for Web Search" });
+  await opener.focus();
+  await page.keyboard.press("Enter");
+
+  const dialog = page.getByRole("dialog", { name: "Web Search" });
+  await expect(dialog).toBeVisible();
+  const focusedInside = await page.evaluate(() => {
+    const dlg = document.querySelector('[role="dialog"]');
+    return !!dlg && dlg.contains(document.activeElement);
+  });
+  expect(focusedInside, "focus should move inside the dialog when it opens").toBe(true);
+
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(opener).toBeFocused();
 });
 
 // ── Scenario: Agent save confirmation is readable without colour ───────────
@@ -403,7 +545,24 @@ test("provider create, update, default and delete hit the mock in order", async 
     "POST /api/providers/anthropic/default",
     "DELETE /api/providers/anthropic",
   ]);
+  // app-pages W2 (design.md decision 1): `toHaveCount(0)` resolves the
+  // instant it observes 0 — it does not keep polling to see whether a count
+  // that's 0 *right now* later becomes nonzero once React finishes
+  // processing the awaited response. Give any error UI a chance to actually
+  // mount before checking it isn't there.
+  await page.waitForLoadState("networkidle");
   await expect(page.getByText(/error/i)).toHaveCount(0);
+});
+
+test("/agents/new renders create mode: heading and action read Create, not Edit or Save", async ({ page }) => {
+  // app-pages spec "Create mode on /agents/new": the literal /agents/new
+  // route (App.tsx) has no :id segment, so `useParams().id` is undefined —
+  // agent-detail-page.tsx now treats that the same as id === "new".
+  await page.goto("/agents/new");
+  await expect(page.getByRole("heading", { name: "Create Agent" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Create agent", exact: true })).toBeVisible();
+  await expect(page.getByText("Edit Agent", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Save agent", exact: true })).toHaveCount(0);
 });
 
 test("agent create from /agents/new hits the compiler mock", async ({ page }) => {
@@ -423,16 +582,14 @@ test("agent create from /agents/new hits the compiler mock", async ({ page }) =>
   const compiled = page.waitForResponse(
     (r) => r.request().method() === "POST" && new URL(r.url()).pathname === "/api/compiler/compile",
   );
-  // The submit button reads "Create agent" when the route binds an :id param
-  // equal to "new"; the literal "/agents/new" route (App.tsx) has no :id
-  // segment, so `useParams().id` is undefined there and the button instead
-  // reads "Save agent" (pre-existing agent-detail-page.tsx behaviour,
-  // unrelated to this change — see docs/qa/app-pages-flat2-entity-views.md).
-  // The submit still POSTs to the same compiler endpoint either way.
-  await page.getByRole("button", { name: /Create agent|Save agent/ }).click();
+  // app-pages W3 (design.md decision 1): the literal /agents/new route now
+  // always renders create mode (agent-detail-page.tsx `isNew` fix), so the
+  // button reads "Create agent" only — no longer either/or.
+  await page.getByRole("button", { name: "Create agent", exact: true }).click();
   await compiled;
 
   expect(log).toEqual(["POST /api/compiler/compile"]);
+  await page.waitForLoadState("networkidle"); // see W2 note above
   await expect(page.getByText(/error/i)).toHaveCount(0);
 });
 
@@ -460,7 +617,7 @@ test("skill toggle and refresh hit the mock", async ({ page }) => {
   // user interaction. Let that boot-time sync settle, then start the request
   // log, so it captures only the two calls this scenario triggers.
   await page.goto("/settings/skills");
-  await expect(skillToggle(page, "Code Runner")).toHaveAttribute("aria-label", "Enable skill");
+  await expect(skillToggle(page, "Code Runner")).toHaveAttribute("aria-checked", "false");
   await page.waitForLoadState("networkidle");
 
   const log = backendRequestLog(page, [

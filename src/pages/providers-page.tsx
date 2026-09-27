@@ -252,7 +252,7 @@ function ProviderCard({
         type="button"
         onClick={onSelect}
         aria-expanded={isSelected}
-        className="flex w-full items-center justify-between rounded-lg p-4 text-left transition-hover hover:bg-hover focus-cue"
+        className="flex w-full flex-col gap-2 rounded-lg p-4 text-left transition-hover hover:bg-hover focus-cue sm:flex-row sm:items-center sm:justify-between"
       >
         <div className="flex min-w-0 items-center gap-3">
           <span
@@ -264,7 +264,7 @@ function ProviderCard({
             <span className="font-display text-sm font-semibold text-foreground">
               {provider.display_name ?? provider.id}
             </span>
-            <span className="ml-2 rounded-sm bg-muted-surface px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
+            <span className="ml-2 rounded-sm bg-raised px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
               {provider.protocol}
             </span>
             {provider.base_url && (
@@ -274,7 +274,9 @@ function ProviderCard({
             )}
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        {/* Below `sm` this metadata row wraps onto its own line under the name,
+            instead of the badges overlapping the chips above. */}
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
           {isDefault && (
             <span className="flex items-center gap-1 font-ui text-xs font-semibold text-ember-text">
               <Star size={12} /> Default
@@ -353,7 +355,7 @@ function ProviderModelsTable({
   if (!models.length) return null;
 
   return (
-    <div className="overflow-x-auto rounded-md bg-muted-surface">
+    <div className="overflow-x-auto rounded-md bg-band">
       <table className="w-full">
         <thead>
           <tr>
@@ -373,7 +375,7 @@ function ProviderModelsTable({
         </thead>
         <tbody>
           {models.map((model) => (
-            <tr key={model.id}>
+            <tr key={model.id} className="transition-hover hover:bg-hover focus-within:bg-hover">
               <td className="px-3 py-2 font-mono text-xs break-all text-foreground">
                 {model.id}
               </td>

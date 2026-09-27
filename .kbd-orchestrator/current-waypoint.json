@@ -2,10 +2,10 @@
   "schemaVersion": "5",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 510,
-  "derivedRevision": 510,
+  "sourceRevision": 526,
+  "derivedRevision": 526,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 510
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 526
   },
   "conflictCount": 0,
   "projectId": "440c5818-223c-4091-8b7f-bc8083505a3c",
@@ -28,12 +28,12 @@
   "stageId": "execute",
   "stageStatus": "IN_PROGRESS",
   "completionMetric": "implementation",
-  "implementationCompleted": 11,
+  "implementationCompleted": 12,
   "implementationTotal": 13,
   "planRevision": 2,
-  "revision": 510,
+  "revision": 526,
   "exactNextCommand": "/opsx:continue tailwind-v4-foundation",
   "nextChange": "landing-and-about-brand",
   "nextTask": "1",
-  "updatedAt": "2026-09-27T15:23:10.690702Z"
+  "updatedAt": "2026-09-27T20:40:45.325065Z"
 }

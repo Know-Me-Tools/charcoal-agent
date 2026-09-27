@@ -84,7 +84,10 @@ export default function UserSettingsPage() {
             </p>
             <p className="font-body text-sm text-muted-foreground">
               Per-user settings are only available when{" "}
-              <code className="rounded bg-muted-surface px-1 font-mono text-xs">
+              {/* This code chip sits on the `bg-band` fill above, so it uses
+                  `bg-surface` rather than `bg-muted-surface`, which resolves to
+                  the same colour as `bg-band` in light. */}
+              <code className="rounded bg-raised px-1 font-mono text-xs">
                 VITE_UAR_API_KEY
               </code>{" "}
               is a JWT Bearer token.

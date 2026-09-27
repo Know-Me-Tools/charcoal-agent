@@ -309,12 +309,26 @@ for (const theme of THEMES) {
 
 // ─── Composer keyboard contract ────────────────────────────────────────────────
 
-test("empty send does not navigate, and moves focus to the prompt field", async ({ page }) => {
+test("empty send does not navigate, moves focus to the prompt field, and creates no thread", async ({ page }) => {
   await gotoReady(page, "/");
   const send = page.getByRole("button", { name: /send|start/i });
   await send.click();
   await expect(page).toHaveURL("/");
   await expect(page.getByRole("textbox")).toBeFocused();
+
+  // landing W4 (design.md decision 1): an empty submit returns early in
+  // `handleSubmit` (landing-page.tsx) without ever calling
+  // `registerThread`, so no thread should exist afterwards. The landing
+  // page itself has no sidebar to check directly (it's outside AppLayout),
+  // so navigate to the thread list — each test gets a fresh IndexedDB
+  // (no Playwright storageState is configured), so an unchanged, empty
+  // thread list is exactly "the count is unchanged". Scoped to the
+  // sidebar's own "Threads" region: the main welcome screen
+  // (enhanced-thread.tsx) shows the identical "// No threads yet" copy for
+  // its own reason, so an unscoped getByText resolves to two elements.
+  await page.goto("/threads");
+  const threadsSidebar = page.getByRole("complementary", { name: "Threads" });
+  await expect(threadsSidebar.getByText("No threads yet")).toBeVisible();
 });
 
 test("Enter (no shift) submits the prompt and navigates to a new thread", async ({ page }) => {
@@ -340,7 +354,12 @@ test("Shift+Enter adds a newline instead of submitting", async ({ page }) => {
 
 const FLAT2_ROUTES: Array<{ path: string; selectors: string[] }> = [
   { path: "/", selectors: ["header", "#main", "footer"] },
-  { path: "/settings/about", selectors: ["#main"] },
+  // landing S1 (design.md decision 1): About renders inside AppLayout, not
+  // the marketing SiteHeader/SiteFooter, so it has no <footer> — but it does
+  // have the app-shell Topbar's <header> and, at desktop widths, the
+  // Settings page's own side <nav> inside its <aside>. Neither was in the
+  // sweep before; only #main (About's own content) was.
+  { path: "/settings/about", selectors: ["header", "aside", "#main"] },
   { path: "/does-not-exist", selectors: ["header", "#main", "footer"] },
 ];
 
@@ -394,12 +413,20 @@ test("About runtime status is connected by default, and reads a different text l
   await expect(page.getByText("connected", { exact: true })).toBeVisible();
 });
 
-test("About runtime status shows a different label when /healthz returns 503", async ({ page }) => {
+test("About runtime status reads disconnected only after /healthz actually responds 503", async ({ page }) => {
   // Registered after the auto UAR mock fixture, so Playwright tries this
   // route first for /healthz specifically; /readyz and everything else still
   // falls through to the fixture.
   await page.route("**/healthz", (route) => route.fulfill({ status: 503, body: "" }));
+  // landing W3 (design.md decision 1): `gotoReady` only waits for the h1, not
+  // for the health check itself — without this, "disconnected" could become
+  // visible (and the assertion pass) before the mocked 503 was ever actually
+  // served, which would make this test pass even if the route above were a
+  // no-op. Wait for the intercepted response — including its status — before
+  // asserting on the UI it's supposed to cause.
+  const healthz = page.waitForResponse((res) => res.url().includes("/healthz") && res.status() === 503);
   await gotoReady(page, "/settings/about");
+  await healthz;
   await expect(page.getByText("disconnected", { exact: true })).toBeVisible();
 });
 

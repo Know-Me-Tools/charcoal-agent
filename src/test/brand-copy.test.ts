@@ -118,7 +118,7 @@ describe("FAQ items render as question headings", () => {
     render(createElement(MemoryRouter, null, createElement(LandingPage)));
   }
 
-  it("two FAQ items render two h3 elements, each followed by its answer", async () => {
+  it("two FAQ items render two h3 elements, each immediately followed by its own answer", async () => {
     await renderLandingWith([
       sectionWith([
         { question: "Fixture question one?", answer: "Fixture answer one." },
@@ -129,8 +129,17 @@ describe("FAQ items render as question headings", () => {
     const region = screen.getByRole("region", { name: "Fixture section heading" });
     const headings = within(region).getAllByRole("heading", { level: 3 });
     expect(headings.map((h) => h.textContent)).toEqual(["Fixture question one?", "Fixture question two?"]);
-    expect(within(region).getByText("Fixture answer one.")).toBeInTheDocument();
-    expect(within(region).getByText("Fixture answer two.")).toBeInTheDocument();
+    // W7 (brand-fidelity-audit design.md decision 1): the prior version of
+    // this test only checked that both answers were present *somewhere* in
+    // the region, which would still pass if the answers were swapped or
+    // both rendered under the same question. Assert each answer is the
+    // heading's own next sibling, so a swap or a mis-paired render fails.
+    const answers = ["Fixture answer one.", "Fixture answer two."];
+    headings.forEach((heading, i) => {
+      const sibling = heading.nextElementSibling;
+      expect(sibling, `heading ${i} ("${heading.textContent}") has no next sibling`).not.toBeNull();
+      expect(sibling?.textContent).toBe(answers[i]);
+    });
   });
 
   it("zero FAQ items render no h3 in that section", async () => {
@@ -145,5 +154,45 @@ describe("FAQ items render as question headings", () => {
 
     const region = screen.getByRole("region", { name: "Fixture section heading" });
     expect(within(region).queryAllByRole("heading", { level: 3 })).toEqual([]);
+  });
+});
+
+/**
+ * landing W6 (design.md decision 1) / task 1.2: `splitHeadline` (inline,
+ * unexported, in landing-page.tsx) used to repeat the last word for a
+ * two-word tagline — it rendered the ember word once as part of a two-word
+ * lead line AND again in the ember span. Today only the primary tagline
+ * ("AI that understands you.") is ever rendered, so the two-word case
+ * ("Intelligence, intimate.") is latent — this loops every approved
+ * tagline through the real component so a bug there is caught immediately
+ * if that tagline is ever chosen, rather than the next time someone edits
+ * `content/site/landing.ts`.
+ *
+ * `splitHeadline` itself isn't exported, so this renders LandingPage with
+ * each tagline substituted as the headline (the same `vi.doMock` pattern as
+ * the FAQ describe above) and asserts the h1's rendered text reconstructs
+ * the source string exactly, whitespace-normalized. A duplicated ember word
+ * (the W6 bug) or a dropped lead word would both fail this equality.
+ */
+describe("splitHeadline renders every approved tagline with no repeated or dropped word", () => {
+  afterEach(() => {
+    vi.doUnmock("../../content/site/landing");
+    vi.resetModules();
+  });
+
+  async function renderLandingWithHeadline(headline: string) {
+    vi.resetModules();
+    vi.doMock("../../content/site/landing", () => ({
+      LANDING_CONTENT: { ...LANDING_CONTENT, headline },
+    }));
+    const { default: LandingPage } = await import("../pages/landing-page");
+    render(createElement(MemoryRouter, null, createElement(LandingPage)));
+  }
+
+  it.each(APPROVED_TAGLINES)("%s renders as the h1 text, unchanged", async (headline) => {
+    await renderLandingWithHeadline(headline);
+    const h1 = screen.getByRole("heading", { level: 1 });
+    const rendered = (h1.textContent ?? "").replace(/\s+/g, " ").trim();
+    expect(rendered).toBe(headline);
   });
 });

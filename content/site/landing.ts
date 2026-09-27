@@ -56,7 +56,7 @@ export const LANDING_CONTENT: LandingContent = {
 		{
 			id: "threads",
 			label: "Threads",
-			heading: "Every conversation, kept.",
+			heading: "Your conversations, saved on this device.",
 			body: [
 				"Each chat becomes a thread, saved on your device, so you can pick up right where you left off.",
 			],
