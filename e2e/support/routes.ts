@@ -56,6 +56,15 @@ async function streamFixtureConversation(page: Page): Promise<void> {
   // locators (spec scenarios 2, 13, 19 — "every block type").
   await expect(page.locator(`img[alt="${FIXTURE_IMAGE_ALT}"]`)).toBeAttached();
   await expect(page.locator("hr").first()).toBeAttached();
+  // "Week flow" (the mermaid artifact's title) mounts as soon as the
+  // artifact block appears, before `mermaid.render()` (async) resolves and
+  // swaps mermaid-block.tsx's "Rendering diagram" placeholder for the real
+  // SVG — a race that made two of 96 `test:visual` goldens nondeterministic
+  // (thread 320/dark and 1024/light rendered at different final heights
+  // depending on whether the diagram had finished laying out before
+  // `expandToScrollableContent` measured overflow). Wait for the
+  // placeholder to be gone, not just the title, before measuring.
+  await expect(page.getByText("Rendering diagram")).toHaveCount(0);
   await expandToScrollableContent(page);
 }
 

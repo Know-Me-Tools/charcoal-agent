@@ -3,7 +3,7 @@
  * standard §3.3, §4.2). Regions separate by fill only, text is never below
  * 12px, and colour comes from KnowMe tokens, never the raw Tailwind palette.
  */
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -26,13 +26,34 @@ const RULES: Array<{ name: string; pattern: RegExp }> = [
   { name: "blur", pattern: /backdrop-blur[\w-]*/g },
   { name: "ring outline", pattern: /(?<![\w-])ring-1\b/g },
   { name: "line texture", pattern: /grid-overlay/g },
-  { name: "text under 12px", pattern: /text-\[(?:[0-9]|1[01])(?:\.\d+)?px\]/g },
   {
     name: "raw palette colour",
     pattern:
       /(?<![\w-])(?:bg|text|border|ring|fill|stroke|from|to|via)-(?:zinc|gray|slate|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}\b/g,
   },
 ];
+
+/**
+ * "Text under 12px" (brand-fidelity-audit design.md decision 3, landing S2):
+ * the old rule was a single regex matching only `text-[Npx]` with N in 0-11,
+ * which missed `rem`/`em` arbitrary sizes entirely (`text-[0.7rem]` never
+ * matched). A regex alone can't do the numeric comparison a `rem`/`em`
+ * threshold needs, so this captures the value and unit and compares in JS:
+ * `px` is a hit below 12, `rem`/`em` are a hit below 0.75 (constraints.md
+ * "rem sizes under 12px are caught").
+ */
+const TEXT_SIZE_PATTERN = /text-\[([0-9]+(?:\.[0-9]+)?)(px|rem|em)\]/g;
+
+function textUnder12pxViolations(code: string): string[] {
+  const hits: string[] = [];
+  for (const m of code.matchAll(TEXT_SIZE_PATTERN)) {
+    const value = Number.parseFloat(m[1]);
+    const unit = m[2];
+    const isViolation = unit === "px" ? value < 12 : value < 0.75;
+    if (isViolation) hits.push(`text under 12px: ${m[0]}`);
+  }
+  return hits;
+}
 
 function shellFiles(): string[] {
   const inDirs = SHELL_DIRS.flatMap((dir) =>
@@ -50,7 +71,10 @@ function stripComments(source: string): string {
 
 function violationsIn(source: string): string[] {
   const code = stripComments(source);
-  return RULES.flatMap(({ name, pattern }) => [...code.matchAll(pattern)].map((m) => `${name}: ${m[0]}`));
+  return [
+    ...RULES.flatMap(({ name, pattern }) => [...code.matchAll(pattern)].map((m) => `${name}: ${m[0]}`)),
+    ...textUnder12pxViolations(code),
+  ];
 }
 
 describe("Flat 2.0 guard rules", () => {
@@ -66,6 +90,8 @@ describe("Flat 2.0 guard rules", () => {
     "grid-overlay",
     "text-[10px]",
     "text-[11.5px]",
+    "text-[0.7rem]",
+    "text-[0.5em]",
     "bg-green-400",
     "dark:text-zinc-300",
   ])("flags %s", (cls) => {
@@ -77,6 +103,7 @@ describe("Flat 2.0 guard rules", () => {
     "border-transparent",
     "bg-ember-soft text-cyan-text",
     "text-xs text-[12px] text-[13px]",
+    "text-[0.75rem] text-[0.8rem] text-[1em]",
     "focus-cue outline-none ring-ring",
     "bg-scrim bg-muted-surface",
   ])("allows %s", (cls) => {
@@ -145,11 +172,14 @@ function chatSurfaceFiles(): string[] {
 
 function chatViolationsIn(source: string): string[] {
   const code = stripComments(source);
-  return [...RULES, ...CHAT_RULES].flatMap(({ name, pattern }) =>
-    [...code.matchAll(pattern)]
-      .filter((m) => !TABLE_LAYOUT_EXCEPTIONS.some((exception) => exception.test(m[0])))
-      .map((m) => `${name}: ${m[0]}`),
-  );
+  return [
+    ...[...RULES, ...CHAT_RULES].flatMap(({ name, pattern }) =>
+      [...code.matchAll(pattern)]
+        .filter((m) => !TABLE_LAYOUT_EXCEPTIONS.some((exception) => exception.test(m[0])))
+        .map((m) => `${name}: ${m[0]}`),
+    ),
+    ...textUnder12pxViolations(code),
+  ];
 }
 
 describe("Flat 2.0 chat-only guard rules", () => {
@@ -221,11 +251,14 @@ function brandPageFiles(): string[] {
 
 function brandPageViolationsIn(source: string): string[] {
   const code = stripComments(source);
-  return [...RULES, ...CHAT_RULES, GRADIENT_RULE].flatMap(({ name, pattern }) =>
-    [...code.matchAll(pattern)]
-      .filter((m) => !TABLE_LAYOUT_EXCEPTIONS.some((exception) => exception.test(m[0])))
-      .map((m) => `${name}: ${m[0]}`),
-  );
+  return [
+    ...[...RULES, ...CHAT_RULES, GRADIENT_RULE].flatMap(({ name, pattern }) =>
+      [...code.matchAll(pattern)]
+        .filter((m) => !TABLE_LAYOUT_EXCEPTIONS.some((exception) => exception.test(m[0])))
+        .map((m) => `${name}: ${m[0]}`),
+    ),
+    ...textUnder12pxViolations(code),
+  ];
 }
 
 describe("Flat 2.0 gradient rule", () => {
@@ -283,9 +316,12 @@ const APP_PAGE_FILES = [
 
 function appPageViolationsIn(source: string): string[] {
   const code = stripComments(source);
-  return [...RULES, GRADIENT_RULE].flatMap(({ name, pattern }) =>
-    [...code.matchAll(pattern)].map((m) => `${name}: ${m[0]}`),
-  );
+  return [
+    ...[...RULES, GRADIENT_RULE].flatMap(({ name, pattern }) =>
+      [...code.matchAll(pattern)].map((m) => `${name}: ${m[0]}`),
+    ),
+    ...textUnder12pxViolations(code),
+  ];
 }
 
 describe("Flat 2.0 app pages", () => {
@@ -306,5 +342,282 @@ describe("Flat 2.0 app pages", () => {
       "src/pages/user-settings-page.tsx",
       "src/pages/settings-page.tsx",
     ]);
+  });
+});
+
+/**
+ * Repo-wide Flat 2.0 guard (brand-fidelity-audit design.md decision 3):
+ * RULES plus the gradient rule over every non-test `src/**\/*.{ts,tsx}` file,
+ * including `src/components/ui/`, which none of the per-area describes above
+ * scan. A hit that is fixed is simply gone from the source; anything left is
+ * allowlisted here with a reason (constraints.md "Flat 2.0 source rules
+ * cover the whole repo").
+ *
+ * Each entry's `reason` falls into one of three buckets (design.md decision
+ * 3): "comment" text a stripped-comment regex still caught (none currently —
+ * the two prior comment hits in agent-detail-page.tsx and providers-page.tsx
+ * were removed by task 1.1); an "unreachable"/"no call site" state or
+ * component nothing in the app triggers, with the grep that proves it; or a
+ * hit that does render, allowlisted as a numbered follow-up (F-n) and listed
+ * as a known defect in docs/qa/brand-fidelity-audit.md — km-frontend-engineer
+ * owns fixing it, since it lives under src/components/ui/ or
+ * src/components/assistant-ui/, outside km-qa-engineer's owned paths.
+ */
+describe("Flat 2.0 repo-wide (brand-fidelity-audit)", () => {
+  interface AllowlistEntry {
+    file: string;
+    /** Exact "rule: token" string, as produced by the scan below. */
+    match: string;
+    reason: string;
+  }
+
+  const REPO_WIDE_ALLOWLIST: AllowlistEntry[] = [
+    // ── table-layout properties, not borders (design.md decision 3, verbatim) ──
+    {
+      file: "src/components/assistant-ui/enhanced-markdown-text.tsx",
+      match: "border: border-separate",
+      reason: "table layout property, not a border (design.md decision 3)",
+    },
+    {
+      file: "src/components/assistant-ui/enhanced-markdown-text.tsx",
+      match: "border: border-spacing-0",
+      reason: "table layout property, not a border (design.md decision 3)",
+    },
+
+    // ── paired with the same element's own -transparent variant: renders no
+    // visible border regardless of which caller renders it ──
+    {
+      file: "src/components/ui/button.tsx",
+      match: "border: border",
+      reason:
+        "paired with the base `border-transparent` on the same element; every variant but `outline` keeps the border transparent",
+    },
+    {
+      file: "src/components/ui/switch.tsx",
+      match: "border: border",
+      reason: "paired with the base `border-transparent` on the same element; no variant overrides the colour",
+    },
+    {
+      file: "src/components/ui/tabs.tsx",
+      match: "border: border",
+      reason: "paired with the base `border-transparent` on the same element; no variant overrides the colour",
+    },
+    {
+      file: "src/components/ui/scroll-area.tsx",
+      match: "border: border-t",
+      reason: "paired with `border-t-transparent` on the same element; renders transparent",
+    },
+    {
+      file: "src/components/ui/scroll-area.tsx",
+      match: "border: border-t-transparent",
+      reason: "explicit transparent border colour, not a visible border",
+    },
+    {
+      file: "src/components/ui/scroll-area.tsx",
+      match: "border: border-l",
+      reason: "paired with `border-l-transparent` on the same element; renders transparent",
+    },
+    {
+      file: "src/components/ui/scroll-area.tsx",
+      match: "border: border-l-transparent",
+      reason: "explicit transparent border colour, not a visible border",
+    },
+
+    // ── no call site: unreachable aria-invalid states (grep: no `aria-invalid`
+    // anywhere under src/ outside these primitive definitions) ──
+    {
+      file: "src/components/ui/button.tsx",
+      match: "border: border-destructive",
+      reason: 'no call site: no app code sets aria-invalid on a Button (grep "aria-invalid" src/ finds none outside src/components/ui/)',
+    },
+    {
+      file: "src/components/ui/button.tsx",
+      match: "border: border-destructive/50",
+      reason: "no call site: same aria-invalid state as border-destructive above",
+    },
+    {
+      file: "src/components/ui/input.tsx",
+      match: "border: border-destructive",
+      reason: "no call site: no app code sets aria-invalid on an Input",
+    },
+    {
+      file: "src/components/ui/input.tsx",
+      match: "border: border-destructive/50",
+      reason: "no call site: same aria-invalid state as border-destructive above",
+    },
+    {
+      file: "src/components/ui/textarea.tsx",
+      match: "border: border-destructive",
+      reason: "no call site: no app code sets aria-invalid on a Textarea",
+    },
+    {
+      file: "src/components/ui/textarea.tsx",
+      match: "border: border-destructive/50",
+      reason: "no call site: same aria-invalid state as border-destructive above",
+    },
+    {
+      file: "src/components/ui/switch.tsx",
+      match: "border: border-destructive",
+      reason: "no call site: no app code sets aria-invalid on a Switch",
+    },
+    {
+      file: "src/components/ui/switch.tsx",
+      match: "border: border-destructive/50",
+      reason: "no call site: same aria-invalid state as border-destructive above",
+    },
+
+    // ── no call site: the component itself is never rendered anywhere in src/
+    // (grep: `<Card\b` under src/ finds nothing) ──
+    {
+      file: "src/components/ui/card.tsx",
+      match: "border: border-b]:pb-",
+      reason: "no call site: Card is unused in the app, and this is a `has-[.border-b]` selector hook, not a class the element itself carries",
+    },
+    {
+      file: "src/components/ui/card.tsx",
+      match: "border: border-t",
+      reason: "no call site: Card/CardFooter is unused in the app",
+    },
+    {
+      file: "src/components/ui/card.tsx",
+      match: "ring outline: ring-1",
+      reason: "no call site: Card is unused in the app",
+    },
+
+    // ── no call site: the only caller overrides the primitive's own default
+    // border away, so it never renders one ──
+    {
+      file: "src/components/ui/alert.tsx",
+      match: "border: border",
+      reason: 'no call site renders it: the only usage (src/components/assistant-ui/enhanced-thread.tsx:572) passes className="...border-0...", which wins over the base `border` class',
+    },
+    {
+      file: "src/components/ui/input.tsx",
+      match: "border: border",
+      reason:
+        "no call site renders it: the only usage (src/features/chat/components/a2ui-artifact-block.tsx) passes FIELD_CLASSES, which starts with border-0 (follow-up F-3, km-frontend-engineer: fix the primitive's own default border)",
+    },
+    {
+      file: "src/components/ui/input.tsx",
+      match: "border: border-input",
+      reason: "no call site renders it: same FIELD_CLASSES override as border above (follow-up F-3)",
+    },
+    {
+      file: "src/components/ui/input.tsx",
+      match: "border: border-ring",
+      reason: "focus-visible border colour only; FIELD_CLASSES forces border-width to 0 via border-0, so no colour ever shows (follow-up F-3)",
+    },
+    {
+      file: "src/components/ui/textarea.tsx",
+      match: "border: border",
+      reason:
+        "no call site renders it: the only usage (src/features/chat/components/a2ui-artifact-block.tsx) passes FIELD_CLASSES, which starts with border-0 (follow-up F-3, km-frontend-engineer: fix the primitive's own default border)",
+    },
+    {
+      file: "src/components/ui/textarea.tsx",
+      match: "border: border-input",
+      reason: "no call site renders it: same FIELD_CLASSES override as border above (follow-up F-3)",
+    },
+    {
+      file: "src/components/ui/textarea.tsx",
+      match: "border: border-ring",
+      reason: "focus-visible border colour only; FIELD_CLASSES forces border-width to 0 via border-0, so no colour ever shows (follow-up F-3)",
+    },
+
+    // ── renders: known defects, not fixable within km-qa-engineer's owned
+    // paths (src/components/ui/, src/components/error-boundary/ are
+    // km-frontend-engineer's). Listed as follow-ups in
+    // docs/qa/brand-fidelity-audit.md. ──
+    {
+      file: "src/components/ui/avatar.tsx",
+      match: "border: border",
+      reason:
+        "renders: follow-up F-1 (km-frontend-engineer) — the after: ring shows on the chat thread avatar (src/components/assistant-ui/enhanced-thread.tsx:281), which does not override it; attachment.tsx's Avatar hides it with after:hidden",
+    },
+    {
+      file: "src/components/ui/avatar.tsx",
+      match: "border: border-border",
+      reason: "renders: follow-up F-1 (km-frontend-engineer) — same call site as border above",
+    },
+    {
+      file: "src/components/ui/button.tsx",
+      match: "border: border-border",
+      reason:
+        'renders: follow-up F-2 (km-frontend-engineer) — the outline variant\'s border shows on ChatErrorBoundary.tsx:69\'s "Back to home" button',
+    },
+    {
+      file: "src/components/ui/button.tsx",
+      match: "border: border-input",
+      reason: "renders: follow-up F-2 (km-frontend-engineer) — dark-mode outline variant, same call site as border-border above",
+    },
+  ];
+
+  function repoWideFiles(): string[] {
+    const out: string[] = [];
+    const walk = (dir: string): void => {
+      for (const entry of readdirSync(dir)) {
+        const p = join(dir, entry);
+        if (statSync(p).isDirectory()) {
+          walk(p);
+        } else if (/\.(ts|tsx)$/.test(entry) && !/\.test\.(ts|tsx)$/.test(entry)) {
+          out.push(p);
+        }
+      }
+    };
+    walk("src");
+    return out;
+  }
+
+  function repoWideHits(code: string): string[] {
+    return [
+      ...[...RULES, GRADIENT_RULE].flatMap(({ name, pattern }) =>
+        [...code.matchAll(pattern)].map((m) => `${name}: ${m[0]}`),
+      ),
+      ...textUnder12pxViolations(code),
+    ];
+  }
+
+  it("every allowlist entry has a reason", () => {
+    for (const entry of REPO_WIDE_ALLOWLIST) {
+      expect(entry.reason.length, `${entry.file} — ${entry.match}`).toBeGreaterThan(0);
+    }
+  });
+
+  it("passes: every repo-wide hit is fixed or on the allowlist", () => {
+    const allowed = new Set(REPO_WIDE_ALLOWLIST.map((e) => `${e.file} — ${e.match}`));
+    const unexpected: string[] = [];
+    for (const file of repoWideFiles()) {
+      const code = stripComments(readFileSync(file, "utf8"));
+      for (const hit of repoWideHits(code)) {
+        const key = `${file} — ${hit}`;
+        if (!allowed.has(key)) unexpected.push(key);
+      }
+    }
+    expect(unexpected).toEqual([]);
+  });
+
+  it("fails: shadow-md in a non-allowlisted src/components/ui file names that file", () => {
+    // constraints.md "Repo-wide guard can fail": mirrors the mutation without
+    // touching a real file, so this test is itself the regression guard.
+    const mutated = 'className="rounded-lg shadow-md bg-card"';
+    const hits = repoWideHits(mutated).map((h) => `src/components/ui/example.tsx — ${h}`);
+    const allowed = new Set(REPO_WIDE_ALLOWLIST.map((e) => `${e.file} — ${e.match}`));
+    expect(hits.some((h) => !allowed.has(h))).toBe(true);
+  });
+
+  it("keeps every allowlist entry pointing at a real, currently-present hit", () => {
+    const files = new Set(repoWideFiles());
+    const stale: string[] = [];
+    for (const entry of REPO_WIDE_ALLOWLIST) {
+      if (!files.has(entry.file)) {
+        stale.push(`${entry.file} — file no longer scanned`);
+        continue;
+      }
+      const code = stripComments(readFileSync(entry.file, "utf8"));
+      if (!repoWideHits(code).includes(entry.match)) {
+        stale.push(`${entry.file} — ${entry.match}`);
+      }
+    }
+    expect(stale).toEqual([]);
   });
 });

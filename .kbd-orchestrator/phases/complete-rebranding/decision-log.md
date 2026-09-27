@@ -123,3 +123,17 @@ Tokens can recolour `border` to transparent. They cannot remove `shadow-2xl`, `b
 **Why:** the old heading implied every conversation is kept, but an interrupted reply and ephemeral threads are not saved locally. The new wording states only what is true, and matches the section body.
 
 **Record:** `docs/content/reviews/landing-s4.md`, which holds the operator approval with the file's git blob hash.
+
+---
+
+## D-010 · committed visual-regression goldens          [execute · 2026-09-27]
+
+**TL;DR:** `e2e/visual.spec.ts` now asserts `expect(page).toHaveScreenshot(...)` against committed goldens at `e2e/__goldens__/`, in addition to the existing `test-results/screenshots/` review captures. **96 PNG files, 7.2 MB total** (12 routes × 4 widths × 2 themes), filenames suffixed `-darwin` (`playwright.config.ts` `snapshotPathTemplate: "e2e/__goldens__/{arg}-{platform}{ext}"`), `maxDiffPixelRatio: 0.002`.
+
+**Why:** ui-verification-harness spec "Committed golden snapshots" (brand-fidelity-audit change) and design.md decision 4. Generated with `--update-snapshots`, then re-verified with a second, flagless run to prove determinism — see `docs/qa/brand-fidelity-audit.md` §2 for the full account, including one real nondeterminism this process caught (a mermaid-render race on the `thread` route, fixed in `e2e/support/routes.ts`) before the baseline was accepted.
+
+**Baseline commit:** not yet committed — this task (`brand-fidelity-audit` task 2.1) does not commit. Whoever commits the `e2e/__goldens__/` directory and the task 1.2 test changes should replace this line with that commit's hash.
+
+**Platform:** made on the operator's macOS (Chromium, darwin) per design.md decision 4. A Linux CI baseline is a later follow-up (km-devops-engineer); until then a Linux run against these goldens will report every image missing, not silently diff against a mac render.
+
+**Learn more:** `docs/qa/brand-fidelity-audit.md` §2 and §9; `openspec/changes/brand-fidelity-audit/design.md` decision 4.
