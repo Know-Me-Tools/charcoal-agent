@@ -76,7 +76,7 @@ export default function UserSettingsPage() {
           </p>
         </div>
 
-        <div className="flex flex-col items-center gap-4 rounded-xl border border-border bg-muted/30 px-6 py-10 text-center">
+        <div className="flex flex-col items-center gap-4 rounded-xl bg-band px-6 py-10 text-center">
           <User size={36} className="text-muted-foreground/40" />
           <div className="space-y-1">
             <p className="font-display text-base font-semibold text-foreground">
@@ -84,7 +84,7 @@ export default function UserSettingsPage() {
             </p>
             <p className="font-body text-sm text-muted-foreground">
               Per-user settings are only available when{" "}
-              <code className="rounded bg-muted px-1 font-mono text-[12px]">
+              <code className="rounded bg-muted-surface px-1 font-mono text-xs">
                 VITE_UAR_API_KEY
               </code>{" "}
               is a JWT Bearer token.
@@ -104,7 +104,7 @@ export default function UserSettingsPage() {
             Per-user Settings
           </h1>
           {settings && (
-            <p className="mt-1 font-mono text-[11px] text-muted-foreground">
+            <p className="mt-1 font-mono text-xs text-muted-foreground">
               Signed in as{" "}
               <span className="font-medium text-foreground">
                 {settings.user_id}
@@ -117,7 +117,7 @@ export default function UserSettingsPage() {
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 gap-1.5 font-mono text-[11px]"
+            className="h-8 gap-1.5 font-mono text-xs"
             onClick={fetchSettings}
             disabled={loading}
           >
@@ -130,7 +130,7 @@ export default function UserSettingsPage() {
           </Button>
           <Button
             size="sm"
-            className="h-8 gap-1.5 font-mono text-[11px]"
+            className="h-8 gap-1.5 font-mono text-xs"
             onClick={() => { void save(); }}
             disabled={saving || loading || !settings}
           >
@@ -152,14 +152,14 @@ export default function UserSettingsPage() {
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-2">
+        <div className="flex items-center gap-2 rounded-md bg-danger-soft px-4 py-2">
           <AlertCircle size={13} className="shrink-0 text-danger-text" />
-          <span className="font-mono text-[11px] text-danger-text">{error}</span>
+          <span className="font-mono text-xs text-danger-text">{error}</span>
         </div>
       )}
 
       {/* Prompt Caching */}
-      <section className="space-y-4 rounded-xl border border-border bg-card p-5">
+      <section className="space-y-4 rounded-xl bg-band p-5">
         <div>
           <h2 className="font-display text-base font-semibold text-foreground">
             Prompt Caching
@@ -192,7 +192,7 @@ export default function UserSettingsPage() {
               settings?.prompt_caching_enabled !== undefined && (
                 <button
                   type="button"
-                  className="font-mono text-[10px] text-muted-foreground underline"
+                  className="rounded-md font-mono text-xs text-muted-foreground underline focus-cue"
                   onClick={() =>
                     setSettings((s) =>
                       s ? { ...s, prompt_caching_enabled: null } : s,
@@ -230,17 +230,17 @@ export default function UserSettingsPage() {
             }}
             disabled={!settings}
           >
-            <SelectTrigger className="font-mono text-[12px]">
+            <SelectTrigger className="font-mono text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="session" className="font-mono text-[12px]">
+              <SelectItem value="session" className="font-mono text-xs">
                 Session (per-conversation)
               </SelectItem>
-              <SelectItem value="user" className="font-mono text-[12px]">
+              <SelectItem value="user" className="font-mono text-xs">
                 User (account-wide)
               </SelectItem>
-              <SelectItem value="agent" className="font-mono text-[12px]">
+              <SelectItem value="agent" className="font-mono text-xs">
                 Agent (per-agent default)
               </SelectItem>
             </SelectContent>
@@ -249,7 +249,7 @@ export default function UserSettingsPage() {
       </section>
 
       {/* Settings hierarchy explanation */}
-      <section className="rounded-xl border border-border bg-muted/30 p-5">
+      <section className="rounded-xl bg-band p-5">
         <h3 className="font-display text-sm font-semibold text-foreground">
           Settings priority
         </h3>
@@ -261,7 +261,7 @@ export default function UserSettingsPage() {
             "Global default (UAR admin settings)",
           ].map((label, i) => (
             <li key={label} className="flex items-center gap-2">
-              <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 font-mono text-[10px] font-bold text-ember-text">
+              <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 font-mono text-xs font-bold text-ember-text">
                 {i + 1}
               </span>
               <span className="font-body text-xs text-muted-foreground">
@@ -277,7 +277,7 @@ export default function UserSettingsPage() {
       </section>
 
       {settings?.updated_at && (
-        <p className="font-mono text-[10px] text-muted-foreground">
+        <p className="font-mono text-xs text-muted-foreground">
           Last updated:{" "}
           {new Date(settings.updated_at).toLocaleString()}
         </p>

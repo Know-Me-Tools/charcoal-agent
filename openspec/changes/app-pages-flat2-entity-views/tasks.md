@@ -1,6 +1,6 @@
 ## 1. Decision
 
-- [ ] 1.1 (owner: km-product-owner) Record the entity-component adoption decision (design.md decision 1) as a new D-entry in `.kbd-orchestrator/phases/complete-rebranding/decision-log.md`. It must name:
+- [x] 1.1 (owner: km-product-owner) Record the entity-component adoption decision (design.md decision 1) as a new D-entry in `.kbd-orchestrator/phases/complete-rebranding/decision-log.md`. It must name:
   - the four components and the package version (4.0.2)
   - the offending classes, with `index.mjs` and `index.d.ts` line references
   - the missing `CRUDState`/`UseEntityViewResult` data contract
