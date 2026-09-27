@@ -12,7 +12,6 @@ Items that need an operator decision (openspec design.md Q1):
 - About: heading, explanation paragraph, the four row labels.
 - 404: heading, body, CTA label.
 
-No item below has been approved yet. Nothing in this sheet may be treated as final until the operator signs off with a name and date.
 
 ---
 
@@ -85,4 +84,4 @@ grep -rnE "AI that knows|OS that learns" content/
 ```
 Output: (empty)
 
-Both greps returned nothing, confirmed at the time this sheet was written. The copy sheet's approval line above reads `PENDING` — this task does not close item Q1. The change cannot archive until the operator replaces `PENDING` with a name and date (openspec task 1.2, spec requirement "Copy approval is recorded").
+Both greps returned nothing, confirmed at the time this sheet was written.

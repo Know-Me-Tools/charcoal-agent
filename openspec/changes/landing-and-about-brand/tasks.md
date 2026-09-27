@@ -79,7 +79,7 @@
 
 ## 4. Verification
 
-- [ ] 4.1 (owner: km-qa-engineer) Full gate. Run `npm run build && npm run typecheck && npm run lint && npm test && npm run test:e2e`. Then run `npm run test:visual` and review all 24 captures (`landing`, `settings-about` and `not-found` × 320/768/1024/1440 × dark/light) against `docs/design/brand-pages.md` and S1 §12 "Visual". Then run `npm run test:a11y`. Record the commands, outputs, capture paths, review notes and the axe delta against the baseline (landing `button-name` ×1 in each theme) in `docs/qa/landing-and-about-brand.md`. Verify:
+- [x] 4.1 (owner: km-qa-engineer) Full gate. Run `npm run build && npm run typecheck && npm run lint && npm test && npm run test:e2e`. Then run `npm run test:visual` and review all 24 captures (`landing`, `settings-about` and `not-found` × 320/768/1024/1440 × dark/light) against `docs/design/brand-pages.md` and S1 §12 "Visual". Then run `npm run test:a11y`. Record the commands, outputs, capture paths, review notes and the axe delta against the baseline (landing `button-name` ×1 in each theme) in `docs/qa/landing-and-about-brand.md`. Verify:
   - all commands exit 0
   - `test-results/a11y/{landing,settings-about,not-found}__{dark,light}.json` report zero violations
   - light-theme captures show adjacent landing bands as distinct

@@ -213,7 +213,8 @@ const GRADIENT_RULE = {
 
 function brandPageFiles(): string[] {
   const globbed = readdirSync("src/components/site")
-    .filter((f) => f.endsWith(".tsx") && !f.endsWith(".test.tsx"))
+    // .ts too: shared class strings (ember-cta.ts) must meet the same rules.
+    .filter((f) => /\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f))
     .map((f) => join("src/components/site", f));
   return [...BRAND_PAGE_FIXED_FILES, ...globbed];
 }

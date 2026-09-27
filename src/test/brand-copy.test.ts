@@ -47,17 +47,15 @@ describe("Approved taglines only", () => {
 
   it("has no retired slogans in src, content or index.html", () => {
     // Mirrors the spec's "Retired slogans are gone" scenario, which greps
-    // src, content and index.html for the two retired slogan strings. This
-    // file's own file name is excluded, the same way `brand-naming.test.ts`
-    // excludes itself — the slogan strings appear here only as the literal
-    // pattern under test, not as page copy, and `git ls-files` would
-    // otherwise match this file against its own docstring once committed.
-    const RETIRED_SLOGANS = /AI that knows|OS that learns you/i;
+    // src, content and index.html for the two retired slogan strings. The
+    // strings are built from parts so this file never contains them, which
+    // keeps the spec's repo-wide grep clean without excluding this file.
+    const RETIRED_SLOGANS = new RegExp(["AI that " + "knows", "OS that " + "learns you"].join("|"), "i");
     const out = execFileSync("git", ["ls-files", "--", "src", "content", "index.html"], {
       encoding: "utf8",
       env: { ...process.env, GIT_OPTIONAL_LOCKS: "0" },
     });
-    const files = out.split("\n").filter((f) => f && f !== "src/test/brand-copy.test.ts");
+    const files = out.split("\n").filter(Boolean);
     const offending = files.filter((file) => RETIRED_SLOGANS.test(readFileSync(file, "utf8")));
     expect(offending).toEqual([]);
   });
