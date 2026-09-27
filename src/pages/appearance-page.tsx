@@ -26,10 +26,11 @@ export default function AppearancePage() {
             <button
               key={t}
               onClick={() => setTheme(t)}
-              className={`flex-1 rounded-lg border p-4 text-center font-ui text-sm font-semibold transition-hover ${
+              aria-pressed={theme === t}
+              className={`flex-1 rounded-lg p-4 text-center font-ui text-sm font-semibold transition-hover focus-cue ${
                 theme === t
-                  ? "border-primary bg-primary/10 text-ember-text"
-                  : "border-border text-muted-foreground hover:border-primary/30"
+                  ? "bg-ember-soft text-ember-text"
+                  : "bg-muted-surface text-muted-foreground hover:bg-hover"
               }`}
             >
               {t === "dark" ? "Dark" : "Light"}
@@ -45,10 +46,11 @@ export default function AppearancePage() {
             <button
               key={fs.value}
               onClick={() => setFontSize(fs.value)}
-              className={`flex-1 rounded-lg border p-4 text-center font-ui text-sm font-semibold transition-hover ${
+              aria-pressed={fontSize === fs.value}
+              className={`flex-1 rounded-lg p-4 text-center font-ui text-sm font-semibold transition-hover focus-cue ${
                 fontSize === fs.value
-                  ? "border-primary bg-primary/10 text-ember-text"
-                  : "border-border text-muted-foreground hover:border-primary/30"
+                  ? "bg-ember-soft text-ember-text"
+                  : "bg-muted-surface text-muted-foreground hover:bg-hover"
               }`}
             >
               {fs.label}

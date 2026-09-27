@@ -14,6 +14,16 @@ import { StatusBadge } from "@/components/common/status-badge";
 import { SkeletonCard } from "@/components/common/skeleton-loader";
 import type { UarProvider, UarModel, UpdateProviderPayload } from "@/types";
 
+// Filled-field treatment shared by the text inputs and the protocol select
+// (docs/design/chat-surfaces.md §4.2): rest on `bg-composer`, lift to
+// `bg-raised` on focus, and show the 2px ember outline. No border.
+const FIELD_CLASS =
+  "w-full rounded-md bg-composer px-3 py-2 font-ui text-sm text-foreground placeholder:text-muted-foreground transition-colors focus-visible:bg-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
+
+// Filled, borderless secondary action button used throughout the provider card.
+const ACTION_BUTTON_CLASS =
+  "flex h-8 items-center gap-1.5 rounded-md bg-muted-surface px-3 font-ui text-xs font-semibold text-muted-foreground transition-hover hover:bg-hover hover:text-foreground focus-cue disabled:opacity-50";
+
 export default function ProvidersPage() {
   const { data, isLoading } = useProviders();
   const providers = data?.providers ?? [];
@@ -73,7 +83,7 @@ export default function ProvidersPage() {
         <button
           type="button"
           onClick={() => setAddingNew(true)}
-          className="flex h-9 items-center gap-2 rounded-md bg-primary px-4 font-ui text-sm font-semibold text-primary-foreground transition-hover hover:bg-primary/90"
+          className="flex h-9 items-center gap-2 rounded-md bg-primary px-4 font-ui text-sm font-semibold text-primary-foreground transition-hover hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           <Plus size={16} />
           Add provider
@@ -81,7 +91,7 @@ export default function ProvidersPage() {
       </div>
 
       {addingNew && (
-        <div className="mb-6 rounded-lg border border-border bg-card p-4 space-y-4">
+        <div className="mb-6 rounded-lg bg-band p-4 space-y-4">
           <SectionLabel>New Provider</SectionLabel>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
@@ -95,7 +105,7 @@ export default function ProvidersPage() {
                 onChange={(e) =>
                   setNewProvider((p) => ({ ...p, display_name: e.target.value }))
                 }
-                className="w-full rounded-md border border-border bg-background px-3 py-2 font-ui text-sm text-foreground focus:outline-hidden focus:ring-1 focus:ring-ring"
+                className={FIELD_CLASS}
                 placeholder="OpenAI"
               />
             </div>
@@ -110,7 +120,7 @@ export default function ProvidersPage() {
                 onChange={(e) =>
                   setNewProvider((p) => ({ ...p, protocol: e.target.value }))
                 }
-                className="w-full rounded-md border border-border bg-background px-3 py-2 font-ui text-sm text-foreground focus:outline-hidden focus:ring-1 focus:ring-ring"
+                className={FIELD_CLASS}
               >
                 <option value="openai">openai</option>
                 <option value="anthropic">anthropic</option>
@@ -131,7 +141,7 @@ export default function ProvidersPage() {
                 onChange={(e) =>
                   setNewProvider((p) => ({ ...p, base_url: e.target.value }))
                 }
-                className="w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-sm text-foreground focus:outline-hidden focus:ring-1 focus:ring-ring"
+                className={`font-mono ${FIELD_CLASS}`}
                 placeholder="https://api.openai.com/v1"
               />
             </div>
@@ -147,7 +157,7 @@ export default function ProvidersPage() {
                 onChange={(e) =>
                   setNewProvider((p) => ({ ...p, api_key: e.target.value }))
                 }
-                className="w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-sm text-foreground focus:outline-hidden focus:ring-1 focus:ring-ring"
+                className={`font-mono ${FIELD_CLASS}`}
                 placeholder="sk-..."
               />
             </div>
@@ -157,14 +167,14 @@ export default function ProvidersPage() {
               type="button"
               onClick={handleCreateProvider}
               disabled={!newProvider.display_name}
-              className="flex h-9 items-center gap-2 rounded-md bg-primary px-4 font-ui text-sm font-semibold text-primary-foreground transition-hover hover:bg-primary/90 disabled:opacity-40"
+              className="flex h-9 items-center gap-2 rounded-md bg-primary px-4 font-ui text-sm font-semibold text-primary-foreground transition-hover hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-40"
             >
               Save provider
             </button>
             <button
               type="button"
               onClick={() => setAddingNew(false)}
-              className="flex h-9 items-center rounded-md border border-border px-4 font-ui text-sm font-semibold text-muted-foreground transition-hover hover:text-foreground"
+              className="flex h-9 items-center rounded-md bg-muted-surface px-4 font-ui text-sm font-semibold text-muted-foreground transition-hover hover:bg-hover hover:text-foreground focus-cue"
             >
               Cancel
             </button>
@@ -237,11 +247,12 @@ function ProviderCard({
   isTesting,
 }: ProviderCardProps) {
   return (
-    <div className="rounded-lg border border-border bg-card">
+    <div className="rounded-lg bg-band">
       <button
         type="button"
         onClick={onSelect}
-        className="flex w-full items-center justify-between p-4 text-left transition-hover hover:bg-muted/20"
+        aria-expanded={isSelected}
+        className="flex w-full items-center justify-between rounded-lg p-4 text-left transition-hover hover:bg-hover focus-cue"
       >
         <div className="flex min-w-0 items-center gap-3">
           <span
@@ -253,11 +264,11 @@ function ProviderCard({
             <span className="font-display text-sm font-semibold text-foreground">
               {provider.display_name ?? provider.id}
             </span>
-            <span className="ml-2 rounded-sm bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+            <span className="ml-2 rounded-sm bg-muted-surface px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
               {provider.protocol}
             </span>
             {provider.base_url && (
-              <span className="ml-2 hidden font-mono text-[10px] text-muted-foreground sm:inline">
+              <span className="ml-2 hidden font-mono text-xs text-muted-foreground sm:inline">
                 {provider.base_url}
               </span>
             )}
@@ -265,7 +276,7 @@ function ProviderCard({
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {isDefault && (
-            <span className="flex items-center gap-1 font-ui text-[11px] font-semibold text-ember-text">
+            <span className="flex items-center gap-1 font-ui text-xs font-semibold text-ember-text">
               <Star size={12} /> Default
             </span>
           )}
@@ -274,13 +285,13 @@ function ProviderCard({
       </button>
 
       {isSelected && (
-        <div className="border-t border-border p-4 space-y-4">
+        <div className="p-4 pt-0 space-y-4">
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={onTestConnection}
               disabled={isTesting}
-              className="flex h-8 items-center gap-1.5 rounded-md border border-border px-3 font-ui text-xs font-semibold text-muted-foreground transition-hover hover:text-foreground disabled:opacity-50"
+              className={ACTION_BUTTON_CLASS}
             >
               {isTesting ? (
                 <Loader2 size={12} className="animate-spin" />
@@ -295,7 +306,7 @@ function ProviderCard({
             <button
               type="button"
               onClick={() => onUpdate({ enabled: !provider.enabled })}
-              className="flex h-8 items-center rounded-md border border-border px-3 font-ui text-xs font-semibold text-muted-foreground transition-hover hover:text-foreground"
+              className={ACTION_BUTTON_CLASS}
             >
               {provider.enabled ? "Disable" : "Enable"}
             </button>
@@ -303,7 +314,7 @@ function ProviderCard({
               <button
                 type="button"
                 onClick={onSetDefault}
-                className="flex h-8 items-center rounded-md border border-border px-3 font-ui text-xs font-semibold text-muted-foreground transition-hover hover:text-ember-text"
+                className={`${ACTION_BUTTON_CLASS} hover:text-ember-text`}
               >
                 Set default
               </button>
@@ -311,7 +322,7 @@ function ProviderCard({
             <button
               type="button"
               onClick={onDelete}
-              className="flex h-8 items-center gap-1 rounded-md border border-border px-3 font-ui text-xs font-semibold text-muted-foreground transition-hover hover:border-destructive hover:text-danger-text sm:ml-auto"
+              className={`${ACTION_BUTTON_CLASS} hover:bg-danger-soft hover:text-danger-text sm:ml-auto`}
             >
               <Trash2 size={12} />
               Delete
@@ -342,10 +353,10 @@ function ProviderModelsTable({
   if (!models.length) return null;
 
   return (
-    <div className="overflow-x-auto rounded-md border border-border">
-      <table className="w-full min-w-[400px]">
+    <div className="overflow-x-auto rounded-md bg-muted-surface">
+      <table className="w-full">
         <thead>
-          <tr className="border-b border-border bg-muted/30">
+          <tr>
             <th className="px-3 py-2 text-left ui-overline text-muted-foreground">
               Model ID
             </th>
@@ -362,11 +373,11 @@ function ProviderModelsTable({
         </thead>
         <tbody>
           {models.map((model) => (
-            <tr key={model.id} className="border-b border-border last:border-b-0">
-              <td className="px-3 py-2 font-mono text-xs text-foreground">
+            <tr key={model.id}>
+              <td className="px-3 py-2 font-mono text-xs break-all text-foreground">
                 {model.id}
               </td>
-              <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
+              <td className="px-3 py-2 font-mono text-xs break-words text-muted-foreground">
                 {model.display_name ?? "—"}
               </td>
               <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
@@ -375,14 +386,14 @@ function ProviderModelsTable({
                   : "—"}
               </td>
               <td className="px-3 py-2">
-                <div className="flex gap-1">
+                <div className="flex flex-wrap gap-1">
                   {model.supports_vision && (
-                    <span className="rounded-sm bg-info/10 px-1.5 py-0.5 font-mono text-[10px] text-cyan-text">
+                    <span className="rounded-sm bg-info/10 px-1.5 py-0.5 font-mono text-xs text-cyan-text">
                       vision
                     </span>
                   )}
                   {model.supports_tools && (
-                    <span className="rounded-sm bg-success/10 px-1.5 py-0.5 font-mono text-[10px] text-success-text">
+                    <span className="rounded-sm bg-success/10 px-1.5 py-0.5 font-mono text-xs text-success-text">
                       tools
                     </span>
                   )}

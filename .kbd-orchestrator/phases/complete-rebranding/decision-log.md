@@ -84,3 +84,32 @@
 **Alternatives:** Ship the table verbatim (rejected: violates phase goal 7).
 
 **Learn more:** assessment.md → WCAG CONTRAST AUDIT.
+
+---
+
+## D-008 · keep the page components; do not adopt the package entity views          [spec · 2026-09-27]
+
+**TL;DR:** The settings list pages keep their existing components. `EntityDetailSheet`, `EntityFormSheet`, `EntityTable` and `EntityListView` from `@prometheus-ags/entity-graph-react` 4.0.2 (re-exported by `@prometheus-ags/prometheus-entity-management` 4.0.2) are not adopted. This partly reverses the component half of D-006; the data-layer half of D-006 stands. Change: `app-pages-flat2-entity-views` (design.md decision 1).
+
+**Why:** The four components hard-code classes that break Flat 2.0 or WCAG 2.2 AA, and expose no way to remove them. Evidence, `node_modules/@prometheus-ags/entity-graph-react/dist` (read 2026-09-27):
+- `EntityDetailSheet` (index.d.ts:630, index.mjs:2656). Props `crud, fields, title, description, children, show*Button, deleteConfirmMessage`; no `className`. Wraps `Sheet` (index.mjs:2571): overlay `bg-black/40 backdrop-blur-sm` (2580), panel `border-l bg-background shadow-2xl` (2581), `border-b` header (2582), `border-t` footer (2590). Field labels `text-[10px]` (2680). Inputs `border bg-muted/50 … focus:outline-none focus:ring-1` (2598). Confirm dialog `bg-black/50 backdrop-blur-sm` (2689) and `border rounded-xl shadow-2xl` (2690).
+- `EntityFormSheet` (index.d.ts:640, index.mjs:2721). Props `crud, fields, createTitle, editTitle`; no `className`. Same `Sheet`, error box `border border-destructive/20` (2748), `text-[10px]` dirty marker and hints (2756, 2759).
+- `EntityTable` (index.d.ts:1345, index.mjs:2453). Root `className` only. Toolbar `border-b` (2486), search `border … focus:outline-none` (2495), `text-[10px]` (2500), header `bg-muted/50 border-b` (2518), rows `border-b` (2519, 2525), footer `border-t` (2552).
+- `EntityListView` (index.d.ts:1833, props 1798; index.mjs:7037). Root `className` only. Delegates to `DataTable` (5130) and `ListView` (5540): cards `rounded-lg border bg-card hover:shadow-md` (5414, 5450), badges `rounded-full border … text-[10px]` (5497, 5717), meta `text-[11px]` (5507), `border-t` sections (5516, 5526), list `divide-y rounded-md border` (5554).
+
+Tokens can recolour `border` to transparent. They cannot remove `shadow-2xl`, `backdrop-blur-sm`, `text-[10px]`/`text-[11px]` or `focus:outline-none`; the last one breaks the visible-focus requirement of this change (WCAG 2.4.7/2.4.11). Separately, the data contract does not match: the sheets need `CRUDState` from `useEntityCRUD` (index.d.ts:551, 594) and the table needs `UseEntityViewResult` from `useEntityView` (index.d.ts:459, 511). This repo reads through `useRuntimeList` and writes through `useGraphMutation` (`src/lib/entity-graph/`) and exposes neither. Adopting would be a fork plus a data-layer change.
+
+**Alternatives:** Scoped CSS override (`[data-entity] * { border: 0; box-shadow: none }`), rejected: fights package specificity, needs `!important` for sub-12px text and `outline-none`, breaks silently on upgrade · fork the package, rejected: ruled out by the phase plan · adopt anyway and waive Flat 2.0/AA on those pages, rejected: violates phase goal 7 and D-007.
+
+**Uncomfortable part:** The operator asked for the package's views (D-006, plan item 11) and this change ships none. The decision is evidence-based but it is still a "no", and every settings page stays hand-built until upstream changes.
+
+**Revisit when:** a release of `@prometheus-ags/entity-graph-react` (or the alias) ships in which all four components either (a) accept class or slot overrides for overlay, panel, header, footer, rows, inputs, badges and labels, or (b) render without `shadow-*`, `backdrop-blur-*`, `border*`/`divide-y`, sub-12px text and `focus:outline-none`. Also revisit if this repo moves its pages onto `useEntityCRUD`/`useEntityView` for other reasons. Check: `grep -nE 'shadow-2xl|backdrop-blur|text-\[1[01]px\]|focus:outline-none' node_modules/@prometheus-ags/entity-graph-react/dist/index.mjs` returns nothing, or the four prop types gain `className`/`classNames`/slot props.
+
+**Draft upstream request (operator decides whether to send):**
+> Title: Make EntityDetailSheet, EntityFormSheet, EntityTable and EntityListView themeable
+>
+> In 4.0.2 these components hard-code visual classes that consumers cannot override: `shadow-2xl` and `backdrop-blur-sm` on `Sheet` and the delete confirm, `border`/`border-b`/`border-t`/`divide-y` on panels, rows and cards, `text-[10px]`/`text-[11px]` labels and badges, and `focus:outline-none` on inputs (index.mjs 2571–2760, 2453–2560, 5130–5720). `EntityDetailSheet` and `EntityFormSheet` take no `className` at all; `EntityTable` and `EntityListView` take a root `className` only. Apps with a borderless design system or a WCAG 2.2 visible-focus requirement cannot use them without forking.
+>
+> Request: (1) a `classNames` (or slots) prop on all four, covering overlay, panel, header, footer, row, input, badge and label; (2) drop `focus:outline-none` in favour of a `focus-visible` outline, or make it overridable; (3) keep all text at 12px minimum by default. Optional: accept plain list data plus mutation callbacks as an alternative to `CRUDState`/`UseEntityViewResult`, so apps on `useEntityList`/custom mutations can use the views.
+
+**Learn more:** `openspec/changes/app-pages-flat2-entity-views/design.md` decision 1 and "Defaults accepted" 4; D-006; D-007.
