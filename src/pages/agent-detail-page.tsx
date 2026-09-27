@@ -17,6 +17,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import type { Agent } from "@/types";
 
+// Filled-field treatment shared by the text inputs and the markdown editor
+// (docs/design/chat-surfaces.md §4.2): rest on `bg-composer`, lift to
+// `bg-raised` on focus, and show the 2px ember outline. No border.
+const FIELD_CLASS =
+  "w-full rounded-md bg-composer px-3 py-2 font-ui text-sm text-foreground placeholder:text-muted-foreground transition-colors focus-visible:bg-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
+
 // ── Markdown editor ───────────────────────────────────────────────────────────
 
 interface MarkdownEditorFieldProps {
@@ -57,11 +63,11 @@ function MarkdownEditorField({
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
             rows={rows}
-            className="w-full resize-y rounded-md border border-border bg-background px-3 py-2 font-mono text-xs leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-ring"
+            className={`resize-y font-mono text-xs leading-relaxed ${FIELD_CLASS}`}
           />
         </TabsContent>
         <TabsContent value="preview" className="mt-0">
-          <div className="min-h-40 rounded-md border border-border bg-background px-4 py-3">
+          <div className="min-h-40 rounded-md bg-band px-4 py-3">
             {value.trim() ? (
               <div className="prose prose-sm max-w-none dark:prose-invert prose-p:leading-relaxed prose-pre:bg-muted prose-pre:text-foreground">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -170,7 +176,7 @@ export default function AgentDetailPage() {
         <button
           type="button"
           onClick={() => navigate("/agents")}
-          className="mb-4 flex items-center gap-1.5 font-ui text-sm text-muted-foreground transition-hover hover:text-foreground"
+          className="mb-4 flex items-center gap-1.5 rounded-md font-ui text-sm text-muted-foreground transition-hover hover:text-foreground focus-cue"
         >
           <ArrowLeft size={14} />
           Back to agents
@@ -180,7 +186,7 @@ export default function AgentDetailPage() {
           {isNew ? "Create Agent" : form.name || "Agent"}
         </h1>
         {!isNew && id && (
-          <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
+          <p className="mt-0.5 font-mono text-xs text-muted-foreground">
             {id}
           </p>
         )}
@@ -201,7 +207,7 @@ export default function AgentDetailPage() {
             value={form.name}
             onChange={(e) => setField("name", e.target.value)}
             placeholder="Agent name"
-            className="w-full rounded-md border border-border bg-background px-3 py-2 font-ui text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-ring"
+            className={FIELD_CLASS}
           />
         </div>
 
@@ -219,7 +225,7 @@ export default function AgentDetailPage() {
             value={form.description}
             onChange={(e) => setField("description", e.target.value)}
             placeholder="What does this agent do?"
-            className="w-full rounded-md border border-border bg-background px-3 py-2 font-ui text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-ring"
+            className={FIELD_CLASS}
           />
         </div>
 
@@ -307,10 +313,11 @@ export default function AgentDetailPage() {
                   key={skill.id}
                   type="button"
                   onClick={() => toggleSkill(skill.id)}
-                  className={`rounded-md border px-3 py-1.5 font-ui text-xs font-semibold transition-hover ${
+                  aria-pressed={form.selectedSkills.includes(skill.id)}
+                  className={`rounded-md px-3 py-1.5 font-ui text-xs font-semibold transition-hover focus-cue ${
                     form.selectedSkills.includes(skill.id)
-                      ? "border-primary bg-primary/10 text-ember-text"
-                      : "border-border text-muted-foreground hover:border-primary/30"
+                      ? "bg-ember-soft text-ember-text"
+                      : "bg-muted-surface text-muted-foreground hover:bg-hover"
                   }`}
                 >
                   {skill.name}
@@ -331,7 +338,7 @@ export default function AgentDetailPage() {
           type="button"
           onClick={handleSave}
           disabled={saveDisabled}
-          className="flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-5 font-ui text-sm font-semibold text-primary-foreground transition-hover hover:bg-primary/90 disabled:opacity-40 sm:w-auto"
+          className="flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-5 font-ui text-sm font-semibold text-primary-foreground transition-hover hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-40 sm:w-auto"
         >
           {isSaving ? (
             <Loader2 size={16} className="animate-spin" />

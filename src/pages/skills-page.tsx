@@ -6,6 +6,7 @@ import { KNOWME_SKILLS } from "@/lib/skills/knowme-skills";
 import { SectionLabel } from "@/components/common/section-label";
 import { SkeletonCard } from "@/components/common/skeleton-loader";
 import { EmptyState } from "@/components/common/empty-state";
+import { StatusBadge } from "@/components/common/status-badge";
 import { Button } from "@/components/ui/button";
 import type { Skill } from "@/types";
 interface SkillDetailPanelProps {
@@ -20,10 +21,10 @@ function SkillDetailPanel({ skill, onClose }: SkillDetailPanelProps) {
   const isFilesystem = skill.provider_id === "filesystem" || skill.provider_id?.includes("fs");
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-lg border bg-card shadow-lg">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-scrim p-4">
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-lg bg-raised">
         {/* Header */}
-        <div className="flex items-center justify-between border-b bg-muted/50 px-6 py-4">
+        <div className="flex items-center justify-between bg-band px-6 py-4">
           <div className="flex items-center gap-3">
             <Wrench size={20} className={isBuiltin ? "text-ember-text" : "text-muted-foreground"} />
             <div>
@@ -33,7 +34,7 @@ function SkillDetailPanel({ skill, onClose }: SkillDetailPanelProps) {
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span className="font-mono">{skill.id}</span>
                 {skill.version && (
-                  <span className="rounded bg-muted px-1.5 py-0.5">v{skill.version}</span>
+                  <span className="rounded bg-muted-surface px-1.5 py-0.5">v{skill.version}</span>
                 )}
               </div>
             </div>
@@ -41,7 +42,7 @@ function SkillDetailPanel({ skill, onClose }: SkillDetailPanelProps) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+            className="rounded-md p-1.5 text-muted-foreground hover:bg-hover hover:text-foreground focus-cue"
           >
             <X size={18} />
           </button>
@@ -50,24 +51,14 @@ function SkillDetailPanel({ skill, onClose }: SkillDetailPanelProps) {
         {/* Content */}
         <div className="max-h-[calc(90vh-8rem)] overflow-y-auto p-6">
           {/* Status & Provider */}
-          <div className="mb-6 flex items-center gap-4">
+          <div className="mb-6 flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-muted-foreground">Status:</span>
-              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
-                skill.enabled
-                  ? "bg-green-500/10 text-green-600"
-                  : "bg-amber-500/10 text-amber-600"
-              }`}>
-                {skill.enabled ? (
-                  <><CheckCircle2 size={12} /> Enabled</>
-                ) : (
-                  <><AlertCircle size={12} /> Disabled</>
-                )}
-              </span>
+              <StatusBadge status={skill.enabled ? "enabled" : "disabled"} />
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-muted-foreground">Source:</span>
-              <span className="rounded bg-muted px-2 py-1 text-xs font-mono">
+              <span className="rounded bg-muted-surface px-2 py-1 text-xs font-mono text-muted-foreground">
                 {skill.provider_id || "unknown"}
               </span>
             </div>
@@ -80,7 +71,7 @@ function SkillDetailPanel({ skill, onClose }: SkillDetailPanelProps) {
                 <ChevronRight size={14} />
                 Description
               </h3>
-              <p className="rounded-lg border bg-muted/30 p-3 font-body text-sm text-muted-foreground">
+              <p className="rounded-lg bg-band p-3 font-body text-sm text-muted-foreground">
                 {skill.description}
               </p>
             </div>
@@ -111,7 +102,7 @@ function SkillDetailPanel({ skill, onClose }: SkillDetailPanelProps) {
               {skill.triggers.semantic && (
                 <div>
                   <span className="text-xs text-muted-foreground">Semantic:</span>
-                  <p className="mt-1 rounded bg-muted/30 p-2 text-xs text-muted-foreground">
+                  <p className="mt-1 rounded bg-band p-2 text-xs text-muted-foreground">
                     {skill.triggers.semantic}
                   </p>
                 </div>
@@ -130,7 +121,7 @@ function SkillDetailPanel({ skill, onClose }: SkillDetailPanelProps) {
                 {skill.preferred_tools.map((tool) => (
                   <span
                     key={tool}
-                    className="rounded border border-border bg-background px-2 py-0.5 text-xs text-muted-foreground"
+                    className="rounded bg-muted-surface px-2 py-0.5 text-xs text-muted-foreground"
                   >
                     {tool}
                   </span>
@@ -147,11 +138,11 @@ function SkillDetailPanel({ skill, onClose }: SkillDetailPanelProps) {
                 Prompt Overlay
               </h3>
               <div className="relative">
-                <pre className="max-h-64 overflow-auto rounded-lg border bg-muted/30 p-3 font-mono text-xs text-muted-foreground">
+                <pre className="max-h-64 overflow-auto rounded-lg bg-band p-3 font-mono text-xs text-muted-foreground">
                   {skill.prompt_overlay}
                 </pre>
                 <div className="absolute right-2 top-2">
-                  <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                  <span className="rounded bg-muted-surface px-1.5 py-0.5 text-xs text-muted-foreground">
                     Markdown
                   </span>
                 </div>
@@ -161,9 +152,9 @@ function SkillDetailPanel({ skill, onClose }: SkillDetailPanelProps) {
         </div>
 
         {/* Footer */}
-        <div className="border-t bg-muted/50 px-6 py-3">
+        <div className="bg-band px-6 py-3">
           <p className="text-xs text-muted-foreground">
-            Skills are loaded from the Universal Agent Runtime API. 
+            Skills are loaded from the Universal Agent Runtime API.
             {isFilesystem && " This skill is loaded from the filesystem provider."}
             {isBuiltin && " This is a built-in skill of the KnowMe agent, synced to your Universal Agent Runtime."}
           </p>
@@ -207,10 +198,12 @@ export default function SkillsPage() {
     const isPlatform = skill.id === "artifact-refiner";
     const isApi = skill.provider_id === "api";
     const isFilesystem = skill.provider_id === "filesystem" || skill.provider_id?.includes("fs");
-    
+
+    // Source-type labels are not status: they carry no colour, only text
+    // (design.md decision 2). "Built-in" keeps the ember brand accent.
     if (isKnowMe) return { type: "knowme", label: "Built-in", color: "text-ember-text" };
-    if (isPlatform || isApi) return { type: "platform", label: "Platform", color: "text-purple-400" };
-    if (isFilesystem) return { type: "filesystem", label: "Filesystem", color: "text-blue-400" };
+    if (isPlatform || isApi) return { type: "platform", label: "Platform", color: "text-fg-secondary" };
+    if (isFilesystem) return { type: "filesystem", label: "Filesystem", color: "text-fg-secondary" };
     return { type: "external", label: "External", color: "text-muted-foreground" };
   };
 
@@ -228,7 +221,7 @@ export default function SkillsPage() {
         <div className="flex shrink-0 items-center gap-2">
           {/* UAR registry rescan */}
           <Button
-            variant="outline"
+            variant="secondary"
             size="sm"
             onClick={handleRefresh}
             disabled={refreshSkills.isPending}
@@ -264,10 +257,8 @@ export default function SkillsPage() {
       {/* Sync status banner */}
       {(synced || syncError) && (
         <div
-          className={`mb-4 flex items-center gap-2 rounded-lg border px-4 py-2.5 font-ui text-sm ${
-            syncError
-              ? "border-destructive/30 bg-destructive/5 text-danger-text"
-              : "border-green-500/20 bg-green-500/5 text-green-400"
+          className={`mb-4 flex items-center gap-2 rounded-lg px-4 py-2.5 font-ui text-sm ${
+            syncError ? "bg-danger-soft text-danger-text" : "bg-success-soft text-success-text"
           }`}
         >
           {syncError ? (
@@ -281,7 +272,7 @@ export default function SkillsPage() {
               <span>
                 {syncedCount} required skills synced
                 {missingCount > 0 && (
-                  <span className="ml-1 text-amber-400">
+                  <span className="ml-1 text-warning-text">
                     · {missingCount} not yet available in this UAR
                   </span>
                 )}
@@ -308,22 +299,13 @@ export default function SkillsPage() {
           {skills.map((skill) => {
             const category = categorizeSkill(skill);
             return (
+              // The card is a mouse shortcut only. Keyboard and screen-reader users open the
+              // same panel with the "View configuration" button inside it; making the card a
+              // button as well nested interactive controls (axe nested-interactive).
               <div
                 key={skill.id}
-                role="button"
-                tabIndex={0}
                 onClick={() => handleSkillClick(skill)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleSkillClick(skill);
-                  }
-                }}
-                className={`cursor-pointer rounded-lg border bg-card p-4 text-left transition-all hover:border-primary/30 hover:shadow-xs focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring ${
-                  category.type === "knowme" || category.type === "platform" 
-                    ? "border-primary/20" 
-                    : "border-border"
-                }`}
+                className="cursor-pointer rounded-lg bg-band p-4 text-left transition-all hover:bg-hover"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
@@ -332,7 +314,7 @@ export default function SkillsPage() {
                       <h4 className="font-display text-sm font-semibold text-foreground">
                         {skill.name}
                       </h4>
-                      <span className={`font-mono text-[9px] uppercase tracking-wider ${category.color}`}>
+                      <span className={`font-mono text-xs uppercase tracking-wider ${category.color}`}>
                         {category.label}
                       </span>
                     </div>
@@ -362,12 +344,12 @@ export default function SkillsPage() {
                       }}
                       disabled={toggleSkill.isPending}
                       aria-label={skill.enabled ? "Disable skill" : "Enable skill"}
-                      className={`relative h-5 w-9 rounded-full transition-colors disabled:opacity-50 ${
+                      className={`relative h-5 w-9 rounded-full transition-colors focus-cue disabled:opacity-50 ${
                         skill.enabled ? "bg-primary" : "bg-muted"
                       }`}
                     >
                       <span
-                        className={`absolute top-0.5 h-4 w-4 rounded-full bg-card shadow transition-transform ${
+                        className={`absolute top-0.5 h-4 w-4 rounded-full bg-card transition-transform ${
                           skill.enabled ? "translate-x-4" : "translate-x-0.5"
                         }`}
                       />
@@ -387,13 +369,13 @@ export default function SkillsPage() {
                     {skill.preferred_tools.slice(0, 3).map((tool) => (
                       <span
                         key={tool}
-                        className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground"
+                        className="rounded bg-muted-surface px-1.5 py-0.5 text-xs text-muted-foreground"
                       >
                         {tool}
                       </span>
                     ))}
                     {skill.preferred_tools.length > 3 && (
-                      <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                      <span className="rounded bg-muted-surface px-1.5 py-0.5 text-xs text-muted-foreground">
                         +{skill.preferred_tools.length - 3}
                       </span>
                     )}
