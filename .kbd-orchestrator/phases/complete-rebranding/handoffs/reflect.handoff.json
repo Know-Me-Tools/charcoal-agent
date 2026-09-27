@@ -1,0 +1,11 @@
+{
+  "stage": "reflect",
+  "completedAt": "2026-09-27T22:40:53Z",
+  "outputs": [
+    "reflection.md"
+  ],
+  "nextStage": null,
+  "summaryForNext": "13/13 changes delivered; 6 of 8 goals MET, 2 PARTIAL (13 minor brand deviations and 3 component borders open). Largest delta: visible UI defects reached the final audit because no one looked at screenshots during build; fixed, and codified in the visual-first-ui-delivery skill. Recommended next phase: uar-integration, then ui-quality-debt, then agent-led-marketing-site.",
+  "skipped": false,
+  "skipReason": null
+}
