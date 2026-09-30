@@ -17,7 +17,7 @@ Evidence: `docs/qa/brand-fidelity-audit.md` (gate, allowlist, breakage proofs, L
 | 9 | Every route and theme has a verdict | MET | `brand-fidelity-comparison.md`: 12 routes at 1440 and 320, both themes. The 768 and 1024 captures were not reviewed (partial) |
 | 10 | Constraint table | MET | QA doc: all 9 blocking constraints pass |
 | 11 | Lighthouse record | MET | QA doc: landing and thread, mobile and desktop, medians. Recorded, not gated |
-| 12 | Sign-off present | PENDING | operator sign-off line below |
+| 12 | Sign-off present | MET | operator sign-off line below |
 | 13 | Goldens exist for the full matrix | MET | `e2e/__goldens__/`: 96 PNGs (D-010) |
 | 14 | Unchanged tree matches | MET | the full e2e run, without `--update-snapshots`, passed every golden comparison |
 | 15 | A visual change fails | MET | the D1–D5 fixes produced exactly the expected golden mismatches on the affected routes before regeneration |
@@ -57,7 +57,7 @@ Evidence: `docs/qa/brand-fidelity-audit.md` (gate, allowlist, breakage proofs, L
   - Fix: `ring-0` removed. No visual change.
   - Targeted re-run `e2e/app-pages.spec.ts` + `e2e/visual.spec.ts -g settings-skills`: 17 passed. `flat-shell.test.ts`: 95/95.
 - `AXE_STRICT=1 npm run test:a11y`: 24 passed, 0 violations.
-- **Counts:** 14 MET, 1 PENDING (operator sign-off), and scenario 9 partial (768 and 1024 not reviewed).
+- **Counts:** 15 MET, and scenario 9 partial (768 and 1024 not reviewed).
 
 ## Operator sign-off
-Pending: the operator reviews `e2e/__goldens__/` and records "Signed off: <name>, <date>, commit <hash>".
+Signed off: Travis James, 2026-09-27, commit 238d20d. The operator reviewed the 96 goldens in `e2e/__goldens__/`, including the 5 routes regenerated after the D1–D5 fixes, and confirmed the sign-off in session.

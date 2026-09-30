@@ -59,7 +59,7 @@
 
 ## 3. Verification, review and sign-off
 
-- [ ] 3.1 (owner: km-product-owner) Write `openspec/changes/brand-fidelity-audit/verification.md` from the QA record:
+- [x] 3.1 (owner: km-product-owner) Write `openspec/changes/brand-fidelity-audit/verification.md` from the QA record:
   - Map each scenario in the three spec deltas to a test name, grep output, capture path or decision id.
   - Give the final disposition of every row in design.md decision 1: fixed, closed, or carried with an owner.
   - List "Follow-ups carried out of the phase".

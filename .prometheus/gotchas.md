@@ -41,3 +41,9 @@ Append-only. Dated entries. Mark superseded entries; do not delete them.
 - **Token trap:** `--km-muted` equals `--km-band` in light, and `--km-surface` equals `--km-band` in dark. A fill nested on a band card must be `bg-raised`, which differs in both themes.
 - **Tailwind trap:** an arbitrary `calc()` needs spaces around `-`. `translate-x-[calc(100%-2px)]` is silently invalid.
 - **Details:** `.prometheus/postmortems/2026-09-27-ui-defects-found-late.md`; the skill is `.agents/skills/visual-first-ui-delivery`.
+
+## 2026-09-27: closing a phase that predates the canonical runtime
+- `hooks.sh` needs `KBD_ORCHESTRATOR_ROOT` **exported**. Without it `kbd_hooks_fire` fails and kills the whole shell with no output (exit 127). Never pipe `source` into another command: the functions land in a subshell.
+- A phase started before the bottleneck guard existed has no start receipt, and its canonical status is `Pending`. Recovery: `kbd_bottleneck_evaluate phase before <phase> 0` (the adapter passes `--repair-projections`), then transition `in-progress`, then `complete`. Only after both succeed, fire `phase:after`.
+- **Mistake made:** a first attempt fired `phase:after` after the transition was rejected. The Karpathy recorder refused it (status 2), but `report-progress`, `kbd-memory-log` and `legacy-phase-complete` logged a phase end that hadn't happened yet. Stop the script on any failed transition.
+- Tasks begun in parallel whose `end-task` output was suppressed stayed `in_progress` in the runtime after archive. The driver can't close them then, because the backend is archived. Use `prometheus kbd task transition --status complete`. Never suppress `end-task` output.

@@ -2,27 +2,27 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 526,
-  "derivedRevision": 526,
+  "sourceRevision": 548,
+  "derivedRevision": 548,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 526
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 548
   },
   "conflictCount": 0,
   "phase": "complete-rebranding",
   "phaseId": "complete-rebranding",
   "parentPhase": null,
-  "last_updated": "2026-09-27T20:40:45.325065Z",
+  "last_updated": "2026-09-27T22:43:36.322818Z",
   "last_updated_by": "kbd-runtime",
   "changes_total": 13,
-  "changes_completed": 12,
+  "changes_completed": 13,
   "implementation_total": 13,
-  "implementation_completed": 12,
+  "implementation_completed": 13,
   "completion": {
     "primaryCounter": "implementation",
     "implementation": {
-      "completed": 12,
+      "completed": 13,
       "total": 13,
-      "status": "IN_PROGRESS"
+      "status": "COMPLETE"
     },
     "evidence": {
       "status": "NOT_TRACKED",
@@ -49,9 +49,9 @@
     "runId": "complete-rebranding-20260923T223312Z",
     "primaryCounter": "implementation",
     "implementation": {
-      "completed": 12,
+      "completed": 13,
       "total": 13,
-      "status": "IN_PROGRESS"
+      "status": "COMPLETE"
     },
     "evidence": {
       "status": "PENDING",
@@ -183,12 +183,12 @@
     {
       "id": "landing-and-about-brand",
       "title": "Brand-template landing page and About",
-      "status": "IN_PROGRESS",
-      "implementation_status": "IN_PROGRESS",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
       "tasks_total": 7,
-      "tasks_done": 5,
+      "tasks_done": 7,
       "last_task_completed": "4.2 Verification and independent review",
-      "next_task_pending": "1.1 Design mapping (creative director)",
+      "next_task_pending": null,
       "blockers": []
     },
     {
@@ -207,9 +207,9 @@
       "title": "Whole-site verification and golden snapshots",
       "status": "DONE",
       "implementation_status": "COMPLETE",
-      "tasks_total": 3,
-      "tasks_done": 3,
-      "last_task_completed": "2.1 Whole-site audit and final gate",
+      "tasks_total": 4,
+      "tasks_done": 4,
+      "last_task_completed": "3.1 Verification, review and operator sign-off",
       "next_task_pending": null,
       "blockers": []
     }
