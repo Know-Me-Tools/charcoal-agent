@@ -1,23 +1,208 @@
 {
   "schemaVersion": "2",
+  "generatedBy": "kbd-runtime",
+  "projectionContractVersion": 2,
+  "sourceRevision": 777,
+  "derivedRevision": 777,
+  "frontier": {
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 777
+  },
+  "conflictCount": 0,
   "phase": "uar-integration",
-  "started": "2026-09-30T08:49:05Z",
-  "last_updated": "2026-09-30T08:49:05Z",
-  "last_updated_by": "kbd-next-phase",
-  "assessment_complete": false,
-  "plan_complete": false,
-  "execution_dispatched": false,
-  "reflection_complete": false,
-  "changes_total": 0,
-  "changes_completed": 0,
-  "implementation_total": 0,
-  "implementation_completed": 0,
+  "phaseId": "uar-integration",
+  "parentPhase": null,
+  "last_updated": "2026-09-30T12:49:05.520814Z",
+  "last_updated_by": "kbd-runtime",
+  "changes_total": 12,
+  "changes_completed": 2,
+  "implementation_total": 12,
+  "implementation_completed": 2,
   "completion": {
     "primaryCounter": "implementation",
-    "implementation": {"completed": 0, "total": 0, "status": "PENDING"},
-    "evidence": {"status": "NOT_TRACKED", "summary": null, "blockers": []},
-    "certification": {"status": "NOT_TRACKED", "summary": null, "blockers": []},
-    "publication": {"status": "NOT_TRACKED", "summary": null, "blockers": []}
+    "implementation": {
+      "completed": 2,
+      "total": 12,
+      "status": "IN_PROGRESS"
+    },
+    "evidence": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    },
+    "certification": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    },
+    "publication": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    }
   },
-  "changes": []
+  "completionScopes": {
+    "completion": "phase",
+    "runCompletion": "run"
+  },
+  "runCompletion": {
+    "scope": "run",
+    "runId": "complete-rebranding-20260923T223312Z",
+    "primaryCounter": "implementation",
+    "implementation": {
+      "completed": 15,
+      "total": 25,
+      "status": "IN_PROGRESS"
+    },
+    "evidence": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    },
+    "certification": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    },
+    "publication": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    }
+  },
+  "changes": [
+    {
+      "id": "uar-ghcr-multiarch-publish",
+      "title": "UAR: publish a multi-arch image to GHCR",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 4,
+      "tasks_done": 2,
+      "last_task_completed": "Add a merge job that creates one manifest list tagged with the commit SHA and `main`, plus `vX.Y.Z` on version tags.",
+      "next_task_pending": "Open the PR against `Prometheus-AGS/universal-agent-runtime` and record its link here. If the arm64 build fails, stop an",
+      "blockers": []
+    },
+    {
+      "id": "uar-kb-retrieval-embedding",
+      "title": "UAR: KB retrieval uses the configured embedding backend",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 4,
+      "tasks_done": 3,
+      "last_task_completed": "Add a UAR integration test: ingest and retrieve with the same backend, assert non-empty cited results; and a mismatch te",
+      "next_task_pending": "Open the PR against `Prometheus-AGS/universal-agent-runtime`, record the link, and confirm the published image (change `",
+      "blockers": []
+    },
+    {
+      "id": "memory-server-ghcr-publish",
+      "title": "Memory server: publish a multi-arch image to GHCR",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 4,
+      "tasks_done": 2,
+      "last_task_completed": "Confirm the `mempalace-core` git dependency (`GQAdonis/mempalace-rs`) is fetchable in CI; if private, add a token secret",
+      "next_task_pending": "Commit only the new workflow; leave that repo's pre-existing local edits (`.kbd-orchestrator/`, `.claude/`, `.prometheus",
+      "blockers": []
+    },
+    {
+      "id": "cluster-gateway-and-cert",
+      "title": "Cluster: certificate and gateway listeners for the site hosts",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 4,
+      "tasks_done": 4,
+      "last_task_completed": "Verify: Argo `argocd-config` Synced/Healthy, the Certificate Ready, and all six listeners Programmed=True (`kubectl --co",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "site-knowledge-corpus",
+      "title": "Public product knowledge corpus for the site agent",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 4,
+      "tasks_done": 4,
+      "last_task_completed": "Operator approval of the corpus, recorded in this change.",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "local-compose-stack",
+      "title": "Local four-service stack: web, UAR, SurrealDB, memory server",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 4,
+      "tasks_done": 3,
+      "last_task_completed": "Add the compose variable names to the git-ignored `.env` from existing values (never printed); update `.env.example` wit",
+      "next_task_pending": "Integration gate: `docker compose up -d`, all four healthy; a chat turn through `http://localhost:8080/api/chat/completi",
+      "blockers": []
+    },
+    {
+      "id": "site-agent-seed",
+      "title": "The knowme-site agent and knowledge base, seeded idempotently",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 3,
+      "tasks_done": 2,
+      "last_task_completed": "(km-devops-engineer) Write `scripts/seed-site-agent.sh`: from env (UAR URL, JWT secret) mint a short-lived HS256 JWT `su",
+      "next_task_pending": "Integration gate against the local stack: a corpus-only question returns a cited answer; an unshipped-feature question i",
+      "blockers": []
+    },
+    {
+      "id": "site-chat-proxy",
+      "title": "Site chat pinned to the site agent behind the nginx site proxy",
+      "status": "IN_PROGRESS",
+      "implementation_status": "IN_PROGRESS",
+      "tasks_total": 5,
+      "tasks_done": 3,
+      "last_task_completed": "nginx: audit the UAR routes the site chat needs and allowlist only those; inject `X-API-Key` from env through the nginx ",
+      "next_task_pending": "Integration gate against the local stack: a request with `agent_id=other`, `model=x` still runs `knowme-site` on `qwen3.",
+      "blockers": []
+    },
+    {
+      "id": "about-endpoint-truth",
+      "title": "About page shows the real endpoint",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 2,
+      "tasks_done": 1,
+      "last_task_completed": "Show the real same-origin target when `VITE_UAR_BASE_URL` is unset; add a unit test for the label.",
+      "next_task_pending": "Visual-first capture of the About page at 320 and 1440 in both themes; view and list the images; goldens pass or are upd",
+      "blockers": []
+    },
+    {
+      "id": "k8s-stack-manifests",
+      "title": "Kubernetes manifests for the four-service stack",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 4,
+      "tasks_done": 3,
+      "last_task_completed": "Job `seed-site-agent` running the change-7 script; `k8s/bootstrap/` with a namespace-scoped ServiceAccount, Role, RoleBi",
+      "next_task_pending": "Gate: `kubectl kustomize k8s` renders; `kubectl --context know-me apply -k k8s --dry-run=server` succeeds; a grep finds ",
+      "blockers": []
+    },
+    {
+      "id": "github-deploy-workflows",
+      "title": "GitHub Actions: rebuild and redeploy the site on every push to main",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 4,
+      "tasks_done": 3,
+      "last_task_completed": "Smoke: `https://know-me.tools/` 200 (with `--resolve know-me.tools:443:23.239.29.33` before cutover); a site chat turn t",
+      "next_task_pending": "Gate: a green `main` run end to end, then a trivial second commit redeploys automatically.",
+      "blockers": []
+    },
+    {
+      "id": "apex-dns-cutover",
+      "title": "Move know-me.tools off Lovable to the cluster gateway",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 3,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "Build a page-parity checklist of the current `https://know-me.tools` against the new site (via `--resolve`) and fix gaps",
+      "blockers": []
+    }
+  ],
+  "children": {},
+  "migrationStatus": null
 }

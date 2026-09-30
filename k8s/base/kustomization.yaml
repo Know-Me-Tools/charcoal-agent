@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: knowme
+
+resources:
+  - namespace.yaml
+  - surrealdb-statefulset.yaml
+  - surrealdb-service.yaml
+  - surrealdb-networkpolicy.yaml
+  - uar-configmap.yaml
+  - uar-deployment.yaml
+  - uar-service.yaml
+  - memory-server-deployment.yaml
+  - memory-server-service.yaml
+  - knowme-web-deployment.yaml
+  - knowme-web-service.yaml
+  - httproutes.yaml
+  # seed-job.yaml is deliberately NOT listed here — see the comment at the
+  # top of that file. It's an operator-run, manually-applied utility Job,
+  # not part of the continuously re-applied stack. (It also can't be: its
+  # ConfigMaps would need to source files from outside k8s/base, which
+  # `kubectl kustomize` refuses by default for security reasons.)
+
+images:
+  - name: ghcr.io/know-me-tools/knowme-web
+    newTag: main
+  - name: ghcr.io/prometheus-ags/universal-agent-runtime
+    newTag: main
+  - name: ghcr.io/prometheus-ags/surreal-memory-server
+    newTag: main

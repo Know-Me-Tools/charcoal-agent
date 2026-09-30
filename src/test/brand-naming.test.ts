@@ -15,6 +15,7 @@ import { describe, expect, it } from "vitest";
 const SCANNED_PATHS = [
   "src",
   "e2e",
+  "content/knowledge",
   "index.html",
   "README.md",
   "CLAUDE.md",

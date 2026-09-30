@@ -1,0 +1,23 @@
+{
+  "phase": "uar-integration",
+  "dispatchedAt": "2026-09-30T10:02:02Z",
+  "backend": "openspec",
+  "assigned": {
+    "wave1": [
+      "uar-ghcr-multiarch-publish",
+      "uar-kb-retrieval-embedding",
+      "memory-server-ghcr-publish",
+      "cluster-gateway-and-cert",
+      "site-knowledge-corpus"
+    ]
+  },
+  "pending": [
+    "local-compose-stack",
+    "site-agent-seed",
+    "site-chat-proxy",
+    "about-endpoint-truth",
+    "k8s-stack-manifests",
+    "github-deploy-workflows",
+    "apex-dns-cutover"
+  ]
+}

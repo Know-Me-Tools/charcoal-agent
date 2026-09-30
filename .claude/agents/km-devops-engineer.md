@@ -8,7 +8,10 @@
     "ci-cd-and-automation",
     "observability",
     "dependency-pin-discipline",
-    "security-and-hardening"
+    "security-and-hardening",
+    "hybrid-mobile-architecture",
+    "deploy-hybrid-agentic-stack",
+    "hybrid-runtime-verification"
   ],
   "model": "sonnet"
 }

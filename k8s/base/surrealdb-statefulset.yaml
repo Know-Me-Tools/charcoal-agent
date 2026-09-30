@@ -1,0 +1,82 @@
+# SurrealDB — shared persistence for UAR and the memory server, each in its
+# own namespace/database (UAR: ns=uar db=uar; memory server: ns=memory db=main).
+# Pinned to the same digest UAR and surreal-memory-server ship with.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: surrealdb
+  namespace: knowme
+  labels:
+    app.kubernetes.io/name: surrealdb
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: knowme-site
+spec:
+  serviceName: surrealdb
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: surrealdb
+      app.kubernetes.io/component: database
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: surrealdb
+        app.kubernetes.io/component: database
+        app.kubernetes.io/part-of: knowme-site
+    spec:
+      securityContext:
+        fsGroup: 0
+      containers:
+        - name: surrealdb
+          image: surrealdb/surrealdb:v3.3.0@sha256:681c6c22c287421b5c7d99e0fde79b6e0d32c36c1ddeaab2762a1661cb04cd20
+          env:
+            - name: SURREALDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: surrealdb-auth
+                  key: SURREALDB_ROOT_PASSWORD
+          command:
+            - start
+            - --log=info
+            - --user=root
+            - --pass=$(SURREALDB_ROOT_PASSWORD)
+            - --bind=0.0.0.0:8000
+            - rocksdb:/data/database.db
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          readinessProbe:
+            exec:
+              command: ["/surreal", "isready", "--endpoint", "http://localhost:8000"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+          volumeMounts:
+            - name: surrealdb-data
+              mountPath: /data
+  volumeClaimTemplates:
+    - metadata:
+        name: surrealdb-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: linode-block-storage-retain
+        resources:
+          requests:
+            storage: 20Gi

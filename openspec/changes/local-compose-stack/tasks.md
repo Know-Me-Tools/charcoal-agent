@@ -1,0 +1,6 @@
+## 1. Local four-service stack: web, UAR, SurrealDB, memory server
+
+- [x] 1.1 Verify against the published UAR image: nested env-var spellings (`UAR_LLM__EMBEDDING__*`, `UAR_PERSISTENCE__SURREAL_USER`/`_PASS`), the model-prefix form for the Token Plan base, and the remote SurrealDB namespace/database keys.
+- [x] 1.2 Rewrite `docker-compose.yaml`: `surrealdb` (`surrealdb/surrealdb:v3.3.0@sha256:681c6c22c287421b5c7d99e0fde79b6e0d32c36c1ddeaab2762a1661cb04cd20`, volume, root creds from `.env`); `uar` from `ghcr.io/prometheus-ags/universal-agent-runtime:main`, remote SurrealDB, vector dimension 1024, Qwen chat and `text-embedding-v4`, healthcheck `curl -fsS http://localhost:6565/readyz`; `surreal-memory-server` from GHCR `:main`, `SURREAL_MODE=server`, `SURREAL_ENDPOINT=ws://surrealdb:8000`, namespace `memory`, local embeddings; `knowme-web` built locally.
+- [x] 1.3 Add the compose variable names to the git-ignored `.env` from existing values (never printed); update `.env.example` with names and placeholders only; document removing the old `uar_data` volume.
+- [ ] 1.4 Integration gate: `docker compose up -d`, all four healthy; a chat turn through `http://localhost:8080/api/chat/completion` streams a `qwen3.8-max` reply; memory server `/health` 200 and a write lands in namespace `memory`. Record commands and output.

@@ -169,7 +169,9 @@
           "gsap-react",
           "tdd",
           "e2e-testing",
-          "knowme-brand-standard"
+          "knowme-brand-standard",
+          "hybrid-mobile-architecture",
+          "hybrid-runtime-verification"
         ],
         "owns": [
           "src/App.tsx",
@@ -441,7 +443,9 @@
           "prometheus-rust-best-practices",
           "rust-testing",
           "agui-event-contract",
-          "dependency-pin-discipline"
+          "dependency-pin-discipline",
+          "deploy-hybrid-agentic-stack",
+          "hybrid-runtime-verification"
         ],
         "owns": [
           "backend/**",
@@ -483,7 +487,8 @@
           "core-web-vitals",
           "web-quality-audit",
           "reference-ui-fidelity",
-          "tdd"
+          "tdd",
+          "hybrid-runtime-verification"
         ],
         "owns": [
           "e2e/**",
@@ -523,7 +528,8 @@
           "security-and-hardening",
           "best-practices",
           "agent-runtime-security",
-          "adversarial-review"
+          "adversarial-review",
+          "hybrid-mobile-architecture"
         ],
         "owns": [
           "docs/security/**",
@@ -564,7 +570,10 @@
           "ci-cd-and-automation",
           "observability",
           "dependency-pin-discipline",
-          "security-and-hardening"
+          "security-and-hardening",
+          "hybrid-mobile-architecture",
+          "deploy-hybrid-agentic-stack",
+          "hybrid-runtime-verification"
         ],
         "owns": [
           "Dockerfile",

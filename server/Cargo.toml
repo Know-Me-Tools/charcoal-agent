@@ -1,0 +1,54 @@
+# TJ-ARCH-MOB-001 compliant
+#
+# knowme-site-server: the public KnowMe site host. Serves the embedded Vite
+# bundle and is the only public path to the UAR site agent (AG-UI chat proxy).
+#
+# Pins are exact (`=x.y.z`) and mirrored in versions.toml [pins] under the
+# `server/` prefix; versions.toml is authoritative. All were the latest stable
+# release on crates.io on 2026-09-30 (free choices, not forced by a conflict,
+# so they may be raised together with a Cargo.lock refresh).
+
+[package]
+name = "knowme-site-server"
+version = "0.1.0"
+description = "KnowMe site host: embedded SPA and the UAR AG-UI proxy"
+authors = ["KnowMe AI, LLC"]
+license = "UNLICENSED"
+edition = "2024"
+# The hybrid-mobile-architecture tool matrix minimum.
+rust-version = "1.97.1"
+publish = false
+build = "build.rs"
+
+[lib]
+name = "knowme_site_server"
+path = "src/lib.rs"
+
+[[bin]]
+name = "knowme-site-server"
+path = "src/main.rs"
+
+[dependencies]
+# http1 only: Envoy Gateway talks HTTP/1.1 to the pod. `json` for error bodies.
+axum = { version = "=0.8.9", default-features = false, features = ["http1", "json", "tokio", "tracing", "query"] }
+tokio = { version = "=1.53.1", features = ["rt-multi-thread", "macros", "net", "signal", "time", "sync"] }
+# Gzip/brotli for static assets; its default predicate skips text/event-stream,
+# so the proxied SSE stream is never buffered by the compressor.
+tower-http = { version = "=0.7.1", features = ["compression-gzip", "compression-br", "set-header", "trace"] }
+# No TLS: the upstream is in-cluster plain HTTP. Env proxies (HTTP_PROXY) are
+# still read by reqwest regardless of features; upstream.rs calls no_proxy().
+reqwest = { version = "=0.13.5", default-features = false, features = ["stream"] }
+serde_json = "=1.0.151"
+# Keyed GCRA limiter (per client IP) for the public API routes.
+governor = "=0.10.4"
+thiserror = "=2.0.21"
+tracing = "=0.1.44"
+tracing-subscriber = { version = "=0.3.23", default-features = false, features = ["std", "fmt", "env-filter", "json"] }
+
+[dev-dependencies]
+futures-util = { version = "=0.3.34", default-features = false, features = ["std"] }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "symbols"

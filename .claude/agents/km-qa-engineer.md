@@ -10,7 +10,8 @@
     "core-web-vitals",
     "web-quality-audit",
     "reference-ui-fidelity",
-    "tdd"
+    "tdd",
+    "hybrid-runtime-verification"
   ],
   "model": "sonnet"
 }

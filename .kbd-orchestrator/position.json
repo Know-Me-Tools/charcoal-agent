@@ -2,24 +2,26 @@
   "schemaVersion": "1",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 551,
-  "derivedRevision": 551,
+  "sourceRevision": 777,
+  "derivedRevision": 777,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 551
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 777
   },
   "conflictCount": 0,
-  "updatedAt": "2026-09-27T22:43:39.678212Z",
+  "updatedAt": "2026-09-30T12:49:05.520814Z",
   "cursor": [
-    "complete-rebranding",
-    "execute"
+    "uar-integration",
+    "execute",
+    "site-chat-proxy",
+    "1.5"
   ],
   "root": {
     "type": "phase",
     "id": "440c5818-223c-4091-8b7f-bc8083505a3c",
     "status": "ready",
     "progress": {
-      "done": 13,
-      "total": 13
+      "done": 15,
+      "total": 25
     },
     "children": [
       {
@@ -147,6 +149,127 @@
             "progress": {
               "done": 4,
               "total": 4
+            }
+          }
+        ],
+        "annotations": []
+      },
+      {
+        "type": "phase",
+        "id": "uar-integration",
+        "canonicalId": "uar-integration",
+        "status": "PENDING",
+        "progress": {
+          "done": 2,
+          "total": 12
+        },
+        "children": [
+          {
+            "type": "change",
+            "id": "uar-ghcr-multiarch-publish",
+            "status": "PENDING",
+            "progress": {
+              "done": 2,
+              "total": 4
+            }
+          },
+          {
+            "type": "change",
+            "id": "uar-kb-retrieval-embedding",
+            "status": "PENDING",
+            "progress": {
+              "done": 3,
+              "total": 4
+            }
+          },
+          {
+            "type": "change",
+            "id": "memory-server-ghcr-publish",
+            "status": "PENDING",
+            "progress": {
+              "done": 2,
+              "total": 4
+            }
+          },
+          {
+            "type": "change",
+            "id": "cluster-gateway-and-cert",
+            "status": "COMPLETE",
+            "progress": {
+              "done": 4,
+              "total": 4
+            }
+          },
+          {
+            "type": "change",
+            "id": "site-knowledge-corpus",
+            "status": "COMPLETE",
+            "progress": {
+              "done": 4,
+              "total": 4
+            }
+          },
+          {
+            "type": "change",
+            "id": "local-compose-stack",
+            "status": "PENDING",
+            "progress": {
+              "done": 3,
+              "total": 4
+            }
+          },
+          {
+            "type": "change",
+            "id": "site-agent-seed",
+            "status": "PENDING",
+            "progress": {
+              "done": 2,
+              "total": 3
+            }
+          },
+          {
+            "type": "change",
+            "id": "site-chat-proxy",
+            "status": "IN_PROGRESS",
+            "progress": {
+              "done": 3,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "about-endpoint-truth",
+            "status": "PENDING",
+            "progress": {
+              "done": 1,
+              "total": 2
+            }
+          },
+          {
+            "type": "change",
+            "id": "k8s-stack-manifests",
+            "status": "PENDING",
+            "progress": {
+              "done": 3,
+              "total": 4
+            }
+          },
+          {
+            "type": "change",
+            "id": "github-deploy-workflows",
+            "status": "PENDING",
+            "progress": {
+              "done": 3,
+              "total": 4
+            }
+          },
+          {
+            "type": "change",
+            "id": "apex-dns-cutover",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 3
             }
           }
         ],

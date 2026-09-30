@@ -17,7 +17,9 @@
     "prometheus-rust-best-practices",
     "rust-testing",
     "agui-event-contract",
-    "dependency-pin-discipline"
+    "dependency-pin-discipline",
+    "deploy-hybrid-agentic-stack",
+    "hybrid-runtime-verification"
   ],
   "model": "opus"
 }

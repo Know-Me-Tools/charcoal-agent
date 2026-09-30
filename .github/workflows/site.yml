@@ -1,0 +1,222 @@
+name: Deploy site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: knowme-site-deploy
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/know-me-tools/knowme-web
+  NAMESPACE: knowme
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  image:
+    name: Build and push image
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      digest: ${{ steps.push.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # Multi-stage: Node web bundle -> Rust server (bundle embedded) ->
+      # distroless runtime. The gha cache keeps the npm ci and crate-graph
+      # layers, so only changed stages rebuild.
+      - id: push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64
+          build-args: |
+            VITE_SITE_AGENT_ID=knowme-site
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}:main
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to knowme
+    needs: image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v5
+        with:
+          version: "1.36.0"
+
+      - name: Install kustomize
+        run: |
+          set -euo pipefail
+          curl -sSLo kustomize.tar.gz \
+            "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v5.8.1/kustomize_v5.8.1_linux_amd64.tar.gz"
+          tar xzf kustomize.tar.gz
+          chmod +x kustomize
+          sudo mv kustomize /usr/local/bin/kustomize
+          rm kustomize.tar.gz
+          kustomize version
+
+      - name: Write kubeconfig
+        run: |
+          set -euo pipefail
+          umask 077
+          printf '%s' "${{ secrets.KNOWME_KUBECONFIG }}" > "$RUNNER_TEMP/knowme.kubeconfig"
+          echo "KUBECONFIG=$RUNNER_TEMP/knowme.kubeconfig" >> "$GITHUB_ENV"
+
+      - name: Mask secrets in logs
+        run: |
+          echo "::add-mask::${{ secrets.QWEN_TOKEN_PLAN_API_KEY }}"
+          echo "::add-mask::${{ secrets.DASHSCOPE_API_KEY }}"
+          echo "::add-mask::${{ secrets.UAR_JWT_SECRET }}"
+          echo "::add-mask::${{ secrets.UAR_SETTINGS_ADMIN_KEY }}"
+          echo "::add-mask::${{ secrets.SURREALDB_ROOT_PASSWORD }}"
+
+      - name: Apply Secrets (idempotent)
+        env:
+          QWEN_TOKEN_PLAN_API_KEY: ${{ secrets.QWEN_TOKEN_PLAN_API_KEY }}
+          DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
+          UAR_JWT_SECRET: ${{ secrets.UAR_JWT_SECRET }}
+          UAR_SETTINGS_ADMIN_KEY: ${{ secrets.UAR_SETTINGS_ADMIN_KEY }}
+          SURREALDB_ROOT_PASSWORD: ${{ secrets.SURREALDB_ROOT_PASSWORD }}
+        run: |
+          set -euo pipefail
+          kubectl create secret generic uar-secrets \
+            --namespace "$NAMESPACE" \
+            --from-literal=UAR_LLM__API_KEY="$QWEN_TOKEN_PLAN_API_KEY" \
+            --from-literal=UAR_LLM__EMBEDDING__API_KEY="$DASHSCOPE_API_KEY" \
+            --from-literal=UAR_SECURITY__JWT_SECRET="$UAR_JWT_SECRET" \
+            --from-literal=UAR_SECURITY__SETTINGS_ADMIN_KEY="$UAR_SETTINGS_ADMIN_KEY" \
+            --from-literal=UAR_PERSISTENCE__SURREAL_PASS="$SURREALDB_ROOT_PASSWORD" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          kubectl create secret generic surrealdb-auth \
+            --namespace "$NAMESPACE" \
+            --from-literal=SURREALDB_ROOT_PASSWORD="$SURREALDB_ROOT_PASSWORD" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Set image digest and apply the stack
+        run: |
+          set -euo pipefail
+          cd k8s
+          kustomize edit set image "${IMAGE}=${IMAGE}@${{ needs.image.outputs.digest }}"
+          cd ..
+          kubectl kustomize k8s | kubectl apply -f -
+
+      - name: Wait for rollout
+        run: |
+          set -euo pipefail
+          kubectl -n "$NAMESPACE" rollout status statefulset/surrealdb --timeout=10m
+          kubectl -n "$NAMESPACE" rollout status deployment/uar --timeout=10m
+          kubectl -n "$NAMESPACE" rollout status deployment/surreal-memory-server --timeout=10m
+          kubectl -n "$NAMESPACE" rollout status deployment/knowme-web --timeout=10m
+
+      - name: Seed the site agent (idempotent, every deploy)
+        run: |
+          set -euo pipefail
+          chmod +x scripts/seed-site-agent.sh
+
+          kubectl -n "$NAMESPACE" port-forward svc/uar 6565:6565 >/tmp/port-forward.log 2>&1 &
+          PF_PID=$!
+          trap 'kill "$PF_PID" 2>/dev/null || true' EXIT
+
+          for _ in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:6565/readyz >/dev/null 2>&1 && break
+            sleep 1
+          done
+
+          SEED_ARGS=()
+          if ! kubectl -n "$NAMESPACE" get secret site-proxy >/dev/null 2>&1; then
+            SEED_ARGS+=(--mint-key-to-k8s-secret "$NAMESPACE/site-proxy")
+          fi
+
+          UAR_URL=http://127.0.0.1:6565 \
+          UAR_JWT_SECRET="${{ secrets.UAR_JWT_SECRET }}" \
+            ./scripts/seed-site-agent.sh "${SEED_ARGS[@]}"
+
+          kill "$PF_PID" 2>/dev/null || true
+          trap - EXIT
+
+          if [[ "${#SEED_ARGS[@]}" -gt 0 ]]; then
+            echo "site-proxy Secret was just created; restarting knowme-web to pick it up"
+            kubectl -n "$NAMESPACE" rollout restart deployment/knowme-web
+            kubectl -n "$NAMESPACE" rollout status deployment/knowme-web --timeout=10m
+          fi
+
+  smoke:
+    name: Smoke test
+    needs: deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Site responds (pre-cutover DNS pin to the gateway)
+        run: |
+          set -euo pipefail
+          curl --resolve know-me.tools:443:23.239.29.33 -fsS -o /dev/null -w '%{http_code}\n' https://know-me.tools/ | grep -qx 200
+
+      - name: Runtime is ready
+        run: |
+          set -euo pipefail
+          curl -fsS -o /dev/null -w '%{http_code}\n' https://runtime.know-me.tools/readyz | grep -qx 200
+
+      - name: Runtime requires auth
+        run: |
+          set -euo pipefail
+          status="$(curl -sS -o /dev/null -w '%{http_code}' https://runtime.know-me.tools/api/agents)"
+          [[ "$status" == "401" ]] || { echo "expected 401, got $status"; exit 1; }
+
+      - name: Site chat turn streams a reply
+        run: |
+          set -euo pipefail
+          session_id="$(cat /proc/sys/kernel/random/uuid)"
+          curl --resolve know-me.tools:443:23.239.29.33 -fsS -N \
+            -X POST https://know-me.tools/api/chat/completion \
+            -H 'Content-Type: application/json' \
+            -H "X-UAR-Session-ID: ${session_id}" \
+            -d '{"message":"What is KnowMe?","stream":true,"stream_mode":"dual"}' \
+            -o /tmp/chat-smoke.log
+
+          if grep -q '"type":"RUN_ERROR"' /tmp/chat-smoke.log; then
+            echo "chat stream reported a RUN_ERROR event:"
+            grep '"type":"RUN_ERROR"' /tmp/chat-smoke.log
+            exit 1
+          fi
+          grep -q '"type":"TEXT_MESSAGE_CONTENT"' /tmp/chat-smoke.log || {
+            echo "chat stream never emitted TEXT_MESSAGE_CONTENT"
+            cat /tmp/chat-smoke.log
+            exit 1
+          }

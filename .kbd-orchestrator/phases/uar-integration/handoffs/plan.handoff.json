@@ -1,0 +1,11 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-09-30T10:00:39Z",
+  "outputs": [
+    "plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "12 OpenSpec changes across 4 repos (UAR, surreal-memory-server, know-me-cluster, here), all strict-valid and registered. External PRs 1-4 and corpus 5 start in parallel; critical path 1 → 6 local stack → 7 site agent seed → 8 site proxy → 10 k8s → 11 site deploy → 12 apex cutover. Start with uar-ghcr-multiarch-publish. Corrections: the existing cert is not a wildcard (new DNS-01 cert in change 4); KB retrieval is fastembed-only (change 2). Adversarial review skipped by the operator.",
+  "skipped": false,
+  "skipReason": null
+}

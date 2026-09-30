@@ -1,6 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { mockFetch, type FetchMock } from "@/test/utils/mock-fetch";
+import { useThreadRegistryStore } from "@/stores/thread-registry-store";
 
 // PGlite is not available in jsdom; the store falls back to memory only.
 // whenDbReady never resolving accurately models "no db, ever, in this
@@ -210,5 +211,44 @@ describe("useMessageStream — retry/regenerate reuses the existing user message
     expect(messages[1]?.status).toBe("complete");
 
     fetchMock.restore();
+  });
+});
+
+/**
+ * Public site build (VITE_SITE_AGENT_ID set): every chat request must be
+ * pinned to the site agent, overriding both an explicit `agent_id` in the
+ * payload and any agent registered against the thread — the agent picker is
+ * hidden in that build, but this is the real enforcement point on the
+ * client side (the nginx site proxy enforces it again server side).
+ */
+describe("useMessageStream — site build pins agent_id", () => {
+  const SITE_THREAD = "thread-site-pinned";
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("overrides an explicit payload agent_id and the thread's registered agent", async () => {
+    vi.stubEnv("VITE_SITE_AGENT_ID", "knowme-site");
+
+    useThreadRegistryStore.getState().registerThread(SITE_THREAD, "some-other-agent", "Some Other Agent");
+    useChatMessageStore.getState().clearThread(SITE_THREAD);
+    useChatMessageStore.getState().initThread(SITE_THREAD, []);
+
+    const fetchMock: FetchMock = mockFetch({
+      "POST /api/chat/completion": () => ({ status: 200, raw: successSse("Hi there") }),
+    });
+
+    const { result } = renderHook(() => useMessageStream());
+
+    await act(async () => {
+      await result.current.startStream(SITE_THREAD, { message: "hello", agent_id: "caller-requested-agent" });
+    });
+
+    const chatCall = fetchMock.calls.find((c) => c.path === "/api/chat/completion");
+    expect((chatCall?.body as { agent_id?: string })?.agent_id).toBe("knowme-site");
+
+    fetchMock.restore();
+    useThreadRegistryStore.getState().removeThread(SITE_THREAD);
   });
 });

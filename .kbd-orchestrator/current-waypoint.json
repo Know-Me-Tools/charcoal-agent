@@ -2,10 +2,10 @@
   "schemaVersion": "5",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 551,
-  "derivedRevision": 551,
+  "sourceRevision": 777,
+  "derivedRevision": 777,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 551
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 777
   },
   "conflictCount": 0,
   "projectId": "440c5818-223c-4091-8b7f-bc8083505a3c",
@@ -14,31 +14,26 @@
     "uar-integration"
   ],
   "phaseIds": [
-    "complete-rebranding"
+    "uar-integration"
   ],
-  "activePhaseId": "complete-rebranding",
-  "activePhase": "complete-rebranding",
+  "activePhaseId": "uar-integration",
+  "activePhase": "uar-integration",
   "phase": "uar-integration",
   "parentPhase": null,
   "childPointer": null,
-  "change": null,
-  "currentTask": "run kbd-assess for uar-integration",
-  "status": "assessment_ready",
+  "change": "site-chat-proxy",
+  "currentTask": "1.5",
+  "status": "ready",
   "lifecycle": "ready",
   "stageId": "execute",
   "stageStatus": "IN_PROGRESS",
   "completionMetric": "implementation",
-  "implementationCompleted": 0,
-  "implementationTotal": 0,
-  "planRevision": 1,
-  "revision": 552,
-  "exactNextCommand": "/kbd-assess uar-integration",
-  "nextChange": null,
-  "nextTask": null,
-  "updatedAt": "2026-09-30T08:49:05Z",
-  "previousPhase": "complete-rebranding",
-  "sourceTool": "kbd-next-phase",
-  "nextPendingChange": null,
-  "certificationStatus": "NOT_TRACKED",
-  "publicationStatus": "NOT_TRACKED"
+  "implementationCompleted": 15,
+  "implementationTotal": 25,
+  "planRevision": 2,
+  "revision": 777,
+  "exactNextCommand": null,
+  "nextChange": "site-chat-proxy",
+  "nextTask": "1.5",
+  "updatedAt": "2026-09-30T12:49:05.520814Z"
 }

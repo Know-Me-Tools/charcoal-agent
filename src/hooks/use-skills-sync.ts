@@ -22,6 +22,7 @@ import { api } from "@/lib/api-client";
 import { ENTITY } from "@/lib/entity-graph/entities";
 import { invalidateEntityType } from "@/lib/entity-graph/invalidate";
 import { KNOWME_SKILLS } from "@/lib/skills/knowme-skills";
+import { isSiteBuild } from "@/hooks/use-site-config";
 import type { UarSkill } from "@/types";
 
 export interface SkillSyncResult {
@@ -156,6 +157,11 @@ export function useSkillsSync(): SkillSyncResult {
 /**
  * Runs the skills sync once on mount (after the UAR connection is available).
  * Designed to be called from a top-level component so it runs app-wide.
+ *
+ * Skipped entirely on the public site build (`VITE_SITE_AGENT_ID` set): the
+ * site's nginx proxy does not allow the `/api/skills` admin routes this push
+ * uses, and the site agent's skills are provisioned out of band (see
+ * `site-agent-seed`) rather than synced from the client on every load.
  */
 export function useSkillsSyncOnMount(): SkillSyncResult {
   const result = useSkillsSync();
@@ -165,6 +171,7 @@ export function useSkillsSyncOnMount(): SkillSyncResult {
   useEffect(() => {
     if (ranRef.current) return;
     ranRef.current = true;
+    if (isSiteBuild()) return;
     void triggerSync();
   }, [triggerSync]); // triggerSync is useCallback-stable (only changes when the graph changes)
 

@@ -9,6 +9,7 @@ import { useThreadRegistryStore } from "@/stores/thread-registry-store";
 import { useChatMessageStore } from "@/stores/chat-message-store";
 import { useAgents } from "@/hooks/use-agents";
 import { useUi } from "@/hooks/use-ui";
+import { isSiteBuild } from "@/hooks/use-site-config";
 import { isJwtConfigured } from "@/lib/api-client";
 import { useDeleteSession } from "@/hooks/use-sessions";
 import { cn } from "@/lib/utils";
@@ -63,6 +64,10 @@ function AgentSelector({ selectedId, onChange }: AgentSelectorProps) {
 // ── Main sidebar ─────────────────────────────────────────────────────────────
 
 export function LeftSidebar({ className }: LeftSidebarProps) {
+  // Public site build: every thread is pinned server- and client-side to the
+  // site agent (see use-message-stream.ts), so the picker that would let
+  // someone choose a different agent is hidden entirely.
+  const siteBuild = isSiteBuild();
   const [search, setSearch] = useState("");
   const [selectedAgentId, setSelectedAgentId] = useState("");
   const [selectedAgentName, setSelectedAgentName] = useState("Default agent");
@@ -154,20 +159,22 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
       <div className="flex items-center justify-between p-3">
         <SectionLabel>Threads</SectionLabel>
         <div className="flex items-center gap-1.5">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowAgentPicker((v) => !v)}
-            aria-label="Choose agent for new thread"
-            aria-pressed={showAgentPicker}
-            title="Choose agent for new thread"
-            className={cn(
-              "size-7 p-0 text-muted-foreground hover:bg-hover hover:text-foreground",
-              showAgentPicker && "bg-ember-soft text-ember-text",
-            )}
-          >
-            <Bot size={14} aria-hidden="true" />
-          </Button>
+          {!siteBuild && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAgentPicker((v) => !v)}
+              aria-label="Choose agent for new thread"
+              aria-pressed={showAgentPicker}
+              title="Choose agent for new thread"
+              className={cn(
+                "size-7 p-0 text-muted-foreground hover:bg-hover hover:text-foreground",
+                showAgentPicker && "bg-ember-soft text-ember-text",
+              )}
+            >
+              <Bot size={14} aria-hidden="true" />
+            </Button>
+          )}
           <Button size="sm" onClick={handleNewThread} className="h-7 gap-1.5 px-2.5 font-ui text-xs font-semibold">
             <Plus size={14} aria-hidden="true" />
             New thread
@@ -175,8 +182,8 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
         </div>
       </div>
 
-      {/* Agent picker (shown when bot icon toggled) */}
-      {showAgentPicker && (
+      {/* Agent picker (shown when bot icon toggled) — never on the site build */}
+      {!siteBuild && showAgentPicker && (
         <div className="px-3 pb-2">
           <AgentSelector
             selectedId={selectedAgentId}
@@ -265,10 +272,10 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
         )}
       </div>
 
-      {/* Footer: UAR status + account link (JWT only) */}
+      {/* Footer: UAR status + account link (JWT only, never on the site build — /settings is hidden there) */}
       <div className="px-1.5 pt-2 pb-1.5">
         <UarStatus />
-        {isJwtConfigured() && (
+        {!siteBuild && isJwtConfigured() && (
           <button
             type="button"
             onClick={() => { navigate("/settings/account"); setMobileSidebarOpen(false); }}

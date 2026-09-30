@@ -1,0 +1,11 @@
+# Applied once by the operator (mint-deployer-kubeconfig.sh, admin context)
+# before knowme-deployer exists to create anything itself. Identical to
+# ../base/namespace.yaml; kept as a separate copy here (not a cross-directory
+# reference) because `kubectl kustomize` restricts resources to files inside
+# the kustomization root, and bootstrap is applied before ../base ever is.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: knowme
+  labels:
+    app.kubernetes.io/part-of: knowme-site

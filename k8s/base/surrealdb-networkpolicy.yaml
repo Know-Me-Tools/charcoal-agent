@@ -1,0 +1,28 @@
+# Only uar and surreal-memory-server may reach surrealdb:8000. Selecting the
+# surrealdb pods with any ingress rule makes NetworkPolicy deny everything
+# else to them by default — no separate default-deny policy is needed.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-uar-and-memory-server-to-surrealdb
+  namespace: knowme
+  labels:
+    app.kubernetes.io/part-of: knowme-site
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: surrealdb
+      app.kubernetes.io/component: database
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: uar
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: surreal-memory-server
+      ports:
+        - protocol: TCP
+          port: 8000
