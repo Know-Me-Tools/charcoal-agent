@@ -11,29 +11,34 @@
   "projectId": "440c5818-223c-4091-8b7f-bc8083505a3c",
   "runId": "complete-rebranding-20260923T223312Z",
   "path": [
-    "complete-rebranding"
+    "uar-integration"
   ],
   "phaseIds": [
     "complete-rebranding"
   ],
   "activePhaseId": "complete-rebranding",
   "activePhase": "complete-rebranding",
-  "phase": "complete-rebranding",
+  "phase": "uar-integration",
   "parentPhase": null,
   "childPointer": null,
   "change": null,
-  "currentTask": null,
-  "status": "ready",
+  "currentTask": "run kbd-assess for uar-integration",
+  "status": "assessment_ready",
   "lifecycle": "ready",
   "stageId": "execute",
   "stageStatus": "IN_PROGRESS",
   "completionMetric": "implementation",
-  "implementationCompleted": 13,
-  "implementationTotal": 13,
-  "planRevision": 2,
-  "revision": 551,
-  "exactNextCommand": "/opsx:continue tailwind-v4-foundation",
+  "implementationCompleted": 0,
+  "implementationTotal": 0,
+  "planRevision": 1,
+  "revision": 552,
+  "exactNextCommand": "/kbd-assess uar-integration",
   "nextChange": null,
   "nextTask": null,
-  "updatedAt": "2026-09-27T22:43:39.678212Z"
+  "updatedAt": "2026-09-30T08:49:05Z",
+  "previousPhase": "complete-rebranding",
+  "sourceTool": "kbd-next-phase",
+  "nextPendingChange": null,
+  "certificationStatus": "NOT_TRACKED",
+  "publicationStatus": "NOT_TRACKED"
 }
