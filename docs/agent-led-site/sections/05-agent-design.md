@@ -208,6 +208,8 @@ asking — there's no separate About or Contact page yet." In Phase 0 the agent
 names no site routes. `/about` is a Phase 1 deliverable and a dependency of
 this change (`site-agent-prompt-fixes`); once it ships and passes FR-23, the
 prompt may name it. FR-6 and FR-9 route checks start in Phase 1 with FR-23.
+The fix is not made yet: `uar/agents/knowme-site.json` still carries both
+occurrences, and the agent seeded on 2026-10-01 runs with them (CURRENT).
 
 **(b) Tool call in local testing despite an empty tool list.** At the time,
 the empty legacy `tools.allow` meant Auto selection. Separately, and still

@@ -14,7 +14,9 @@ Protocol facts cite their source. Code facts cite a file path, and a line where 
 flowchart LR
   B["Browser<br/>React 19 SPA<br/>PGlite (idb://)"] -->|HTTPS| G["Envoy Gateway<br/>argocd-gateway<br/>HTTPRoute know-me.tools<br/>timeout 300s"]
   G -->|HTTP :8080| W["knowme-web<br/>Axum site server<br/>embedded SPA + allowlisted proxy<br/>2 replicas"]
-  W -->|"HTTP :6565<br/>X-API-Key (proxy only)"| U["UAR<br/>agent knowme-site<br/>AG-UI SSE"]
+  W -->|"HTTPS<br/>gate API key"| F["flint-gate<br/>gate.know-me.tools<br/>route uar-site<br/>budget + rate limit"]
+  F -->|"HTTP :6565<br/>ES256 JWT, aud uar"| U["UAR<br/>agent knowme-site<br/>AG-UI SSE"]
+  U -.->|"JWKS"| F
   U --> S[("SurrealDB v3.3.0<br/>ns uar")]
   M["surreal-memory-server<br/>:3001, ns memory"] --> S
   U -->|"OpenAI-compatible"| Q["Qwen Token Plan<br/>qwen3.8-max"]
@@ -27,6 +29,7 @@ flowchart LR
 - The HTTPS listeners on the gateway are a separate cluster change (plan change 4). That file states that the routes do not attach until that change merges.
 - `docker-compose.yaml` runs the same four services locally with no proxy in front (`TRUSTED_PROXY_HOPS=0`).
 - The memory server shares SurrealDB but uses its own namespace and local bge-small embeddings. The site agent has no configured path to it.
+- Today the site server calls UAR directly and injects an `X-API-Key` that `scripts/seed-site-agent.sh` mints through `POST /api/uar/auth/keys` (step 4). The diagram shows the PLANNED path through flint-gate, which replaces that key (§4.7).
 
 **The site agent's run policy (CURRENT in the working tree, verified locally by seeding).** `uar/agents/knowme-site.json` carries `extensions["uar.run_policy"]` with tools `selected` and an empty id list, skills `none`, MCP servers `none` and `tool_approval: "deny"`. It was seeded to the local stack on 2026-10-01, and the agent record returns it. The legacy lists in the same file (`policy.tools.allow: []`, `policy.skills.prefer: []`) map to `SelectionMode::Auto` on their own (UAR `src/uar/domain/policy.rs:227-240`); the extension overrides them (§4.7). The 8,732-token measurement in §4.8 predates the extension, so that run used Auto selection. Even with this policy, the model is still offered one tool, `activate_skill`, and `deny` is the only lock on it (§4.7).
 
@@ -35,6 +38,7 @@ flowchart LR
 - It becomes reachable on the first deploy. `site.yml` applies `kubectl kustomize k8s | kubectl apply -f -` (line 137), which includes `knowme-runtime`. Once the route attaches, the host exposes all of UAR, including `/metrics` (unauthenticated) and the admin surfaces, behind only UAR's own JWT/API-key check.
 - A later deploy cannot take it away. The apply has no `--prune`, and the deploy Role grants `httproutes` only `get, list, watch, create, update, patch` with no `delete` (`k8s/bootstrap/role.yaml:22-24`). Removing the manifest leaves the live route in place.
 - **PLANNED:** remove `knowme-runtime` and `knowme-runtime-http-redirect` from `httproutes.yaml` *before* the first deploy, and drop the smoke steps that call the host (`site.yml:194`, `:199`). If a deploy has already attached them, an operator deletes both routes with their own credentials and confirms the host returns 404. Whether the site needs a public runtime host at all is an operator decision; nothing in this design uses it.
+- **PLANNED:** UAR is reachable only through flint-gate. A NetworkPolicy on `uar:6565` admits only gate. **OPEN QUESTION:** whether the seed job also needs direct access, or seeds through gate.
 
 **The server's layers (CURRENT, `server/src/lib.rs`).** The layering is interface → application → domain ← infrastructure:
 - `interface/` holds the routes, the rate-limit middleware and the state.
@@ -51,7 +55,7 @@ The SPA is embedded at build time by `server/build.rs`, or served from `KNOWME_W
 1. `src/features/chat/use-message-stream.ts` POSTs `{message, stream: true, stream_mode: "dual"}` to the same-origin `/api/chat/completion`, with `X-UAR-Session-ID` set to the thread UUID.
 2. `knowme-web` rejects any body that is not `application/json` (`site_proxy.rs:39-42`: `text/plain` would allow cross-site spending without a preflight).
 3. `domain/chat_request.rs` rebuilds the body from an allowlist: `agent_id` is forced to `knowme-site`, `message` is limited to 4,000 characters, and `stream` and `stream_mode` are kept, with the mode restricted to one of `dual | agui | agui_spec`. Everything else is dropped, including `model`, `run_policy`, `memory_enabled`, `messages`, `attachments`, `session_id` and `prompt_caching_enabled`. Dropped fields take UAR's defaults; for `memory_enabled` that default is `true` (§4.5).
-4. `domain/forwarding.rs` forwards only `Content-Type`, `Accept` and `X-UAR-Session-ID`, plus the proxy's own `X-API-Key`. Only `Content-Type` and `Cache-Control` come back. UAR's `x-uar-run-id` response header (UAR `src/server.rs:6418-6421`) is therefore stripped.
+4. `domain/forwarding.rs` forwards only `Content-Type`, `Accept` and `X-UAR-Session-ID`, plus the proxy's own `X-API-Key` (PLANNED: replaced by the gate API key on the `uar-site` route, §4.7). Only `Content-Type` and `Cache-Control` come back. UAR's `x-uar-run-id` response header (UAR `src/server.rs:6418-6421`) is therefore stripped.
 5. `infrastructure/upstream.rs` streams the upstream body without buffering it. A 300 s idle read timeout applies, redirects are never followed and ambient proxies are disabled. A client disconnect drops the upstream connection, and UAR then cancels the run after a 250 ms grace if no other subscriber remains (UAR `src/uar/runtime/manager.rs:701-727`). The upstream status and body are passed through unchanged (`upstream.rs:58-63`); see §4.7 for what that means for error handling.
 6. The client parses UAR's dotted event names (`agui.message.delta`, `agui.citation.added`, `agui.artifact`, `agui.done`, …), which are defined in UAR `src/uar/api/sse.rs::to_agui_event`. Each event becomes a typed `ContentBlock` in `stores/chat-message-store.ts`, is written through to PGlite, and renders through a block component in `features/chat/components/` (`.claude/rules/chat.md`).
 
@@ -159,6 +163,12 @@ The consequences:
 - Clearing site data resets the visitor's copy, but not the server-side records (see below).
 - No cross-device continuity exists without sign-in, and sign-in is out of scope.
 
+**Per-visitor identity (CURRENT gap, PLANNED spike).**
+- No component of the stack issues guest identities. Gate's `anonymous` provider uses one fixed subject, so it does not separate visitors either.
+- **PLANNED, Phase 0 and 1:** keep the shared `knowme-site` principal and separate visitors by HMAC session binding (§4.7).
+- **PLANNED, Phase 2 spike (`visitor-identity-via-gate`):** the site server carries a signed per-visitor UUID, and gate maps it into the minted JWT's `sub`. If that works, flint-forge (Quarry) row-level security on `auth.uid()` can hold the per-visitor board, flint-realtime-fabric and the prometheus-entity-management Flint adapter provide live sync, and analytics can be an insert-only RLS table in flint-forge.
+- **OPEN QUESTION:** whether gate can map a site-supplied visitor id into `sub`, and how the KB stays readable when `sub` is no longer the KB owner. A run whose subject does not own the KB sees no knowledge bases (§4.7).
+
 **UAR has no deletion or retention primitive for conversation sessions (CURRENT).**
 - The routes the site proxies for this are dead. UAR routes `/api/sessions` and `/api/sessions/{*path}` to `legacy_sessions_route_disabled`, which returns 404 with code `legacy_route_disabled` (UAR `src/server.rs:1604-1605`, `:3337-3349`). The proxy's `DELETE /api/sessions/{id}` and `GET /api/sessions/{id}/messages` (`server/src/application/site_proxy.rs:56-83`) therefore always 404. Two client callers remain: `src/hooks/use-sessions.ts:16` calls the dead DELETE, and `src/features/chat/use-chat-messages.ts` still calls `/api/sessions/{id}/messages` for persisted threads (it skips only ephemeral ones, lines 61-66).
 - The persistence trait has `save_session` and `load_session` and no delete (UAR `src/uar/persistence/mod.rs:196-197`). The only `sessions` delete in the Surreal provider is the legacy-key migration inside `load_session` (`surreal.rs:1574`). `delete_session` exists only for compiler sessions (`src/uar/compiler/session/persistence.rs:18`).
@@ -198,6 +208,23 @@ The consequences:
 - security headers, including the COOP/COEP that PGlite requires
 
 UAR itself requires a JWT or API key on everything except its probes.
+
+**UAR API keys do not survive a restart (CURRENT, observed on the local stack 2026-10-01).**
+- UAR stores API keys only in memory. `InMemoryApiKeyStorage` is the only storage implementation (UAR `src/server.rs:1334-1335`), so every UAR restart invalidates every key.
+- Observed: after a UAR restart, the site's key no longer authenticated. With JWT not required locally, requests silently ran as `anonymous`, whose knowledge-base universe is empty ("Knowledge bases · selected · 0 available"), and the agent told visitors the KB was unavailable.
+- In the cluster, where JWT is required, every visitor would get 401 after the first UAR restart, permanently: the workflow mints a key only when Secret `site-proxy` is absent (`site.yml`, `--mint-key-to-k8s-secret`).
+
+**UAR authentication through flint-gate (PLANNED, Phase 0; operator decision 2026-10-01).** The site server calls UAR only through flint-gate (`gate.know-me.tools`; Ory Kratos and flint-gate are the operator's identity stack), on a `uar-site` route.
+- The site server authenticates to gate with a database-backed gate API key, which survives restarts. It replaces the `X-API-Key` in Secret `site-proxy`.
+- Gate mints an ES256 JWT (`sub` = the site identity, `aud` = `uar`, short TTL) and proxies the request to UAR. UAR verifies it through gate's JWKS (`jwks_url`, issuer `https://gate.know-me.tools`, audience `uar`).
+- The minted `sub` must be the principal that owns the agent and the KB (`knowme-site` today). Any other subject sees an empty knowledge-base universe, as `anonymous` did.
+- Gate's Redis-backed per-credential rate limiter and its `MaxTokenBudget` hook (a per-identity token budget) are the site's spend ceiling (§4.8).
+- UAR is reachable only through gate: `runtime.know-me.tools` is removed and a NetworkPolicy admits only gate (§4.1).
+- The seed script stops minting a site key (`--mint-key-to-file`, `--mint-key-to-k8s-secret`), and nothing in the design uses `POST /api/uar/auth/keys` for the site.
+- **Blockers, all Phase 0:**
+  1. UAR's JWKS verifier accepts only RS256. A UAR PR adding ES256 is in progress (`feat/jwks-es256`; change `uar-jwks-es256`).
+  2. The deployed gate JWKS (checked live 2026-10-01) publishes its ES256 key without `crv`, `x` or `y`, only a non-standard `pem` member. The fix exists on flint-gate branch `codex/know-me-ec-jwks` and must be deployed (`gate-ec-jwks-deploy`).
+  3. The gate route, the site's gate API key and the budget are not configured in the cluster; a draft is in progress (`gate-uar-site-route`).
 
 **What the proxy does not guarantee today (CURRENT gaps).**
 - **Upstream errors pass through.** When UAR answers, its status and body reach the browser unchanged (`infrastructure/upstream.rs:58-63`); only transport failures become `AppError`. UAR's own error JSON, such as the `legacy_route_disabled` message, is therefore visible to visitors. Upstream 5xx responses are not logged as errors; they appear only in `TraceLayer`'s INFO response line. The WARN log in `error.rs:47-49` fires only for proxy-raised 5xx.
@@ -253,11 +280,11 @@ UAR itself requires a JWT or API key on everything except its probes.
   - The model-facing tool names in `turn_manifest.selected_tools` equal the allowlist plus `activate_skill`, and `activate_skill` is recorded in §6.2 T2 as reviewed and blocked by `deny`.
   - A forced-call fixture makes the model call `activate_skill`, the one tool it can call, and the stream carries `agui.tool_call.denied`.
   
-  Where the test reads them: the public path drops both artifacts, and once the NetworkPolicy is in place nothing outside the cluster reaches `GET /api/uar/runs/{id}` (`src/uar/api/routes.rs:141`). The test therefore reads the streamed artifacts through a proxy test harness that sees the upstream stream before filtering, or runs from the seed job, which the NetworkPolicy admits. When the run negotiated surfaces, the emitted `effective_run_policy` artifact is an A2UI rendering rather than JSON (`manager.rs:3527-3531`), so sandbox runs read the run record from the seed job.
-- After the policy is deployed, the per-turn input tokens are re-measured (§4.8), because the 8,732 figure was taken under `Auto`.
+  Where the test reads them: the public path drops both artifacts, and once the NetworkPolicy is in place nothing outside the cluster reaches `GET /api/uar/runs/{id}` (`src/uar/api/routes.rs:141`). The test therefore reads the streamed artifacts through a proxy test harness that sees the upstream stream before filtering, or runs from the seed job if the NetworkPolicy admits it (OPEN QUESTION, §4.1). When the run negotiated surfaces, the emitted `effective_run_policy` artifact is an A2UI rendering rather than JSON (`manager.rs:3527-3531`), so sandbox runs read the run record from the seed job.
+- The per-turn input tokens were re-measured locally under this policy on 2026-10-01 (§4.8), because the 8,732 figure was taken under `Auto`. Phase 0 measures the deployed agent again.
 
 **One principal for every visitor (CURRENT).**
-- Every proxied call authenticates as one service identity (`sub = knowme-site`), because UAR has no anonymous access and knowledge-base retrieval filters by owner (plan, "UAR facts").
+- Every proxied call authenticates as one service identity (`sub = knowme-site`), because UAR has no anonymous access when JWT is required, and knowledge-base retrieval filters by owner (plan, "UAR facts"). Through gate, the minted `sub` stays that one identity (§4.5 covers the Phase 2 per-visitor spike).
 - Visitors are therefore separated only by session UUID. A session UUID works as a bearer capability. The live read vector is not the session-messages route, which is dead (§4.5); it is `POST /api/chat/completion` with another visitor's `X-UAR-Session-ID`. That request continues the other conversation, with its history in context, so the agent can be asked what was said. Resume has the same weakness (§4.2). UUIDs are unguessable, but they are not authorization.
 - UAR budgets and quotas apply to the whole site, not to a visitor.
 
@@ -280,21 +307,29 @@ UAR itself requires a JWT or API key on everything except its probes.
 - Chat: 5 per minute, burst 3, per pod. Other API routes: 60 per minute, burst 20.
 - The limiter is in memory per replica. With 2 replicas a client gets about 10 per minute in total (`k8s/base/knowme-web-deployment.yaml:13`).
 - An attacker with many IPs is limited only by UAR and provider quotas. The plan names this risk ("The public chat spends your Qwen quota").
+- **PLANNED:** the per-IP limiter stays as the first layer. Behind it, gate's Redis-backed per-credential rate limiter on the `uar-site` route limits the site as a whole, because every visitor shares the site's one gate credential (§4.7).
 
-**Token cost (one measurement, not a distribution).**
-- One local-stack run on 2026-09-30, for the question "In one sentence, what is KnowMe?", reported `"input_tokens":8732` in its `run_finished` usage event.
-- At that time the knowledge base held **zero** embedded chunks, because every document had failed to embed. So the 8.7k is not retrieved KB content. It is the system prompt, the run context and, probably, the tool and skill descriptors that `Auto` selection put in front of the model; the run predates the run-policy extension (§4.1). That attribution is probable and unverified until re-measured.
-- Once the corpus embeds, retrieval adds up to three chunks per turn: UAR retrieves with limit 3 and minimum score 0.7 (UAR `src/uar/runtime/manager.rs:3804`).
-- **PLANNED:** re-measure after the run policy is deployed (§4.7) and after the corpus embeds, over the golden set rather than one question. Until then 8.7k is a single data point, and §1.7's per-session cost is illustrative.
-- At the per-IP cap and 8.7k input, one client can drive roughly 87k input tokens per minute.
+**Token cost (local measurements, not a distribution).**
+- One local-stack run on 2026-09-30, for the question "In one sentence, what is KnowMe?", reported `"input_tokens":8732` in its `run_finished` usage event. The knowledge base held **zero** embedded chunks at the time, because every document had failed to embed, and the run used `Auto` selection; it predates the run-policy extension (§4.1).
+- **Re-measured 2026-10-01** as `knowme-site` under the launch run policy, with the knowledge base populated: three questions used 1,425 to 1,459 input tokens per turn, retrieved chunks included, with zero tool events. `Auto` selection therefore accounted for roughly 83% of the 8,732.
+- Retrieval adds up to three chunks per turn: UAR retrieves with limit 3 and minimum score 0.7 (UAR `src/uar/runtime/manager.rs:3804`).
+- **PLANNED:** measure the deployed agent over the golden set rather than three questions. Until then §1.7's per-session cost is illustrative.
+- At the per-IP cap and about 1.45k input per turn, one client can drive roughly 15k input tokens per minute.
 
-**Spend ceiling (PLANNED).** The ceiling has to count what the provider bills, across replicas, and stop without a redeploy:
-- **Charge at admission, reconcile at the end.** The proxy charges an estimate before forwarding a turn, then reconciles against the `usage` in the terminal `agui.done` (UAR `sse.rs:678-692`). Counting only at `agui.done` misses cancelled runs: a client disconnect cancels the run after 250 ms (`manager.rs:701-727`), and `agui.cancelled` carries no usage (`sse.rs:627-633`), but the input has already been billed.
-- **Cap output in UAR settings.** The agent policy has no `max_tokens` key; `AgentPolicy` holds only provider, tools and skills (`src/uar/domain/artifact.rs:213-217`). The output cap is the provider or model `max_output_tokens` in UAR settings (`src/uar/settings/manager.rs:1934`, `src/llm/registry.rs:104`). The admission estimate uses that value.
-- **Count title requests.** `use-thread-naming.ts` makes a second model call per thread. It goes through the same chat route and must be charged the same way.
-- **One shared counter, not one per pod.** A per-pod counter lets the site spend up to twice the ceiling with 2 replicas. UAR already has an agent-scope cost budget: each run's cost is checked against `Run`, `Session` and `Agent` scopes (`manager.rs:6483-6487`) and surfaced through `agui.budget.alert` (`sse.rs:805-820`). Using it on `knowme-site` is the candidate for decision D-4; the alternative is a small shared store. **OPEN QUESTION:** whether the agent-scope budget can refuse a run or only alert. Until that is shown, the proxy's own check is what stops spend.
+**Retrieval quality (CURRENT defect, PLANNED fix).**
+- Retrieval works with DashScope `text-embedding-v4`. A KB search returned the right document at score 0.917, and `knowme-site` gave grounded, cited answers (local stack, 2026-10-01).
+- Chunking is poor. The KB's `Recursive { size: 512 }` chunker (kreuzberg file processor) splits at periods inside version numbers. It produces 32- to 50-character fragments, such as "IPFS Sync for Obsidian is at v0." and "needs Obsidian 1.", and these fragments score highest.
+- Observed effects: the agent said the corpus does not state The Boss's platforms, although `the-boss.md` does, and it answered "v0" and "Obsidian 1.x".
+- **PLANNED (Phase 0, `kb-chunking-quality`):** fix chunking before the `site-agent-seed` gate (uar-integration change 7) and the text golden set are run; both wait on it. **OPEN QUESTION:** a UAR chunker change (a minimum chunk size, or a sentence splitter that respects version numbers) or a corpus-side workaround.
+- Ingestion can fail transiently on network errors to DashScope. The seed script re-uploads documents whose ingestion failed (CURRENT, `scripts/seed-site-agent.sh`).
+
+**Spend ceiling (PLANNED, at flint-gate).** The ceiling has to count what the provider bills, across replicas, and stop without a redeploy:
+- **Gate's budget is the ceiling.** Gate's `MaxTokenBudget` hook holds a per-identity token budget for the site identity, and its Redis-backed per-credential rate limiter caps request rate. Both are shared across the site server's replicas, because they live in gate, not in a pod. They replace an in-proxy shared counter. The values are operator decisions (D-3, D-4), and who manages them is D-18.
+- **Cancelled runs are billed.** A client disconnect cancels the run after 250 ms (`manager.rs:701-727`), and `agui.cancelled` carries no usage (`sse.rs:627-633`), but the input has already been billed. **OPEN QUESTION:** how `MaxTokenBudget` counts tokens on a streamed run, and whether it counts disconnect-cancelled runs.
+- **Cap output in UAR settings.** The agent policy has no `max_tokens` key; `AgentPolicy` holds only provider, tools and skills (`src/uar/domain/artifact.rs:213-217`). The output cap is the provider or model `max_output_tokens` in UAR settings (`src/uar/settings/manager.rs:1934`, `src/llm/registry.rs:104`).
+- **Title requests count.** `use-thread-naming.ts` makes a second model call per thread. It goes through the same chat route and gate route, so the same budget covers it.
 - **Kill switch from a mounted file.** The switch is read from a ConfigMap mounted as a file and re-read at runtime, so flipping it needs no redeploy. An env var would. Kubelet propagates ConfigMap volume updates after a delay, not instantly, so the switch is "within a minute or so", not "immediately".
-- When the ceiling or the switch trips, the proxy returns a friendly "concierge is resting" message and the client renders it.
+- When gate refuses a turn for budget or rate, or the switch trips, the proxy returns a friendly "concierge is resting" message and the client renders it.
 - A cap on history length per session.
 
 **Caching.**
@@ -309,12 +344,14 @@ UAR itself requires a JWT or API key on everything except its probes.
 - Rate-limit hits are logged with the client IP. Proxy-raised 5xx errors (upstream timeout or unreachable) are logged at WARN. Upstream 5xx responses that UAR returns are passed through and appear only in the INFO response line (§4.7).
 - `/healthz` reports liveness. `/readyz` checks the assets and UAR `/readyz`, and is rate-limited.
 - UAR exposes `/metrics` without auth. It is not routed through the site server, but it is reachable through `runtime.know-me.tools` if that route ever attaches (§4.1).
+- Nothing signals a silent fall back to `anonymous`. Locally, with JWT not required, requests with an invalidated API key ran as `anonymous` with no error (§4.7).
 
 **Not there today.** No metrics come from `knowme-web` itself, no trace context is propagated to UAR, and token usage is not recorded per turn.
 
 **PLANNED:**
 - Prometheus counters on the site server: turns, 429s, upstream errors by status, stream duration and bytes, cancelled turns.
-- A per-turn usage log taken from the terminal `agui.done` usage payload, which includes the model, plus the admission estimate for turns that end in `agui.cancelled`. This is the evidence for the cost figures above.
+- A per-turn usage log taken from the terminal `agui.done` usage payload, which includes the model, plus a marker for turns that end in `agui.cancelled`, whose input is billed but not reported. This is the evidence for the cost figures above.
+- A count of gate refusals (rate limit and budget) by status, as seen by the proxy.
 - A count of `agui.tool_call.denied` events by tool name. Under `deny`, every attempted call is denied, so the count measures how often the model, or a visitor steering it, tries to call a tool.
 - A count of policy regressions, read where the proxy filters the internal artifacts: an `effective_run_policy` with `tools.mode` of `auto` or `all` or a `tools.ids` set that differs from the approved list, or a `turn_manifest.selected_tools` that differs from the allowlist plus `activate_skill`. Any non-zero value is a policy regression.
 - A count of `presentation_output_ceiling` and `a2ui_publication_rejected` diagnostics. A rise in rejected surfaces is the earliest signal of injection attempts or a catalog mismatch.
@@ -334,4 +371,4 @@ The site also cannot do what the theory promises, and the gap is not cosmetic:
 - The catalog has no link, image or citation component, and adding one is someone else's change.
 - Every visitor shares one principal, so per-visitor budgets and per-visitor authorization do not exist.
 
-Closing these gaps takes the deployed run policy verified at run time through the turn manifest, an operator purge across every store, session binding, a client registry, three proxy changes, a seeded template set and two UAR decisions (the catalog and `activate_skill`). That work comes before any morphing. Until it lands, the agent-led site is a text concierge on a site that crawlers see as one page.
+Closing these gaps takes UAR behind flint-gate, which itself waits on a UAR ES256 change and a gate JWKS fix that are not in this repo, the deployed run policy verified at run time through the turn manifest, an operator purge across every store, session binding, a client registry, three proxy changes, a seeded template set and two UAR decisions (the catalog and `activate_skill`). That work comes before any morphing. Until it lands, the agent-led site is a text concierge on a site that crawlers see as one page.

@@ -9,13 +9,15 @@ Priority: **MUST** blocks the phase it belongs to (section 9). **SHOULD** ships 
 These facts constrain every requirement below. Where an earlier section says otherwise, these hold.
 
 1. **Tool exposure.** The launch run policy is in the working tree: `uar/agents/knowme-site.json` sets `extensions["uar.run_policy"]` with tools `selected` and no ids, skills `none`, MCP servers `none` and `tool_approval: deny`. It was seeded to the local stack on 2026-10-01 and the agent record returns it. An empty selected list resolves to tools `none` at run admission (§4.7). UAR still registers `activate_skill` on every run and exempts it from tool selection, so the model is offered that one tool, and `effective_run_policy` cannot show it. `deny` is a required launch control and the only lock on `activate_skill`. No D-15 addition may switch approval to `auto` until UAR drops `activate_skill` when skills are `none`, or a test proves an `activate_skill` call under `auto` is rejected without hanging (§4.7, §6.2 T2).
-2. **Token cost.** One local-stack run on 2026-09-30 reported 8,732 input tokens for "In one sentence, what is KnowMe?". The knowledge base held zero embedded chunks, and tool selection was `Auto` (the run predates the extension). The tokens are UAR run context; that the Auto tool and skill material is part of it is probable and unverified until re-measured. UAR's agent RAG takes the top 3 chunks with score >= 0.7 (UAR `src/uar/runtime/manager.rs:3804`). Phase 0 re-measures with the policy deployed and the KB populated.
+2. **Token cost.** One local-stack run on 2026-09-30 reported 8,732 input tokens for "In one sentence, what is KnowMe?", with an empty knowledge base and `Auto` tool selection (the run predates the extension). Re-measured on 2026-10-01 as `knowme-site` under the launch run policy with the KB populated, three questions used 1,425 to 1,459 input tokens per turn, retrieved chunks included, with zero tool events, so `Auto` accounted for roughly 83% of the earlier figure (§4.8). UAR's agent RAG takes the top 3 chunks with score >= 0.7 (UAR `src/uar/runtime/manager.rs:3804`). Phase 0 measures the deployed agent again.
 3. **Erasure.** UAR routes `/api/sessions` and `/api/sessions/{*path}` to a handler that returns 404, has no session delete and no session TTL, and has no read route for the tables involved. Visitor-linked data sits in `sessions`, `checkpoints`, `cost_ledger` and `tool_admission_evidence`, plus `memory` if it is ever enabled (§4.5). The Phase 0 default is an operator-scheduled purge of every store plus a published, request-based erasure process, each tested by a direct SurrealDB query. A per-conversation delete (FR-20) needs a UAR change and is conditional. The real cross-visitor read vector is `POST /api/chat/completion` with another visitor's `X-UAR-Session-ID` (FR-34).
 4. **Routes the agent may name.** `/settings/about` is excluded from the site build (`src/App.tsx:33-50`, `use-site-config.ts:22`), and no `/about` or contact page exists. In Phase 0 the agent names no site routes; it offers the in-chat company topic. Route checks for FR-6 and FR-9 start in Phase 1, together with FR-23.
 5. **Widgets cannot render today**, for five reasons. The client drops `agui.state.patch`. The client parses A2UI v0.8 names while UAR emits v0.9.1. The proxy strips `presentation_mode` and `client_rendering`, and the agent has `ui.artifacts.enabled: false`. UAR's nine catalog components include no link, URL, image or citation component. UAR publishes surfaces only through the `a2ui_render` and `presentation_render` tools, both gated by the `tools` selection, so any surface needs one of them on the allowlist and approval at `auto` (item 1). §8.10 states the sandbox allowlist.
 6. **The §4.3 registry supersedes §5.4.** The v0.9.1 component registry (§4.3, FR-12, FR-13) replaces §5.4's `artifactType` catalog and its text fallback wherever they conflict.
 7. **Launch scope.** The evidence in §1.2 and §1.3 argues against a site where conversation replaces content, and for a complete, crawlable site with a grounded agent layer on top. It shows no measured conversion lift for that layer. The case for the agent at launch is demo value at low cost, not measured lift. So Phase 1 is the public launch: prerendered pages plus a cited text concierge, with the DNS cutover as its last change. The widget and morphing demo ships only as an opt-in, labelled sandbox (FR-43) until the section 9 Phase 2 exit evidence exists. One public misbehaviour, in the concierge or the sandbox, is a brand incident for UAR as well as for the site, and it is a kill criterion (section 9).
-8. **Phase 0 makes the site safe to deploy, not public.** Before Phase 0 exits: the launch run policy deployed and proven through the turn manifest; memory capture forced off by the proxy (memory is not enabled: default `false`, unset in config); internal artifacts dropped on the public path; a global spend ceiling charged at admission with a file-mounted kill switch; HMAC-derived session binding on chat completion and resume; proxy error hardening and the `artifact-response` route removed; the `runtime.know-me.tools` route deleted and CI secrets moved out before the first deploy, plus a UAR NetworkPolicy; CSP and HSTS; a fixed non-model AI disclosure label; the purge and request-based erasure with a privacy notice and a data-request contact; a citation-link allowlist; offline and 429 client states; a text-only golden set; red-team and pinning evidence.
+8. **Phase 0 makes the site safe to deploy, not public.** Before Phase 0 exits: the launch run policy deployed and proven through the turn manifest; memory capture forced off by the proxy (memory is not enabled: default `false`, unset in config); internal artifacts dropped on the public path; UAR reachable only through flint-gate, whose per-identity token budget is the global spend ceiling, with a file-mounted kill switch; HMAC-derived session binding on chat completion and resume; proxy error hardening and the `artifact-response` route removed; the `runtime.know-me.tools` route deleted and CI secrets moved out before the first deploy, plus a UAR NetworkPolicy; CSP and HSTS; KB chunking fixed; a fixed non-model AI disclosure label; the purge and request-based erasure with a privacy notice and a data-request contact; a citation-link allowlist; offline and 429 client states; a text-only golden set; red-team and pinning evidence.
+9. **UAR authentication.** UAR keeps API keys only in memory (`InMemoryApiKeyStorage`, UAR `src/server.rs:1334-1335`), so a restart invalidates the site's key. Locally the site's requests then ran as `anonymous`, whose KB universe is empty; in the cluster they would get 401 permanently. By operator decision (2026-10-01) the site server calls UAR only through flint-gate's `uar-site` route with a database-backed gate API key, gate mints a short-lived ES256 JWT for the site identity, and UAR verifies it through gate's JWKS. UAR's verifier accepts only RS256 today, and the deployed gate JWKS lacks `crv`, `x` and `y`; both are Phase 0 blockers (§4.7, FR-46). Gate's budget and per-credential rate limit are the spend ceiling (FR-36). No component issues per-visitor identities, so Phase 0 and 1 keep the shared principal and HMAC session binding (FR-34).
+10. **Chunking.** Retrieval works (`text-embedding-v4`; the right document at score 0.917), but the KB's `Recursive { size: 512 }` chunker splits at periods inside version numbers and its 32- to 50-character fragments score highest. The agent then misses facts the corpus states and answers "v0" or "Obsidian 1.x" (§4.8). The text golden set waits on the fix (FR-8).
 
 ## 8.1 Entry experience
 
@@ -51,6 +53,8 @@ These facts constrain every requirement below. Where an earlier section says oth
 
 **FR-8 (MUST) KB health gate.** Trace: 4.8.
 - Given the seed job has run, when it finishes, then it reports a document count and an embedded-chunk count for KB `knowme-site`. If any document has zero chunks, the job exits non-zero.
+- Given a document whose ingestion failed, when the seed job runs again, then it re-uploads that document. The seed script does this today (`scripts/seed-site-agent.sh`).
+- Given the corpus is ingested, when its chunks are listed, then no chunk ends inside a version number ("v0.", "Obsidian 1."), and a question about The Boss's platforms retrieves the chunk from `the-boss.md` that states them (`kb-chunking-quality`, §4.8). The `site-agent-seed` gate and the text golden set run only after this passes.
 
 **FR-9 (MUST) No invented paths.** Trace: 5.6(a), 4.6.
 - Given a visitor asks how to contact the company, or where to read more, when the agent answers in Phase 0, then it names no site route and says there is no separate contact page. From Phase 1 it names only routes that pass FR-23 in the deployed build, or destinations stated in the corpus. A general contact method appears only after the operator records one (D-8).
@@ -67,7 +71,7 @@ These facts constrain every requirement below. Where an earlier section says oth
   - `tool_approval == deny` while the list is empty, and while the `activate_skill` precondition in §4.7 is unmet;
   - `turn_manifest.selected_tools` equals the allowlist plus `activate_skill`, and §6.2 T2 records `activate_skill` as reviewed and blocked by `deny`.
 - The test fails on `auto`, `all` or `inherit`, on any id not on the list, and on any extra model-facing tool. The artifact text is not evidence: a malformed or misspelled key is dropped silently.
-- The test reads the two artifacts through a proxy test harness that sees the upstream stream before the public-path filter (FR-45), or runs from the seed job, which the NetworkPolicy admits to UAR. It does not call `GET /api/uar/runs/{id}` from outside the cluster.
+- The test reads the two artifacts through a proxy test harness that sees the upstream stream before the public-path filter (FR-45), or runs from the seed job if the NetworkPolicy admits it (OPEN QUESTION, §4.1). It does not call `GET /api/uar/runs/{id}` from outside the cluster.
 - A tool joins the allowlist only with a security review entry in §6.2 T2 (owner km-security-officer): read-only or scoped to the visitor's own view, safe for anonymous use, input-validated, and within the turn budget.
 - Given the tool-eliciting prompt set (part of the Phase 0 text golden set), when it runs against the deployed agent, then no tool executes: the stream carries no tool start or tool result event. A forced-call fixture makes the model call `activate_skill`, the one tool it is offered, and the stream carries `agui.tool_call.denied`. A test that only waits for a denial would pass on nothing if the model never called a tool, so the fixture is required.
 - Given `agui.tool_call.denied` arrives in the stream, when it renders, then the client shows "Blocked by policy". It never shows as running or silently disappears. UAR already emits this event (`sse.rs:751`), so this needs only a client case.
@@ -168,6 +172,7 @@ Every requirement in this section applies to the opt-in sandbox (FR-43) only, un
 - Given an `X-UAR-Session-ID` (the thread id) that is not a UUIDv4, when it reaches the proxy, then the proxy returns 400.
 - Given visitor A's cookie and visitor B's thread id, when A sends a chat completion or a resume, then UAR sees an upstream session id that is not B's. No message, memory or run of B is read, changed or resumed. A two-visitor test proves this for each route, with the proxy running two replicas.
 - Rotating the HMAC secret orphans every server-side session. That is acceptable, because the local thread history stays and the purge deletes the orphans.
+- All visitors stay one UAR principal in Phase 0 and 1: no component of the stack issues guest identities, and gate's `anonymous` provider uses one fixed subject. A per-visitor `sub` minted by gate is a Phase 2 spike (`visitor-identity-via-gate`, §4.5).
 
 **FR-35 (SHOULD) Sensitive-data hint.** Trace: 6.2 T12.
 - Given the composer, when it renders, then a hint asks the visitor not to share sensitive personal details.
@@ -179,20 +184,22 @@ Every requirement in this section applies to the opt-in sandbox (FR-43) only, un
 ## 8.8 Admin and operations
 
 **FR-36 (MUST) Spend ceiling and kill switch.** Trace: 4.8, 6.2 T1.
-- Given a turn arrives, when the proxy admits it, then the proxy charges an estimate (input-token estimate plus the site model's `max_output_tokens` from UAR settings; the agent policy has no `max_tokens` key) against the site-wide daily counter before calling UAR, and reconciles it with the actual usage at `agui.done`. A run cancelled by a disconnect keeps its estimate, because its input is already billed (UAR `manager.rs:701-727`).
-- Title-generation requests are a second model call. They are charged the same way.
-- The counter is shared across replicas: UAR's agent-scope cost budget on `knowme-site` if D-4 chooses it, otherwise a shared store. A per-pod counter does not pass.
-- Given the counter reaches the operator-set daily ceiling (D-3), when the next turn arrives, then the proxy returns the offline state (FR-27) without calling UAR, and an alert fires.
+- The site-wide ceiling is flint-gate's: the `MaxTokenBudget` per-identity token budget for the site identity and the Redis-backed per-credential rate limit on the `uar-site` route, set to the operator's values (D-3, D-4). Both live in gate, so they hold across the site server's replicas. The site server's per-IP limiter stays as the first layer.
+- Given the site identity's budget is exhausted, when the next turn arrives, then gate refuses it without calling UAR, the proxy returns the offline state (FR-27), and an alert fires.
+- Title-generation requests are a second model call. They go through the same gate route, so the same budget counts them.
+- The site model's `max_output_tokens` is set in UAR settings; the agent policy has no `max_tokens` key.
+- A run cancelled by a disconnect has already billed its input (UAR `manager.rs:701-727`). Whether `MaxTokenBudget` counts it is an OPEN QUESTION (§4.8); the change records the answer.
 - Given the operator changes the kill switch in its ConfigMap, when the mounted file updates, then within 60 seconds every replica returns the offline state, with no redeploy and no pod restart. An environment variable does not pass.
 
 **FR-37 (MUST) Runtime host closed.** Trace: 4.1, 6.2 T6.
 - The `runtime.know-me.tools` HTTPRoute is removed from the manifests, and the lockdown lands before the first deploy of the `knowme` namespace. Removing a manifest does not delete a live route (the deploy has no prune and its Role has no `delete`), so if a route has ever been applied it is deleted explicitly with operator credentials. Once a route attaches, the host serves `/metrics` and `/admin`.
 - Given a request from the internet to `runtime.know-me.tools`, when it arrives, then no UAR endpoint answers (`curl` shows no route, or a refusal, recorded in the change). If the operator decides the host is needed (D-7), it is restricted to allowlisted sources instead.
-- A NetworkPolicy admits only `knowme-web` and the seed job to `uar:6565`.
+- A NetworkPolicy admits only flint-gate to `uar:6565`. Whether the seed job also needs direct access is an OPEN QUESTION (§4.1).
 - The CI steps that call `runtime.know-me.tools` (`.github/workflows/site.yml`, the `/readyz` and `/api/agents` checks) are rewritten to run inside the cluster or against the proxy.
 
 **FR-38 (MUST) Per-turn usage record.** Trace: 4.9.
 - Given a completed or cancelled turn, when it ends, then the server records the model, input tokens, output tokens, time to first token and the outcome. The record holds no session ID and no message text.
+- The local baseline the records are compared with is 1,425 to 1,459 input tokens per turn, measured on 2026-10-01 under the launch run policy with the KB populated (§4.8).
 
 **FR-39 (SHOULD) Counters.** Trace: 4.9. Turns, 429s, upstream errors, stream duration, `agui.tool_call.denied` by tool name, policy regressions, `presentation_output_ceiling` and `a2ui_publication_rejected` counts are exposed as Prometheus metrics.
 
@@ -208,6 +215,13 @@ Every requirement in this section applies to the opt-in sandbox (FR-43) only, un
 **FR-45 (MUST, Phase 0) Internal artifacts stay internal.** Trace: 4.2, 6.2 T15.
 - Given a public-path stream, when UAR emits an `agui.artifact` whose `artifact_type` is `effective_run_policy` or `turn_manifest`, then the proxy drops it, and the client never receives it.
 - FR-11 reads these artifacts in its test harness or from the seed job, not from the public stream.
+
+**FR-46 (MUST, Phase 0) UAR behind flint-gate.** Trace: 4.1, 4.7, 6.2 T6.
+- The site server calls UAR only through flint-gate's `uar-site` route. It authenticates to gate with a database-backed gate API key. Gate mints an ES256 JWT with `sub` = the site identity (the principal that owns the agent and the KB), `aud` = `uar` and a short TTL, and UAR verifies it through gate's JWKS (`jwks_url`, issuer `https://gate.know-me.tools`).
+- Given UAR restarts, when the next chat turn arrives, then it authenticates as the site identity, the run sees KB `knowme-site` (at least one knowledge base available), and it never runs as `anonymous`.
+- Given a request to UAR without a gate-minted JWT, or with a JWT whose issuer or audience differs, when it arrives, then UAR returns 401.
+- Given the site server's configuration and the seed script, when they are inspected, then neither holds nor mints a UAR API key (`POST /api/uar/auth/keys`).
+- Preconditions, each a Phase 0 change: UAR's JWKS verifier accepts ES256 (`uar-jwks-es256`); the deployed gate JWKS publishes `crv`, `x` and `y` (`gate-ec-jwks-deploy`); the route, key and budget exist in the cluster (`gate-uar-site-route`).
 
 **FR-43 (MUST, Phase 2) Widget sandbox is opt-in and labelled.** Trace: 1.4, 2.4, section 9 Phase 2 exit.
 - Given a visitor on the public site, when they use the composer, then they get the text concierge. Widgets render only after an explicit opt-in (a separate, `noindex` sandbox entry point), under a visible label that says the widget board is experimental.
@@ -227,7 +241,7 @@ Every requirement in this section applies to the opt-in sandbox (FR-43) only, un
 | Widget render (sandbox) | A surface renders within 200 ms of its last patch on a mid-tier phone. | Playwright trace. |
 | Availability | Static pages 99.5% monthly, and they keep serving when UAR is down. Chat 99% monthly, excluding deliberate kill-switch time. | Uptime probe on `/` and `/readyz`, run from inside the cluster or through the proxy (FR-37). |
 | Accessibility | WCAG 2.2 AA. Streamed text is **not** placed in a live region. A single polite status region announces the turn state once ("The KnowMe agent is answering", then "Answer ready" or the error state), not per token. The finished message is reachable and readable in the thread. Every widget is keyboard-operable with visible focus and targets of at least 24×24 px. Status is never shown by colour alone. Reduced motion removes the pin animation. | axe in CI plus a manual keyboard and screen-reader pass per release, including one streamed turn with a screen reader. |
-| Cost | A daily token ceiling and a monthly cost cap, both set by the operator (D-3) and recorded in the decision log. Cost per conversation is reported weekly. | FR-36, FR-38. |
+| Cost | A daily token ceiling and a monthly cost cap, both set by the operator as flint-gate budget values (D-3) and recorded in the decision log. Cost per conversation is reported weekly. | FR-36, FR-38. |
 | Security | Every section 6.4 checklist item has evidence from the change mapped to it in section 9. CSP enforced after a week in report-only mode with zero violations. HSTS and `Permissions-Policy` present on a live `curl -I`. Images pinned by digest and actions pinned by SHA (`ci-supply-chain-pins`). Signing secret, admin key and database password out of CI (`ci-secrets-out`). | Section 6.4 evidence file. |
 | Quality, text | Text golden set (5.8), built in Phase 0: >= 18/20 on groundedness and on citation, zero fabrications on the pricing and contact items, zero executed tools on the tool-eliciting items, the `activate_skill` forced-call fixture denied, and zero links outside the allowlist. Run before every agent or corpus release, at Phase 0 exit and before the DNS cutover. | Eval run recorded in the change. |
 | Quality, surfaces | Surface golden set, built in Phase 2: text-first items, surface-choice items and an injection set. | Eval run recorded in the change. |
@@ -246,6 +260,7 @@ Every requirement in this section applies to the opt-in sandbox (FR-43) only, un
 - Localisation, and voice input or output.
 - Changes to the Tauri desktop shell for the site.
 - Personalising what one visitor sees based on another visitor.
+- Per-visitor identities and per-visitor budgets in Phase 0 and 1. Every visitor is the one site principal until the Phase 2 spike `visitor-identity-via-gate` (§4.5) shows otherwise.
 
 ## 8.11 The uncomfortable part
 
@@ -262,7 +277,7 @@ Half of the MUST requirements in 8.3 and 8.4 depend on further decisions that ar
 | 0 | FR-5 | `site-chat-proxy`, `site-proxy-hardening` |
 | 0 | FR-6, FR-9 (no site routes named) | `site-agent-prompt-fixes` |
 | 0 | FR-7 | `site-agent-prompt-fixes`, checked by `site-agent-eval-text` |
-| 0 | FR-8 | `site-agent-seed` |
+| 0 | FR-8 | `site-agent-seed`, `kb-chunking-quality` |
 | 0 | FR-11 (policy and manifest test, `activate_skill` fixture, "Blocked by policy") | `site-agent-tool-allowlist`, `site-chat-offline-states` |
 | 0 | FR-16 (citations) | `site-citation-link-allowlist` |
 | 0 | FR-33 | `site-session-erasure` |
@@ -270,11 +285,12 @@ Half of the MUST requirements in 8.3 and 8.4 depend on further decisions that ar
 | 0 | FR-31, FR-35 | `site-ai-disclosure-label` |
 | 0 | FR-32 | `site-retention-and-privacy` |
 | 0 | FR-34 | `site-session-binding` |
-| 0 | FR-36, FR-38 | `site-spend-ceiling` |
+| 0 | FR-36, FR-38 | `site-spend-ceiling`, `gate-uar-site-route` |
 | 0 | FR-37 | `uar-runtime-host-lockdown` |
 | 0 | FR-41 | `site-agent-tool-allowlist` |
 | 0 | FR-42 | `site-proxy-hardening` |
 | 0 | FR-45 | `site-proxy-artifact-filter` |
+| 0 | FR-46 | `uar-jwks-es256`, `gate-ec-jwks-deploy`, `gate-uar-site-route` |
 | 0 | NFR quality, text | `site-agent-eval-text` |
 | 0 | NFR security | `site-security-headers`, `ci-supply-chain-pins`, `ci-secrets-out`, `site-redteam-prompts` |
 | 1 | FR-1 to FR-4 | `site-prerender-baseline`, `site-entry-chips` |
@@ -289,3 +305,4 @@ Half of the MUST requirements in 8.3 and 8.4 depend on further decisions that ar
 | 2 | FR-15 to FR-17 (widgets) | `site-widget-catalog-cards`, `site-widget-catalog-tables` |
 | 2 | FR-18 | `site-surface-eval` |
 | 2 | FR-19 to FR-22 (board; FR-20 delete control only if UAR adds a session delete) | `site-visitor-board` |
+| 2 | Per-visitor identity (spike, no FR until it reports) | `visitor-identity-via-gate` |
