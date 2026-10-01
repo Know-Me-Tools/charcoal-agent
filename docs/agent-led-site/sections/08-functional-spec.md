@@ -6,7 +6,7 @@ Priority: **MUST** blocks the phase it belongs to (section 9). **SHOULD** ships 
 
 ## 8.0 Key constraints
 
-These facts constrain every requirement below. Where an earlier section says otherwise, these hold.
+These facts constrain every requirement below.
 
 1. **Tool exposure.** The launch run policy is in the working tree: `uar/agents/knowme-site.json` sets `extensions["uar.run_policy"]` with tools `selected` and no ids, skills `none`, MCP servers `none` and `tool_approval: deny`. It was seeded to the local stack on 2026-10-01 and the agent record returns it. An empty selected list resolves to tools `none` at run admission (§4.7). UAR still registers `activate_skill` on every run and exempts it from tool selection, so the model is offered that one tool, and `effective_run_policy` cannot show it. `deny` is a required launch control and the only lock on `activate_skill`. No D-15 addition may switch approval to `auto` until UAR drops `activate_skill` when skills are `none`, or a test proves an `activate_skill` call under `auto` is rejected without hanging (§4.7, §6.2 T2).
 2. **Token cost.** One local-stack run on 2026-09-30 reported 8,732 input tokens for "In one sentence, what is KnowMe?", with an empty knowledge base and `Auto` tool selection (the run predates the extension). Re-measured on 2026-10-01 as `knowme-site` under the launch run policy with the KB populated, three questions used 1,425 to 1,459 input tokens per turn, retrieved chunks included, with zero tool events, so `Auto` accounted for roughly 83% of the earlier figure (§4.8). UAR's agent RAG takes the top 3 chunks with score >= 0.7 (UAR `src/uar/runtime/manager.rs:3804`). Phase 0 measures the deployed agent again.
@@ -15,8 +15,8 @@ These facts constrain every requirement below. Where an earlier section says oth
 5. **Widgets cannot render today**, for five reasons. The client drops `agui.state.patch`. The client parses A2UI v0.8 names while UAR emits v0.9.1. The proxy strips `presentation_mode` and `client_rendering`, and the agent has `ui.artifacts.enabled: false`. UAR's nine catalog components include no link, URL, image or citation component. UAR publishes surfaces only through the `a2ui_render` and `presentation_render` tools, both gated by the `tools` selection, so any surface needs one of them on the allowlist and approval at `auto` (item 1). §8.10 states the sandbox allowlist.
 6. **The §4.3 registry supersedes §5.4.** The v0.9.1 component registry (§4.3, FR-12, FR-13) replaces §5.4's `artifactType` catalog and its text fallback wherever they conflict.
 7. **Launch scope.** The evidence in §1.2 and §1.3 argues against a site where conversation replaces content, and for a complete, crawlable site with a grounded agent layer on top. It shows no measured conversion lift for that layer. The case for the agent at launch is demo value at low cost, not measured lift. So Phase 1 is the public launch: prerendered pages plus a cited text concierge, with the DNS cutover as its last change. The widget and morphing demo ships only as an opt-in, labelled sandbox (FR-43) until the section 9 Phase 2 exit evidence exists. One public misbehaviour, in the concierge or the sandbox, is a brand incident for UAR as well as for the site, and it is a kill criterion (section 9).
-8. **Phase 0 makes the site safe to deploy, not public.** Before Phase 0 exits: the launch run policy deployed and proven through the turn manifest; memory capture forced off by the proxy (memory is not enabled: default `false`, unset in config); internal artifacts dropped on the public path; UAR reachable only through flint-gate, whose per-identity token budget is the global spend ceiling, with a file-mounted kill switch; HMAC-derived session binding on chat completion and resume; proxy error hardening and the `artifact-response` route removed; the `runtime.know-me.tools` route deleted and CI secrets moved out before the first deploy, plus a UAR NetworkPolicy; CSP and HSTS; KB chunking fixed; a fixed non-model AI disclosure label; the purge and request-based erasure with a privacy notice and a data-request contact; a citation-link allowlist; offline and 429 client states; a text-only golden set; red-team and pinning evidence.
-9. **UAR authentication.** UAR keeps API keys only in memory (`InMemoryApiKeyStorage`, UAR `src/server.rs:1334-1335`), so a restart invalidates the site's key. Locally the site's requests then ran as `anonymous`, whose KB universe is empty; in the cluster they would get 401 permanently. By operator decision (2026-10-01) the site server calls UAR only through flint-gate's `uar-site` route with a database-backed gate API key, gate mints a short-lived ES256 JWT for the site identity, and UAR verifies it through gate's JWKS. UAR's verifier accepts only RS256 today, and the deployed gate JWKS lacks `crv`, `x` and `y`; both are Phase 0 blockers (§4.7, FR-46). Gate's budget and per-credential rate limit are the spend ceiling (FR-36). No component issues per-visitor identities, so Phase 0 and 1 keep the shared principal and HMAC session binding (FR-34).
+8. **Phase 0 makes the site safe to deploy, not public.** Before Phase 0 exits: the launch run policy deployed and proven through the turn manifest; memory capture forced off by the proxy (memory is not enabled: default `false`, unset in config); internal artifacts dropped on the public path; UAR accepting only gate-minted tokens, with gate's per-identity token budget as the global spend ceiling and a file-mounted kill switch; gate's external-authorization policies on the site's routes; HMAC-derived session binding on chat completion and resume; proxy error hardening and the `artifact-response` route removed; the `runtime.know-me.tools` route deleted and CI secrets moved out before the first deploy, plus a UAR NetworkPolicy; CSP and HSTS; KB chunking fixed; a fixed non-model AI disclosure label; the purge and request-based erasure with a privacy notice and a data-request contact; a citation-link allowlist; offline and 429 client states; a text-only golden set; red-team and pinning evidence.
+9. **UAR authentication.** UAR keeps API keys only in memory (`InMemoryApiKeyStorage`, UAR `src/server.rs:1334-1335`), so a restart invalidates the site's key. Locally the site's requests then ran as `anonymous`, whose KB universe is empty; in the cluster they would get 401 permanently. By operator decision (2026-10-01) flint-gate is the auth layer for the know-me cluster: Envoy calls gate's check endpoint for each route (FR-47). The site server's call to UAR stays inside the cluster, so it obtains a short-lived gate-minted ES256 token for the site identity and calls UAR directly, and UAR verifies it through gate's JWKS (FR-46). UAR's ES256 verification is merged; the gate JWKS fix is being deployed, and gate has no check endpoint yet (§4.7). Gate's budget and per-credential rate limit are the spend ceiling (FR-36). No component issues per-visitor identities, so Phase 0 and 1 keep the shared principal and HMAC session binding (FR-34).
 10. **Chunking.** Retrieval works (`text-embedding-v4`; the right document at score 0.917), but the KB's `Recursive { size: 512 }` chunker splits at periods inside version numbers and its 32- to 50-character fragments score highest. The agent then misses facts the corpus states and answers "v0" or "Obsidian 1.x" (§4.8). The text golden set waits on the fix (FR-8).
 
 ## 8.1 Entry experience
@@ -184,17 +184,17 @@ Every requirement in this section applies to the opt-in sandbox (FR-43) only, un
 ## 8.8 Admin and operations
 
 **FR-36 (MUST) Spend ceiling and kill switch.** Trace: 4.8, 6.2 T1.
-- The site-wide ceiling is flint-gate's: the `MaxTokenBudget` per-identity token budget for the site identity and the Redis-backed per-credential rate limit on the `uar-site` route, set to the operator's values (D-3, D-4). Both live in gate, so they hold across the site server's replicas. The site server's per-IP limiter stays as the first layer.
-- Given the site identity's budget is exhausted, when the next turn arrives, then gate refuses it without calling UAR, the proxy returns the offline state (FR-27), and an alert fires.
-- Title-generation requests are a second model call. They go through the same gate route, so the same budget counts them.
+- The site-wide ceiling is flint-gate's: the `max_token_budget` per-identity token budget for the site identity and the per-credential rate limit on the site identity, set to the operator's values (D-3, D-4). Both live in gate, so they hold across the site server's replicas. Without Redis in `flint-core`, windowed budgets sum in Postgres and are not instant across gate's two replicas (D-4). The site server's per-IP limiter stays as the first layer.
+- Given the site identity's budget is exhausted, when the next turn arrives, then no model call is made for it, the proxy returns the offline state (FR-27), and an alert fires.
+- Title-generation requests are a second model call. They use the same site token, so the same budget counts them.
 - The site model's `max_output_tokens` is set in UAR settings; the agent policy has no `max_tokens` key.
-- A run cancelled by a disconnect has already billed its input (UAR `manager.rs:701-727`). Whether `MaxTokenBudget` counts it is an OPEN QUESTION (§4.8); the change records the answer.
+- A run cancelled by a disconnect has already billed its input (UAR `manager.rs:701-727`). Gate does not proxy the site's UAR calls, so how `max_token_budget` learns a run's tokens, and whether it counts this run, are OPEN QUESTIONS (§4.8); the change records the answers.
 - Given the operator changes the kill switch in its ConfigMap, when the mounted file updates, then within 60 seconds every replica returns the offline state, with no redeploy and no pod restart. An environment variable does not pass.
 
 **FR-37 (MUST) Runtime host closed.** Trace: 4.1, 6.2 T6.
 - The `runtime.know-me.tools` HTTPRoute is removed from the manifests, and the lockdown lands before the first deploy of the `knowme` namespace. Removing a manifest does not delete a live route (the deploy has no prune and its Role has no `delete`), so if a route has ever been applied it is deleted explicitly with operator credentials. Once a route attaches, the host serves `/metrics` and `/admin`.
-- Given a request from the internet to `runtime.know-me.tools`, when it arrives, then no UAR endpoint answers (`curl` shows no route, or a refusal, recorded in the change). If the operator decides the host is needed (D-7), it is restricted to allowlisted sources instead.
-- A NetworkPolicy admits only flint-gate to `uar:6565`. Whether the seed job also needs direct access is an OPEN QUESTION (§4.1).
+- Given a request from the internet to `runtime.know-me.tools`, when it arrives, then no UAR endpoint answers (`curl` shows no route, or a refusal, recorded in the change). If the operator decides the host is needed (D-7), it sits behind a fail-closed gate policy instead (FR-47).
+- A NetworkPolicy admits only `knowme-web` and flint-gate to `uar:6565`. Whether the seed job also needs direct access is an OPEN QUESTION (§4.1).
 - The CI steps that call `runtime.know-me.tools` (`.github/workflows/site.yml`, the `/readyz` and `/api/agents` checks) are rewritten to run inside the cluster or against the proxy.
 
 **FR-38 (MUST) Per-turn usage record.** Trace: 4.9.
@@ -216,12 +216,22 @@ Every requirement in this section applies to the opt-in sandbox (FR-43) only, un
 - Given a public-path stream, when UAR emits an `agui.artifact` whose `artifact_type` is `effective_run_policy` or `turn_manifest`, then the proxy drops it, and the client never receives it.
 - FR-11 reads these artifacts in its test harness or from the seed job, not from the public stream.
 
-**FR-46 (MUST, Phase 0) UAR behind flint-gate.** Trace: 4.1, 4.7, 6.2 T6.
-- The site server calls UAR only through flint-gate's `uar-site` route. It authenticates to gate with a database-backed gate API key. Gate mints an ES256 JWT with `sub` = the site identity (the principal that owns the agent and the KB), `aud` = `uar` and a short TTL, and UAR verifies it through gate's JWKS (`jwks_url`, issuer `https://gate.know-me.tools`).
+**FR-46 (MUST, Phase 0) UAR accepts only gate-minted tokens.** Trace: 4.1, 4.7, 6.2 T6.
+- The site server obtains a short-lived ES256 JWT from flint-gate, with `sub` = the site identity (the principal that owns the agent and the KB) and `aud` = `uar`, and calls UAR directly inside the cluster. Its gate credential is in Secret `site-proxy`. Which gate path issues the token, `/oauth/token` client credentials or token exchange from the database-backed gate API key, is an OPEN QUESTION settled in `gate-site-credentials`.
+- UAR verifies tokens through gate's JWKS (`UAR_SECURITY__JWKS_URL`, with `UAR_SECURITY__JWT_ISSUER` `https://gate.know-me.tools` and `UAR_SECURITY__JWT_AUDIENCE` `uar`). With `jwks_url` set, verification is JWKS-only.
 - Given UAR restarts, when the next chat turn arrives, then it authenticates as the site identity, the run sees KB `knowme-site` (at least one knowledge base available), and it never runs as `anonymous`.
-- Given a request to UAR without a gate-minted JWT, or with a JWT whose issuer or audience differs, when it arrives, then UAR returns 401.
+- Given a request to UAR without a gate-minted JWT, with an HS256 token signed with UAR's own secret, or with a JWT whose issuer or audience differs, when it arrives, then UAR returns 401.
+- Given the seed job runs, when it calls UAR, then it authenticates with a gate token for its seed identity.
 - Given the site server's configuration and the seed script, when they are inspected, then neither holds nor mints a UAR API key (`POST /api/uar/auth/keys`).
-- Preconditions, each a Phase 0 change: UAR's JWKS verifier accepts ES256 (`uar-jwks-es256`); the deployed gate JWKS publishes `crv`, `x` and `y` (`gate-ec-jwks-deploy`); the route, key and budget exist in the cluster (`gate-uar-site-route`).
+- Preconditions, each a Phase 0 change: UAR's ES256 verification in a pinned image (`uar-jwks-es256`, merged as #321); the deployed gate JWKS publishes `crv`, `x` and `y` (`gate-ec-jwks-deploy`); the site and seed identities exist in gate (`gate-site-credentials`).
+
+**FR-47 (MUST, Phase 0 for the knowme routes) Route policies through flint-gate.** Trace: 4.1, 4.7.
+- Each HTTPRoute that gate guards has a SecurityPolicy in know-me-cluster that sends an `extAuth.http` check to gate, with a timeout of about 200 ms. On allow, gate injects `Authorization: Bearer <gate-minted ES256 JWT>` for the upstream and strips client-supplied auth headers.
+- Given gate is down, when a visitor requests `know-me.tools` or `www.know-me.tools`, then the site still serves (anonymous-allow, `failOpen: true`).
+- Given gate is down, or the request carries no valid credential, when it reaches a protected route (`runtime.know-me.tools` if D-7 keeps it; later `api.know-me.tools` and `rt.know-me.tools`), then Envoy refuses it (`failOpen: false`).
+- Argo CD is never routed through the gateway or a gate policy; port-forward reaches it while gate is down.
+- Given a SecurityPolicy must come off in an emergency, when the operator follows `docs/break-glass-securitypolicy.md` in know-me-cluster (suspend auto-sync for the Argo app, or revert the policy commit and sync, then delete the policy), then the policy stays deleted and the route serves.
+- Precondition: gate's check endpoint exists (`gate-ext-authz-endpoint`).
 
 **FR-43 (MUST, Phase 2) Widget sandbox is opt-in and labelled.** Trace: 1.4, 2.4, section 9 Phase 2 exit.
 - Given a visitor on the public site, when they use the composer, then they get the text concierge. Widgets render only after an explicit opt-in (a separate, `noindex` sandbox entry point), under a visible label that says the widget board is experimental.
@@ -285,12 +295,13 @@ Half of the MUST requirements in 8.3 and 8.4 depend on further decisions that ar
 | 0 | FR-31, FR-35 | `site-ai-disclosure-label` |
 | 0 | FR-32 | `site-retention-and-privacy` |
 | 0 | FR-34 | `site-session-binding` |
-| 0 | FR-36, FR-38 | `site-spend-ceiling`, `gate-uar-site-route` |
+| 0 | FR-36, FR-38 | `site-spend-ceiling`, `gate-site-credentials` |
 | 0 | FR-37 | `uar-runtime-host-lockdown` |
 | 0 | FR-41 | `site-agent-tool-allowlist` |
 | 0 | FR-42 | `site-proxy-hardening` |
 | 0 | FR-45 | `site-proxy-artifact-filter` |
-| 0 | FR-46 | `uar-jwks-es256`, `gate-ec-jwks-deploy`, `gate-uar-site-route` |
+| 0 | FR-46 | `uar-jwks-es256`, `gate-ec-jwks-deploy`, `gate-site-credentials` |
+| 0 | FR-47 (knowme routes) | `gate-ext-authz-endpoint`, `cluster-extauthz-policies` |
 | 0 | NFR quality, text | `site-agent-eval-text` |
 | 0 | NFR security | `site-security-headers`, `ci-supply-chain-pins`, `ci-secrets-out`, `site-redteam-prompts` |
 | 1 | FR-1 to FR-4 | `site-prerender-baseline`, `site-entry-chips` |
