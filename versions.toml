@@ -11,6 +11,7 @@ created = "2026-09-25"
 "@fontsource-variable/space-grotesk" = "5.3.0"
 "@fontsource-variable/roboto" = "5.3.0"
 "@fontsource-variable/jetbrains-mono" = "5.3.0"
+
 "server/axum" = "0.8.9"
 "server/tokio" = "1.53.1"
 "server/tower-http" = "0.7.1"
@@ -26,6 +27,7 @@ created = "2026-09-25"
 "image/node" = "node:24.21.0-trixie-slim@sha256:8ec5d7557396cfe32d21c3f9c13072355ceab22b584578ca4bb28af31120cffe"
 "image/rust" = "rust:1.98.1-slim-trixie@sha256:4cd829461bd5c4d511c32e269da9cb8929223b666519d8004e35fc8d1d771ab7"
 "image/distroless-cc" = "gcr.io/distroless/cc-debian13:nonroot@sha256:54df941ed0d06a1bd95ef5e0ce391fd8d9f94b64782dc9a60062727849ee3f97"
+
 
 [decisions]
 # id = "rationale"

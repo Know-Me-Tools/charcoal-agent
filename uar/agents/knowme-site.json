@@ -68,5 +68,26 @@
     "artifacts": {
       "enabled": false
     }
+  },
+  "extensions": {
+    "uar.run_policy": {
+      "version": 1,
+      "tools": {
+        "mode": "selected",
+        "ids": [],
+        "denied_ids": []
+      },
+      "skills": {
+        "mode": "none",
+        "ids": [],
+        "denied_ids": []
+      },
+      "mcp_servers": {
+        "mode": "none",
+        "ids": [],
+        "denied_ids": []
+      },
+      "tool_approval": "deny"
+    }
   }
 }

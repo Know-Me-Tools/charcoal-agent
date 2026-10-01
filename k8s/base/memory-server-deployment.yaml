@@ -40,6 +40,10 @@ spec:
               containerPort: 3001
               protocol: TCP
           env:
+            # No stdin in a pod: the stdio MCP transport would exit and take the
+            # server down. The HTTP MCP endpoint on :3001 stays on.
+            - name: MCP_STDIO
+              value: "false"
             - name: SURREAL_MODE
               value: server
             - name: SURREAL_ENDPOINT

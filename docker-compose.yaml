@@ -15,7 +15,8 @@ services:
     volumes:
       - surrealdb_data:/data
     healthcheck:
-      test: ["CMD-SHELL", "/surreal isready --endpoint http://localhost:8000 || exit 1"]
+      # Exec form: the SurrealDB image has no /bin/sh.
+      test: ["CMD", "/surreal", "isready", "--endpoint", "http://localhost:8000"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -68,6 +69,8 @@ services:
       UAR_LLM__EMBEDDING__API_KEY: "${DASHSCOPE_API_KEY:?DASHSCOPE_API_KEY must be set}"
       UAR_LLM__EMBEDDING__BASE_URL: "${DASHSCOPE_OPENAI_URL:?DASHSCOPE_OPENAI_URL must be set}"
       UAR_LLM__EMBEDDING__VECTOR_DIMENSION: "${QWEN_EMBEDDING_DIMENSIONS:-1024}"
+      # DashScope rejects embedding requests with more than 10 inputs.
+      UAR_LLM__EMBEDDING__BATCH_SIZE: "10"
 
       RUST_LOG: "${RUST_LOG:-info}"
     healthcheck:
@@ -90,6 +93,9 @@ services:
     ports:
       - "${MEMORY_SERVER_PORT:-3001}:3001"
     environment:
+      # The stdio MCP transport exits when there is no stdin (a detached
+      # container), taking the server down; the HTTP MCP endpoint stays on.
+      MCP_STDIO: "false"
       SURREAL_MODE: server
       SURREAL_ENDPOINT: ws://surrealdb:8000
       SURREAL_USERNAME: root

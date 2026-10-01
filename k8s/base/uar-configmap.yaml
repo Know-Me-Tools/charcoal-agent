@@ -36,5 +36,7 @@ data:
   UAR_LLM__EMBEDDING__MODEL: "text-embedding-v4"
   UAR_LLM__EMBEDDING__BASE_URL: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
   UAR_LLM__EMBEDDING__VECTOR_DIMENSION: "1024"
+  # DashScope rejects embedding requests with more than 10 inputs.
+  UAR_LLM__EMBEDDING__BATCH_SIZE: "10"
 
   RUST_LOG: "info"

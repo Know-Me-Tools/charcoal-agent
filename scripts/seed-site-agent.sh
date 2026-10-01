@@ -116,21 +116,21 @@ mint_jwt() {
 JWT="$(mint_jwt)"
 
 # ── HTTP helper ──────────────────────────────────────────────────────────────
-# Writes the response body to a temp file and returns the status code on
-# stdout. Callers read the body from $REPLY_BODY. Never logs Authorization.
+# Sets API_STATUS (HTTP status) and REPLY_BODY. Must run in the current shell,
+# not in $(...): a subshell would drop REPLY_BODY. Never logs Authorization.
 REPLY_BODY=""
+API_STATUS=""
 api() {
   local method="$1" path="$2"
   shift 2
-  local tmp status
+  local tmp
   tmp="$(mktemp)"
-  status="$(curl -sS -o "$tmp" -w '%{http_code}' \
+  API_STATUS="$(curl -sS -o "$tmp" -w '%{http_code}' \
     -X "$method" "${UAR_URL}${path}" \
     -H "Authorization: Bearer ${JWT}" \
-    "$@")"
+    "$@")" || API_STATUS="000"
   REPLY_BODY="$(cat "$tmp")"
   rm -f "$tmp"
-  printf '%s' "$status"
 }
 
 require_2xx() {
@@ -147,10 +147,12 @@ require_2xx() {
 
 # ── 1. Agent: PUT, falling back to POST on 404 ──────────────────────────────
 log "seeding agent '$AGENT_ID' from $AGENT_FILE"
-status="$(api PUT "/api/agents/${AGENT_ID}" -H 'Content-Type: application/json' --data-binary @"$AGENT_FILE")"
+api PUT "/api/agents/${AGENT_ID}" -H 'Content-Type: application/json' --data-binary @"$AGENT_FILE"
+status="$API_STATUS"
 if [[ "$status" == "404" ]]; then
   log "agent '$AGENT_ID' does not exist yet; creating"
-  status="$(api POST "/api/agents" -H 'Content-Type: application/json' --data-binary @"$AGENT_FILE")"
+  api POST "/api/agents" -H 'Content-Type: application/json' --data-binary @"$AGENT_FILE"
+  status="$API_STATUS"
   require_2xx "$status" "create agent"
 else
   require_2xx "$status" "replace agent"
@@ -159,7 +161,8 @@ log "agent '$AGENT_ID' is up to date"
 
 # ── 2. Knowledge base: create if missing, looked up by name ────────────────
 log "looking up knowledge base '$KB_NAME'"
-status="$(api GET "/api/uar/knowledge-bases")"
+api GET "/api/uar/knowledge-bases"
+status="$API_STATUS"
 require_2xx "$status" "list knowledge bases"
 KB_ID="$(printf '%s' "$REPLY_BODY" | jq -r --arg name "$KB_NAME" '.[] | select(.name == $name) | .id' | head -n1)"
 
@@ -171,9 +174,18 @@ if [[ -z "$KB_ID" ]]; then
     --arg model "$KB_EMBEDDING_MODEL" \
     --argjson dims "$KB_VECTOR_DIMENSIONS" \
     '{name: $name, description: "Public-safe KnowMe product content for the site agent.", config: {embedding_provider: $provider, embedding_model: $model, vector_dimensions: $dims}}')"
-  status="$(api POST "/api/uar/knowledge-bases" -H 'Content-Type: application/json' --data-binary "$create_body")"
+  api POST "/api/uar/knowledge-bases" -H 'Content-Type: application/json' --data-binary "$create_body"
+  status="$API_STATUS"
   require_2xx "$status" "create knowledge base"
-  KB_ID="$(printf '%s' "$REPLY_BODY" | jq -r '.id')"
+  # The create response is not the list item shape, so read the id back from
+  # the list, the same way an existing KB is found.
+  api GET "/api/uar/knowledge-bases"
+  status="$API_STATUS"
+  require_2xx "$status" "list knowledge bases"
+  KB_ID="$(printf '%s' "$REPLY_BODY" | jq -r --arg name "$KB_NAME" '.[] | select(.name == $name) | .id' | head -n1)"
+  if [[ -z "$KB_ID" ]]; then
+    die "created knowledge base '$KB_NAME' but it is not in the list"
+  fi
   log "created knowledge base '$KB_NAME' ($KB_ID)"
 else
   log "knowledge base '$KB_NAME' exists ($KB_ID)"
@@ -191,7 +203,8 @@ fi
 # convention are managed here; anything else already in the KB is left alone.
 
 log "syncing corpus from $CORPUS_DIR"
-status="$(api GET "/api/uar/knowledge-bases/${KB_ID}/documents")"
+api GET "/api/uar/knowledge-bases/${KB_ID}/documents"
+status="$API_STATUS"
 require_2xx "$status" "list documents"
 REMOTE_DOCS_JSON="$REPLY_BODY"
 
@@ -199,13 +212,16 @@ hash_suffix_re='^(.*)\.([0-9a-f]{12})\.md$'
 
 # base name -> "doc_id filename" (space-joined; base names in our corpus won't contain spaces)
 declare -A remote_by_base
-while IFS=$'\t' read -r doc_id filename; do
+# Documents whose ingestion failed are not current: re-upload them.
+declare -A remote_failed
+while IFS=$'\t' read -r doc_id filename doc_status; do
   [[ -z "$doc_id" ]] && continue
   if [[ "$filename" =~ $hash_suffix_re ]]; then
     base="${BASH_REMATCH[1]}"
     remote_by_base["$base"]="${doc_id} ${filename}"
+    [[ "$doc_status" == "failed" ]] && remote_failed["$base"]=1
   fi
-done < <(printf '%s' "$REMOTE_DOCS_JSON" | jq -r '.[] | [.id, .filename] | @tsv')
+done < <(printf '%s' "$REMOTE_DOCS_JSON" | jq -r '.[] | [.id, .filename, (.status // "")] | @tsv')
 
 changed=0
 declare -A seen_base
@@ -220,20 +236,26 @@ for f in "$CORPUS_DIR"/*.md; do
   existing="${remote_by_base[$base]:-}"
   existing_filename="${existing#* }"
 
-  if [[ -n "$existing" && "$existing_filename" == "$desired_filename" ]]; then
+  if [[ -n "$existing" && "$existing_filename" == "$desired_filename" && -z "${remote_failed[$base]:-}" ]]; then
     continue
   fi
 
-  log "uploading $desired_filename (new or changed)"
-  status="$(api POST "/api/uar/knowledge-bases/${KB_ID}/documents" \
-    -F "file=@${f};filename=${desired_filename};type=text/markdown")"
+  if [[ -n "${remote_failed[$base]:-}" ]]; then
+    log "re-uploading $desired_filename (previous ingestion failed)"
+  else
+    log "uploading $desired_filename (new or changed)"
+  fi
+  api POST "/api/uar/knowledge-bases/${KB_ID}/documents" \
+    -F "file=@${f};filename=${desired_filename};type=text/markdown"
+  status="$API_STATUS"
   require_2xx "$status" "upload $desired_filename"
   changed=1
 
   if [[ -n "$existing" ]]; then
     old_doc_id="${existing% *}"
     log "removing superseded document $existing_filename ($old_doc_id)"
-    status="$(api DELETE "/api/uar/knowledge-bases/${KB_ID}/documents/${old_doc_id}")"
+    api DELETE "/api/uar/knowledge-bases/${KB_ID}/documents/${old_doc_id}"
+    status="$API_STATUS"
     require_2xx "$status" "delete $existing_filename"
     changed=1
   fi
@@ -246,7 +268,8 @@ for base in "${!remote_by_base[@]}"; do
     old_doc_id="${existing% *}"
     old_filename="${existing#* }"
     log "removing document for deleted source file: $old_filename ($old_doc_id)"
-    status="$(api DELETE "/api/uar/knowledge-bases/${KB_ID}/documents/${old_doc_id}")"
+    api DELETE "/api/uar/knowledge-bases/${KB_ID}/documents/${old_doc_id}"
+    status="$API_STATUS"
     require_2xx "$status" "delete $old_filename"
     changed=1
   fi
@@ -262,7 +285,8 @@ fi
 if [[ -n "$MINT_KEY_TO_FILE" || -n "$MINT_KEY_TO_K8S_SECRET" ]]; then
   log "minting a new site API key (sub=${JWT_SUBJECT})"
   key_body="$(jq -n --arg name "site-proxy-$(date +%s)" '{name: $name}')"
-  status="$(api POST "/api/uar/auth/keys" -H 'Content-Type: application/json' --data-binary "$key_body")"
+  api POST "/api/uar/auth/keys" -H 'Content-Type: application/json' --data-binary "$key_body"
+  status="$API_STATUS"
   require_2xx "$status" "mint API key"
   RAW_KEY="$(printf '%s' "$REPLY_BODY" | jq -r '.raw_key')"
   [[ -n "$RAW_KEY" && "$RAW_KEY" != "null" ]] || die "mint API key: response had no raw_key"

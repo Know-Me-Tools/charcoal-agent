@@ -2,13 +2,13 @@
   "schemaVersion": "1",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 777,
-  "derivedRevision": 777,
+  "sourceRevision": 792,
+  "derivedRevision": 792,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 777
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 792
   },
   "conflictCount": 0,
-  "updatedAt": "2026-09-30T12:49:05.520814Z",
+  "updatedAt": "2026-09-30T13:41:27.215360Z",
   "cursor": [
     "uar-integration",
     "execute",
@@ -20,7 +20,7 @@
     "id": "440c5818-223c-4091-8b7f-bc8083505a3c",
     "status": "ready",
     "progress": {
-      "done": 15,
+      "done": 16,
       "total": 25
     },
     "children": [
@@ -160,16 +160,16 @@
         "canonicalId": "uar-integration",
         "status": "PENDING",
         "progress": {
-          "done": 2,
+          "done": 3,
           "total": 12
         },
         "children": [
           {
             "type": "change",
             "id": "uar-ghcr-multiarch-publish",
-            "status": "PENDING",
+            "status": "COMPLETE",
             "progress": {
-              "done": 2,
+              "done": 4,
               "total": 4
             }
           },
@@ -187,7 +187,7 @@
             "id": "memory-server-ghcr-publish",
             "status": "PENDING",
             "progress": {
-              "done": 2,
+              "done": 3,
               "total": 4
             }
           },
