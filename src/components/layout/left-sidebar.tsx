@@ -10,7 +10,6 @@ import { useChatMessageStore } from "@/stores/chat-message-store";
 import { useAgents } from "@/hooks/use-agents";
 import { useUi } from "@/hooks/use-ui";
 import { isJwtConfigured } from "@/lib/api-client";
-import { useDeleteSession } from "@/hooks/use-sessions";
 import { cn } from "@/lib/utils";
 import type { LocalThread } from "@/types";
 
@@ -75,7 +74,6 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
   const threads = useThreadRegistryStore((s) => s.threads);
   const registerThread = useThreadRegistryStore((s) => s.registerThread);
   const removeThread = useThreadRegistryStore((s) => s.removeThread);
-  const deleteSession = useDeleteSession();
 
   const activeThreadId = (() => {
     const match = /\/threads\/([^/]+)/.exec(location.pathname);
@@ -114,16 +112,14 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
   ) => {
     e.stopPropagation();
 
-    // Remove from local registry and message store immediately (optimistic)
+    // The local registry is the source of truth for the sidebar; UAR has no
+    // live delete route for a session (see site-proxy-hardening).
     removeThread(id);
     useChatMessageStore.getState().clearThread(id);
 
     if (activeThreadId === id) {
       navigate("/threads");
     }
-
-    // Best-effort server delete; the local registry is the source of truth.
-    deleteSession.mutate(id);
   };
 
   const formatTime = (dateStr: string) => {

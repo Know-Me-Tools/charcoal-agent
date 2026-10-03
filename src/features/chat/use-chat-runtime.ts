@@ -1,6 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { useGraphStoreApi } from "@prometheus-ags/prometheus-entity-management";
-import { ENTITY } from "@/lib/entity-graph/entities";
 import {
   useExternalStoreRuntime,
   type AppendMessage,
@@ -223,7 +221,6 @@ export interface ChatRuntimeOptions {
 }
 
 export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {}) {
-  const graph = useGraphStoreApi();
   const consumePendingPrompt = useChatIntentStore((s) => s.consumePendingPrompt);
   const { startStream, cancelStream } = useMessageStream();
   const { messages, isStreaming } = useChatMessages(threadId);
@@ -261,9 +258,6 @@ export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {
       markPersisted(threadId);
       touch(threadId);
 
-      // Mark the server transcript stale so the next fallback read is fresh
-      graph.getState().invalidateEntity(ENTITY.SessionTranscript, threadId);
-
       // Generate title only once per thread (check current title first)
       if (titleGeneratedRef.current) return;
       const currentThread = useThreadRegistryStore.getState().threads[threadId];
@@ -283,7 +277,7 @@ export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {
       const title = await generateThreadTitle(userMsgText, assistantText);
       setTitle(threadId, title);
     },
-    [threadId, markPersisted, touch, setTitle, graph],
+    [threadId, markPersisted, touch, setTitle],
   );
 
   const onNew = useCallback(

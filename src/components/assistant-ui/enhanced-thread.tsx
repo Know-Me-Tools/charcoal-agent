@@ -7,6 +7,7 @@ import {
 	ErrorPrimitive,
 	MessagePrimitive,
 	ThreadPrimitive,
+	useAuiState,
 	type MessagePartStatus,
 	type ToolCallMessagePartProps,
 } from "@assistant-ui/react";
@@ -53,6 +54,7 @@ import { CitationBlock } from "@/features/chat/components/citation-block";
 import { cn } from "@/lib/utils";
 import { KnowMeMark } from "@/components/brand";
 import { usePersistenceStatus } from "@/hooks/use-persistence-status";
+import { AI_DISCLOSURE_CONTENT } from "../../../content/site/ai-disclosure";
 
 // ─── Root Thread ─────────────────────────────────────────────────────────────
 
@@ -101,6 +103,7 @@ export const EnhancedThread: FC<EnhancedThreadProps> = ({
 						promptCachingEnabled={promptCachingEnabled}
 						onTogglePromptCaching={onTogglePromptCaching}
 					/>
+					<ComposerDisclosure />
 				</ThreadPrimitive.ViewportFooter>
 			</ThreadPrimitive.Viewport>
 		</ThreadPrimitive.Root>
@@ -154,6 +157,37 @@ const ThreadScrollToBottom: FC = () => (
 			<ArrowDownIcon />
 		</TooltipIconButton>
 	</ThreadPrimitive.ScrollToBottom>
+);
+
+// ─── AI disclosure (EU AI Act Art. 50; FR-31, FR-35) ──────────────────────────
+//
+// Static, model-independent disclosure: identifies the agent as AI, warns
+// that answers may be wrong, and asks the visitor not to share sensitive
+// personal details. Sourced from `content/site/ai-disclosure.ts` (draft
+// copy, pending operator approval — see
+// docs/content/reviews/site-ai-disclosure-label.md) so approval only ever
+// means editing that one file. Renders from a static import with no network
+// call, so it is visible on first paint, before any stream event.
+
+/**
+ * Whether `index` is the position of the first assistant message in
+ * `messages` — identity, not content, so it's knowable before that
+ * message's first part (and therefore its first streamed token) exists.
+ * Exported as a plain function so the decision is unit-testable without an
+ * assistant-ui runtime.
+ */
+export function isFirstAssistantMessageIndex(
+	messages: readonly { role: string }[],
+	index: number,
+): boolean {
+	return messages.findIndex((m) => m.role === "assistant") === index;
+}
+
+export const ComposerDisclosure: FC = () => (
+	<div className="flex flex-col gap-0.5 px-1 text-center">
+		<p className="font-mono text-[11px] text-faint">{AI_DISCLOSURE_CONTENT.label}</p>
+		<p className="font-mono text-[11px] text-faint">{AI_DISCLOSURE_CONTENT.sensitiveDataHint}</p>
+	</div>
 );
 
 // ─── Composer ────────────────────────────────────────────────────────────────
@@ -306,41 +340,56 @@ const UserActionBar: FC = () => (
 
 // ─── Assistant Message ────────────────────────────────────────────────────────
 
-const AssistantMessage: FC = () => (
-	<MessagePrimitive.Root
-		className="fade-in slide-in-from-bottom-1 mx-auto flex w-full max-w-(--thread-max-width) animate-in flex-col px-0 pt-2 pb-6 duration-150 @md:px-4"
-		data-role="assistant"
-	>
-		<div className="flex w-full items-start gap-3">
-			<div className="hidden size-8 shrink-0 items-center justify-center rounded-lg bg-surface text-fg @md:flex">
-				<KnowMeMark size={24} />
+const AssistantMessage: FC = () => {
+	// FR-31: the AI label must sit on the very first agent bubble of the
+	// thread, present before the first streamed token — identity, not
+	// content, decides this, so it doesn't wait on any part to render.
+	const isFirstAssistantMessage = useAuiState((s) =>
+		isFirstAssistantMessageIndex(s.thread.messages, s.message.index),
+	);
+
+	return (
+		<MessagePrimitive.Root
+			className="fade-in slide-in-from-bottom-1 mx-auto flex w-full max-w-(--thread-max-width) animate-in flex-col px-0 pt-2 pb-6 duration-150 @md:px-4"
+			data-role="assistant"
+			data-ai-generated="true"
+		>
+			<div className="flex w-full items-start gap-3">
+				<div className="hidden size-8 shrink-0 items-center justify-center rounded-lg bg-surface text-fg @md:flex">
+					<KnowMeMark size={24} />
+				</div>
+				<div className="min-w-0 flex-1 wrap-break-word font-body text-[0.9375rem] text-fg leading-[1.7]">
+					<span className="sr-only">Agent:</span>
+					{isFirstAssistantMessage && (
+						<p className="mb-2 font-mono text-[11px] text-faint">
+							{AI_DISCLOSURE_CONTENT.label}
+						</p>
+					)}
+					<MessagePrimitive.Parts>
+						{({ part }) => {
+							switch (part.type) {
+								case "text":
+									return <EnhancedMarkdownText />;
+								case "reasoning":
+									return <ReasoningPart text={part.text} status={part.status} />;
+								case "tool-call":
+									// KnowMe rich blocks are encoded as tool calls (see ToolCallPart).
+									return <ToolCallPart {...part} />;
+								default:
+									return null;
+							}
+						}}
+					</MessagePrimitive.Parts>
+					<MessageError />
+				</div>
 			</div>
-			<div className="min-w-0 flex-1 wrap-break-word font-body text-[0.9375rem] text-fg leading-[1.7]">
-				<span className="sr-only">Agent:</span>
-				<MessagePrimitive.Parts>
-					{({ part }) => {
-						switch (part.type) {
-							case "text":
-								return <EnhancedMarkdownText />;
-							case "reasoning":
-								return <ReasoningPart text={part.text} status={part.status} />;
-							case "tool-call":
-								// KnowMe rich blocks are encoded as tool calls (see ToolCallPart).
-								return <ToolCallPart {...part} />;
-							default:
-								return null;
-						}
-					}}
-				</MessagePrimitive.Parts>
-				<MessageError />
+			<div className="mt-1 flex items-center gap-1 @md:ms-11">
+				<BranchPicker />
+				<AssistantActionBar />
 			</div>
-		</div>
-		<div className="mt-1 flex items-center gap-1 @md:ms-11">
-			<BranchPicker />
-			<AssistantActionBar />
-		</div>
-	</MessagePrimitive.Root>
-);
+		</MessagePrimitive.Root>
+	);
+};
 
 // ─── Reasoning Part ───────────────────────────────────────────────────────────
 
