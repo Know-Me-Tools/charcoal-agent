@@ -314,18 +314,37 @@ else
   log "corpus sync complete"
 fi
 
-# ── 4. FR-8 KB health check (site-agent-seed 1.4) ───────────────────────────
+# ── 4. FR-8 KB health check (site-agent-seed 1.4, kb-chunking-quality 1.4) ──
 #
-# What this checks: every corpus document is present in the KB and its
-# ingestion did not fail. What it does NOT check: per-document chunk counts
-# or chunk boundaries (kb-chunking-quality's "no chunk ends inside a version
-# number" and "at least one chunk per document" checks) — UAR's document API
-# exposes only id/filename/mime/status (see the "Corpus sync" comment
-# above), with no endpoint in this repo's documentation for listing a
-# document's chunks. Fabricating that endpoint's path here would be worse
-# than not checking it; that stricter check belongs to kb-chunking-quality
-# 1.4 once such an endpoint is confirmed or added, and stays open until then.
-log "checking every corpus document ingested without failure"
+# Confirmed against UAR origin/main (src/uar/api/knowledge.rs:93-134,
+# administration_capabilities.rs:1326-1395): DocumentResponse carries
+# `chunk_count: usize`, and `POST /api/uar/knowledge-bases/{id}/search`
+# takes `{query, limit, min_score}` (min_score defaults server-side to 0.7
+# when omitted) and returns `{results: [{content, score, metadata,
+# document_id}]}`. Both are used below instead of a fabricated
+# chunk-listing endpoint.
+
+# search_kb: POST .../search, leaves the `results` array in SEARCH_RESULTS_JSON.
+search_kb() {
+  local query="$1" limit="${2:-3}" body
+  body="$(jq -n --arg q "$query" --argjson limit "$limit" '{query: $q, limit: $limit}')"
+  api POST "/api/uar/knowledge-bases/${KB_ID}/search" -H 'Content-Type: application/json' --data-binary "$body"
+  local search_status="$API_STATUS"
+  require_2xx "$search_status" "search KB '$KB_NAME' for '$query'"
+  SEARCH_RESULTS_JSON="$(printf '%s' "$REPLY_BODY" | jq -c '.results // []')"
+}
+
+# doc_id_for_base: the UAR document id for corpus file <base>.md, from the
+# post-sync document listing (empty if not found).
+doc_id_for_base() {
+  local base="$1"
+  printf '%s' "$POST_SYNC_DOCS_JSON" \
+    | jq -r --arg base "$base" \
+      '.[] | select(.filename | test("^" + $base + "\\.[0-9a-f]{12}\\.md$")) | .id' \
+    | head -n1
+}
+
+log "checking every corpus document is present, not failed, and has at least one chunk"
 api GET "/api/uar/knowledge-bases/${KB_ID}/documents"
 status="$API_STATUS"
 require_2xx "$status" "list documents for FR-8 health check"
@@ -335,23 +354,83 @@ health_fail=0
 shopt -s nullglob
 for f in "$CORPUS_DIR"/*.md; do
   base="$(basename "$f" .md)"
-  doc_status="$(printf '%s' "$POST_SYNC_DOCS_JSON" \
-    | jq -r --arg base "$base" \
-      '.[] | select(.filename | test("^" + $base + "\\.[0-9a-f]{12}\\.md$")) | (.status // "")')"
-  if [[ -z "$doc_status" ]]; then
+  doc_json="$(printf '%s' "$POST_SYNC_DOCS_JSON" \
+    | jq -c --arg base "$base" \
+      '[.[] | select(.filename | test("^" + $base + "\\.[0-9a-f]{12}\\.md$"))] | first')"
+  if [[ -z "$doc_json" || "$doc_json" == "null" ]]; then
     log "FR-8 health check: $base.md is not present in KB '$KB_NAME'"
     health_fail=1
-  elif [[ "$doc_status" == "failed" ]]; then
+    continue
+  fi
+  doc_status="$(printf '%s' "$doc_json" | jq -r '.status // ""')"
+  chunk_count="$(printf '%s' "$doc_json" | jq -r '.chunk_count // 0')"
+  if [[ "$doc_status" == "failed" ]]; then
     log "FR-8 health check: $base.md ingestion status is 'failed'"
+    health_fail=1
+  elif [[ "$chunk_count" -eq 0 ]]; then
+    log "FR-8 health check: $base.md has zero chunks"
     health_fail=1
   fi
 done
 shopt -u nullglob
 
+# No chunk ends inside a version number ("v0.", "Obsidian 1."). The corpus's
+# ipfs-sync-for-obsidian.md states "IPFS Sync for Obsidian is at v0.2.0" and
+# "needs Obsidian 1.12.3 or later" — the original bug's small recursive
+# chunks cut exactly at those fragments. Search for them and assert the
+# returned chunk carries the full version strings, not a bare fragment.
+if [[ -f "$CORPUS_DIR/ipfs-sync-for-obsidian.md" ]]; then
+  log "FR-8: checking no chunk ends inside a version number (ipfs-sync-for-obsidian.md)"
+  search_kb "What version of IPFS Sync for Obsidian is available, and what version of Obsidian does it need?"
+  top_content="$(printf '%s' "$SEARCH_RESULTS_JSON" | jq -r '.[0].content // empty')"
+  if [[ -z "$top_content" ]]; then
+    log "FR-8 version-number check: search returned no results"
+    health_fail=1
+  else
+    if [[ "$top_content" != *"v0.2.0"* ]]; then
+      log "FR-8 version-number check: top chunk does not contain the full version 'v0.2.0'"
+      health_fail=1
+    fi
+    if [[ "$top_content" != *"Obsidian 1.12.3"* ]]; then
+      log "FR-8 version-number check: top chunk does not contain the full version 'Obsidian 1.12.3'"
+      health_fail=1
+    fi
+    # The bug's exact signature: the chunk's text ends right at a bare
+    # version-number fragment instead of the sentence that follows it.
+    last_line="$(printf '%s' "$top_content" | sed -e '/^[[:space:]]*$/d' | tail -n1)"
+    if printf '%s' "$last_line" | grep -qE '([Vv]|Obsidian )[0-9]+(\.[0-9]+)*\.[[:space:]]*$'; then
+      log "FR-8 version-number check: top chunk ends on a bare version-number fragment: '$last_line'"
+      health_fail=1
+    fi
+  fi
+fi
+
+# A question about The Boss's platforms retrieves the chunk from
+# the-boss.md that states them.
+if [[ -f "$CORPUS_DIR/the-boss.md" ]]; then
+  log "FR-8: checking The Boss's platforms question retrieves the-boss.md"
+  boss_doc_id="$(doc_id_for_base "the-boss")"
+  search_kb "What platforms does The Boss support?"
+  top_doc_id="$(printf '%s' "$SEARCH_RESULTS_JSON" | jq -r '.[0].document_id // empty')"
+  top_content="$(printf '%s' "$SEARCH_RESULTS_JSON" | jq -r '.[0].content // empty')"
+  if [[ -z "$boss_doc_id" ]]; then
+    log "FR-8 platforms check: could not resolve the-boss.md's document id"
+    health_fail=1
+  elif [[ "$top_doc_id" != "$boss_doc_id" ]]; then
+    log "FR-8 platforms check: top result's document_id ($top_doc_id) is not the-boss.md's ($boss_doc_id)"
+    health_fail=1
+  elif [[ "$top_content" != *"Windows"* || "$top_content" != *"macOS"* ]]; then
+    log "FR-8 platforms check: top result from the-boss.md does not state both platforms"
+    health_fail=1
+  else
+    log "FR-8 platforms check passed: top result is the-boss.md and states Windows/macOS"
+  fi
+fi
+
 if [[ "$health_fail" -ne 0 ]]; then
   die "FR-8 KB health check failed: see entries above"
 fi
-log "FR-8 KB health check passed: every corpus document is present and not failed"
+log "FR-8 KB health check passed"
 
 # ── 5. Optional: mint the site API key ──────────────────────────────────────
 if [[ -n "$MINT_KEY_TO_FILE" || -n "$MINT_KEY_TO_K8S_SECRET" ]]; then
