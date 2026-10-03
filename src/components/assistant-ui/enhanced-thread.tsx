@@ -174,8 +174,8 @@ const ThreadScrollToBottom: FC = () => (
 
 export const ComposerDisclosure: FC = () => (
 	<div className="flex flex-col gap-0.5 px-1 text-center">
-		<p className="font-mono text-[11px] text-faint">{AI_DISCLOSURE_CONTENT.label}</p>
-		<p className="font-mono text-[11px] text-faint">{AI_DISCLOSURE_CONTENT.sensitiveDataHint}</p>
+		<p className="font-mono text-xs text-faint">{AI_DISCLOSURE_CONTENT.label}</p>
+		<p className="font-mono text-xs text-faint">{AI_DISCLOSURE_CONTENT.sensitiveDataHint}</p>
 	</div>
 );
 
@@ -350,7 +350,7 @@ const AssistantMessage: FC = () => {
 				<div className="min-w-0 flex-1 wrap-break-word font-body text-[0.9375rem] text-fg leading-[1.7]">
 					<span className="sr-only">Agent:</span>
 					{isFirstAssistantMessage && (
-						<p className="mb-2 font-mono text-[11px] text-faint">
+						<p className="mb-2 font-mono text-xs text-faint">
 							{AI_DISCLOSURE_CONTENT.label}
 						</p>
 					)}

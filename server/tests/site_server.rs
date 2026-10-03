@@ -221,7 +221,11 @@ async fn first_turn_should_issue_a_secure_http_only_visitor_cookie() {
 
 #[tokio::test]
 async fn client_thread_id_should_never_reach_upstream_and_sessions_should_bind_the_visitor() {
-    let h = start(None).await;
+    let h = start_with(Options {
+        chat_burst: Some(50),
+        ..Options::default()
+    })
+    .await;
     let a = new_visitor(&h).await;
     let b = new_visitor(&h).await;
     assert_ne!(a, b);

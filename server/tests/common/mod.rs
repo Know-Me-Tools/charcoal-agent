@@ -214,6 +214,10 @@ pub struct Options<'a> {
     pub meter_mode: MeterMode,
     /// Points the meter elsewhere than the stub (e.g. a closed port).
     pub meter_url: Option<&'a str>,
+    /// Per-client chat burst; `None` keeps the production default. Tests that
+    /// send many turns from one client raise it so the limiter stays out of
+    /// their way.
+    pub chat_burst: Option<u32>,
 }
 
 pub async fn start_with(options: Options<'_>) -> Harness {
@@ -246,7 +250,12 @@ pub async fn start_with(options: Options<'_>) -> Harness {
         site_agent_id: "knowme-site".to_owned(),
         trusted_proxy_hops: 0,
         web_root: None,
-        rate_limits: RateLimits::default(),
+        rate_limits: options
+            .chat_burst
+            .map_or_else(RateLimits::default, |burst| RateLimits {
+                chat_burst: std::num::NonZeroU32::new(burst).unwrap(),
+                ..RateLimits::default()
+            }),
         session_secret: SessionSecret::new(SESSION_SECRET).unwrap(),
         meter: MeterConfig {
             store: MeterStoreConfig {

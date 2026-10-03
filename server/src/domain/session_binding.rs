@@ -69,7 +69,13 @@ impl SessionSecret {
     pub fn verify_visitor_token(&self, token: &str) -> Option<VisitorId> {
         let (hex, signature) = token.split_once('.')?;
         let visitor = VisitorId::from_hex(hex)?;
-        if signature.len() != SIGNATURE_HEX_LEN {
+        // Canonical lowercase hex only: the issued token is lowercase, so any
+        // other spelling of the same signature is a different (forged) token.
+        if signature.len() != SIGNATURE_HEX_LEN
+            || !signature
+                .bytes()
+                .all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
+        {
             return None;
         }
         let signature = decode_hex(signature)?;
