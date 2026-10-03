@@ -1,15 +1,23 @@
 // TJ-ARCH-MOB-001 compliant
 //! HTTP client for the Universal Agent Runtime.
+//!
+//! The client owns the proxy's credential: a static `X-API-Key` (local
+//! compose stack) or a gate-minted bearer (`gate_token`). In gate mode a 401
+//! from UAR drops the token, fetches a fresh one and resends the request
+//! once; a second 401 is an ordinary upstream error.
 
+use std::sync::Arc;
 use std::time::Duration;
 
 use axum::body::{Body, Bytes};
-use axum::http::{HeaderMap, Method, StatusCode};
+use axum::http::header::AUTHORIZATION;
+use axum::http::{HeaderMap, HeaderValue, Method, StatusCode};
 use axum::response::Response;
 use serde_json::Value;
 
-use crate::domain::forwarding::client_response_headers;
+use crate::domain::forwarding::{API_KEY_HEADER, client_response_headers};
 use crate::error::AppError;
+use crate::infrastructure::gate_token::{GateConfig, GateFetcher, TokenCache};
 
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
 /// Longest silence tolerated between upstream bytes. A model can think for a
@@ -22,14 +30,34 @@ const MAX_ERROR_BODY_BYTES: usize = 16 * 1024;
 /// UAR `src/server.rs`: `{"error":{"type":"guardrail_blocked", ...}}`.
 const GUARDRAIL_ERROR_TYPE: &str = "guardrail_blocked";
 
+/// How the proxy authenticates to UAR. Client credentials are never
+/// forwarded in any mode (`domain::forwarding`).
+#[derive(Debug, Clone)]
+pub enum UpstreamCredential {
+    /// No credential: UAR sees the proxy as anonymous.
+    None,
+    /// `X-API-Key` (sensitive header value).
+    ApiKey(HeaderValue),
+    /// Gate client credentials; tokens are fetched and cached on use.
+    Gate(GateConfig),
+}
+
+#[derive(Debug, Clone)]
+enum Auth {
+    None,
+    ApiKey(HeaderValue),
+    Gate(Arc<TokenCache<GateFetcher>>),
+}
+
 #[derive(Debug, Clone)]
 pub struct UarClient {
     http: reqwest::Client,
     base: String,
+    auth: Auth,
 }
 
 impl UarClient {
-    pub fn new(base: String) -> Result<Self, reqwest::Error> {
+    pub fn new(base: String, credential: UpstreamCredential) -> Result<Self, reqwest::Error> {
         let http = reqwest::Client::builder()
             .connect_timeout(CONNECT_TIMEOUT)
             .read_timeout(READ_IDLE_TIMEOUT)
@@ -39,7 +67,16 @@ impl UarClient {
             // system-proxy feature; an ambient proxy must never see the key.
             .no_proxy()
             .build()?;
-        Ok(Self { http, base })
+        let auth = match credential {
+            UpstreamCredential::None => Auth::None,
+            UpstreamCredential::ApiKey(key) => Auth::ApiKey(key),
+            // Same client: no redirects, no ambient proxy; the fetcher adds
+            // its own 3 s timeout per call.
+            UpstreamCredential::Gate(config) => Auth::Gate(Arc::new(TokenCache::new(
+                GateFetcher::new(http.clone(), config),
+            ))),
+        };
+        Ok(Self { http, base, auth })
     }
 
     /// Sends one request. A 2xx comes back with its body streamed, not
@@ -55,14 +92,35 @@ impl UarClient {
         headers: HeaderMap,
         body: Bytes,
     ) -> Result<Response, AppError> {
-        let upstream = self
-            .http
-            .request(method, format!("{}{path_and_query}", self.base))
-            .headers(headers)
-            .body(body)
-            .send()
-            .await
-            .map_err(classify)?;
+        let url = format!("{}{path_and_query}", self.base);
+        let upstream = match &self.auth {
+            Auth::None => self.request(method, &url, headers, body).await?,
+            Auth::ApiKey(key) => {
+                let mut headers = headers;
+                headers.insert(API_KEY_HEADER, key.clone());
+                self.request(method, &url, headers, body).await?
+            }
+            Auth::Gate(tokens) => {
+                let token = bearer(tokens, route).await?;
+                let first = self
+                    .request(
+                        method.clone(),
+                        &url,
+                        with_bearer(&headers, &token),
+                        body.clone(),
+                    )
+                    .await?;
+                if first.status() != StatusCode::UNAUTHORIZED {
+                    first
+                } else {
+                    tracing::info!(route, "upstream rejected the gate token; refreshing once");
+                    tokens.invalidate(&token).await;
+                    let fresh = bearer(tokens, route).await?;
+                    self.request(method, &url, with_bearer(&headers, &fresh), body)
+                        .await?
+                }
+            }
+        };
 
         let status = upstream.status();
         if !status.is_success() {
@@ -75,6 +133,22 @@ impl UarClient {
         Ok(response)
     }
 
+    async fn request(
+        &self,
+        method: Method,
+        url: &str,
+        headers: HeaderMap,
+        body: Bytes,
+    ) -> Result<reqwest::Response, AppError> {
+        self.http
+            .request(method, url)
+            .headers(headers)
+            .body(body)
+            .send()
+            .await
+            .map_err(classify)
+    }
+
     /// True when UAR answers `/readyz` with a 2xx within the probe timeout.
     pub async fn is_ready(&self) -> bool {
         self.http
@@ -84,6 +158,25 @@ impl UarClient {
             .await
             .is_ok_and(|r| r.status().is_success())
     }
+}
+
+/// The current gate token. A gate failure is logged here (kind and status
+/// only, never the secret or a token) and surfaces as the generic upstream
+/// error.
+async fn bearer(
+    tokens: &TokenCache<GateFetcher>,
+    route: &'static str,
+) -> Result<HeaderValue, AppError> {
+    tokens.authorization().await.map_err(|err| {
+        tracing::warn!(error = %err, route, "cannot obtain a UAR token from gate");
+        AppError::UpstreamAuth
+    })
+}
+
+fn with_bearer(headers: &HeaderMap, token: &HeaderValue) -> HeaderMap {
+    let mut headers = headers.clone();
+    headers.insert(AUTHORIZATION, token.clone());
+    headers
 }
 
 /// Logs the status and route only (never the session id or the body) and

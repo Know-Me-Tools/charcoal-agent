@@ -34,12 +34,23 @@
 //!   Raise `n` with `max_tokens_per_turn`.
 //! - `SITE_KILL_SWITCH_FILE` (required): the mounted kill switch file
 //!   (`on`/`off`), from an operator-owned ConfigMap.
+//!
+//! UAR credential (gate-site-credentials 1.4):
+//! - Gate mode: `SITE_GATE_TOKEN_URL` (`http://` only, e.g.
+//!   `http://flint-gate.flint-core.svc:4456/oauth/token`),
+//!   `SITE_GATE_CLIENT_ID` (e.g. `knowme-site`) and `SITE_GATE_CLIENT_SECRET`
+//!   (from a Secret). All three set: the proxy sends UAR a gate-minted
+//!   bearer and no `X-API-Key`; `SITE_PROXY_API_KEY` is ignored. Some but
+//!   not all set: startup fails.
+//! - Key mode (none of the three set, e.g. the local compose stack):
+//!   `SITE_PROXY_API_KEY` is sent as `X-API-Key`; unset sends nothing.
 
 use std::num::NonZeroU32;
 use std::path::PathBuf;
 
 use crate::domain::meter::Budgets;
 use crate::domain::session_binding::{MIN_SECRET_BYTES, SessionSecret};
+use crate::infrastructure::gate_token::GateConfig;
 use crate::infrastructure::meter_store::MeterStoreConfig;
 
 const DEFAULT_DAILY_TOKENS: u64 = 1_000_000;
@@ -69,6 +80,13 @@ pub enum ConfigError {
     Missing(&'static str),
     #[error("SITE_METER_URL must be an http:// URL without query or fragment: {0}")]
     InvalidMeterUrl(String),
+    #[error(
+        "gate mode needs SITE_GATE_TOKEN_URL, SITE_GATE_CLIENT_ID and SITE_GATE_CLIENT_SECRET \
+         together; missing: {0}"
+    )]
+    PartialGateConfig(String),
+    #[error("SITE_GATE_TOKEN_URL must be an http:// URL without query or fragment: {0}")]
+    InvalidGateTokenUrl(String),
     #[error(
         "meter sizes must be positive, with the reservation within the daily budget and the \
          daily budget within the monthly one"
@@ -103,7 +121,10 @@ pub struct Config {
     /// Base URL without trailing slash, e.g. `http://uar:6565`.
     pub uar_upstream: String,
     /// Sent as `X-API-Key` on every proxied call. `None` sends no credential.
+    /// Ignored when `gate` is set.
     pub site_proxy_api_key: Option<String>,
+    /// Gate client credentials. When set, UAR gets a gate-minted bearer.
+    pub gate: Option<GateConfig>,
     pub site_agent_id: String,
     /// Proxies in front of this server that append to `X-Forwarded-For`.
     pub trusted_proxy_hops: usize,
@@ -165,6 +186,7 @@ impl Config {
             port: parse_number("PORT", get("PORT"), DEFAULT_PORT)?,
             uar_upstream,
             site_proxy_api_key,
+            gate: gate_config(&get)?,
             site_agent_id,
             trusted_proxy_hops: parse_number("TRUSTED_PROXY_HOPS", get("TRUSTED_PROXY_HOPS"), 0)?,
             web_root: get("KNOWME_WEB_ROOT").map(PathBuf::from),
@@ -176,6 +198,46 @@ impl Config {
                 .ok_or(ConfigError::Missing("SITE_KILL_SWITCH_FILE"))?,
         })
     }
+}
+
+const GATE_VARS: [&str; 3] = [
+    "SITE_GATE_TOKEN_URL",
+    "SITE_GATE_CLIENT_ID",
+    "SITE_GATE_CLIENT_SECRET",
+];
+
+/// All three gate variables, or none of them.
+fn gate_config(get: &impl Fn(&str) -> Option<String>) -> Result<Option<GateConfig>, ConfigError> {
+    let [url, id, secret] = GATE_VARS.map(get);
+    match (url, id, secret) {
+        (None, None, None) => Ok(None),
+        (Some(url), Some(client_id), Some(client_secret)) => Ok(Some(GateConfig {
+            token_url: parse_token_url(&url)?,
+            client_id,
+            client_secret,
+        })),
+        _ => {
+            let missing: Vec<_> = GATE_VARS
+                .into_iter()
+                .filter(|name| get(name).is_none())
+                .collect();
+            Err(ConfigError::PartialGateConfig(missing.join(", ")))
+        }
+    }
+}
+
+/// The token endpoint is called with the TLS-less UAR client, so `http://`.
+fn parse_token_url(raw: &str) -> Result<String, ConfigError> {
+    let invalid = || ConfigError::InvalidGateTokenUrl(raw.to_owned());
+    let url = reqwest::Url::parse(raw).map_err(|_| invalid())?;
+    if url.scheme() != "http"
+        || url.host_str().is_none()
+        || url.query().is_some()
+        || url.fragment().is_some()
+    {
+        return Err(invalid());
+    }
+    Ok(url.as_str().to_owned())
 }
 
 fn meter_config(get: &impl Fn(&str) -> Option<String>) -> Result<MeterConfig, ConfigError> {
@@ -299,6 +361,73 @@ mod tests {
             (8080, "http://uar:6565", "knowme-site")
         );
         assert_eq!((cfg.trusted_proxy_hops, cfg.site_proxy_api_key), (0, None));
+        assert_eq!(cfg.gate, None);
+    }
+
+    const GATE_URL: &str = "http://flint-gate.flint-core.svc:4456/oauth/token";
+
+    #[test]
+    fn all_three_gate_variables_should_enable_gate_mode() {
+        let cfg = config(&[
+            ("UAR_UPSTREAM", "http://uar"),
+            ("SITE_GATE_TOKEN_URL", GATE_URL),
+            ("SITE_GATE_CLIENT_ID", "knowme-site"),
+            ("SITE_GATE_CLIENT_SECRET", "gate-secret"),
+            ("SITE_PROXY_API_KEY", "legacy-key"),
+        ])
+        .unwrap();
+        assert_eq!(
+            cfg.gate,
+            Some(GateConfig {
+                token_url: GATE_URL.to_owned(),
+                client_id: "knowme-site".to_owned(),
+                client_secret: "gate-secret".to_owned(),
+            })
+        );
+        assert!(!format!("{cfg:?}").contains("gate-secret"));
+    }
+
+    #[test]
+    fn partial_gate_variables_should_refuse_to_start() {
+        let partial = config(&[
+            ("UAR_UPSTREAM", "http://uar"),
+            ("SITE_GATE_TOKEN_URL", GATE_URL),
+            ("SITE_GATE_CLIENT_SECRET", "gate-secret"),
+        ]);
+        assert_eq!(
+            partial.unwrap_err(),
+            ConfigError::PartialGateConfig("SITE_GATE_CLIENT_ID".to_owned())
+        );
+        let only_id = config(&[
+            ("UAR_UPSTREAM", "http://uar"),
+            ("SITE_GATE_CLIENT_ID", "knowme-site"),
+        ]);
+        assert_eq!(
+            only_id.unwrap_err(),
+            ConfigError::PartialGateConfig(
+                "SITE_GATE_TOKEN_URL, SITE_GATE_CLIENT_SECRET".to_owned()
+            )
+        );
+    }
+
+    #[test]
+    fn https_or_query_gate_url_should_fail() {
+        for url in [
+            "https://gate/oauth/token",
+            "http://gate/oauth/token?x=1",
+            "gate",
+        ] {
+            let cfg = config(&[
+                ("UAR_UPSTREAM", "http://uar"),
+                ("SITE_GATE_TOKEN_URL", url),
+                ("SITE_GATE_CLIENT_ID", "knowme-site"),
+                ("SITE_GATE_CLIENT_SECRET", "gate-secret"),
+            ]);
+            assert!(
+                matches!(cfg, Err(ConfigError::InvalidGateTokenUrl(_))),
+                "{url}"
+            );
+        }
     }
 
     #[test]

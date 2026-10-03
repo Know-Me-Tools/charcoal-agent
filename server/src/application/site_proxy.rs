@@ -3,7 +3,8 @@
 //! (site-chat-proxy 1.3, trimmed by site-proxy-hardening):
 //! `POST /api/chat/completion`. Each call is rebuilt from an allowlist,
 //! stripped of client credentials, bound to the visitor's upstream session,
-//! is admitted by the spend meter, carries only the proxy's own key, and
+//! is admitted by the spend meter, carries only the proxy's own credential
+//! (added by the UAR client), and
 //! streams back through the internal-artifact filter and the turn tracker.
 //!
 //! Stream resume (UAR: the same route with `x-uar-run-id` and
@@ -36,7 +37,6 @@ const CHAT_QUERY_PARAMS: &[&str] = &[];
 pub struct SiteProxy {
     uar: UarClient,
     agent_id: String,
-    api_key: Option<HeaderValue>,
     secret: SessionSecret,
     meter: Arc<Meter>,
     /// Always `None` outside the `test-harness` build.
@@ -52,17 +52,10 @@ pub struct Visitor {
 }
 
 impl SiteProxy {
-    pub fn new(
-        uar: UarClient,
-        agent_id: String,
-        api_key: Option<HeaderValue>,
-        secret: SessionSecret,
-        meter: Arc<Meter>,
-    ) -> Self {
+    pub fn new(uar: UarClient, agent_id: String, secret: SessionSecret, meter: Arc<Meter>) -> Self {
         Self {
             uar,
             agent_id,
-            api_key,
             secret,
             meter,
             tap: None,
@@ -122,7 +115,7 @@ impl SiteProxy {
         let mut session = HeaderValue::from_str(&self.secret.upstream_session_id(visitor, &thread))
             .map_err(|_| AppError::Internal("derived session id is not a header value"))?;
         session.set_sensitive(true);
-        let mut upstream = upstream_request_headers(headers, self.api_key.as_ref(), session);
+        let mut upstream = upstream_request_headers(headers, session);
         // The body was re-serialized here, so its type is ours to state.
         upstream.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 

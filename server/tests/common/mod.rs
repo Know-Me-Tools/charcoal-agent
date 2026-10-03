@@ -21,12 +21,15 @@ use axum::routing::any;
 use knowme_site_server::config::{Config, MeterConfig, RateLimits};
 use knowme_site_server::domain::meter::Budgets;
 use knowme_site_server::domain::session_binding::SessionSecret;
+use knowme_site_server::infrastructure::gate_token::GateConfig;
 use knowme_site_server::infrastructure::meter_store::MeterStoreConfig;
 use knowme_site_server::{build_app, build_app_with_upstream_tap};
 use tokio::net::TcpListener;
 use tokio::sync::{Notify, mpsc};
 
 pub const PROXY_KEY: &str = "proxy-secret-key";
+/// The stub UAR answers 401 to this bearer (an expired gate token).
+pub const REJECTED_BEARER: &str = "Bearer rejected-token";
 pub const SESSION_SECRET: &[u8] = b"test-session-secret-0123456789abcdef";
 pub const THREAD: &str = "0b7e3c1a-5f0e-4a8e-9c3b-2d1f4e5a6b7c";
 pub const OTHER_THREAD: &str = "6f1d2e3c-4b5a-4c6d-8e7f-9a0b1c2d3e4f";
@@ -96,8 +99,16 @@ pub async fn stub_handler(
         headers,
         body,
     });
+    let rejected = stub
+        .last()
+        .headers
+        .get("authorization")
+        .is_some_and(|v| v == REJECTED_BEARER);
     match uri.path() {
         "/readyz" => Response::new(Body::empty()),
+        "/api/chat/completion" if rejected => {
+            json_response(StatusCode::UNAUTHORIZED, r#"{"error":"token expired"}"#)
+        }
         "/api/chat/completion" if body_has(&stub.last(), "upstream-500") => {
             json_response(StatusCode::INTERNAL_SERVER_ERROR, LEAKY_500)
         }
@@ -214,6 +225,8 @@ pub struct Options<'a> {
     pub meter_mode: MeterMode,
     /// Points the meter elsewhere than the stub (e.g. a closed port).
     pub meter_url: Option<&'a str>,
+    /// Gate mode against this token endpoint (see `gate_credentials.rs`).
+    pub gate: Option<GateConfig>,
 }
 
 pub async fn start_with(options: Options<'_>) -> Harness {
@@ -243,6 +256,7 @@ pub async fn start_with(options: Options<'_>) -> Harness {
         port: 0,
         uar_upstream: upstream_url,
         site_proxy_api_key: Some(PROXY_KEY.to_owned()),
+        gate: options.gate,
         site_agent_id: "knowme-site".to_owned(),
         trusted_proxy_hops: 0,
         web_root: None,
