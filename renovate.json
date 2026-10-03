@@ -1,12 +1,12 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
-  "kustomize": {
-    "managerFilePatterns": ["/^k8s/base/kustomization\\.yaml$/"]
+  "kubernetes": {
+    "managerFilePatterns": ["/^k8s/base/.*\\.yaml$/"]
   },
   "packageRules": [
     {
-      "description": "Pin the UAR and surreal-memory-server images (built by their own repos' CI) to exact digests, in both k8s/base/kustomization.yaml (kustomize manager) and docker-compose.yaml (docker-compose manager).",
+      "description": "Pin the UAR and surreal-memory-server images (built by their own repos' CI) to exact digests. ci-supply-chain-pins moved these pins off the kustomize images transformer and into the Deployment manifests themselves (k8s/base/uar-deployment.yaml, k8s/base/memory-server-deployment.yaml), so the kubernetes manager tracks them there; docker-compose.yaml is tracked by the docker-compose manager.",
       "matchDatasources": ["docker"],
       "matchPackageNames": [
         "ghcr.io/prometheus-ags/universal-agent-runtime",

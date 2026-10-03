@@ -1,6 +1,11 @@
-# Only uar and surreal-memory-server may reach surrealdb:8000. Selecting the
-# surrealdb pods with any ingress rule makes NetworkPolicy deny everything
-# else to them by default — no separate default-deny policy is needed.
+# Only uar, surreal-memory-server and knowme-web may reach surrealdb:8000.
+# knowme-web connects for the site-spend-ceiling meter (ns=site/db=meter),
+# through a user scoped to that database only (k8s-stack-manifests 1.6) —
+# it has no rights in uar's or the memory server's namespace/database, so
+# this NetworkPolicy widening the reachable pod set does not widen the data
+# a compromised knowme-web pod can reach. Selecting the surrealdb pods with
+# any ingress rule makes NetworkPolicy deny everything else to them by
+# default — no separate default-deny policy is needed.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -23,6 +28,9 @@ spec:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: surreal-memory-server
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: knowme-web
       ports:
         - protocol: TCP
           port: 8000

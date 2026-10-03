@@ -27,7 +27,9 @@ services:
 
   # ── Universal Agent Runtime — Rust agent backend ───────────────────────────
   uar:
-    image: ghcr.io/prometheus-ags/universal-agent-runtime:main
+    # Pinned by digest (ci-supply-chain-pins); see k8s/base/uar-deployment.yaml
+    # for the verification evidence. Bump deliberately, in step with the k8s pin.
+    image: ghcr.io/prometheus-ags/universal-agent-runtime:main@sha256:94e4af0f524c3d9a4ec281c8e553909224ccfc212b6e87fac9f4a2bc0e2a7568
     container_name: knowme-uar
     ports:
       - "${UAR_PORT:-6565}:6565"
@@ -88,7 +90,9 @@ services:
 
   # ── Memory server — same SurrealDB, its own namespace, local embeddings ───
   surreal-memory-server:
-    image: ghcr.io/prometheus-ags/surreal-memory-server:main
+    # Pinned by digest (ci-supply-chain-pins); see
+    # k8s/base/memory-server-deployment.yaml for the verification evidence.
+    image: ghcr.io/prometheus-ags/surreal-memory-server:main@sha256:6315ca4a0f5f6bc503b2e4f8aed9c00f3ee7acf6b8cc10dbd03c28ffc62a8647
     container_name: knowme-memory-server
     ports:
       - "${MEMORY_SERVER_PORT:-3001}:3001"
@@ -130,6 +134,10 @@ services:
       UAR_UPSTREAM: "http://uar:6565"
       SITE_PROXY_API_KEY: "${SITE_PROXY_API_KEY:-}"
       SITE_AGENT_ID: knowme-site
+      # site-session-binding: raw bytes, >= 32 bytes. Required at startup;
+      # the server refuses to start without it. Read from .env, never
+      # generated or printed here.
+      SITE_SESSION_SECRET: "${SITE_SESSION_SECRET:?SITE_SESSION_SECRET must be set}"
       # Nothing sits in front of this container locally: rate-limit on the
       # TCP peer and ignore X-Forwarded-For.
       TRUSTED_PROXY_HOPS: "0"

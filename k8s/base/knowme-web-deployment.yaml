@@ -62,6 +62,54 @@ spec:
                 secretKeyRef:
                   name: site-proxy
                   key: SITE_PROXY_API_KEY
+            # site-session-binding: HMAC secret the site server requires at
+            # startup (raw bytes, >= 32 bytes, identical on every replica —
+            # the HMAC derivation of each visitor's upstream UAR session id,
+            # HMAC-SHA256(secret, cookie_id ‖ thread_id), must agree across
+            # pods) and refuses to start without. Its own Secret, created
+            # out of band by the operator — not in k8s/, and this reference
+            # never carries or generates a value.
+            - name: SITE_SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: site-session
+                  key: secret
+            # site-spend-ceiling: the reserve-and-settle meter's own
+            # SurrealDB user, scoped `ON DATABASE` to ns=site/db=meter only
+            # (no rights in uar's or the memory server's namespace/database).
+            # Created out of band by the operator before the first deploy
+            # (site-spend-ceiling 1.1); CI never holds this credential.
+            - name: SITE_METER_SURREAL_ENDPOINT
+              value: ws://surrealdb:8000
+            - name: SITE_METER_SURREAL_NAMESPACE
+              value: site
+            - name: SITE_METER_SURREAL_DATABASE
+              value: meter
+            - name: SITE_METER_SURREAL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: site-meter-auth
+                  key: SITE_METER_SURREAL_USER
+            - name: SITE_METER_SURREAL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: site-meter-auth
+                  key: SITE_METER_SURREAL_PASSWORD
+            # site-spend-ceiling 1.9: the kill switch. The operator creates
+            # this ConfigMap out of band (NOT in k8s/, so `kubectl apply -k`
+            # never resets it); its initial value is on. The server reads
+            # the mounted file, not this env var — the env var only tells it
+            # where to look, which does pass per that task's "an environment
+            # variable does not pass" rule (that rule is about carrying the
+            # switch VALUE in an env var, which would need a pod restart to
+            # change; the file path is fixed and the mounted file's CONTENT
+            # is what the server re-reads).
+            - name: SITE_CHAT_KILL_SWITCH_FILE
+              value: /etc/knowme/kill-switch/enabled
+          volumeMounts:
+            - name: kill-switch
+              mountPath: /etc/knowme/kill-switch
+              readOnly: true
           # Keep serving while Envoy drops this endpoint, then SIGTERM. Native
           # sleep action (Kubernetes 1.30+): the distroless image has no shell.
           lifecycle:
@@ -91,3 +139,11 @@ spec:
             limits:
               cpu: 500m
               memory: 256Mi
+      volumes:
+        # site-spend-ceiling 1.9: created out of band by the operator, not
+        # by this kustomize base — intentionally absent from
+        # kustomization.yaml's resources. Key `enabled` holds "true" (kill
+        # switch on, the initial state before the first deploy) or "false".
+        - name: kill-switch
+          configMap:
+            name: site-chat-kill-switch

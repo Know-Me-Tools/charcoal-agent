@@ -1,0 +1,53 @@
+# uar-runtime-host-lockdown 1.5 / D-7: with no HTTPRoute exposing uar:6565
+# (httproutes.yaml), this is the only thing admitting traffic to the uar
+# pods. Selecting them with any ingress rule makes NetworkPolicy deny
+# everything else to them by default — no separate default-deny policy is
+# needed.
+#
+# Admitted:
+#   - knowme-web (this namespace): the only public path to UAR.
+#   - seed-site-agent (this namespace): uar-runtime-host-lockdown 1.4 decided
+#     the in-cluster seed Job (k8s/base/seed-job.yaml) needs it. That Job is
+#     not applied by `kubectl apply -k k8s` (see the comment at the top of
+#     seed-job.yaml) and today's CI deploy seeds via `kubectl port-forward`,
+#     which proxies through the API server/kubelet rather than the pod
+#     network and so isn't a NetworkPolicy-selectable source — but the
+#     inert manifest exists for an operator to run the seed in-cluster by
+#     hand, and admitting its one label costs nothing extra since the seed
+#     identity already holds full access to every UAR route via its JWT.
+#   - flint-gate (namespace flint-core): decision log D-7, "only knowme-web
+#     and flint-gate reach UAR, in-cluster". flint-gate's manifests live in
+#     Prometheus-AGS/know-me-cluster / flint-infra, not this repo, so its
+#     pod-level labels are not available here to verify. This rule admits
+#     the whole flint-core namespace (confirmed as gate's namespace by
+#     `cluster-extauthz-policies` tasks.md: "gate scaled to 0 in
+#     flint-core") rather than guessing a pod selector. Platform/operator:
+#     tighten this to a podSelector once flint-gate's labels are confirmed.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-knowme-web-and-gate-to-uar
+  namespace: knowme
+  labels:
+    app.kubernetes.io/part-of: knowme-site
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: uar
+      app.kubernetes.io/component: app
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: knowme-web
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: seed-site-agent
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: flint-core
+      ports:
+        - protocol: TCP
+          port: 6565
