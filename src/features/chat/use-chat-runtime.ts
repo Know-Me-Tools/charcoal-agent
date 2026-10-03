@@ -72,6 +72,22 @@ export function richMessageToThreadMessageLike(msg: RichMessage): ThreadMessageL
         parts.push({ type: "reasoning", text: block.text });
         break;
       case "tool-call":
+        if (block.status === "denied") {
+          // assistant-ui's ToolCallMessagePartStatus has no "denied"/policy
+          // reason (only cancelled/length/content-filter/other/error), so
+          // this is encoded as a pseudo-tool-call like skill-activation and
+          // context-update below — ToolCallPart routes it to a block that
+          // always reads "Blocked by policy", never "running" or "Failed".
+          parts.push({
+            type: "tool-call",
+            toolCallId: block.toolCallId,
+            toolName: "__denied__",
+            args: { toolName: block.toolName, reason: block.result },
+            result: undefined,
+            isError: false,
+          });
+          break;
+        }
         parts.push({
           type: "tool-call",
           toolCallId: block.toolCallId,

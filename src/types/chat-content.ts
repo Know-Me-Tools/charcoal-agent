@@ -17,7 +17,8 @@ export interface ToolCallContentBlock {
   toolName: string;
   args: Record<string, unknown>;
   result?: string;
-  status: "running" | "complete" | "failed";
+  /** "denied": the launch run policy refused this call (agui.tool_call.denied, FR-11). */
+  status: "running" | "complete" | "failed" | "denied";
 }
 
 export interface CitationContentBlock {

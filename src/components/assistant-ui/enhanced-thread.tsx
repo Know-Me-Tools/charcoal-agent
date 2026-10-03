@@ -49,12 +49,14 @@ import { A2uiInputBlock, A2uiDisplayBlock } from "@/features/chat/components/a2u
 import { ContextUpdateBlock } from "@/features/chat/components/context-update-block";
 import { MemoryMutationBlock, MemoryRecallBlock } from "@/features/chat/components/memory-block";
 import { SkillActivationBlock } from "@/features/chat/components/skill-activation-block";
-import { ToolCallBlockWrapper } from "@/features/chat/components/tool-call-block";
+import { ToolCallBlock, ToolCallBlockWrapper } from "@/features/chat/components/tool-call-block";
 import { CitationBlock } from "@/features/chat/components/citation-block";
+import { ChatConnectivityBanner } from "@/features/chat/components/chat-connectivity-banner";
 import { cn } from "@/lib/utils";
 import { KnowMeMark } from "@/components/brand";
 import { usePersistenceStatus } from "@/hooks/use-persistence-status";
 import { AI_DISCLOSURE_CONTENT } from "../../../content/site/ai-disclosure";
+import { isFirstAssistantMessageIndex } from "@/features/chat/first-assistant-message";
 
 // ─── Root Thread ─────────────────────────────────────────────────────────────
 
@@ -99,6 +101,7 @@ export const EnhancedThread: FC<EnhancedThreadProps> = ({
 
 				<ThreadPrimitive.ViewportFooter className="aui-thread-viewport-footer sticky bottom-0 mx-auto mt-auto flex w-full max-w-(--thread-max-width) flex-col gap-3 bg-canvas pt-3 pb-4 @md:pb-6">
 					<ThreadScrollToBottom />
+					<ChatConnectivityBanner />
 					<EnhancedComposer
 						promptCachingEnabled={promptCachingEnabled}
 						onTogglePromptCaching={onTogglePromptCaching}
@@ -168,20 +171,6 @@ const ThreadScrollToBottom: FC = () => (
 // docs/content/reviews/site-ai-disclosure-label.md) so approval only ever
 // means editing that one file. Renders from a static import with no network
 // call, so it is visible on first paint, before any stream event.
-
-/**
- * Whether `index` is the position of the first assistant message in
- * `messages` — identity, not content, so it's knowable before that
- * message's first part (and therefore its first streamed token) exists.
- * Exported as a plain function so the decision is unit-testable without an
- * assistant-ui runtime.
- */
-export function isFirstAssistantMessageIndex(
-	messages: readonly { role: string }[],
-	index: number,
-): boolean {
-	return messages.findIndex((m) => m.role === "assistant") === index;
-}
 
 export const ComposerDisclosure: FC = () => (
 	<div className="flex flex-col gap-0.5 px-1 text-center">
@@ -496,6 +485,14 @@ const ToolCallPart: FC<ToolCallMessagePartProps> = ({
 	if (toolName === "__citation__") {
 		const a = args as { source: string; content: string; url?: string };
 		return <CitationBlock source={a.source} content={a.content} url={a.url} />;
+	}
+
+	if (toolName === "__denied__") {
+		// agui.tool_call.denied (FR-11 client case, site-chat-offline-states):
+		// the launch run policy refused this call. Always "Blocked by
+		// policy" — never "running" and never silently dropped.
+		const a = args as { toolName: string; reason?: string };
+		return <ToolCallBlock toolName={a.toolName} args={{}} result={a.reason} status="denied" />;
 	}
 
 	if (toolName === "__memory_recall__") {
