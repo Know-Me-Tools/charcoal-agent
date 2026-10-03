@@ -79,22 +79,22 @@ spec:
             # (no rights in uar's or the memory server's namespace/database).
             # Created out of band by the operator before the first deploy
             # (site-spend-ceiling 1.1); CI never holds this credential.
-            - name: SITE_METER_SURREAL_ENDPOINT
-              value: ws://surrealdb:8000
-            - name: SITE_METER_SURREAL_NAMESPACE
+            - name: SITE_METER_URL
+              value: http://surrealdb:8000
+            - name: SITE_METER_NS
               value: site
-            - name: SITE_METER_SURREAL_DATABASE
+            - name: SITE_METER_DB
               value: meter
-            - name: SITE_METER_SURREAL_USER
+            - name: SITE_METER_USER
               valueFrom:
                 secretKeyRef:
                   name: site-meter-auth
-                  key: SITE_METER_SURREAL_USER
-            - name: SITE_METER_SURREAL_PASSWORD
+                  key: SITE_METER_USER
+            - name: SITE_METER_PASS
               valueFrom:
                 secretKeyRef:
                   name: site-meter-auth
-                  key: SITE_METER_SURREAL_PASSWORD
+                  key: SITE_METER_PASS
             # site-spend-ceiling 1.9: the kill switch. The operator creates
             # this ConfigMap out of band (NOT in k8s/, so `kubectl apply -k`
             # never resets it); its initial value is on. The server reads
@@ -104,8 +104,8 @@ spec:
             # switch VALUE in an env var, which would need a pod restart to
             # change; the file path is fixed and the mounted file's CONTENT
             # is what the server re-reads).
-            - name: SITE_CHAT_KILL_SWITCH_FILE
-              value: /etc/knowme/kill-switch/enabled
+            - name: SITE_KILL_SWITCH_FILE
+              value: /etc/knowme/kill-switch/state
           volumeMounts:
             - name: kill-switch
               mountPath: /etc/knowme/kill-switch

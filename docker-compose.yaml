@@ -25,6 +25,32 @@ services:
       - knowme-network
     restart: unless-stopped
 
+  # ── site-spend-ceiling: local meter store (ns=site, db=meter) ─────────────
+  # One-shot: defines the meter's database-scoped user. Locally the root
+  # password comes from .env; in the cluster the operator does this out of
+  # band (site-spend-ceiling 1.1). Reuses the pinned UAR image for curl.
+  meter-init:
+    image: ghcr.io/prometheus-ags/universal-agent-runtime:main@sha256:94e4af0f524c3d9a4ec281c8e553909224ccfc212b6e87fac9f4a2bc0e2a7568
+    container_name: knowme-meter-init
+    entrypoint: ["curl"]
+    command:
+      - -fsS
+      - -X
+      - POST
+      - -u
+      - "root:${SURREALDB_ROOT_PASSWORD:?SURREALDB_ROOT_PASSWORD must be set}"
+      - -H
+      - "Accept: application/json"
+      - --data-binary
+      - "DEFINE NAMESPACE IF NOT EXISTS site; USE NS site; DEFINE DATABASE IF NOT EXISTS meter; USE NS site DB meter; DEFINE USER OVERWRITE ${SITE_METER_USER:?SITE_METER_USER must be set} ON DATABASE PASSWORD '${SITE_METER_PASS:?SITE_METER_PASS must be set}' ROLES EDITOR;"
+      - http://surrealdb:8000/sql
+    depends_on:
+      surrealdb:
+        condition: service_healthy
+    networks:
+      - knowme-network
+    restart: "no"
+
   # ── Universal Agent Runtime — Rust agent backend ───────────────────────────
   uar:
     # Pinned by digest (ci-supply-chain-pins); see k8s/base/uar-deployment.yaml
@@ -141,10 +167,20 @@ services:
       # Nothing sits in front of this container locally: rate-limit on the
       # TCP peer and ignore X-Forwarded-For.
       TRUSTED_PROXY_HOPS: "0"
+      # site-spend-ceiling: the meter store and the kill switch.
+      SITE_METER_URL: "http://surrealdb:8000"
+      SITE_METER_USER: "${SITE_METER_USER:?SITE_METER_USER must be set}"
+      SITE_METER_PASS: "${SITE_METER_PASS:?SITE_METER_PASS must be set}"
+      # The file holds `on` or `off`; missing or unreadable means on.
+      SITE_KILL_SWITCH_FILE: /etc/knowme/kill-switch/state
       RUST_LOG: "${RUST_LOG:-info}"
+    volumes:
+      - ./.compose/kill-switch:/etc/knowme/kill-switch:ro
     depends_on:
       uar:
         condition: service_healthy
+      meter-init:
+        condition: service_completed_successfully
     networks:
       - knowme-network
     restart: unless-stopped

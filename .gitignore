@@ -74,3 +74,6 @@ Thumbs.db
 .agent-team/state.json
 .agent-team/exports/
 .agent-team/*.result.json
+
+# local compose state (kill switch file)
+.compose/
