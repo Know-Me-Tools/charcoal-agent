@@ -1,0 +1,9 @@
+## 1. Upstream sessions bound to the visitor
+
+- [ ] 1.1 Issue the visitor cookie in the site server: if the request carries no valid signed cookie, set one holding a random visitor id, with `HttpOnly`, `Secure`, `SameSite=Lax`, first-party scope. A cookie whose signature fails is replaced, never trusted.
+- [ ] 1.2 Validate the thread id: an `X-UAR-Session-ID` that is not a UUIDv4 gets 400 with a generic body, before any upstream call.
+- [ ] 1.3 Derive the upstream session id as `HMAC-SHA256(secret, cookie_id ‖ thread_id)` formatted as a UUID, and send only that upstream. The client's `X-UAR-Session-ID` is never forwarded. Apply this to chat completion and stream resume.
+- [ ] 1.4 Load the HMAC secret from a Kubernetes Secret (`k8s/`) and from the local compose environment; refuse to start without it. Add a rotation note: rotating orphans every server-side session, which is acceptable because local thread history stays and the purge deletes orphans.
+- [ ] 1.5 Unit tests: the derivation is deterministic for the same cookie and thread, differs across cookies for the same thread, and is formatted as a UUID; a non-UUIDv4 thread id returns 400; a client `X-UAR-Session-ID` never appears in the upstream request.
+- [ ] 1.6 Write the two-visitor isolation test for chat completion and for resume: with visitor A's cookie and visitor B's thread id, UAR sees an upstream session id that is not B's, and no message or run of B is read, changed or resumed.
+- [ ] 1.7 Done-when (local): run the 1.6 test against the compose stack with two site server replicas behind one entry point, with each visitor's requests spread across both replicas. A's requests never reach B's upstream session, each visitor keeps one upstream session across replicas, and a non-UUIDv4 thread id returns 400. Paste the test output here.

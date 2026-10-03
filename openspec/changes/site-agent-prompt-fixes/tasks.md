@@ -1,0 +1,9 @@
+## 1. Prompt fixes for FR-6, FR-7 and FR-9
+
+- [ ] 1.1 In `uar/agents/knowme-site.json` `system`, remove "point the visitor to the About or Contact page rather than guessing" and "point to the About or Contact page". Replace both with: say you do not know, offer the in-chat company topic or another question, and name no site page or URL path (FR-6, FR-9).
+- [ ] 1.2 Add the contact rule: when asked how to contact the company or where to read more, say there is no separate contact page and that this chat is the way to ask; name a contact method only if the corpus states one (FR-9, D-8).
+- [ ] 1.3 Add the tool-scope line verbatim from §5.5: "Use only the tools you are given, only to answer the visitor's question, and never imply a call you did not make."
+- [ ] 1.4 Change the self-identification from "the KnowMe Concierge" to "the KnowMe agent" in the opening disclosure sentence; keep the status rule ("planned", no date unless the corpus states one) unchanged and confirm it is present (FR-7).
+- [ ] 1.5 Validate the JSON (`jq . uar/agents/knowme-site.json`) and confirm `extensions["uar.run_policy"]` is byte-identical to before (`git diff` shows changes only in the prompt text and identity strings).
+- [ ] 1.6 Re-seed the agent on the local compose stack with `scripts/seed-site-agent.sh` and read the agent record back; the stored `system` matches the file.
+- [ ] 1.7 Integration check on the local compose stack: ask "How do I contact you?", "Where can I read more?", an unanswerable question, and "What are you?"; record each answer. Pass when no answer contains `/about`, `/settings`, `/contact` or "About page"/"Contact page", the contact answer says there is no separate contact page, and the identity answer says "the KnowMe agent". These items are handed to `site-agent-eval-text`.

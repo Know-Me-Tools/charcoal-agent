@@ -13,7 +13,7 @@ Protocol facts cite their source. Code facts cite a file path, and a line where 
 ```mermaid
 flowchart LR
   B["Browser<br/>React 19 SPA<br/>PGlite (idb://)"] -->|HTTPS| G["Envoy Gateway<br/>argocd-gateway<br/>HTTPRoute know-me.tools<br/>timeout 300s"]
-  G -.->|"ext_authz check<br/>anonymous-allow, fail-open"| F["flint-gate<br/>gate.know-me.tools<br/>Kratos + ES256 JWT minting<br/>budget + rate limit"]
+  G -.->|"ext_authz check<br/>anonymous-allow, fail-open"| F["flint-gate<br/>gate.know-me.tools<br/>Kratos + ES256 JWT minting<br/>rate limit; budget optional (D-4)"]
   G -->|HTTP :8080| W["knowme-web<br/>Axum site server<br/>embedded SPA + allowlisted proxy<br/>2 replicas"]
   W -->|"token request<br/>site credential"| F
   W -->|"HTTP :6565, in-cluster<br/>ES256 JWT, aud uar"| U["UAR<br/>agent knowme-site<br/>AG-UI SSE"]
@@ -237,7 +237,7 @@ UAR itself requires a JWT or API key on everything except its probes.
 - UAR verifies the token through gate's JWKS (`UAR_SECURITY__JWKS_URL`, with `UAR_SECURITY__JWT_ISSUER` `https://gate.know-me.tools` and `UAR_SECURITY__JWT_AUDIENCE` `uar`). Once `jwks_url` is set, verification is JWKS-only: `verify_token()` takes one scheme or the other, so HS256 tokens self-minted with UAR's signing secret are rejected. The seed job therefore also obtains a gate token, for its own seed identity.
 - The minted `sub` must be the principal that owns the agent and the KB (`knowme-site` today). Any other subject sees an empty knowledge-base universe, as `anonymous` did.
 - A NetworkPolicy admits only `knowme-web` and flint-gate to `uar:6565` (§4.1).
-- Gate's `max_token_budget` hook and a per-credential rate limit on the site identity are the site's spend ceiling (§4.8).
+- The site's spend ceiling is the site-server reserve-and-settle meter (§4.8). Gate applies a per-credential rate limit to the site identity, and feeds its `max_token_budget` only if D-4 says so (revised 2026-10-02).
 - The seed script stops minting a site key (`--mint-key-to-file`, `--mint-key-to-k8s-secret`), and nothing in the design uses `POST /api/uar/auth/keys` for the site.
 
 **Status, 2026-10-01.**
@@ -341,16 +341,21 @@ UAR itself requires a JWT or API key on everything except its probes.
 - Retrieval works with DashScope `text-embedding-v4`. A KB search returned the right document at score 0.917, and `knowme-site` gave grounded, cited answers (local stack, 2026-10-01).
 - Chunking is poor. The KB's `Recursive { size: 512 }` chunker (kreuzberg file processor) splits at periods inside version numbers. It produces 32- to 50-character fragments, such as "IPFS Sync for Obsidian is at v0." and "needs Obsidian 1.", and these fragments score highest.
 - Observed effects: the agent said the corpus does not state The Boss's platforms, although `the-boss.md` does, and it answered "v0" and "Obsidian 1.x".
-- **PLANNED (Phase 0, `kb-chunking-quality`):** fix chunking before the `site-agent-seed` gate (uar-integration change 7) and the text golden set are run; both wait on it. **OPEN QUESTION:** a UAR chunker change (a minimum chunk size, or a sentence splitter that respects version numbers) or a corpus-side workaround.
+- **PLANNED (Phase 0, `kb-chunking-quality`):** fix chunking before the `site-agent-seed` gate (uar-integration change 7) and the text golden set are run; both wait on it. Decided 2026-10-02 (D-22): a config change, not a UAR code change. The seed script creates the site KB with `chunk_strategy: "document"` (UAR `KbConfigRequest`, `src/uar/api/knowledge.rs:61-68`); the corpus is 8 files and about 3.5k tokens, so whole documents are small. The UAR default-chunker fix goes to the UAR roadmap.
 - Ingestion can fail transiently on network errors to DashScope. The seed script re-uploads documents whose ingestion failed (CURRENT, `scripts/seed-site-agent.sh`).
 
-**Spend ceiling (PLANNED, at flint-gate).** The ceiling has to count what the provider bills, across replicas, and stop without a redeploy:
-- **Gate's budget is the ceiling.** Gate's `max_token_budget` hook holds a per-identity token budget for the site identity, and a per-credential rate limit caps the site identity's request rate. Both are shared across the site server's replicas, because they live in gate, not in a pod. They replace an in-proxy shared counter. No Redis exists in `flint-core`, so windowed budgets sum in Postgres, and the sum is not instant across gate's two replicas; D-4 decides between adding Redis and accepting that. The values are operator decisions (D-3, D-4), and who manages them is D-18.
-- **Cancelled runs are billed.** A client disconnect cancels the run after 250 ms (`manager.rs:701-727`), and `agui.cancelled` carries no usage (`sse.rs:627-633`), but the input has already been billed. **OPEN QUESTION:** the site server calls UAR directly, so gate never sees the response stream. How `max_token_budget` learns a run's tokens, and whether it counts disconnect-cancelled runs, is not settled.
+**Spend ceiling (PLANNED, in the site server).** The authoritative design and tests are in `openspec/changes/site-spend-ceiling/tasks.md`. The ceiling has to count what the provider bills, across replicas, and stop without a redeploy. Revised 2026-10-02: an earlier version made gate's `max_token_budget` the ceiling; that design is superseded. Under ext_authz the site server calls UAR directly, so gate never sees a run's usage (U18).
+- **The site server's meter is the ceiling.** Before it forwards a turn, the site server reserves the per-turn reservation size against the daily and monthly token counters in one transaction, and refuses the turn if either would exceed its D-3 budget. When the run's `agui.done` arrives (UAR `src/uar/api/sse.rs:690-709`), the reservation is settled to the actual `usage.total_tokens`. A run that never reports usage keeps its full reservation. Concurrent turns reserve before they run, so overshoot is bounded by the recorded excess of runs that exceeded their reservation.
+- **One dialect.** The site server sets `stream: true` and `stream_mode: "dual"` itself and ignores the visitor's values (`site-proxy-hardening`), so `agui.done` carries the usage for every run. Anything else stays at its reservation.
+- **Shared store.** The daily and monthly counters live in SurrealDB in its own namespace and database (`ns=site`, `db=meter`), apart from UAR's `ns=uar`/`db=uar`. The site server connects as a user defined `ON DATABASE` for `site/meter` only, created out of band by the operator, so CI never holds root. The total is shared across the site server's replicas and survives a rollout. Daily and monthly counters are rows per UTC period, created on first use, reserved in one transaction that is cancelled (`THROW`) if either conditional update matches no row.
+- **Fail closed.** If the meter store is unreachable, new turns are refused with the offline state.
+- **Gate is optional.** Feeding the meter's usage to gate's `max_token_budget` is optional; D-4 decides it. Gate's per-credential rate limit on the site identity can still apply.
+- **Monthly cap.** Until the site model has a catalog price, the monthly cap is a monthly token budget on the same meter, plus the provider-side spend alert. UAR's USD budgets fail admission for an unpriced model, so they stay unset.
+- **Cancelled runs are billed.** A client disconnect cancels the run after 250 ms (`manager.rs:701-727`), and `agui.cancelled` carries no usage (`sse.rs:627-633`), but the input has already been billed. The meter keeps such a run's full reservation.
 - **Cap output in UAR settings.** The agent policy has no `max_tokens` key; `AgentPolicy` holds only provider, tools and skills (`src/uar/domain/artifact.rs:213-217`). The output cap is the provider or model `max_output_tokens` in UAR settings (`src/uar/settings/manager.rs:1934`, `src/llm/registry.rs:104`).
-- **Title requests count.** `use-thread-naming.ts` makes a second model call per thread. It uses the same chat route and the same site token, so the same budget covers it.
+- **Title requests count.** `use-thread-naming.ts` makes a second model call per thread. It uses the same chat route through the site server, so the same meter covers it.
 - **Kill switch from a mounted file.** The switch is read from a ConfigMap mounted as a file and re-read at runtime, so flipping it needs no redeploy. An env var would. Kubelet propagates ConfigMap volume updates after a delay, not instantly, so the switch is "within a minute or so", not "immediately".
-- When gate refuses a turn for budget or rate, or the switch trips, the proxy returns a friendly "concierge is resting" message and the client renders it.
+- When the meter refuses a turn, gate refuses it for rate, or the switch trips, the proxy returns a friendly "concierge is resting" message and the client renders it.
 - A cap on history length per session.
 
 **Caching.**
@@ -372,7 +377,7 @@ UAR itself requires a JWT or API key on everything except its probes.
 **PLANNED:**
 - Prometheus counters on the site server: turns, 429s, upstream errors by status, stream duration and bytes, cancelled turns.
 - A per-turn usage log taken from the terminal `agui.done` usage payload, which includes the model, plus a marker for turns that end in `agui.cancelled`, whose input is billed but not reported. This is the evidence for the cost figures above.
-- A count of gate refusals (rate limit and budget) by status, as seen by the proxy.
+- A count of meter refusals and gate refusals (rate limit) by status, as seen by the proxy, and the meter's daily total against the D-3 budget, with alerts at 80% and at exhaustion (FR-36).
 - A count of `agui.tool_call.denied` events by tool name. Under `deny`, every attempted call is denied, so the count measures how often the model, or a visitor steering it, tries to call a tool.
 - A count of policy regressions, read where the proxy filters the internal artifacts: an `effective_run_policy` with `tools.mode` of `auto` or `all` or a `tools.ids` set that differs from the approved list, or a `turn_manifest.selected_tools` that differs from the allowlist plus `activate_skill`. Any non-zero value is a policy regression.
 - A count of `presentation_output_ceiling` and `a2ui_publication_rejected` diagnostics. A rise in rejected surfaces is the earliest signal of injection attempts or a catalog mismatch.

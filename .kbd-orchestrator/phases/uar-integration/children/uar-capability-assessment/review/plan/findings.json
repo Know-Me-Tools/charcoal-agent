@@ -1,0 +1,82 @@
+{
+  "mode": "artifact",
+  "verdict": "BLOCK",
+  "judge_model": "artifact-critic (harness-native)",
+  "isolation_mode": "harness-native",
+  "producer_model": "claude-opus-5-5",
+  "cross_model_check": "same-model-collision",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "plan.md",
+      "line": 61,
+      "claim": "The amended N14/N15 meter still has a visitor-controlled bypass. N14 forces only `stream`, but the visitor still picks `stream_mode`. With `agui_spec`, UAR ends the run with `RUN_FINISHED` and `result.usage.totalTokens`, not the `agui.done` and `usage.total_tokens` that N15 says to sum. Any visitor who sends `\"stream_mode\":\"agui_spec\"` gets unmetered turns.",
+      "evidence": "plan.md:61 'sums `usage.total_tokens` from each run's `agui.done` (UAR `src/uar/api/sse.rs:690-709`)'. plan.md:60 says only 'The visitor-controlled `stream` field ... no longer reaches UAR'; it says nothing about `stream_mode`. server/src/domain/chat_request.rs:18 `STREAM_MODES: &[&str] = &[\"dual\", \"agui\", \"agui_spec\"]` and :54-60 forward whichever of these the visitor sends. UAR origin/main src/uar/api/sse.rs `build_sse_response(stream, agui_spec, ..)` takes the `AguiSpecProjector` path when `agui_spec` is set, which calls `to_agui_spec_event`. src/uar/api/adapters.rs:395-409 maps `RunDoneWithUsage` to `\"RUN_FINISHED\"` with `\"result\": { \"usage\": { \"totalTokens\": .. } }`, and no `agui.done` event is emitted. The N15 done-when (plan.md:61) tests only `stream:false`, rollouts and two replicas, so a meter built as written passes every listed check and is still bypassable. This is the same class as round-1's CRITICAL, and the round-1 disposition (plan.md:154) closes it only for `stream`.",
+      "suggested_fix": "In N14, force `stream_mode` upstream as well (pin it to `dual`, which the client already sends: src/features/chat/use-message-stream.ts:340), or make the N15 meter parse both terminal shapes. Add a done-when that a request with `stream_mode: agui_spec` (and `agui`) decrements the meter. More generally, require that the meter counts every run that reaches UAR, whatever the request body says."
+    },
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "line": 37,
+      "claim": "The N15 SurrealDB amendment gives the public-facing site server a credential to the database that holds every visitor conversation, but the plan does not say which namespace and database the user lives in, what role it has, or how it is created. One control it names, a NetworkPolicy scoped 'on that user only', cannot exist.",
+      "evidence": "plan.md:37 'Add the SurrealDB user and scope the site server needs for the spend meter (N15), and the NetworkPolicy allowing `knowme-web` → SurrealDB on that user only.' A NetworkPolicy works at L3/L4 (pod selectors and ports, as in k8s/base/surrealdb-networkpolicy.yaml) and cannot see a database user, so the only enforceable form is 'knowme-web may open TCP 8000'. k8s/base/surrealdb-statefulset.yaml:1-2 shows that this one instance holds UAR (ns=uar db=uar: sessions, checkpoints, cost_ledger; see §9 site-session-erasure) and the memory server (ns=memory db=main). In SurrealDB, system users (DEFINE USER) are bounded by root, namespace or database level and role. Table PERMISSIONS apply to record-access users, not to system users. So a user defined in ns=uar db=uar can read every visitor transcript, and only a separate namespace/database isolates the meter. Creating the user needs root (UAR itself connects as root: k8s/base/uar-configmap.yaml:21-22), while `ci-secrets-out` removes SURREALDB_ROOT_PASSWORD from CI, and Kubernetes manifests cannot declare a SurrealDB user. No mechanism (a Job, operator step or ownership) is named. Fail-open versus fail-closed when SurrealDB is unavailable (replicas: 1) is also unspecified.",
+      "suggested_fix": "State the control precisely. Use a dedicated namespace/database (e.g. ns=site db=meter) and a database-level user limited to that database. Have the operator create it out of band, or run a Job that reads the in-cluster `surrealdb-auth` secret, never CI. Write the NetworkPolicy as an L4 ingress rule from knowme-web to port 8000, and say that DB-level isolation rests on the user's scope, not on the policy. State whether the meter fails closed. Add a done-when that the meter credential cannot `SELECT` from ns=uar."
+    },
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "line": 127,
+      "claim": "Moving the ceiling off gate contradicts requirement FR-36, and neither B6 nor any A2 amendment updates FR-36, the §6.2 T1 threat-model mitigation or the Cost NFR. FR-36's 'an alert fires' and the operator's monthly cost cap lose their enforcing mechanism. B6's own grep done-when would fail on text its task list does not cover.",
+      "evidence": "docs/agent-led-site/sections/08-functional-spec.md:187 (FR-36, MUST): 'The site-wide ceiling is flint-gate's: the `max_token_budget` ...'. Its acceptance criterion requires 'the proxy returns the offline state (FR-27), and an alert fires'. 08-functional-spec.md:254 (Cost NFR): 'A daily token ceiling and a monthly cost cap, both set by the operator as flint-gate budget values (D-3)'. sections/06-security-privacy.md:24 (T1 threat model): '**The spend ceiling is flint-gate's.**'. B6 (plan.md:127) lists §3.3, §6.4 item 4, §9 checklist row 4, the §9 rows, §10 and the D table. It does not list §8 FR-36, §8 NFR Cost or §6.2 T1. `grep -rn \"ceiling at flint-gate\\|ceiling is flint-gate\" docs/agent-led-site/sections` matches 06-security-privacy.md:24 and 08-functional-spec.md:187, so the B6 done-when cannot pass from the listed edits. N15's done-when (plan.md:61) has no alert-on-exhaustion check. 'No USD limits until the model is priced' leaves D-3's monthly cost cap with no enforcing change and no stated deferral.",
+      "suggested_fix": "Add FR-36, the Cost NFR and §6.2 T1 to B6, and to the N15 OpenSpec spec delta in B3. Add 'an alert fires on exhaustion' to N15's done-when. Either name what enforces the monthly cost cap in Phase 0 (for example, a token-equivalent cap or the provider-side alert) or record it as a deferral the operator accepts under D-3."
+    },
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "line": 61,
+      "claim": "N15's done-when is satisfied by a non-atomic, check-then-debit meter that loses increments and overshoots the budget under concurrency, so it does not prove a ceiling.",
+      "evidence": "N15 refuses a turn when 'the total reaches the D-3 token budget' and adds tokens after `agui.done`, so admission happens before the cost is known. The done-when ('decrements the meter; survives a rollout; two replicas share one total') passes with sequential requests and a read-modify-write update. With two replicas and concurrent turns, a read-then-write update loses counts. In-flight runs at the moment of exhaustion overshoot by up to (concurrent runs × per-turn tokens). The per-IP limiter does not bound this across N IPs (§6.2 T1: 'A botnet of N IPs gets N times the quota'). The plan's own risk (plan.md:142, 'A meter that undercounts looks like a ceiling but isn't one') is left with no done-when that would catch it.",
+      "suggested_fix": "Require an atomic server-side increment (a single `UPSERT ... SET total += $n` statement, not read-then-write) and a stated overshoot bound. Add a done-when that fires concurrent turns across both replicas and checks that the stored total equals the sum of `agui.done` usage, within the stated bound."
+    },
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "line": 55,
+      "claim": "The chunking/seed cycle survives on the deployed leg. N9's steps 3–4 run inside `site-agent-seed` 1.3, while A1 and A3 order that gate after `kb-chunking-quality`. So `kb-chunking-quality` cannot be DONE before `site-agent-seed` 1.3, and 1.3 is blocked on it.",
+      "evidence": "plan.md:55 N9 step 3: 'On the deployed stack, the FR-8 checks run during `site-agent-seed` 1.3'. Step 4: 'If document chunks fail FR-8, fall back to a larger `chunk_size`'. plan.md:34: 'Gate 1.3 runs after `kb-chunking-quality`'. plan.md:93: '`site-agent-seed` (after `kb-chunking-quality` and `gate-site-credentials`)', with no qualifier limiting the edge to the local steps. Only A3 step 2 (plan.md:81) says 'local steps 1–2'. §9 (09-implementation-plan.md, kb-chunking-quality row) says the change 'blocks the `site-agent-seed` gate'. When B3/B4 register this dependency literally, it is circular. The N9 text also claims 'it does not depend on `site-agent-seed`'.",
+      "suggested_fix": "Make the edge explicit: `site-agent-seed` 1.3 depends on `kb-chunking-quality` steps 1–2 (the local proof) only. Move the deployed FR-8 check and the chunk_size fallback (steps 3–4) into `site-agent-seed` 1.3's done-when, or split N9 into local and deployed tasks with the dependency on the local one."
+    },
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "line": 125,
+      "claim": "B4's done-when expects IN_PROGRESS 3, including the new changes `uar-jwks-es256` and `gate-ci-gitops`. B4's tasks only register new changes, complete three and cancel one, and in this KBD project IN_PROGRESS is an explicit status, not one derived from task counts. As written, B4 yields IN_PROGRESS 1 and PENDING 28 and fails its own check.",
+      "evidence": "plan.md:112 lists IN_PROGRESS as `site-chat-proxy`, `uar-jwks-es256` and `gate-ci-gitops`. plan.md:125 B4 tasks: 'Register the 24 new changes ... Complete `uar-kb-retrieval-embedding`, `memory-server-ghcr-publish` and `gate-ec-jwks-deploy` ... Cancel `apex-dns-cutover`'. No task starts N3 or N8, or marks their already-done tasks complete. .kbd-orchestrator/phases/uar-integration/progress.json shows `local-compose-stack` tasks_done 3/4 with status PENDING, and `k8s-stack-manifests` 3/4 PENDING, so partial task completion does not move a change to IN_PROGRESS.",
+      "suggested_fix": "Add B4 tasks to transition `uar-jwks-es256` and `gate-ci-gitops` to IN_PROGRESS and to complete their evidenced tasks: #321 and #324 merged; flint-gate #11 and #12; and Know-Me-Tools/flint-gate run 36988125837, which `gh run view` confirms succeeded."
+    },
+    {
+      "severity": "SUGGESTION",
+      "file": "plan.md",
+      "line": 60,
+      "claim": "N14's server-side aggregation of deltas into a non-streaming JSON body has no named need, because the only `stream:false` caller already parses a streamed response.",
+      "evidence": "src/features/chat/use-thread-naming.ts:71-118 has a 'Streaming fallback: collect all text deltas' that reads `agui.message.delta` events when the response is not `application/json`. That is the only `stream: false` caller in src/ (grep). Aggregating means buffering a whole run (up to the 300 s stream window) in server memory per request on a public endpoint, and re-implementing UAR's `OpenAiChatCompletionResponse` shape. AGENTS.md: 'Defensive code ... requires a named failure scenario'.",
+      "suggested_fix": "Force `stream: true` and pass the SSE response through unchanged. The client's existing fallback handles it. Drop the aggregation clause."
+    },
+    {
+      "severity": "SUGGESTION",
+      "file": "plan.md",
+      "line": 61,
+      "claim": "The UAR per-session token limits are presented as a 'second layer', but the visitor controls the session key, so they bound nothing per visitor.",
+      "evidence": "§9 site-session-binding: upstream session id = `HMAC-SHA256(secret, cookie_id ‖ thread_id)`, and the visitor mints any UUIDv4 `thread_id`. use-thread-naming.ts:42 uses a fresh `crypto.randomUUID()` session for every title call. UAR origin/main src/uar/runtime/cost_budget.rs:279-306 checks `max_tokens_per_session` per `(BudgetScope::Session, id)` key. A new thread or a title call therefore starts with a fresh session budget.",
+      "suggested_fix": "Describe `max_tokens_per_turn` as the per-turn cap it is. Drop the claim that per-session limits form a layer, or state that they bound only a single thread."
+    },
+    {
+      "severity": "SUGGESTION",
+      "file": "plan.md",
+      "line": 143,
+      "claim": "Round-1's note that '35 active' counts DONE changes as active is still in the text, even though the disposition marks that finding accepted.",
+      "evidence": "plan.md:143 'The phase grows from 12 to 35 active changes'. The A3 table (plan.md:109-114) gives DONE 6 and CANCELLED 1, so 29 changes are not finished. Round-1 finding 7 noted this, and the disposition (plan.md:160) says 'Accepted'.",
+      "suggested_fix": "Say '35 non-cancelled changes, 29 not yet done'."
+    }
+  ]
+}

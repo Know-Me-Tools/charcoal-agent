@@ -1,0 +1,11 @@
+## 1. Allowlist trimmed, errors generic, upstream shape pinned
+
+- [ ] 1.1 Remove `GET /api/sessions/{id}/messages` and `DELETE /api/sessions/{id}` from the site server's UAR allowlist (`server/src/interface/routes/`); both now fall through to the generic `/api` 404.
+- [ ] 1.2 (km-frontend-engineer) Remove their client callers: `src/hooks/use-sessions.ts` and the persisted-thread server-transcript fallback in `src/features/chat/use-chat-messages.ts`. Update or remove the affected tests.
+- [ ] 1.3 Remove `POST /api/uar/runs/{run_id}/artifact-response` from the allowlist.
+- [ ] 1.4 Map every upstream non-2xx to a generic `AppError` body instead of passing UAR's status and body through (`server/src/infrastructure/upstream.rs:58-63`). Log upstream 5xx at WARN or above with status and route only, without the session id or the body.
+- [ ] 1.5 Map UAR's 400 `guardrail_blocked` to a generic visitor message (distinct from the generic error, carrying no UAR text).
+- [ ] 1.6 Pin the upstream request shape in `server/src/domain/chat_request.rs:50-60`: always forward `stream: true` and `stream_mode: "dual"`; ignore the visitor's `stream` and `stream_mode` fields instead of validating and forwarding them. Add no server-side aggregation. Confirm the title path (`src/features/chat/use-thread-naming.ts`) still produces a title through its streaming fallback when its `stream: false` request gets a stream.
+- [ ] 1.7 Forward no client query string on any route unless the parameter is on that route's allowlist; drop everything else.
+- [ ] 1.8 Unit tests in `server/`: removed routes return the generic 404; an upstream 500 and an upstream 400 yield generic bodies with no UAR text; `guardrail_blocked` maps to the visitor message (stub upstream, since the guardrail is detect-only in Phase 0); the forwarded body always carries `stream: true` and `stream_mode: "dual"` whatever the client sent; a non-allowlisted query parameter is not forwarded.
+- [ ] 1.9 Done-when (local): on the compose stack, `curl` through :8080 shows the three removed routes returning the generic 404 body, a `stream: false` chat request returning an SSE stream that ends with `agui.done` carrying usage, and a new thread still getting a title in the browser; `cargo test` in `server/` and `npm test` pass. Paste the output here.

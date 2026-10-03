@@ -1,0 +1,74 @@
+{
+  "mode": "artifact",
+  "verdict": "BLOCK",
+  "judge_model": "artifact-critic (harness-native)",
+  "isolation_mode": "harness-native",
+  "producer_model": "claude-opus-5-5",
+  "cross_model_check": "same-model-collision",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "plan.md",
+      "line": 61,
+      "claim": "The N15 enforcing spend ceiling meters only `agui.done` SSE events, but the site server forwards non-streaming requests by default and UAR's non-streaming response carries no usage, so any `stream:false` turn (including the client's own title requests) is unmetered and the ceiling can be bypassed by any visitor.",
+      "evidence": "plan.md:61 'Meter: sum the usage.total_tokens on each run's agui.done (UAR src/uar/api/sse.rs:690-709)'. server/src/domain/chat_request.rs:37-54: `stream` defaults to false ('None => false') and is visitor-controlled; the test at :97 'title_request_should_default_stream_mode_to_dual' sends `\"stream\":false`. UAR origin/main src/server.rs non-stream branch (~6500-6586) consumes RunDoneWithUsage internally and returns `OpenAiChatCompletionResponse { ..., usage: None, ... }`. The site server therefore never sees tokens for non-streaming runs. The assessment's premise (assessment.md:112 'the site server sees every turn') holds for turns, not for usage.",
+      "suggested_fix": "Amend N15 (and site-proxy-hardening) to force `stream:true` upstream for every site request (the proxy rebuilds the body already) and adapt the title path, or count non-stream turns at a fixed worst-case estimate; add a done-when test that a `stream:false` request decrements the meter. File 'usage on non-streaming responses' in B5 as a general UAR item."
+    },
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "line": 61,
+      "claim": "The N15 'run one site replica until D-4' interim conflicts with the manifests and with another change, and no change carries it; with the shipped topology the in-memory ceiling is per-pod and resets on every rollout.",
+      "evidence": "k8s/base/knowme-web-deployment.yaml:13 'replicas: 2' (the comment at :52-55 already notes in-memory limits are per replica). The A1 amendment for k8s-stack-manifests (plan.md:37) only removes the runtime HTTPRoute; no task sets replicas to 1. §9 site-session-binding requires 'A two-visitor isolation test per route, run with two proxy replicas'. github-deploy-workflows redeploys restart pods, zeroing an in-memory daily total. D-4 (§9 line 225) is defined as a gate Redis/Postgres decision, not a site-server store decision.",
+      "suggested_fix": "Either put the meter in a shared store from the start (SurrealDB already deployed) or add explicit tasks: set knowme-web replicas to 1 in k8s-stack-manifests, persist the daily total across restarts, and reconcile with the two-replica session-binding test. Re-scope D-4 in B6."
+    },
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "line": 55,
+      "claim": "kb-chunking-quality and site-agent-seed form a cycle, and the D-22 config only takes effect when a KB is created, so any already-seeded KB keeps 512-char recursive chunks.",
+      "evidence": "plan.md:55 N9 'sets chunk_strategy: \"document\" at KB creation through site-agent-seed. It then runs the FR-8 chunk checks'. plan.md:34 and A3 step 5 (plan.md:91) put the site-agent-seed gate after kb-chunking-quality. So the fix is implemented by a change that is ordered after it. scripts/seed-site-agent.sh:170-191 sends `config` only in the 'not found; creating' branch and otherwise logs 'exists' and skips. :279 'corpus already up to date; no changes' means existing documents are not re-ingested. assessment.md:118 said 'Re-seeding the site KB', and the plan drops that qualifier. The local KB was seeded on 2026-10-01 (§9 site-agent-tool-allowlist).",
+      "suggested_fix": "Move the chunk_strategy edit into kb-chunking-quality itself (seed-script change plus a forced recreate or PUT config with re-ingestion of all documents), state which environment the FR-8 checks run against given D-1, and only then gate site-agent-seed."
+    },
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "line": 79,
+      "claim": "The A3 order has a backward dependency, and the critical path leaves out blocking prerequisites.",
+      "evidence": "A3 step 1 (plan.md:79) closes `uar-jwks-es256 (needs ci-supply-chain-pins for the pinned digest)`, but ci-supply-chain-pins is step 2 (plan.md:81). §9 line 36 says uar-jwks-es256 'blocks gate-site-credentials', so the chain at plan.md:84 and the critical path at plan.md:98 also depend on ci-supply-chain-pins, which neither lists. gate-site-credentials also depends on D-18 (§9 line 39, D table 'Phase 0 waits'), and D-18 is absent from the critical path. The claim 'the whole chain waits on it [gate-ext-authz-endpoint]' therefore understates the blockers. plan.md:84 also adds `ci-secrets-out → cluster-extauthz-policies`, an edge §9 does not have (§9 line 40 depends only on gate-ext-authz-endpoint and gate-site-credentials), and gives no justification, despite 'Dependencies are §9's, plus the amendments above'.",
+      "suggested_fix": "Move uar-jwks-es256 closure after ci-supply-chain-pins. Put ci-supply-chain-pins and D-18 (and D-3, D-4 for the ceiling) on the critical path. Drop or justify the ci-secrets-out → cluster-extauthz-policies edge."
+    },
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "line": 113,
+      "claim": "Moving the ceiling off gate leaves Phase 0 exit-criterion text that cannot be met as worded, and B6 does not update it.",
+      "evidence": "§9 exit criteria (line 86) require evidence for 'Every §6.4 item from 1 to 18'. The §9 checklist row 4 (line 68) reads 'Spend ceiling at flint-gate, kill switch, max_output_tokens'. D-3 (line 224) is 'Spend numbers, set as flint-gate budget values', and D-18 is 'The gate budget values for the site identity'. B6 (plan.md:113) amends only §3.3, the §9 rows N9/N10/N14/N15/N24, §10 U3/U12/U18 and the D table 'D-2 decided; D-21–D-23 added'. It does not cover §6.4 item 4, the §9 checklist row 4, or the definitions of D-3, D-4 and D-18. B6's done-when, 'Sections and the assembled paper agree with Part A', is not mechanically checkable.",
+      "suggested_fix": "Add §6.4 item 4, the §9 checklist row 4, and the D-3, D-4 and D-18 rows to B6, and replace its done-when with a grep-able check (for example, no remaining 'ceiling at flint-gate' outside superseded text)."
+    },
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "line": 13,
+      "claim": "The plan records U12 as 'closed by decision', but the decision answers neither question §10 and D-2 posed. This drops the qualifier that the use is unconfirmed under the provider's terms.",
+      "evidence": "§10 U12: 'Qwen Token Plan terms appear to forbid application backends [C13]. D-2: pay-as-you-go key or written approval from Alibaba'. §9 D-2: 'Confirm that the Qwen Token Plan terms permit public, unauthenticated use, or move to a capped pay-as-you-go key'. plan.md:13 instead records a reclassification ('operator model') and states 'This plan does not reassess the terms. U12 is closed by decision.' No written approval and no capped key are recorded. B6 propagates 'U12 (closed by D-2)' into the paper.",
+      "suggested_fix": "Record D-2 as 'risk accepted by operator' rather than 'closed'. Keep U12 open with the operator's rationale and the [C13] reference, so that kill criterion 1 and the provider-side spend alert keep their dependency on it."
+    },
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "line": 111,
+      "claim": "B4's done-when depends on states that are not KBD states, so it cannot be checked mechanically.",
+      "evidence": "B4 done-when (plan.md:111): '`prometheus kbd status` ... shows 36 changes ... with the states in A1/A2'. A2 uses 'effectively done' (N3, N4) and 'mostly done' (N8). progress.json uses PENDING/IN_PROGRESS/DONE. B4 completes gate-ec-jwks-deploy but does not say what state uar-jwks-es256 or gate-ci-gitops get. plan.md:100's '35 active' also counts the 3 DONE changes as active.",
+      "suggested_fix": "Map every A1/A2 row to a concrete KBD status and task-completion count, and state the expected counts (DONE/IN_PROGRESS/PENDING/CANCELLED)."
+    },
+    {
+      "severity": "SUGGESTION",
+      "file": "plan.md",
+      "line": 54,
+      "claim": "The N8 'mostly done' evidence cites a run and a PR without naming their repositories, so it cannot be independently verified.",
+      "evidence": "'deploy run 36988125837 opened know-me-cluster #3': `gh run view 36988125837` returned 404 for -R Know-Me-Tools/, Prometheus-AGS/, know-me-tools/ and KnowMe-AI/flint-infra, and `gh pr view 3 -R Know-Me-Tools/know-me-cluster` could not resolve the repository. By contrast, N3/N4 were verified: UAR run 36997759532 succeeded (amd64 + arm64 + manifest), #321/#324 are MERGED, and https://gate.know-me.tools/.well-known/jwks.json serves kty/crv/x/y.",
+      "suggested_fix": "Cite owner/repo for the run and the PR."
+    }
+  ]
+}

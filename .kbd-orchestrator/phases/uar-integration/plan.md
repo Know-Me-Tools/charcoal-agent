@@ -1,8 +1,114 @@
 # Plan: uar-integration
 
+**Revision 3, 2026-10-02.**
+- Adopts `docs/agent-led-site/sections/09-implementation-plan.md` Phase 0 into this phase (operator decision D-21). This phase is now **Phase 0: safe to deploy, not public**. `know-me.tools` stays on Lovable throughout.
+- Produced by the child phase `uar-capability-assessment` (`.kbd-orchestrator/phases/uar-integration/children/uar-capability-assessment/plan.md`, Part A), after two adversarial review rounds of the assessment and two of the plan.
+- Revision 2 (2026-09-30) is kept below under "Superseded"; its scope section still describes the four-service stack correctly.
+
+Decisions: `decision-log.md` (D-2, D-21, D-22, D-23). D-1 to D-20 are defined in §9 "Operator decisions".
+
+## Changes (36 registered)
+
+Each new change's full definition (what, FRs, done-when) is its §9 row and its OpenSpec change under `openspec/changes/<id>/`. Bold text marks amendments from the child plan (A2).
+
+### Existing changes
+
+| # | Change | State | Remaining / amendment | Owner |
+|---|---|---|---|---|
+| E1 | `uar-ghcr-multiarch-publish` | DONE | — | km-devops-engineer |
+| E2 | `uar-kb-retrieval-embedding` | complete on evidence | UAR #316 merged; confirm the published image (first green build after #324, run 36997759532) carries it | km-rust-engineer |
+| E3 | `memory-server-ghcr-publish` | complete on evidence | SMS #29 merged; verify the multi-arch manifest and `/health` | km-devops-engineer |
+| E4 | `cluster-gateway-and-cert` | DONE | — | km-devops-engineer |
+| E5 | `site-knowledge-corpus` | DONE | — | content team |
+| E6 | `local-compose-stack` | PENDING | 1.4 four-service gate | km-devops-engineer |
+| E7 | `site-agent-seed` | PENDING | **FR-8 KB health check (1.4); local gate 1.3 after `kb-chunking-quality`; deployed gate 1.6 (holds the deployed FR-8 check) after the first deploy**; key minting removed by `gate-site-credentials` | km-devops-engineer |
+| E8 | `site-chat-proxy` | IN_PROGRESS | **Title: "behind the Axum site server"**; 1.5 Axum server, then 1.4 integration gate and visual capture | km-rust-engineer, km-frontend-engineer |
+| E9 | `about-endpoint-truth` | PENDING | 1.2 visual capture | km-frontend-engineer |
+| E10 | `k8s-stack-manifests` | PENDING | **No `runtime.know-me.tools` HTTPRoute (after `uar-runtime-host-lockdown`); NetworkPolicy `knowme-web` → SurrealDB pod:8000; Secret reference for the meter credential; `knowme-web` stays at 2 replicas** | km-devops-engineer |
+| E11 | `github-deploy-workflows` | PENDING | **Fix the chat smoke test (grep `agui.message.delta`, not `TEXT_MESSAGE_CONTENT`); move the `runtime.know-me.tools` checks per FR-37** | km-devops-engineer |
+| E12 | `apex-dns-cutover` | **CANCELLED here** | Moved to Phase 1 (D-21); its OpenSpec change stays for that phase | operator |
+
+### New changes (from §9)
+
+| # | Change | State | Amendment | Owner (§9) |
+|---|---|---|---|---|
+| N1 | `ci-secrets-out` | PENDING | — before the first deploy | km-devops-engineer; operator |
+| N2 | `uar-runtime-host-lockdown` | PENDING | — before the first deploy (D-7) | km-devops-engineer; operator |
+| N3 | `uar-jwks-es256` | IN_PROGRESS | #321 and #324 merged; done when `ci-supply-chain-pins` pins a digest carrying #321 | km-rust-engineer |
+| N4 | `gate-ec-jwks-deploy` | complete on evidence | deployed 2026-10-01; JWKS serves `kty`, `crv`, `x`, `y` | platform; km-devops-engineer verifies |
+| N5 | `gate-ext-authz-endpoint` | PENDING | — | platform |
+| N6 | `gate-site-credentials` | PENDING | — (also closes U5) | platform; km-devops-engineer; km-rust-engineer |
+| N7 | `cluster-extauthz-policies` | PENDING | — | km-devops-engineer; platform |
+| N8 | `gate-ci-gitops` | IN_PROGRESS | **Done: flint-gate #11, #12; Know-Me-Tools/flint-gate run 36988125837 opened Prometheus-AGS/know-me-cluster#3. Remaining: D-20 and removing the hard-coded `deployment.kubernetes.io/revision` annotation (U19)** | platform; km-devops-engineer |
+| N9 | `kb-chunking-quality` | PENDING | **D-22: `chunk_strategy: "document"` via the seed script plus `--recreate-kb`; the local FR-8 pass is its done-when** | km-devops-engineer, km-chief-content-officer |
+| N10 | `site-agent-tool-allowlist` | PENDING | **guardrail stays detect-only in Phase 0** | km-rust-engineer; km-conversational-designer |
+| N11 | `site-proxy-artifact-filter` | PENDING | — | km-rust-engineer |
+| N12 | `site-session-erasure` | PENDING | — | km-devops-engineer; km-security-officer; km-rust-engineer |
+| N13 | `site-session-binding` | PENDING | — | km-rust-engineer |
+| N14 | `site-proxy-hardening` | PENDING | **map `guardrail_blocked`; pin upstream `stream: true`, `stream_mode: dual`** | km-rust-engineer; km-frontend-engineer |
+| N15 | `site-spend-ceiling` | PENDING | **reserve-and-settle site-server meter in SurrealDB `site/meter`: daily and monthly counters per UTC period, reserved in one transaction; excess over a reservation charged, alerted and recorded; fail closed; alerts at 80%, exhaustion and excess; token budgets only until the model is priced; built before the first deploy, done-when (1)–(7) locally, then re-run deployed** | km-devops-engineer; km-rust-engineer |
+| N16 | `site-security-headers` | PENDING | — | km-rust-engineer, km-devops-engineer |
+| N17 | `ci-supply-chain-pins` | PENDING | — | km-devops-engineer |
+| N18 | `site-ai-disclosure-label` | PENDING | — | km-frontend-engineer |
+| N19 | `site-retention-and-privacy` | PENDING | — | km-security-officer, km-devops-engineer, km-chief-content-officer |
+| N20 | `site-citation-link-allowlist` | PENDING | — | km-frontend-engineer |
+| N21 | `site-chat-offline-states` | PENDING | **covers "meter unavailable"; its fail-closed check breaks the meter path while UAR stays up** | km-frontend-engineer |
+| N22 | `site-agent-prompt-fixes` | PENDING | — | km-conversational-designer |
+| N23 | `site-agent-eval-text` | PENDING | — | km-conversational-designer, km-qa-engineer |
+| N24 | `site-redteam-prompts` | PENDING | **benign phrasings that hit the guardrail's substring list** | km-security-officer; km-qa-engineer |
+
+**Expected canonical state:**
+
+| State | Count | Changes |
+|---|---|---|
+| DONE | 6 | E1, E4, E5, plus E2, E3, N4 once their checks pass |
+| IN_PROGRESS | 3 | E8, N3, N8 |
+| CANCELLED | 1 | E12 |
+| PENDING | 26 | all others |
+
+## Order
+
+1. **Close what is done:** E2, E3, N4.
+2. **Before the first deploy, in parallel:** N2, N17, N5; E8 (1.5 → 1.4); E6; E9; N9.
+3. **Close N3** once N17 pins a UAR digest carrying #321.
+4. **Gate chain:**
+   - N5 → N6 (also needs N3, N4 and **D-18**)
+   - then N1 and N7 in parallel
+   - N8 remaining tasks run in parallel with the chain.
+5. **Site controls once E8 lands:** N14, N11, N13, N12, N16, N20, N18.
+6. **Build the meter before the first deploy:** N15 tasks 1.1–1.9 and 1.13 (after N14, N6, **D-3**, **D-4**), with its local done-when on the compose stack.
+7. **Deploy path:**
+   - E10 after N2
+   - E11 after N1 and step 6. **The first deploy ships with the chat kill switch on** (E11 1.7), so no public turn reaches UAR before the meter is proven.
+   - E7 after N9 and N6 (its deployed gate, 1.6, after E11)
+8. **On the deployed stack:**
+   - N15 1.14 (deployed done-when) → operator turns the kill switch off → E11 1.5 chat smoke and 1.4 gate → N21
+   - N10 → N22 → N23
+   - N19, N24
+9. **Phase 0 exit check** per §9, after every control it tests is deployed.
+
+**Critical path:** N17 → N3, with N5 and D-18 → N6 → N15 build (D-3, D-4) and N1 → E11 (first deploy, switch on) → N15 deployed done-when → switch off → E7 → N10 → N22 → N23 → exit.
+
+## Operator actions
+
+- Decisions on or beside the path: D-18, D-3, D-4, then D-5, D-6, D-8, D-16 for exit. D-12 approves filing the UAR roadmap drafts (`.kbd-orchestrator/phases/uar-integration/children/uar-capability-assessment/uar-roadmap.md`).
+- Create the SurrealDB `site/meter` user out of band before the first deploy (N15). The UAR Secret is created the same way (N1).
+- Merge external PRs as they open: gate, know-me-cluster, UAR.
+
+## The uncomfortable part
+
+- **The public site is now a phase away.** This phase ends with a deployed, controlled stack that the public still can't reach. That was always the paper's plan. The previous revision of this plan skipped it and would have cut over DNS at the end of a phase with none of the controls built.
+- **The spend ceiling is new design.** It is not the gate ceiling §9 reviewed. Its six done-when tests on the deployed stack are its first independent check.
+
+---
+
+## Superseded: revision 2 (2026-09-30)
+
+Kept for history. The scope and stack description still hold. The change list, order and operator actions are replaced by revision 3 above.
+
 Planned 2026-09-30 from `assessment.md` plus the operator decisions made during plan. The adversarial review was skipped by operator decision.
 
-## Scope as decided
+### Scope as decided
 
 The KnowMe corporate site (this repo) moves off Lovable hosting and onto the `know-me` LKE cluster, behind the shared Envoy Gateway. It runs as a stack of four services, identical locally (compose) and in the cluster (`k8s/`):
 
@@ -32,7 +138,7 @@ The KnowMe corporate site (this repo) moves off Lovable hosting and onto the `kn
 
 **CI.** Every push to `main` here rebuilds and redeploys the site (change 11). UAR and the memory server each publish their own images on pushes to their own `main`. Renovate PRs here bump the pinned digests.
 
-## Corrections to assessment.md
+### Corrections to assessment.md
 
 **C1: the "wildcard" certificate isn't one.**
 - `argocd/wildcard-know-me-tools-tls` has SANs only for `auth`, `sso`, `gate`, `api` and `rt.know-me.tools`, issued by `letsencrypt-http01`.
@@ -49,7 +155,7 @@ The KnowMe corporate site (this repo) moves off Lovable hosting and onto the `kn
 - The only workflow there is `docs.yml`, so no image is published.
 - The working tree has uncommitted local edits under `.kbd-orchestrator/`, `.claude/` and `.prometheus/`. They must not be committed by this phase.
 
-## UAR facts the design depends on
+### UAR facts the design depends on
 
 Verified at `org/main` `853490db`, via research and spot-checks.
 
@@ -74,13 +180,13 @@ Verified at `org/main` `853490db`, via research and spot-checks.
 - It supports `SURREAL_MODE=server` with `SURREAL_ENDPOINT=ws://…`.
 - Its OpenAI embedding provider has **no base-URL setting**, so it can't use DashScope unmodified. This phase runs it on local embeddings (bge-small), in its own SurrealDB namespace `memory`. DashScope for the memory server is a follow-up.
 
-## Ordered changes
+### Ordered changes
 
 **Repos:** **UAR** = `Prometheus-AGS/universal-agent-runtime`; **SMS** = `Prometheus-AGS/surreal-memory-server`; **Cluster** = `Prometheus-AGS/know-me-cluster`; **Here** = this repo.
 
 External-repo changes are tracked here as OpenSpec changes, and each one's PR link is recorded as evidence.
 
-### 1. `uar-ghcr-multiarch-publish` (UAR PR · km-devops-engineer · depends on nothing)
+#### 1. `uar-ghcr-multiarch-publish` (UAR PR · km-devops-engineer · depends on nothing)
 
 **Adds to `deploy.yml`:**
 - native per-architecture builds on `ubuntu-24.04` (amd64) and `ubuntu-24.04-arm` (arm64), each pushing by digest to `ghcr.io/prometheus-ags/universal-agent-runtime`
@@ -96,7 +202,7 @@ The ACR and AKS jobs stay untouched.
 
 **Risk:** a 45–75 minute build per architecture, and arm64 has never been built. On failure, stop and ask; no silent QEMU fallback.
 
-### 2. `uar-kb-retrieval-embedding` (UAR PR · km-rust-engineer · depends on nothing)
+#### 2. `uar-kb-retrieval-embedding` (UAR PR · km-rust-engineer · depends on nothing)
 
 **What:**
 - KB query embedding uses the same backend as ingestion (`llm.embedding`), not the hard-coded fastembed.
@@ -108,7 +214,7 @@ The ACR and AKS jobs stay untouched.
 - the test passes in the UAR repo
 - once published (via change 1's workflow), the image retrieves from a 1024-dimension `text-embedding-v4` KB in the local stack (checked in change 7)
 
-### 3. `memory-server-ghcr-publish` (SMS PR · km-devops-engineer · depends on nothing)
+#### 3. `memory-server-ghcr-publish` (SMS PR · km-devops-engineer · depends on nothing)
 
 **What:**
 - a new `.github/workflows/image.yml`, triggered on pushes to `main`, version tags and `workflow_dispatch`
@@ -123,7 +229,7 @@ Only the new workflow file is committed. The pre-existing local edits in that re
 - a multi-architecture manifest exists
 - the container answers `GET :3001/health`
 
-### 4. `cluster-gateway-and-cert` (Cluster PR · km-devops-engineer · operator merges · depends on nothing)
+#### 4. `cluster-gateway-and-cert` (Cluster PR · km-devops-engineer · operator merges · depends on nothing)
 
 **In `namespaces/argocd-config/manifests.yaml`:**
 - Certificate `know-me-tools-site-tls` in `argocd`, covering `know-me.tools`, `www.know-me.tools` and `runtime.know-me.tools`, issued by `letsencrypt-prod` (DNS-01)
@@ -135,7 +241,7 @@ Only the new workflow file is committed. The pre-existing local edits in that re
 - the Certificate is Ready
 - all six listeners show Programmed=True
 
-### 5. `site-knowledge-corpus` (Here · km-cmo, km-content-creator, km-chief-content-officer · operator approves · depends on nothing)
+#### 5. `site-knowledge-corpus` (Here · km-cmo, km-content-creator, km-chief-content-officer · operator approves · depends on nothing)
 
 **What:**
 1. **Briefs:** km-cmo writes a status brief for each new product, in the flagship-brief format with shipped vs specified status and source citations:
@@ -157,7 +263,7 @@ Only the new workflow file is committed. The pre-existing local edits in that re
 - the operator approves the corpus in writing (recorded in the change)
 - the naming guard and the brand-copy tests pass over `content/knowledge`
 
-### 6. `local-compose-stack` (Here · km-devops-engineer · depends on 1 and 3)
+#### 6. `local-compose-stack` (Here · km-devops-engineer · depends on 1 and 3)
 
 **`docker-compose.yaml` runs the four services:**
 - `knowme-web` is built locally.
@@ -180,7 +286,7 @@ Only the new workflow file is committed. The pre-existing local edits in that re
 - `/api/chat/completion` through the web proxy streams a `qwen3.8-max` reply
 - the memory server `/health` returns 200, with data landing in SurrealDB namespace `memory`
 
-### 7. `site-agent-seed` (Here · km-conversational-designer (prompt) + km-devops-engineer (script) · depends on 2, 5 and 6)
+#### 7. `site-agent-seed` (Here · km-conversational-designer (prompt) + km-devops-engineer (script) · depends on 2, 5 and 6)
 
 **What:**
 - **Agent artifact** `uar/agents/knowme-site.json`:
@@ -200,7 +306,7 @@ Only the new workflow file is committed. The pre-existing local edits in that re
 - a question about an unshipped feature is answered as "planned"
 - a second run of the script makes no changes
 
-### 8. `site-chat-proxy` (Here · km-frontend-engineer (client) + km-rust-engineer (Axum site server, task 1.5) + km-security-officer · depends on 6 and 7)
+#### 8. `site-chat-proxy` (Here · km-frontend-engineer (client) + km-rust-engineer (Axum site server, task 1.5) + km-security-officer · depends on 6 and 7)
 
 **Revised 2026-09-30:** an Axum server replaces nginx as the site proxy; see task 1.5 in the change. The nginx design below is superseded.
 
@@ -226,7 +332,7 @@ The public build hides the app-only pages (settings, agents, skills) that need U
 - `visual-first-ui-delivery` capture of the chat at 320 and 1440 px, in both themes, has been viewed and the images are listed
 - the existing tests and goldens pass, or are updated with operator sign-off
 
-### 9. `about-endpoint-truth` (Here · km-frontend-engineer · depends on 6)
+#### 9. `about-endpoint-truth` (Here · km-frontend-engineer · depends on 6)
 
 **What:** Landing follow-up S5. The About page's endpoint row shows the real same-origin target when `VITE_UAR_BASE_URL` is unset, instead of a guessed default.
 
@@ -234,7 +340,7 @@ The public build hides the app-only pages (settings, agents, skills) that need U
 - the unit test passes
 - screenshots have been viewed and are listed
 
-### 10. `k8s-stack-manifests` (Here, `k8s/` · km-devops-engineer; km-security-officer reviews · depends on 1, 3, 4, 7 and 8)
+#### 10. `k8s-stack-manifests` (Here, `k8s/` · km-devops-engineer; km-security-officer reviews · depends on 1, 3, 4, 7 and 8)
 
 **Kustomize base, namespace `knowme`:**
 - **`surrealdb`:** StatefulSet with 1 replica, the pinned digest, a 20Gi PVC on `linode-block-storage-retain`, root credentials from Secret `surrealdb-auth`, and a ClusterIP Service. A NetworkPolicy lets only `uar` and `surreal-memory-server` reach it.
@@ -257,7 +363,7 @@ There are no Secret manifests in git.
 - `kubectl --context know-me apply -k k8s --dry-run=server` succeeds
 - a grep finds no secret values
 
-### 11. `github-deploy-workflows` (Here, `.github/workflows/` · km-devops-engineer; km-security-officer reviews · depends on 10)
+#### 11. `github-deploy-workflows` (Here, `.github/workflows/` · km-devops-engineer; km-security-officer reviews · depends on 10)
 
 **`site.yml`, on every push to `main` (plus `workflow_dispatch`):**
 1. Run the repo's tests, lint and build.
@@ -278,7 +384,7 @@ There are no Secret manifests in git.
 
 **Done when:** a `main` run is green end to end, and a second, trivial commit to `main` redeploys automatically.
 
-### 12. `apex-dns-cutover` (operator · km-devops-engineer verifies · depends on 11)
+#### 12. `apex-dns-cutover` (operator · km-devops-engineer verifies · depends on 11)
 
 **What:**
 - The operator changes the Cloudflare A records for `know-me.tools` and `www` to `23.239.29.33` and retires Lovable hosting.
@@ -290,7 +396,7 @@ There are no Secret manifests in git.
 - `curl -I https://know-me.tools` shows the new site, with the Let's Encrypt certificate
 - the chat works in production
 
-## Order and parallelism
+### Order and parallelism
 
 1. **Start at once, in parallel:** 1, 2, 3, 4 and 5. They are external PRs and content work; several wait on operator merges or approval.
 2. Then 6 (needs 1 and 3), then 7 (needs 2, 5 and 6), then 8 and 9.
@@ -298,7 +404,7 @@ There are no Secret manifests in git.
 
 **Critical path:** 1 → 6 → 7 → 8 → 10 → 11 → 12. Change 2 must be merged and published before 7 can pass.
 
-## Operator actions (not agent tasks)
+### Operator actions (not agent tasks)
 
 1. **Make the packages public:** after the first runs of changes 1 and 3, make `universal-agent-runtime` and `surreal-memory-server` public in the GitHub UI.
 2. **Merge the external PRs:** UAR (1, 2), SMS (3) and Cluster (4).
@@ -309,7 +415,7 @@ There are no Secret manifests in git.
 5. **Confirm and rotate keys:** confirm the Token Plan terms allow a public site chat. Rotate the DashScope key.
 6. **Cut over DNS** (12). Install the Renovate GitHub App if the org doesn't have it.
 
-## The uncomfortable part
+### The uncomfortable part
 
 - **The public chat spends your Qwen quota.**
   - Anyone on the internet can use the site chat, and each turn spends the operator's Token Plan quota.

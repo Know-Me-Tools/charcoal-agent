@@ -47,3 +47,21 @@ Append-only. Dated entries. Mark superseded entries; do not delete them.
 - A phase started before the bottleneck guard existed has no start receipt, and its canonical status is `Pending`. Recovery: `kbd_bottleneck_evaluate phase before <phase> 0` (the adapter passes `--repair-projections`), then transition `in-progress`, then `complete`. Only after both succeed, fire `phase:after`.
 - **Mistake made:** a first attempt fired `phase:after` after the transition was rejected. The Karpathy recorder refused it (status 2), but `report-progress`, `kbd-memory-log` and `legacy-phase-complete` logged a phase end that hadn't happened yet. Stop the script on any failed transition.
 - Tasks begun in parallel whose `end-task` output was suppressed stayed `in_progress` in the runtime after archive. The driver can't close them then, because the backend is archived. Use `prometheus kbd task transition --status complete`. Never suppress `end-task` output.
+
+## 2026-10-02: uar-capability-assessment child (KBD, SurrealQL, CI)
+- **KBD runtime is single-writer.** Two shells issuing `prometheus kbd` writes at once → `causal frontier conflict`, and the second command aborts. Batch scripts must stop on first failure and resume from a `status --json` snapshot (skip what already exists).
+- **KBD CLI cannot edit task titles or re-sequence tasks** after `task register`. Settle task text and order in OpenSpec *before* registering, or accept lagging labels; `kbd-apply` follows the OpenSpec file order.
+- **A change auto-completes when its last task completes.** An explicit `change transition --status complete` afterwards fails with "Complete to Complete".
+- **SurrealQL `UPDATE … WHERE` matching no row returns empty, not an error.** A conditional reservation in a transaction must check the result and `THROW` to cancel it.
+- **Dependabot can leave a Rust workspace unresolvable**: an exact pin bumped in one member only (`rmcp`), or lock-only bumps outside manifest ranges (`wasmtime-wasi`, `fastembed`). Fix in UAR #324.
+- **`prometheus-research` (deep-research daemon) caps `max_sources` at 10** and stalled at stage 01 with 0 sources. Have a direct-retrieval fallback.
+- **GitHub org billing lock** shows as `startup_failure`, no logs, on every Actions run in the org. The cause is only in the check-run annotations ("account is locked due to a billing issue").
+- **Fine-grained PATs** need the target org as resource owner (else 404). The packages REST API rejects them; read digests from a build artifact.
+- **One design, one authoritative file.** The spend-meter design was restated in five documents and drifted across four review rounds. Point summaries at `openspec/changes/site-spend-ceiling/tasks.md` from the start.
+- **`/kbd-child-exit` after `/kbd-reflect` fails** with "cannot transition from Complete to Complete". Reflect already completes the child phase, and the exit script has no already-complete skip. It is also blocked first by a missing phase start receipt, because `kbd-new-child` records a child start, not a phase start. Recovery used on 2026-10-02:
+  1. `kbd_bottleneck_evaluate phase before '<parent>::<child>' 0`.
+  2. Write `handoff-out.md` by hand. The script only writes a TBD template.
+  3. `prometheus kbd phase activate --id <parent> --exact-next-work /kbd-status`.
+  4. `kbd_hooks_fire child after <child> <depth> <depth>`.
+
+  The script's rollup of child progress into the parent's `progress.json` was skipped by this path.

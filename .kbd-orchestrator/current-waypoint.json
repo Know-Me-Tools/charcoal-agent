@@ -2,10 +2,10 @@
   "schemaVersion": "5",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 792,
-  "derivedRevision": 792,
+  "sourceRevision": 1090,
+  "derivedRevision": 1090,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 792
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 1090
   },
   "conflictCount": 0,
   "projectId": "440c5818-223c-4091-8b7f-bc8083505a3c",
@@ -25,15 +25,15 @@
   "currentTask": "1.5",
   "status": "ready",
   "lifecycle": "ready",
-  "stageId": "execute",
-  "stageStatus": "IN_PROGRESS",
+  "stageId": null,
+  "stageStatus": null,
   "completionMetric": "implementation",
-  "implementationCompleted": 16,
-  "implementationTotal": 25,
+  "implementationCompleted": 25,
+  "implementationTotal": 55,
   "planRevision": 2,
-  "revision": 792,
-  "exactNextCommand": null,
+  "revision": 1090,
+  "exactNextCommand": "/kbd-status",
   "nextChange": "site-chat-proxy",
   "nextTask": "1.5",
-  "updatedAt": "2026-09-30T13:41:27.215360Z"
+  "updatedAt": "2026-10-02T23:44:12.226214Z"
 }
