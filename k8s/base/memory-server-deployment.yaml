@@ -1,6 +1,11 @@
 # surreal-memory-server — ClusterIP only, no public route. Local embeddings
 # (bge-small) in the "memory" SurrealDB namespace/database, per plan.md's
 # decision to defer DashScope embeddings for the memory server.
+# Image pinned by digest (ci-supply-chain-pins): `main` as of 2026-10-03.
+# Verified: `docker buildx imagetools inspect
+# ghcr.io/prometheus-ags/surreal-memory-server:main` resolves a linux/amd64
+# + linux/arm64 index at this digest. Renovate tracks it going forward
+# (renovate.json); bump deliberately.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -30,7 +35,7 @@ spec:
         fsGroup: 1001
       containers:
         - name: surreal-memory-server
-          image: ghcr.io/prometheus-ags/surreal-memory-server:main
+          image: ghcr.io/prometheus-ags/surreal-memory-server:main@sha256:6315ca4a0f5f6bc503b2e4f8aed9c00f3ee7acf6b8cc10dbd03c28ffc62a8647
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

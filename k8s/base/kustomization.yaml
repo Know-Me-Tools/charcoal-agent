@@ -11,6 +11,7 @@ resources:
   - uar-configmap.yaml
   - uar-deployment.yaml
   - uar-service.yaml
+  - uar-networkpolicy.yaml
   - memory-server-deployment.yaml
   - memory-server-service.yaml
   - knowme-web-deployment.yaml
@@ -22,10 +23,12 @@ resources:
   # ConfigMaps would need to source files from outside k8s/base, which
   # `kubectl kustomize` refuses by default for security reasons.)
 
+# Only knowme-web goes through the images transformer: CI sets its digest
+# fresh on every deploy (`kustomize edit set image`, .github/workflows/site.yml).
+# uar and surreal-memory-server are pinned directly in their own Deployment
+# manifests (`:main@sha256:...`, ci-supply-chain-pins) — they are NOT listed
+# here, because this transformer matches by image name and a `newTag: main`
+# entry would strip the digest back off on every `kubectl kustomize`.
 images:
   - name: ghcr.io/know-me-tools/knowme-web
-    newTag: main
-  - name: ghcr.io/prometheus-ags/universal-agent-runtime
-    newTag: main
-  - name: ghcr.io/prometheus-ags/surreal-memory-server
     newTag: main

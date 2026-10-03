@@ -23,10 +23,25 @@ rules:
     resources: ["httproutes"]
     verbs: ["get", "list", "watch", "create", "update", "patch"]
 
-  # Secrets: created/updated idempotently from GitHub secrets each deploy.
+  # Secrets: ci-secrets-out 1.1/1.5 — uar-secrets and surrealdb-auth are
+  # created once, out of band, by the operator and are never read or
+  # written by the deploy workflow. The only Secret the deploy can still
+  # touch is site-proxy, and only while scripts/seed-site-agent.sh's
+  # --mint-key-to-k8s-secret path exists (removed entirely once
+  # gate-site-credentials lands — see that change's task 1.6).
+  # `get`/`patch` are scoped to site-proxy by resourceNames. `create` is
+  # kept for the first time site-proxy is missing, but Kubernetes RBAC
+  # cannot restrict `create` by resourceNames (there is no object yet to
+  # name) — it stays a separate, unscoped rule. The ci-secrets-out 1.6
+  # check (`kubectl auth can-i get secret/uar-secrets` -> no) is a `get`,
+  # which the scoped rule below does cover.
   - apiGroups: [""]
     resources: ["secrets"]
-    verbs: ["create", "patch", "get"]
+    resourceNames: ["site-proxy"]
+    verbs: ["get", "patch"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create"]
 
   # The seed-site-agent script runs from the CI runner via port-forward.
   - apiGroups: [""]

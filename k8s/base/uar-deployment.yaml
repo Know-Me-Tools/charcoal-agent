@@ -1,7 +1,13 @@
 # UAR — no PVC: persistence is the remote SurrealDB, not the embedded store.
-# Image tag is managed by the `images:` entry in kustomization.yaml; CI sets
-# it to a digest with `kustomize edit set image` and Renovate tracks it
-# afterwards (see renovate.json).
+# Image pinned by digest (ci-supply-chain-pins): `main` as of 2026-10-02,
+# commit e73b5f674a15fda3c9910bdc10395b86b04796c7 (merge of
+# Prometheus-AGS/universal-agent-runtime#324; contains #321 — ES256/JWKS
+# verification — 16 commits ahead of #321's merge commit, 0 behind).
+# Verified: `docker buildx imagetools inspect
+# ghcr.io/prometheus-ags/universal-agent-runtime@sha256:94e4af0f524c3d9a4ec281c8e553909224ccfc212b6e87fac9f4a2bc0e2a7568`
+# resolves a linux/amd64 + linux/arm64 index; its SLSA provenance attestation
+# records `vcs:revision: e73b5f674a15fda3c9910bdc10395b86b04796c7`. Renovate
+# tracks this digest going forward (renovate.json); bump deliberately.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -31,7 +37,7 @@ spec:
         fsGroup: 65532
       containers:
         - name: uar
-          image: ghcr.io/prometheus-ags/universal-agent-runtime:main
+          image: ghcr.io/prometheus-ags/universal-agent-runtime:main@sha256:94e4af0f524c3d9a4ec281c8e553909224ccfc212b6e87fac9f4a2bc0e2a7568
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
