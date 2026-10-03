@@ -67,6 +67,14 @@ interface ChatMessageActions {
   finishStream(threadId: string): void;
   setStreamError(threadId: string, error: string): void;
   /**
+   * Resets a thread's streaming state to idle without creating or touching
+   * any message. Used for a pre-delta failure the UI shows as a thread-level
+   * state instead of a per-message error — offline (UAR/meter/kill-switch)
+   * and rate-limited (site-chat-offline-states) — so no assistant message
+   * row, and therefore no `MessageError` bubble, is ever created for it.
+   */
+  clearStreaming(threadId: string): void;
+  /**
    * Drops every message after `messageId` (exclusive) from the thread and
    * deletes those rows from PGlite. Used by retry/regenerate to remove a
    * superseded turn — the failed or stale assistant reply, and anything
@@ -530,6 +538,12 @@ export const useChatMessageStore = create<ChatMessageStore>()(
         persistMessages(threadId, messages);
       }
     },
+
+    clearStreaming: (threadId) =>
+      set((state) => {
+        if (!state.streamingByThread[threadId]) return;
+        state.streamingByThread[threadId] = { ...defaultStreamingState };
+      }),
 
     deleteMessagesAfter: (threadId, messageId) => {
       // Captured by the set() producer below as plain string ids (never a

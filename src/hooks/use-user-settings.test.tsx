@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it } from "vitest";
 import { createGraphTestHarness } from "@/test/utils/graph-wrapper";
 import { mockFetch, type FetchMock } from "@/test/utils/mock-fetch";
 import type { UserSettings } from "@/types";
-import { useDeleteSession } from "./use-sessions";
 import { useSaveUserSettings, useUserSettings } from "./use-user-settings";
 
 const settings: UserSettings = {
@@ -71,23 +70,5 @@ describe("useSaveUserSettings", () => {
     });
     expect(result.current.error).toBeInstanceOf(Error);
     expect(result.current.error?.message).toContain("bad scope");
-  });
-});
-
-describe("useDeleteSession", () => {
-  it("deletes the runtime session and marks its transcript stale", async () => {
-    fetchMock = mockFetch({ "DELETE /api/sessions/t1": () => ({ body: {} }) });
-    const { wrapper, store } = createGraphTestHarness();
-    store.getState().upsertEntity("SessionTranscript", "t1", { id: "t1", messages: [] });
-    store.getState().upsertEntity("Session", "t1", { id: "t1", title: "Old" });
-    store.getState().setEntityFetched("SessionTranscript", "t1");
-    const { result } = renderHook(() => useDeleteSession(), { wrapper });
-
-    await act(async () => {
-      await result.current.mutateAsync("t1");
-    });
-    expect(fetchMock.calls).toContainEqual(expect.objectContaining({ method: "DELETE", path: "/api/sessions/t1" }));
-    expect(store.getState().entityStates["SessionTranscript:t1"]?.stale).toBe(true);
-    expect(store.getState().readEntity("Session", "t1")).toBeNull();
   });
 });

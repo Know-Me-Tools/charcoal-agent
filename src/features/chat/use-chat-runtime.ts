@@ -1,6 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { useGraphStoreApi } from "@prometheus-ags/prometheus-entity-management";
-import { ENTITY } from "@/lib/entity-graph/entities";
 import {
   useExternalStoreRuntime,
   type AppendMessage,
@@ -74,6 +72,22 @@ export function richMessageToThreadMessageLike(msg: RichMessage): ThreadMessageL
         parts.push({ type: "reasoning", text: block.text });
         break;
       case "tool-call":
+        if (block.status === "denied") {
+          // assistant-ui's ToolCallMessagePartStatus has no "denied"/policy
+          // reason (only cancelled/length/content-filter/other/error), so
+          // this is encoded as a pseudo-tool-call like skill-activation and
+          // context-update below — ToolCallPart routes it to a block that
+          // always reads "Blocked by policy", never "running" or "Failed".
+          parts.push({
+            type: "tool-call",
+            toolCallId: block.toolCallId,
+            toolName: "__denied__",
+            args: { toolName: block.toolName, reason: block.result },
+            result: undefined,
+            isError: false,
+          });
+          break;
+        }
         parts.push({
           type: "tool-call",
           toolCallId: block.toolCallId,
@@ -223,7 +237,6 @@ export interface ChatRuntimeOptions {
 }
 
 export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {}) {
-  const graph = useGraphStoreApi();
   const consumePendingPrompt = useChatIntentStore((s) => s.consumePendingPrompt);
   const { startStream, cancelStream } = useMessageStream();
   const { messages, isStreaming } = useChatMessages(threadId);
@@ -261,9 +274,6 @@ export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {
       markPersisted(threadId);
       touch(threadId);
 
-      // Mark the server transcript stale so the next fallback read is fresh
-      graph.getState().invalidateEntity(ENTITY.SessionTranscript, threadId);
-
       // Generate title only once per thread (check current title first)
       if (titleGeneratedRef.current) return;
       const currentThread = useThreadRegistryStore.getState().threads[threadId];
@@ -283,7 +293,7 @@ export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {
       const title = await generateThreadTitle(userMsgText, assistantText);
       setTitle(threadId, title);
     },
-    [threadId, markPersisted, touch, setTitle, graph],
+    [threadId, markPersisted, touch, setTitle],
   );
 
   const onNew = useCallback(

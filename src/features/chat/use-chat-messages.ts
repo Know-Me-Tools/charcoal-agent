@@ -1,49 +1,14 @@
 import { useEffect, useRef } from "react";
-import { useEntity } from "@prometheus-ags/prometheus-entity-management";
-import { ENTITY } from "@/lib/entity-graph/entities";
-import { api } from "@/lib/api-client";
 import {
   useChatMessageStore,
   selectIsStreaming,
 } from "@/stores/chat-message-store";
-import { useThreadRegistryStore } from "@/stores/thread-registry-store";
 import { getDbInstance } from "@/lib/db/pglite";
 import type { RichMessage } from "@/types/chat-content";
 
 // Stable reference for empty thread — avoids triggering a re-render in
 // useExternalStoreRuntime when the thread hasn't been initialised yet.
 const EMPTY_MESSAGES: RichMessage[] = [];
-
-// Shape returned by GET /api/sessions/:id/messages on the UAR
-interface UarMessage {
-  role: "user" | "assistant" | "system";
-  content: string;
-}
-
-function uarMessageToRich(msg: UarMessage, index: number): RichMessage {
-  return {
-    id: `server-${index}`,
-    role: msg.role,
-    content: [{ type: "text", text: msg.content }],
-    createdAt: new Date(),
-    status: "complete",
-  };
-}
-
-/** Server-side transcript kept in the graph as one record per thread. */
-interface SessionTranscript {
-  id: string;
-  messages: UarMessage[];
-}
-
-/**
- * GET /api/sessions/{id}/messages through the API client (base URL, auth and
- * session headers). Non-2xx responses throw so the graph records the error.
- */
-async function fetchSessionMessages(sessionId: string): Promise<UarMessage[]> {
-  const data = await api.get<unknown>(`/api/sessions/${sessionId}/messages`);
-  return Array.isArray(data) ? (data as UarMessage[]) : [];
-}
 
 export function useChatMessages(threadId: string | null) {
   const initThread = useChatMessageStore((s) => s.initThread);
@@ -59,19 +24,11 @@ export function useChatMessages(threadId: string | null) {
     selectIsStreaming(threadId ?? "__none__"),
   );
 
-  // Ephemeral threads haven't had a message sent yet and don't exist on the
-  // UAR, so calling /api/sessions/{id}/messages would always 404. Skip the
-  // server fallback until the thread has been promoted to persisted.
-  const isEphemeral = useThreadRegistryStore(
-    (s) => (threadId ? (s.threads[threadId]?.isEphemeral ?? true) : true),
-  );
-
   // Whether we've already hydrated the store for this thread in this session.
   const hydratedRef = useRef<string | null>(null);
 
-  const localIsEmpty = messages === EMPTY_MESSAGES || messages.length === 0;
-
-  // ── 1. Load from PGLite (primary, fast, offline-capable) ─────────────────
+  // ── Load from PGLite (the only transcript source; UAR has no live
+  // GET /api/sessions/{id}/messages route — see site-proxy-hardening) ──────
   useEffect(() => {
     if (!threadId) return;
     if (hydratedRef.current === threadId) return;
@@ -97,7 +54,7 @@ export function useChatMessages(threadId: string | null) {
         })
         .catch(console.error);
     } catch {
-      // DB not ready yet — fall through to server fallback below
+      // DB not ready yet.
     }
 
     return () => { cancelled = true; };
@@ -109,52 +66,8 @@ export function useChatMessages(threadId: string | null) {
     hydratedRef.current = null;
   }, [threadId]);
 
-  // ── 2. Fall back to server when PGLite is also empty ─────────────────────
-  // The query is enabled whenever local store is empty AND we haven't
-  // already started hydrating from PGLite (give PGLite a tick to respond).
-  const {
-    data: transcript,
-    error: transcriptError,
-    isLoading: transcriptLoading,
-  } = useEntity<SessionTranscript, SessionTranscript>({
-    type: ENTITY.SessionTranscript,
-    id: threadId,
-    // Carry the requested id so a late response is stored under its own thread.
-    fetch: async (id) => ({ id: String(id), messages: await fetchSessionMessages(String(id)) }),
-    normalize: (transcript) => transcript,
-    enabled: !!threadId && localIsEmpty && !isStreaming && !isEphemeral,
-    staleTime: 60_000,
-  });
-  const serverMessages = transcript?.messages;
-
-  useEffect(() => {
-    if (!threadId) return;
-    if (!serverMessages || serverMessages.length === 0) return;
-    if (hydratedRef.current === threadId) return;
-
-    const currentlyStreaming =
-      useChatMessageStore.getState().streamingByThread[threadId]?.isStreaming;
-    if (currentlyStreaming) return;
-
-    // Double-check local store was not populated between query firing and now
-    const storeMessages =
-      useChatMessageStore.getState().messagesByThread[threadId];
-    if (storeMessages && storeMessages.length > 0) {
-      hydratedRef.current = threadId;
-      return;
-    }
-
-    hydratedRef.current = threadId;
-    const richMessages = serverMessages.map(uarMessageToRich);
-    initThread(threadId, richMessages);
-  }, [threadId, serverMessages, initThread]);
-
   return {
     messages,
     isStreaming,
-    /** True only while the server-transcript fallback is in flight; a failure ends loading. */
-    isLoading: localIsEmpty && !isStreaming && transcriptLoading,
-    /** Server-transcript fallback failure (null when not attempted or successful). */
-    transcriptError,
   };
 }

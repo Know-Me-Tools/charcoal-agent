@@ -7,6 +7,7 @@ import {
 	ErrorPrimitive,
 	MessagePrimitive,
 	ThreadPrimitive,
+	useAuiState,
 	type MessagePartStatus,
 	type ToolCallMessagePartProps,
 } from "@assistant-ui/react";
@@ -48,11 +49,14 @@ import { A2uiInputBlock, A2uiDisplayBlock } from "@/features/chat/components/a2u
 import { ContextUpdateBlock } from "@/features/chat/components/context-update-block";
 import { MemoryMutationBlock, MemoryRecallBlock } from "@/features/chat/components/memory-block";
 import { SkillActivationBlock } from "@/features/chat/components/skill-activation-block";
-import { ToolCallBlockWrapper } from "@/features/chat/components/tool-call-block";
+import { ToolCallBlock, ToolCallBlockWrapper } from "@/features/chat/components/tool-call-block";
 import { CitationBlock } from "@/features/chat/components/citation-block";
+import { ChatConnectivityBanner } from "@/features/chat/components/chat-connectivity-banner";
 import { cn } from "@/lib/utils";
 import { KnowMeMark } from "@/components/brand";
 import { usePersistenceStatus } from "@/hooks/use-persistence-status";
+import { AI_DISCLOSURE_CONTENT } from "../../../content/site/ai-disclosure";
+import { isFirstAssistantMessageIndex } from "@/features/chat/first-assistant-message";
 
 // ─── Root Thread ─────────────────────────────────────────────────────────────
 
@@ -97,10 +101,12 @@ export const EnhancedThread: FC<EnhancedThreadProps> = ({
 
 				<ThreadPrimitive.ViewportFooter className="aui-thread-viewport-footer sticky bottom-0 mx-auto mt-auto flex w-full max-w-(--thread-max-width) flex-col gap-3 bg-canvas pt-3 pb-4 @md:pb-6">
 					<ThreadScrollToBottom />
+					<ChatConnectivityBanner />
 					<EnhancedComposer
 						promptCachingEnabled={promptCachingEnabled}
 						onTogglePromptCaching={onTogglePromptCaching}
 					/>
+					<ComposerDisclosure />
 				</ThreadPrimitive.ViewportFooter>
 			</ThreadPrimitive.Viewport>
 		</ThreadPrimitive.Root>
@@ -154,6 +160,23 @@ const ThreadScrollToBottom: FC = () => (
 			<ArrowDownIcon />
 		</TooltipIconButton>
 	</ThreadPrimitive.ScrollToBottom>
+);
+
+// ─── AI disclosure (EU AI Act Art. 50; FR-31, FR-35) ──────────────────────────
+//
+// Static, model-independent disclosure: identifies the agent as AI, warns
+// that answers may be wrong, and asks the visitor not to share sensitive
+// personal details. Sourced from `content/site/ai-disclosure.ts` (draft
+// copy, pending operator approval — see
+// docs/content/reviews/site-ai-disclosure-label.md) so approval only ever
+// means editing that one file. Renders from a static import with no network
+// call, so it is visible on first paint, before any stream event.
+
+export const ComposerDisclosure: FC = () => (
+	<div className="flex flex-col gap-0.5 px-1 text-center">
+		<p className="font-mono text-[11px] text-faint">{AI_DISCLOSURE_CONTENT.label}</p>
+		<p className="font-mono text-[11px] text-faint">{AI_DISCLOSURE_CONTENT.sensitiveDataHint}</p>
+	</div>
 );
 
 // ─── Composer ────────────────────────────────────────────────────────────────
@@ -306,41 +329,56 @@ const UserActionBar: FC = () => (
 
 // ─── Assistant Message ────────────────────────────────────────────────────────
 
-const AssistantMessage: FC = () => (
-	<MessagePrimitive.Root
-		className="fade-in slide-in-from-bottom-1 mx-auto flex w-full max-w-(--thread-max-width) animate-in flex-col px-0 pt-2 pb-6 duration-150 @md:px-4"
-		data-role="assistant"
-	>
-		<div className="flex w-full items-start gap-3">
-			<div className="hidden size-8 shrink-0 items-center justify-center rounded-lg bg-surface text-fg @md:flex">
-				<KnowMeMark size={24} />
+const AssistantMessage: FC = () => {
+	// FR-31: the AI label must sit on the very first agent bubble of the
+	// thread, present before the first streamed token — identity, not
+	// content, decides this, so it doesn't wait on any part to render.
+	const isFirstAssistantMessage = useAuiState((s) =>
+		isFirstAssistantMessageIndex(s.thread.messages, s.message.index),
+	);
+
+	return (
+		<MessagePrimitive.Root
+			className="fade-in slide-in-from-bottom-1 mx-auto flex w-full max-w-(--thread-max-width) animate-in flex-col px-0 pt-2 pb-6 duration-150 @md:px-4"
+			data-role="assistant"
+			data-ai-generated="true"
+		>
+			<div className="flex w-full items-start gap-3">
+				<div className="hidden size-8 shrink-0 items-center justify-center rounded-lg bg-surface text-fg @md:flex">
+					<KnowMeMark size={24} />
+				</div>
+				<div className="min-w-0 flex-1 wrap-break-word font-body text-[0.9375rem] text-fg leading-[1.7]">
+					<span className="sr-only">Agent:</span>
+					{isFirstAssistantMessage && (
+						<p className="mb-2 font-mono text-[11px] text-faint">
+							{AI_DISCLOSURE_CONTENT.label}
+						</p>
+					)}
+					<MessagePrimitive.Parts>
+						{({ part }) => {
+							switch (part.type) {
+								case "text":
+									return <EnhancedMarkdownText />;
+								case "reasoning":
+									return <ReasoningPart text={part.text} status={part.status} />;
+								case "tool-call":
+									// KnowMe rich blocks are encoded as tool calls (see ToolCallPart).
+									return <ToolCallPart {...part} />;
+								default:
+									return null;
+							}
+						}}
+					</MessagePrimitive.Parts>
+					<MessageError />
+				</div>
 			</div>
-			<div className="min-w-0 flex-1 wrap-break-word font-body text-[0.9375rem] text-fg leading-[1.7]">
-				<span className="sr-only">Agent:</span>
-				<MessagePrimitive.Parts>
-					{({ part }) => {
-						switch (part.type) {
-							case "text":
-								return <EnhancedMarkdownText />;
-							case "reasoning":
-								return <ReasoningPart text={part.text} status={part.status} />;
-							case "tool-call":
-								// KnowMe rich blocks are encoded as tool calls (see ToolCallPart).
-								return <ToolCallPart {...part} />;
-							default:
-								return null;
-						}
-					}}
-				</MessagePrimitive.Parts>
-				<MessageError />
+			<div className="mt-1 flex items-center gap-1 @md:ms-11">
+				<BranchPicker />
+				<AssistantActionBar />
 			</div>
-		</div>
-		<div className="mt-1 flex items-center gap-1 @md:ms-11">
-			<BranchPicker />
-			<AssistantActionBar />
-		</div>
-	</MessagePrimitive.Root>
-);
+		</MessagePrimitive.Root>
+	);
+};
 
 // ─── Reasoning Part ───────────────────────────────────────────────────────────
 
@@ -447,6 +485,14 @@ const ToolCallPart: FC<ToolCallMessagePartProps> = ({
 	if (toolName === "__citation__") {
 		const a = args as { source: string; content: string; url?: string };
 		return <CitationBlock source={a.source} content={a.content} url={a.url} />;
+	}
+
+	if (toolName === "__denied__") {
+		// agui.tool_call.denied (FR-11 client case, site-chat-offline-states):
+		// the launch run policy refused this call. Always "Blocked by
+		// policy" — never "running" and never silently dropped.
+		const a = args as { toolName: string; reason?: string };
+		return <ToolCallBlock toolName={a.toolName} args={{}} result={a.reason} status="denied" />;
 	}
 
 	if (toolName === "__memory_recall__") {

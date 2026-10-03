@@ -1,6 +1,7 @@
 import type { FC } from "react";
 import { ExternalLinkIcon, BookOpenIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { isAllowedLink } from "@/lib/link-policy/is-allowed-link";
 
 interface CitationBlockProps {
   source: string;
@@ -18,11 +19,17 @@ export const CitationBlock: FC<CitationBlockProps> = ({
   index,
   className,
 }) => {
+  // The URL comes from the model's stream, so it is untrusted: only a
+  // corpus or site-owned destination renders as a link (FR-16,
+  // site-citation-link-allowlist). Anything else still shows the full
+  // destination, as plain text, instead of hiding it behind the source name.
+  const isLinkAllowed = !!url && isAllowedLink(url);
+
   const card = (
     <div
       className={cn(
         "group my-3 flex min-w-0 items-start gap-2 rounded-lg bg-cyan-soft px-3 py-2 transition-hover first:mt-0 last:mb-0",
-        url && "hover:bg-hover",
+        isLinkAllowed && "hover:bg-hover",
         className,
       )}
     >
@@ -35,7 +42,7 @@ export const CitationBlock: FC<CitationBlockProps> = ({
           <span className="min-w-0 font-ui text-sm font-semibold text-fg wrap-anywhere">
             {source}
           </span>
-          {url && (
+          {isLinkAllowed && (
             <ExternalLinkIcon className="size-3.5 shrink-0 text-cyan-text" aria-hidden="true" />
           )}
         </div>
@@ -44,11 +51,16 @@ export const CitationBlock: FC<CitationBlockProps> = ({
             {content}
           </p>
         )}
+        {url && !isLinkAllowed && (
+          <p className="mt-1 font-mono text-xs break-all text-fg-secondary wrap-anywhere">
+            {url}
+          </p>
+        )}
       </div>
     </div>
   );
 
-  if (url) {
+  if (isLinkAllowed) {
     return (
       <a href={url} target="_blank" rel="noopener noreferrer" className="block rounded-lg focus-cue">
         {card}

@@ -4,7 +4,7 @@
 
   Done: routes removed from `server/src/interface/routes/uar_proxy.rs` (and `SiteProxy` methods from `server/src/application/site_proxy.rs`); they fall through to the `/api` 404 fallback. `server/src/domain/path_id.rs` deleted (no remaining caller).
 
-- [ ] 1.2 (km-frontend-engineer) Remove their client callers: `src/hooks/use-sessions.ts` and the persisted-thread server-transcript fallback in `src/features/chat/use-chat-messages.ts`. Update or remove the affected tests.
+- [x] 1.2 (km-frontend-engineer) Removed `src/hooks/use-sessions.ts` (its only caller, the sidebar's delete button in `src/components/layout/left-sidebar.tsx`, now does local-only removal — the local thread registry was already documented as the source of truth, the server call was best-effort). Removed the persisted-thread server-transcript fallback (part 2 of `useChatMessages`) from `src/features/chat/use-chat-messages.ts`, and the now-dead `graph.getState().invalidateEntity(ENTITY.SessionTranscript, ...)` call it fed in `src/features/chat/use-chat-runtime.ts` (nothing reads that entity type anymore, so also dropped `SessionTranscript` from `src/lib/entity-graph/entities.ts`). Removed `src/features/chat/use-chat-messages.test.tsx` (tested only the removed fallback), the `useDeleteSession` describe block in `src/hooks/use-user-settings.test.tsx`, and the "marks the thread's server transcript stale" test in `src/features/chat/use-chat-runtime.test.tsx`.
 - [x] 1.3 Remove `POST /api/uar/runs/{run_id}/artifact-response` from the allowlist.
 
   Done: same files as 1.1.
@@ -21,6 +21,9 @@
 
   Server side done (R1): `server/src/domain/chat_request.rs` always forwards `stream: true`, `stream_mode: "dual"` and ignores the client's fields (type errors on them are no longer 400). Confirmation FAILED by static reading: in `dual` UAR emits each text delta twice, as `agui.message.delta` and as an OpenAI `data:` chunk (UAR `src/server.rs` `emit_agui_chunks` / `emit_openai_chunks`), and the streaming fallback in `src/features/chat/use-thread-naming.ts` collects both, so titles come out doubled. Needs a lane F fix (collect one dialect) before this closes.
 
+
+  Client part (lane F): - **Client part done (km-frontend-engineer, reported by the orchestrator from lane R1's finding):** in now-always-dual-mode, UAR emits each delta twice — as `agui.message.delta` and as an OpenAI-style `event: message` chunk carrying the same text. `generateThreadTitle`'s streaming fallback in `src/features/chat/use-thread-naming.ts` collected both, doubling every generated title (e.g. "Weekly Weekly planplan"). Fixed to collect only `agui.message.delta` text, matching `use-message-stream.ts`'s own dual-mode handling. Regression test: `src/features/chat/use-thread-naming.test.ts` (constructs a scripted dual-mode SSE body with both event dialects carrying the same text, asserts the title is not doubled; a second case asserts the "New conversation" fallback when no `agui.message.delta` ever arrives). Server-side task (pinning the request shape itself) remains open for km-rust-engineer.
+
 - [x] 1.7 Forward no client query string on any route unless the parameter is on that route's allowlist; drop everything else.
 
   Done: `server/src/domain/query.rs` (`allowlisted_query`); the chat route's allowlist is empty (`CHAT_QUERY_PARAMS` in `server/src/application/site_proxy.rs`), so no client parameter is forwarded.
@@ -28,5 +31,4 @@
 - [x] 1.8 Unit tests in `server/`: removed routes return the generic 404; an upstream 500 and an upstream 400 yield generic bodies with no UAR text; `guardrail_blocked` maps to the visitor message (stub upstream, since the guardrail is detect-only in Phase 0); the forwarded body always carries `stream: true` and `stream_mode: "dual"` whatever the client sent; a non-allowlisted query parameter is not forwarded.
 
   Written, compile-checked, not run: unit tests in `domain/chat_request.rs`, `domain/query.rs`, `infrastructure/upstream.rs`; integration tests in `server/tests/site_server.rs` (`removed_routes_should_return_the_generic_404_without_an_upstream_call`, `upstream_errors_should_reach_the_visitor_as_generic_bodies`, `guardrail_block_should_map_to_the_visitor_message_without_uar_text`, `upstream_stream_shape_should_be_pinned_whatever_the_client_sent`, `non_allowlisted_query_parameters_should_not_be_forwarded`).
-
 - [ ] 1.9 Done-when (local): on the compose stack, `curl` through :8080 shows the three removed routes returning the generic 404 body, a `stream: false` chat request returning an SSE stream that ends with `agui.done` carrying usage, and a new thread still getting a title in the browser; `cargo test` in `server/` and `npm test` pass. Paste the output here.
