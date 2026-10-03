@@ -12,6 +12,7 @@
 #   UAR_URL=http://localhost:6565 UAR_JWT_SECRET=... ./scripts/seed-site-agent.sh
 #   UAR_JWT_SECRET=... ./scripts/seed-site-agent.sh --mint-key-to-file /path/to/key
 #   UAR_JWT_SECRET=... ./scripts/seed-site-agent.sh --mint-key-to-k8s-secret knowme/site-proxy
+#   UAR_JWT_SECRET=... ./scripts/seed-site-agent.sh --recreate-kb
 #
 # Env:
 #   UAR_URL          Base URL of the UAR API (default: http://localhost:6565)
@@ -22,6 +23,8 @@
 #   KB_EMBEDDING_PROVIDER   KB embedding provider for new KBs (default: openai)
 #   KB_EMBEDDING_MODEL      KB embedding model for new KBs (default: $QWEN_EMBEDDING_MODEL or text-embedding-v4)
 #   KB_VECTOR_DIMENSIONS    KB vector dimensions for new KBs (default: $QWEN_EMBEDDING_DIMENSIONS or 1024)
+#   KB_CHUNK_STRATEGY       KB chunk strategy for new KBs (default: document, D-22/kb-chunking-quality —
+#                           the 8-file, ~3.5k-token corpus fits whole-document chunks)
 #
 # Flags:
 #   --mint-key-to-file <path>          Mint a fresh site API key and write it to <path> (0600). Never printed.
@@ -29,6 +32,18 @@
 #                                           Secret <name> in namespace <ns> (key SITE_PROXY_API_KEY),
 #                                           via `kubectl ... --dry-run=client -o yaml | kubectl apply -f -`.
 #                                           Never printed or passed as a kubectl argument.
+#   --recreate-kb                      kb-chunking-quality 1.3: delete the KB named $KB_NAME if it
+#                                       exists, recreate it with the current KB_CHUNK_STRATEGY/
+#                                       KB_EMBEDDING_* config, and re-ingest every corpus document.
+#                                       Use this to change an existing KB's config — the normal path
+#                                       sends `config` only on create and skips documents that are
+#                                       already present, so it cannot change a KB already created with
+#                                       a different chunk strategy.
+#                                       ASSUMPTION (unverified against UAR source in this repo):
+#                                       deletion calls `DELETE /api/uar/knowledge-bases/{id}`, mirroring
+#                                       the per-document `DELETE .../documents/{id}` already used below.
+#                                       Confirm this path exists in UAR before running against a live
+#                                       UAR for the first time.
 #
 # Idempotency: the agent PUT is a full replace (safe to repeat). The KB is
 # looked up by name before creating. Corpus documents are synced by content
@@ -44,11 +59,13 @@ KB_NAME="${KB_NAME:-knowme-site}"
 KB_EMBEDDING_PROVIDER="${KB_EMBEDDING_PROVIDER:-openai}"
 KB_EMBEDDING_MODEL="${KB_EMBEDDING_MODEL:-${QWEN_EMBEDDING_MODEL:-text-embedding-v4}}"
 KB_VECTOR_DIMENSIONS="${KB_VECTOR_DIMENSIONS:-${QWEN_EMBEDDING_DIMENSIONS:-1024}}"
+KB_CHUNK_STRATEGY="${KB_CHUNK_STRATEGY:-document}"
 JWT_SUBJECT="knowme-site"
 JWT_TTL_SECS=600
 
 MINT_KEY_TO_FILE=""
 MINT_KEY_TO_K8S_SECRET=""
+RECREATE_KB=0
 
 log() { printf '[seed-site-agent] %s\n' "$*" >&2; }
 die() {
@@ -68,6 +85,10 @@ while [[ $# -gt 0 ]]; do
       [[ $# -ge 2 ]] || die "--mint-key-to-k8s-secret requires <namespace>/<name>"
       MINT_KEY_TO_K8S_SECRET="$2"
       shift 2
+      ;;
+    --recreate-kb)
+      RECREATE_KB=1
+      shift
       ;;
     -h|--help)
       sed -n '2,40p' "$0"
@@ -166,14 +187,26 @@ status="$API_STATUS"
 require_2xx "$status" "list knowledge bases"
 KB_ID="$(printf '%s' "$REPLY_BODY" | jq -r --arg name "$KB_NAME" '.[] | select(.name == $name) | .id' | head -n1)"
 
+if [[ "$RECREATE_KB" -eq 1 && -n "$KB_ID" ]]; then
+  # kb-chunking-quality 1.3: the normal path below sends `config` only on
+  # create and skips documents already present, so it cannot change an
+  # existing KB's chunk strategy. Delete and recreate instead.
+  log "--recreate-kb: deleting knowledge base '$KB_NAME' ($KB_ID)"
+  api DELETE "/api/uar/knowledge-bases/${KB_ID}"
+  status="$API_STATUS"
+  require_2xx "$status" "delete knowledge base '$KB_NAME' ($KB_ID) for --recreate-kb"
+  KB_ID=""
+fi
+
 if [[ -z "$KB_ID" ]]; then
-  log "knowledge base '$KB_NAME' not found; creating"
+  log "knowledge base '$KB_NAME' not found; creating (chunk_strategy=$KB_CHUNK_STRATEGY)"
   create_body="$(jq -n \
     --arg name "$KB_NAME" \
     --arg provider "$KB_EMBEDDING_PROVIDER" \
     --arg model "$KB_EMBEDDING_MODEL" \
     --argjson dims "$KB_VECTOR_DIMENSIONS" \
-    '{name: $name, description: "Public-safe KnowMe product content for the site agent.", config: {embedding_provider: $provider, embedding_model: $model, vector_dimensions: $dims}}')"
+    --arg chunk_strategy "$KB_CHUNK_STRATEGY" \
+    '{name: $name, description: "Public-safe KnowMe product content for the site agent.", config: {embedding_provider: $provider, embedding_model: $model, vector_dimensions: $dims, chunk_strategy: $chunk_strategy}}')"
   api POST "/api/uar/knowledge-bases" -H 'Content-Type: application/json' --data-binary "$create_body"
   status="$API_STATUS"
   require_2xx "$status" "create knowledge base"
@@ -281,7 +314,46 @@ else
   log "corpus sync complete"
 fi
 
-# ── 4. Optional: mint the site API key ──────────────────────────────────────
+# ── 4. FR-8 KB health check (site-agent-seed 1.4) ───────────────────────────
+#
+# What this checks: every corpus document is present in the KB and its
+# ingestion did not fail. What it does NOT check: per-document chunk counts
+# or chunk boundaries (kb-chunking-quality's "no chunk ends inside a version
+# number" and "at least one chunk per document" checks) — UAR's document API
+# exposes only id/filename/mime/status (see the "Corpus sync" comment
+# above), with no endpoint in this repo's documentation for listing a
+# document's chunks. Fabricating that endpoint's path here would be worse
+# than not checking it; that stricter check belongs to kb-chunking-quality
+# 1.4 once such an endpoint is confirmed or added, and stays open until then.
+log "checking every corpus document ingested without failure"
+api GET "/api/uar/knowledge-bases/${KB_ID}/documents"
+status="$API_STATUS"
+require_2xx "$status" "list documents for FR-8 health check"
+POST_SYNC_DOCS_JSON="$REPLY_BODY"
+
+health_fail=0
+shopt -s nullglob
+for f in "$CORPUS_DIR"/*.md; do
+  base="$(basename "$f" .md)"
+  doc_status="$(printf '%s' "$POST_SYNC_DOCS_JSON" \
+    | jq -r --arg base "$base" \
+      '.[] | select(.filename | test("^" + $base + "\\.[0-9a-f]{12}\\.md$")) | (.status // "")')"
+  if [[ -z "$doc_status" ]]; then
+    log "FR-8 health check: $base.md is not present in KB '$KB_NAME'"
+    health_fail=1
+  elif [[ "$doc_status" == "failed" ]]; then
+    log "FR-8 health check: $base.md ingestion status is 'failed'"
+    health_fail=1
+  fi
+done
+shopt -u nullglob
+
+if [[ "$health_fail" -ne 0 ]]; then
+  die "FR-8 KB health check failed: see entries above"
+fi
+log "FR-8 KB health check passed: every corpus document is present and not failed"
+
+# ── 5. Optional: mint the site API key ──────────────────────────────────────
 if [[ -n "$MINT_KEY_TO_FILE" || -n "$MINT_KEY_TO_K8S_SECRET" ]]; then
   log "minting a new site API key (sub=${JWT_SUBJECT})"
   key_body="$(jq -n --arg name "site-proxy-$(date +%s)" '{name: $name}')"
