@@ -4,9 +4,14 @@
 //! Every visitor shares one UAR principal (the proxy key), so the forwarded
 //! body is rebuilt, not patched: only `message` survives from the client
 //! (`src/features/chat/use-message-stream.ts`, `use-thread-naming.ts`), and
-//! `agent_id`, `stream` and `stream_mode` are set here. Everything else
-//! (model, run_policy, memory_enabled, attachments, messages,
+//! `agent_id`, `stream`, `stream_mode` and `memory_enabled` are set here.
+//! Everything else (model, run_policy, attachments, messages,
 //! prompt_caching_enabled, session_id, ...) is dropped.
+//!
+//! `memory_enabled: false` is sent on every turn (FR-41): UAR defaults the
+//! per-request flag to true, and the agent's `memory.conversation.enabled`
+//! does not gate capture, so an omitted field would capture every visitor's
+//! turns under the shared site principal if memory were ever switched on.
 //!
 //! The stream shape is pinned (site-proxy-hardening): every run streams in
 //! `dual` mode, so the run's usage always arrives in one dialect
@@ -35,7 +40,7 @@ pub enum ChatRequestError {
 }
 
 /// Returns the serialized upstream body: `agent_id`, `message`,
-/// `stream: true` and `stream_mode: "dual"`.
+/// `stream: true`, `stream_mode: "dual"` and `memory_enabled: false`.
 pub fn build_site_chat_request(body: &[u8], agent_id: &str) -> Result<Vec<u8>, ChatRequestError> {
     let value: Value = serde_json::from_slice(body).map_err(|_| ChatRequestError::InvalidJson)?;
     let input = value.as_object().ok_or(ChatRequestError::NotAnObject)?;
@@ -53,6 +58,7 @@ pub fn build_site_chat_request(body: &[u8], agent_id: &str) -> Result<Vec<u8>, C
         ("message".to_owned(), Value::from(message)),
         ("stream".to_owned(), Value::from(true)),
         ("stream_mode".to_owned(), Value::from(STREAM_MODE)),
+        ("memory_enabled".to_owned(), Value::from(false)),
     ]);
     // Serializing a map of strings and booleans cannot fail.
     serde_json::to_vec(&forwarded).map_err(|_| ChatRequestError::InvalidJson)
@@ -72,7 +78,8 @@ mod tests {
             "agent_id": "knowme-site",
             "message": message,
             "stream": true,
-            "stream_mode": "dual"
+            "stream_mode": "dual",
+            "memory_enabled": false
         })
     }
 

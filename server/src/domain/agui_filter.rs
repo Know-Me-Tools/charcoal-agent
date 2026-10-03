@@ -14,8 +14,14 @@
 //! field) is dropped too, because it could be an internal one, but it is
 //! reported as [`Verdict::DropMalformed`] so the caller logs it rather than
 //! counting it as an internal artifact.
+//!
+//! The same pass reports the run signals the meter needs ([`Signal`]): the
+//! first `agui.message.delta` (time to first token), `agui.done` with its
+//! usage, `agui.cancelled` and `agui.error`.
 
 use serde_json::Value;
+
+use crate::domain::meter::{Usage, parse_done_usage};
 
 pub const ARTIFACT_EVENT: &str = "agui.artifact";
 pub const INTERNAL_ARTIFACT_TYPES: [&str; 2] = ["effective_run_policy", "turn_manifest"];
@@ -27,17 +33,36 @@ pub enum Verdict {
     DropMalformed,
 }
 
-/// The bytes to forward from one push, and what was dropped.
+/// A run event the meter acts on, read from the upstream (unfiltered) event.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Signal {
+    /// `agui.message.delta`.
+    Output,
+    /// `agui.done`; `None` when it carries no usage.
+    Done(Option<Usage>),
+    /// `agui.cancelled`.
+    Cancelled,
+    /// `agui.error`.
+    Error,
+}
+
+/// The bytes to forward from one push, what was dropped, and the signals
+/// seen, in order.
 #[derive(Debug, Default, PartialEq, Eq)]
 pub struct Filtered {
     pub forward: Vec<u8>,
     pub dropped_internal: usize,
     pub dropped_malformed: usize,
+    pub signals: Vec<Signal>,
 }
 
 impl Filtered {
     fn take(&mut self, event: &[u8]) {
-        match classify(event) {
+        let parsed = ParsedEvent::parse(event);
+        if let Some(signal) = parsed.signal() {
+            self.signals.push(signal);
+        }
+        match parsed.verdict() {
             Verdict::Forward => self.forward.extend_from_slice(event),
             Verdict::DropInternal => self.dropped_internal += 1,
             Verdict::DropMalformed => self.dropped_malformed += 1,
@@ -111,33 +136,62 @@ fn event_len(buf: &[u8]) -> Option<usize> {
 
 /// Classifies one event block (its bytes, with or without the terminator).
 pub fn classify(event: &[u8]) -> Verdict {
-    let text = String::from_utf8_lossy(event);
-    let mut event_type: Option<String> = None;
-    let mut data: Vec<&str> = Vec::new();
-    for line in text.split(['\n', '\r']) {
-        if line.is_empty() || line.starts_with(':') {
-            continue;
+    ParsedEvent::parse(event).verdict()
+}
+
+/// The `event` and joined `data` fields of one SSE event block.
+struct ParsedEvent {
+    event_type: Option<String>,
+    data: String,
+}
+
+impl ParsedEvent {
+    fn parse(event: &[u8]) -> Self {
+        let text = String::from_utf8_lossy(event);
+        let mut event_type: Option<String> = None;
+        let mut data: Vec<&str> = Vec::new();
+        for line in text.split(['\n', '\r']) {
+            if line.is_empty() || line.starts_with(':') {
+                continue;
+            }
+            let (field, value) = line.split_once(':').unwrap_or((line, ""));
+            let value = value.strip_prefix(' ').unwrap_or(value);
+            match field {
+                "event" => event_type = Some(value.to_owned()),
+                "data" => data.push(value),
+                _ => {}
+            }
         }
-        let (field, value) = line.split_once(':').unwrap_or((line, ""));
-        let value = value.strip_prefix(' ').unwrap_or(value);
-        match field {
-            "event" => event_type = Some(value.to_owned()),
-            "data" => data.push(value),
-            _ => {}
+        Self {
+            event_type,
+            data: data.join("\n"),
         }
     }
-    if event_type.as_deref() != Some(ARTIFACT_EVENT) {
-        return Verdict::Forward;
+
+    fn verdict(&self) -> Verdict {
+        if self.event_type.as_deref() != Some(ARTIFACT_EVENT) {
+            return Verdict::Forward;
+        }
+        let payload: Option<Value> = serde_json::from_str(&self.data).ok();
+        match payload
+            .as_ref()
+            .and_then(|v| v.get("artifact_type"))
+            .and_then(Value::as_str)
+        {
+            Some(kind) if INTERNAL_ARTIFACT_TYPES.contains(&kind) => Verdict::DropInternal,
+            Some(_) => Verdict::Forward,
+            None => Verdict::DropMalformed,
+        }
     }
-    let payload: Option<Value> = serde_json::from_str(&data.join("\n")).ok();
-    match payload
-        .as_ref()
-        .and_then(|v| v.get("artifact_type"))
-        .and_then(Value::as_str)
-    {
-        Some(kind) if INTERNAL_ARTIFACT_TYPES.contains(&kind) => Verdict::DropInternal,
-        Some(_) => Verdict::Forward,
-        None => Verdict::DropMalformed,
+
+    fn signal(&self) -> Option<Signal> {
+        match self.event_type.as_deref()? {
+            "agui.message.delta" => Some(Signal::Output),
+            "agui.done" => Some(Signal::Done(parse_done_usage(&self.data))),
+            "agui.cancelled" => Some(Signal::Cancelled),
+            "agui.error" => Some(Signal::Error),
+            _ => None,
+        }
     }
 }
 
@@ -164,12 +218,41 @@ mod tests {
             total.forward.extend(out.forward);
             total.dropped_internal += out.dropped_internal;
             total.dropped_malformed += out.dropped_malformed;
+            total.signals.extend(out.signals);
         }
         let out = filter.finish();
         total.forward.extend(out.forward);
         total.dropped_internal += out.dropped_internal;
         total.dropped_malformed += out.dropped_malformed;
+        total.signals.extend(out.signals);
         total
+    }
+
+    #[test]
+    fn run_signals_should_be_reported_in_order_including_from_dropped_events() {
+        let cancelled = "event: agui.cancelled\ndata: {}\n\n";
+        let error = "event: agui.error\ndata: {\"message\":\"x\"}\n\n";
+        let stream = [START, POLICY, DELTA, DELTA, cancelled, error, DONE].concat();
+        let out = run(&[stream.as_bytes()]);
+        let expected_usage = Usage {
+            input_tokens: Some(1),
+            ..Usage::default()
+        };
+        assert_eq!(
+            out.signals,
+            vec![
+                Signal::Output,
+                Signal::Output,
+                Signal::Cancelled,
+                Signal::Error,
+                Signal::Done(Some(expected_usage)),
+            ]
+        );
+        let plain_done = "event: agui.done\ndata: {\"kind\":\"done\"}\n\n";
+        assert_eq!(
+            run(&[plain_done.as_bytes()]).signals,
+            vec![Signal::Done(None)]
+        );
     }
 
     #[test]

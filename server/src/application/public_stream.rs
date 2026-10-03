@@ -6,11 +6,17 @@
 //! optional tap sees every upstream chunk before the filter; it exists for
 //! the FR-11 harness only and can be set only through the `test-harness`
 //! build (`crate::build_app_with_upstream_tap`), never by a request.
+//!
+//! The turn tracker sees every run signal (from the unfiltered events) and
+//! settles the meter when the stream ends; if the visitor disconnects first,
+//! dropping the stream drops the tracker, which settles it then.
 
 use axum::body::Bytes;
 use futures_util::{Stream, StreamExt};
 
+use crate::application::meter::TurnTracker;
 use crate::domain::agui_filter::{Filtered, InternalArtifactFilter};
+use crate::domain::meter::Outcome;
 
 /// Receives every upstream SSE chunk of a chat turn before the filter.
 pub type UpstreamTap = tokio::sync::mpsc::UnboundedSender<Bytes>;
@@ -19,12 +25,33 @@ struct State<S> {
     upstream: S,
     filter: InternalArtifactFilter,
     tap: Option<UpstreamTap>,
+    tracker: Option<TurnTracker>,
     done: bool,
+}
+
+impl<S> State<S> {
+    /// Feeds the run signals to the tracker and returns the bytes to send.
+    fn release(&mut self, filtered: Filtered) -> Bytes {
+        if let Some(tracker) = &mut self.tracker {
+            for signal in &filtered.signals {
+                tracker.observe(signal);
+            }
+        }
+        report(filtered)
+    }
+
+    fn end(&mut self) {
+        self.done = true;
+        if let Some(tracker) = &mut self.tracker {
+            tracker.finish(Outcome::Incomplete);
+        }
+    }
 }
 
 pub fn filter_internal_artifacts<S, E>(
     upstream: S,
     tap: Option<UpstreamTap>,
+    tracker: Option<TurnTracker>,
 ) -> impl Stream<Item = Result<Bytes, E>> + Send + 'static
 where
     S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,
@@ -34,6 +61,7 @@ where
         upstream,
         filter: InternalArtifactFilter::new(),
         tap,
+        tracker,
         done: false,
     };
     futures_util::stream::unfold(state, |mut state| async move {
@@ -44,18 +72,20 @@ where
                         // A closed harness receiver must not end the visitor's stream.
                         let _ = tap.send(chunk.clone());
                     }
-                    let out = report(state.filter.push(&chunk));
+                    let filtered = state.filter.push(&chunk);
+                    let out = state.release(filtered);
                     if !out.is_empty() {
                         return Some((Ok(out), state));
                     }
                 }
                 Some(Err(err)) => {
-                    state.done = true;
+                    state.end();
                     return Some((Err(err), state));
                 }
                 None => {
-                    state.done = true;
-                    let out = report(state.filter.finish());
+                    let filtered = state.filter.finish();
+                    let out = state.release(filtered);
+                    state.end();
                     if !out.is_empty() {
                         return Some((Ok(out), state));
                     }
@@ -102,7 +132,7 @@ mod tests {
         let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
         let upstream = futures_util::stream::iter(chunks(&[POLICY, &DELTA[..10], &DELTA[10..]]));
 
-        let out: Vec<Bytes> = filter_internal_artifacts(upstream, Some(tx))
+        let out: Vec<Bytes> = filter_internal_artifacts(upstream, Some(tx), None)
             .map(|r| r.unwrap())
             .collect()
             .await;

@@ -14,11 +14,37 @@
 //! orphans. Rotate by replacing the Secret and restarting all replicas
 //! together; replicas on different secrets would split one visitor across
 //! two upstream sessions.
+//!
+//! Spend meter (site-spend-ceiling):
+//! - `SITE_METER_URL` (required): SurrealDB base URL, `http://` only, e.g.
+//!   `http://surrealdb:8000`.
+//! - `SITE_METER_USER`, `SITE_METER_PASS` (required): the database user
+//!   defined `ON DATABASE` for `site/meter` only, created out of band by the
+//!   operator; from a Secret.
+//! - `SITE_METER_NS`, `SITE_METER_DB`: default `site`, `meter`.
+//! - `SITE_METER_DAILY_TOKENS`, `SITE_METER_MONTHLY_TOKENS`: D-3 budgets,
+//!   default 1,000,000 and 20,000,000.
+//! - `SITE_METER_RESERVATION_TOKENS`: the per-turn reservation `n`, default
+//!   5,000 = 2 x the agent's `extensions.budgets.max_tokens_per_turn` (2,500
+//!   in `uar/agents/knowme-site.json`). Not sized from the model's context
+//!   window, which could make one reservation exceed the daily budget. A run
+//!   that uses more is charged in full at settlement and alerts
+//!   (`meter_excess`), so overshoot stays bounded and measured. UAR's
+//!   `max_output_tokens` must be set so one model call stays bounded.
+//!   Raise `n` with `max_tokens_per_turn`.
+//! - `SITE_KILL_SWITCH_FILE` (required): the mounted kill switch file
+//!   (`on`/`off`), from an operator-owned ConfigMap.
 
 use std::num::NonZeroU32;
 use std::path::PathBuf;
 
+use crate::domain::meter::Budgets;
 use crate::domain::session_binding::{MIN_SECRET_BYTES, SessionSecret};
+use crate::infrastructure::meter_store::MeterStoreConfig;
+
+const DEFAULT_DAILY_TOKENS: u64 = 1_000_000;
+const DEFAULT_MONTHLY_TOKENS: u64 = 20_000_000;
+const DEFAULT_RESERVATION_TOKENS: u64 = 5_000;
 
 const DEFAULT_PORT: u16 = 8080;
 const DEFAULT_AGENT_ID: &str = "knowme-site";
@@ -39,6 +65,15 @@ pub enum ConfigError {
     MissingSessionSecret,
     #[error("SITE_SESSION_SECRET must be at least {MIN_SECRET_BYTES} bytes")]
     WeakSessionSecret,
+    #[error("{0} is required")]
+    Missing(&'static str),
+    #[error("SITE_METER_URL must be an http:// URL without query or fragment: {0}")]
+    InvalidMeterUrl(String),
+    #[error(
+        "meter sizes must be positive, with the reservation within the daily budget and the \
+         daily budget within the monthly one"
+    )]
+    InvalidMeterSizes,
 }
 
 /// Per-client-IP quotas. GCRA: `per_minute` replenish rate, `burst` capacity.
@@ -77,6 +112,18 @@ pub struct Config {
     pub rate_limits: RateLimits,
     /// Keys the visitor cookie and the upstream session derivation.
     pub session_secret: SessionSecret,
+    pub meter: MeterConfig,
+    /// The mounted kill switch file.
+    pub kill_switch_file: PathBuf,
+}
+
+/// The spend meter's store and sizes.
+#[derive(Debug, Clone)]
+pub struct MeterConfig {
+    pub store: MeterStoreConfig,
+    pub budgets: Budgets,
+    /// Tokens reserved per turn (`n`).
+    pub reservation_tokens: u64,
 }
 
 impl Config {
@@ -123,8 +170,53 @@ impl Config {
             web_root: get("KNOWME_WEB_ROOT").map(PathBuf::from),
             rate_limits: chat_limits(&get)?,
             session_secret,
+            meter: meter_config(&get)?,
+            kill_switch_file: get("SITE_KILL_SWITCH_FILE")
+                .map(PathBuf::from)
+                .ok_or(ConfigError::Missing("SITE_KILL_SWITCH_FILE"))?,
         })
     }
+}
+
+fn meter_config(get: &impl Fn(&str) -> Option<String>) -> Result<MeterConfig, ConfigError> {
+    let required = |name: &'static str| get(name).ok_or(ConfigError::Missing(name));
+    let raw_url = required("SITE_METER_URL")?;
+    let url = parse_upstream(&raw_url).map_err(|_| ConfigError::InvalidMeterUrl(raw_url))?;
+    let budgets = Budgets {
+        daily: parse_number(
+            "SITE_METER_DAILY_TOKENS",
+            get("SITE_METER_DAILY_TOKENS"),
+            DEFAULT_DAILY_TOKENS,
+        )?,
+        monthly: parse_number(
+            "SITE_METER_MONTHLY_TOKENS",
+            get("SITE_METER_MONTHLY_TOKENS"),
+            DEFAULT_MONTHLY_TOKENS,
+        )?,
+    };
+    let reservation_tokens = parse_number(
+        "SITE_METER_RESERVATION_TOKENS",
+        get("SITE_METER_RESERVATION_TOKENS"),
+        DEFAULT_RESERVATION_TOKENS,
+    )?;
+    // A reservation larger than a budget would refuse every turn.
+    if reservation_tokens == 0
+        || reservation_tokens > budgets.daily
+        || budgets.daily > budgets.monthly
+    {
+        return Err(ConfigError::InvalidMeterSizes);
+    }
+    Ok(MeterConfig {
+        store: MeterStoreConfig {
+            url,
+            namespace: get("SITE_METER_NS").unwrap_or_else(|| "site".to_owned()),
+            database: get("SITE_METER_DB").unwrap_or_else(|| "meter".to_owned()),
+            user: required("SITE_METER_USER")?,
+            password: required("SITE_METER_PASS")?,
+        },
+        budgets,
+        reservation_tokens,
+    })
 }
 
 /// Chat quota overrides. The limiter is in memory per replica, so a
@@ -182,8 +274,15 @@ mod tests {
             .iter()
             .map(|(k, v)| ((*k).into(), (*v).into()))
             .collect();
-        map.entry("SITE_SESSION_SECRET".into())
-            .or_insert_with(|| SECRET.into());
+        for (name, value) in [
+            ("SITE_SESSION_SECRET", SECRET),
+            ("SITE_METER_URL", "http://surrealdb:8000"),
+            ("SITE_METER_USER", "meter"),
+            ("SITE_METER_PASS", "meter-pass"),
+            ("SITE_KILL_SWITCH_FILE", "/etc/knowme/kill-switch"),
+        ] {
+            map.entry(name.into()).or_insert_with(|| value.into());
+        }
         Config::from_lookup(|name| map.get(name).cloned())
     }
 
@@ -240,6 +339,56 @@ mod tests {
             ("SITE_SESSION_SECRET", &SECRET[1..]),
         ]);
         assert!(matches!(short, Err(ConfigError::WeakSessionSecret)));
+    }
+
+    #[test]
+    fn meter_defaults_should_be_the_d3_budgets_and_n_of_5000() {
+        let cfg = config(&[("UAR_UPSTREAM", "http://uar")]).unwrap();
+        assert_eq!(
+            (
+                cfg.meter.budgets.daily,
+                cfg.meter.budgets.monthly,
+                cfg.meter.reservation_tokens
+            ),
+            (1_000_000, 20_000_000, 5_000)
+        );
+        assert_eq!(
+            (
+                cfg.meter.store.namespace.as_str(),
+                cfg.meter.store.database.as_str()
+            ),
+            ("site", "meter")
+        );
+        assert!(!format!("{:?}", cfg.meter).contains("meter-pass"));
+    }
+
+    #[test]
+    fn meter_settings_should_be_validated() {
+        let with = |name: &'static str, value: &'static str| {
+            config(&[("UAR_UPSTREAM", "http://uar"), (name, value)])
+        };
+        assert!(matches!(
+            with("SITE_METER_RESERVATION_TOKENS", "2000000"),
+            Err(ConfigError::InvalidMeterSizes)
+        ));
+        assert!(matches!(
+            with("SITE_METER_RESERVATION_TOKENS", "0"),
+            Err(ConfigError::InvalidMeterSizes)
+        ));
+        assert!(matches!(
+            with("SITE_METER_URL", "https://surreal"),
+            Err(ConfigError::InvalidMeterUrl(_))
+        ));
+        assert!(matches!(
+            with("SITE_METER_PASS", ""),
+            Err(ConfigError::Missing("SITE_METER_PASS"))
+        ));
+        assert!(matches!(
+            with("SITE_KILL_SWITCH_FILE", ""),
+            Err(ConfigError::Missing("SITE_KILL_SWITCH_FILE"))
+        ));
+        let small = with("SITE_METER_RESERVATION_TOKENS", "300").unwrap();
+        assert_eq!(small.meter.reservation_tokens, 300);
     }
 
     #[test]

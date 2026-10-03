@@ -18,11 +18,14 @@ use std::time::Duration;
 use axum::Router;
 use axum::http::HeaderValue;
 
+use crate::application::meter::Meter;
 #[cfg(feature = "test-harness")]
 pub use crate::application::public_stream::UpstreamTap;
 use crate::application::site_proxy::SiteProxy;
 use crate::config::Config;
 use crate::infrastructure::assets::AssetSource;
+use crate::infrastructure::kill_switch::KillSwitch;
+use crate::infrastructure::meter_store::MeterStore;
 use crate::infrastructure::rate_limit::ClientRateLimiter;
 use crate::infrastructure::upstream::UarClient;
 use crate::interface::state::{AppState, RouteLimit};
@@ -65,11 +68,20 @@ fn build_proxy(config: &Config) -> Result<SiteProxy, StartupError> {
         })
         .transpose()?;
     let uar = UarClient::new(config.uar_upstream.clone())?;
+    let kill_switch = Arc::new(KillSwitch::new(config.kill_switch_file.clone()));
+    KillSwitch::spawn_watcher(&kill_switch);
+    let meter = Meter::new(
+        MeterStore::new(config.meter.store.clone())?,
+        config.meter.budgets,
+        config.meter.reservation_tokens,
+        kill_switch,
+    );
     Ok(SiteProxy::new(
         uar,
         config.site_agent_id.clone(),
         api_key,
         config.session_secret.clone(),
+        Arc::new(meter),
     ))
 }
 

@@ -3,21 +3,26 @@
 //! (site-chat-proxy 1.3, trimmed by site-proxy-hardening):
 //! `POST /api/chat/completion`. Each call is rebuilt from an allowlist,
 //! stripped of client credentials, bound to the visitor's upstream session,
-//! carries only the proxy's own key, and streams back through the
-//! internal-artifact filter.
+//! is admitted by the spend meter, carries only the proxy's own key, and
+//! streams back through the internal-artifact filter and the turn tracker.
 //!
 //! Stream resume (UAR: the same route with `x-uar-run-id` and
 //! `Last-Event-ID`) is not forwarded yet (`site-stream-resume`); when it is,
 //! it goes through `chat` and so gets the same derived session header.
+
+use std::sync::Arc;
+use std::time::Instant;
 
 use axum::body::{Body, Bytes};
 use axum::http::header::CONTENT_TYPE;
 use axum::http::{HeaderMap, HeaderValue, Method};
 use axum::response::Response;
 
+use crate::application::meter::{Meter, TurnTracker};
 use crate::application::public_stream::{UpstreamTap, filter_internal_artifacts};
 use crate::domain::chat_request::{ChatRequestError, build_site_chat_request};
 use crate::domain::forwarding::{SESSION_HEADER, upstream_request_headers};
+use crate::domain::meter::Outcome;
 use crate::domain::query::allowlisted_query;
 use crate::domain::session_binding::{SessionSecret, ThreadId, VISITOR_ID_BYTES, VisitorId};
 use crate::error::AppError;
@@ -33,6 +38,7 @@ pub struct SiteProxy {
     agent_id: String,
     api_key: Option<HeaderValue>,
     secret: SessionSecret,
+    meter: Arc<Meter>,
     /// Always `None` outside the `test-harness` build.
     tap: Option<UpstreamTap>,
 }
@@ -51,12 +57,14 @@ impl SiteProxy {
         agent_id: String,
         api_key: Option<HeaderValue>,
         secret: SessionSecret,
+        meter: Arc<Meter>,
     ) -> Self {
         Self {
             uar,
             agent_id,
             api_key,
             secret,
+            meter,
             tap: None,
         }
     }
@@ -95,8 +103,8 @@ impl SiteProxy {
 
     /// Only `application/json` is accepted: `text/plain` is a CORS-simple
     /// type, so accepting it would let any third-party page spend chat quota
-    /// from its visitors' browsers without a preflight. Every check runs
-    /// before the upstream call.
+    /// from its visitors' browsers without a preflight. Every check, then the
+    /// kill switch and the meter reservation, runs before the upstream call.
     pub async fn chat(
         &self,
         visitor: &VisitorId,
@@ -104,6 +112,7 @@ impl SiteProxy {
         query: Option<&str>,
         body: &[u8],
     ) -> Result<Response, AppError> {
+        let accepted = Instant::now();
         if !is_json(headers) {
             return Err(AppError::UnsupportedMediaType);
         }
@@ -121,7 +130,9 @@ impl SiteProxy {
             Some(q) => format!("{CHAT_PATH}?{q}"),
             None => CHAT_PATH.to_owned(),
         };
-        let response = self
+        let reservation = self.meter.admit().await?;
+        let mut tracker = self.meter.tracker(reservation, accepted);
+        let sent = self
             .uar
             .send(
                 Method::POST,
@@ -130,22 +141,30 @@ impl SiteProxy {
                 upstream,
                 Bytes::from(pinned),
             )
-            .await?;
-        Ok(self.public_stream(response))
+            .await;
+        match sent {
+            Ok(response) => Ok(self.public_stream(response, tracker)),
+            Err(err) => {
+                tracker.finish(Outcome::UpstreamError);
+                Err(err)
+            }
+        }
     }
 
     pub async fn upstream_ready(&self) -> bool {
         self.uar.is_ready().await
     }
 
-    /// Runs an SSE body through the internal-artifact filter; any other body
-    /// passes unchanged.
-    fn public_stream(&self, response: Response) -> Response {
+    /// Runs an SSE body through the internal-artifact filter and the turn
+    /// tracker. Any other body passes unchanged and keeps its reservation.
+    fn public_stream(&self, response: Response, mut tracker: TurnTracker) -> Response {
         if !is_event_stream(response.headers()) {
+            tracker.finish(Outcome::Incomplete);
             return response;
         }
         let (parts, body) = response.into_parts();
-        let filtered = filter_internal_artifacts(body.into_data_stream(), self.tap.clone());
+        let filtered =
+            filter_internal_artifacts(body.into_data_stream(), self.tap.clone(), Some(tracker));
         Response::from_parts(parts, Body::from_stream(filtered))
     }
 }

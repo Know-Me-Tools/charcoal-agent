@@ -31,6 +31,15 @@ pub enum AppError {
     /// Any other upstream non-2xx. Already logged with status and route.
     #[error("upstream {route} returned {status}")]
     UpstreamStatus { status: u16, route: &'static str },
+    /// The kill switch file says `on` (or cannot be read).
+    #[error("chat kill switch is on")]
+    KillSwitchOn,
+    /// A reservation would exceed the daily or monthly token budget.
+    #[error("token budget exhausted")]
+    BudgetExhausted,
+    /// The meter store failed; turns fail closed.
+    #[error("token meter unavailable")]
+    MeterUnavailable,
     #[error("upstream timed out")]
     UpstreamTimeout,
     #[error("upstream unavailable: {0}")]
@@ -51,6 +60,9 @@ impl AppError {
             Self::RateLimited { .. } => (StatusCode::TOO_MANY_REQUESTS, "rate_limited"),
             Self::GuardrailBlocked => (StatusCode::BAD_REQUEST, "guardrail_blocked"),
             Self::UpstreamStatus { .. } => (StatusCode::BAD_GATEWAY, "upstream_error"),
+            Self::KillSwitchOn => (StatusCode::SERVICE_UNAVAILABLE, "kill_switch_on"),
+            Self::BudgetExhausted => (StatusCode::SERVICE_UNAVAILABLE, "budget_exhausted"),
+            Self::MeterUnavailable => (StatusCode::SERVICE_UNAVAILABLE, "meter_unavailable"),
             Self::UpstreamTimeout => (StatusCode::GATEWAY_TIMEOUT, "upstream_timeout"),
             Self::UpstreamUnavailable(_) => (StatusCode::BAD_GATEWAY, "upstream_unavailable"),
             Self::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal_error"),
@@ -61,8 +73,15 @@ impl AppError {
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let (status, code) = self.status_and_code();
-        // UpstreamStatus was logged where it happened, with its route.
-        if status.is_server_error() && !matches!(self, Self::UpstreamStatus { .. }) {
+        // These were logged where they happened, with their context.
+        let logged = matches!(
+            self,
+            Self::UpstreamStatus { .. }
+                | Self::KillSwitchOn
+                | Self::BudgetExhausted
+                | Self::MeterUnavailable
+        );
+        if status.is_server_error() && !logged {
             tracing::warn!(error = %self, "proxy error");
         }
         let message = match &self {
