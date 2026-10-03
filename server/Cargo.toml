@@ -44,9 +44,27 @@ governor = "=0.10.4"
 thiserror = "=2.0.21"
 tracing = "=0.1.44"
 tracing-subscriber = { version = "=0.3.23", default-features = false, features = ["std", "fmt", "env-filter", "json"] }
+# Session binding (site-session-binding): HMAC-SHA256 signs the visitor cookie
+# and derives the upstream session id. Latest stable on crates.io 2026-10-03.
+hmac = "=0.13.0"
+sha2 = { version = "=0.11.0", default-features = false }
+# Visitor ids from the OS CSPRNG. 0.4.3 is the latest release; 0.3.4 is the
+# version governor already pulls in, so the graph keeps one getrandom.
+getrandom = "=0.3.4"
+# Stream adaptor for the public-path SSE artifact filter. Was a dev-dependency
+# at the same pin; already in the graph through axum and reqwest.
+futures-util = { version = "=0.3.34", default-features = false, features = ["std"] }
+
+[features]
+# Compiles the FR-11 harness seam (`build_app_with_upstream_tap`), which sees
+# the upstream SSE stream before the public-path artifact filter. Never on in
+# a release build; only this crate's own tests enable it (dev-dependency below).
+test-harness = []
 
 [dev-dependencies]
-futures-util = { version = "=0.3.34", default-features = false, features = ["std"] }
+# Enables `test-harness` for this crate's tests only. Dev-dependency features
+# are not unified into `cargo build`, so the Dockerfile binary has no seam.
+knowme-site-server = { path = ".", features = ["test-harness"] }
 
 [profile.release]
 lto = "thin"

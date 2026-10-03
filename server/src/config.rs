@@ -1,8 +1,24 @@
 // TJ-ARCH-MOB-001 compliant
 //! Runtime configuration, read once from the environment at startup.
+//!
+//! `SITE_SESSION_SECRET` (required, at least 32 bytes, e.g. the output of
+//! `openssl rand -base64 48`) keys the visitor cookie signature and the
+//! upstream session derivation (`domain::session_binding`). Every replica
+//! must hold the same value. In Kubernetes it comes from a Secret, never a
+//! ConfigMap or the image.
+//!
+//! Rotation: changing the secret invalidates every visitor cookie and maps
+//! every thread to a new upstream session, so all server-side sessions are
+//! orphaned at once. Visitors keep their local thread history and continue
+//! in fresh sessions; the purge (`site-session-erasure`) deletes the
+//! orphans. Rotate by replacing the Secret and restarting all replicas
+//! together; replicas on different secrets would split one visitor across
+//! two upstream sessions.
 
 use std::num::NonZeroU32;
 use std::path::PathBuf;
+
+use crate::domain::session_binding::{MIN_SECRET_BYTES, SessionSecret};
 
 const DEFAULT_PORT: u16 = 8080;
 const DEFAULT_AGENT_ID: &str = "knowme-site";
@@ -19,6 +35,10 @@ pub enum ConfigError {
     InvalidApiKey,
     #[error("SITE_AGENT_ID must not be empty")]
     EmptyAgentId,
+    #[error("SITE_SESSION_SECRET is required (at least {MIN_SECRET_BYTES} bytes)")]
+    MissingSessionSecret,
+    #[error("SITE_SESSION_SECRET must be at least {MIN_SECRET_BYTES} bytes")]
+    WeakSessionSecret,
 }
 
 /// Per-client-IP quotas. GCRA: `per_minute` replenish rate, `burst` capacity.
@@ -55,6 +75,8 @@ pub struct Config {
     /// External asset mode: serve this compiled bundle instead of the embedded one.
     pub web_root: Option<PathBuf>,
     pub rate_limits: RateLimits,
+    /// Keys the visitor cookie and the upstream session derivation.
+    pub session_secret: SessionSecret,
 }
 
 impl Config {
@@ -84,6 +106,14 @@ impl Config {
             Some(v) => v.trim().to_owned(),
         };
 
+        let session_secret = SessionSecret::new(
+            lookup("SITE_SESSION_SECRET")
+                .filter(|v| !v.is_empty())
+                .ok_or(ConfigError::MissingSessionSecret)?
+                .as_bytes(),
+        )
+        .map_err(|_| ConfigError::WeakSessionSecret)?;
+
         Ok(Self {
             port: parse_number("PORT", get("PORT"), DEFAULT_PORT)?,
             uar_upstream,
@@ -92,6 +122,7 @@ impl Config {
             trusted_proxy_hops: parse_number("TRUSTED_PROXY_HOPS", get("TRUSTED_PROXY_HOPS"), 0)?,
             web_root: get("KNOWME_WEB_ROOT").map(PathBuf::from),
             rate_limits: chat_limits(&get)?,
+            session_secret,
         })
     }
 }
@@ -143,11 +174,16 @@ mod tests {
     use super::*;
     use std::collections::HashMap;
 
+    const SECRET: &str = "0123456789abcdef0123456789abcdef";
+
+    /// `vars` plus a valid session secret unless `vars` sets one.
     fn config(vars: &[(&str, &str)]) -> Result<Config, ConfigError> {
-        let map: HashMap<String, String> = vars
+        let mut map: HashMap<String, String> = vars
             .iter()
             .map(|(k, v)| ((*k).into(), (*v).into()))
             .collect();
+        map.entry("SITE_SESSION_SECRET".into())
+            .or_insert_with(|| SECRET.into());
         Config::from_lookup(|name| map.get(name).cloned())
     }
 
@@ -196,8 +232,19 @@ mod tests {
     }
 
     #[test]
+    fn missing_or_short_session_secret_should_refuse_to_start() {
+        let missing = config(&[("UAR_UPSTREAM", "http://uar"), ("SITE_SESSION_SECRET", "")]);
+        assert!(matches!(missing, Err(ConfigError::MissingSessionSecret)));
+        let short = config(&[
+            ("UAR_UPSTREAM", "http://uar"),
+            ("SITE_SESSION_SECRET", &SECRET[1..]),
+        ]);
+        assert!(matches!(short, Err(ConfigError::WeakSessionSecret)));
+    }
+
+    #[test]
     fn missing_upstream_should_fail() {
-        assert_eq!(config(&[]).unwrap_err(), ConfigError::MissingUpstream);
+        assert!(matches!(config(&[]), Err(ConfigError::MissingUpstream)));
     }
 
     #[test]

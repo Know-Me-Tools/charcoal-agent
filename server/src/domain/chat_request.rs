@@ -2,11 +2,17 @@
 //! Builds the chat request forwarded to UAR from an allowlist.
 //!
 //! Every visitor shares one UAR principal (the proxy key), so the forwarded
-//! body is rebuilt, not patched: only the fields the site client sends for a
-//! chat turn or a title request survive (`src/features/chat/
-//! use-message-stream.ts`, `use-thread-naming.ts`), and `agent_id` is forced.
-//! Everything else (model, run_policy, memory_enabled, attachments,
-//! messages, prompt_caching_enabled, session_id, ...) is dropped.
+//! body is rebuilt, not patched: only `message` survives from the client
+//! (`src/features/chat/use-message-stream.ts`, `use-thread-naming.ts`), and
+//! `agent_id`, `stream` and `stream_mode` are set here. Everything else
+//! (model, run_policy, memory_enabled, attachments, messages,
+//! prompt_caching_enabled, session_id, ...) is dropped.
+//!
+//! The stream shape is pinned (site-proxy-hardening): every run streams in
+//! `dual` mode, so the run's usage always arrives in one dialect
+//! (`agui.done`) for the spend meter, and the public-path artifact filter
+//! sees one event vocabulary. The client's `stream` and `stream_mode` are
+//! ignored, whatever their type or value.
 
 use serde_json::{Map, Value};
 
@@ -14,9 +20,7 @@ use serde_json::{Map, Value};
 /// about 1.2k characters.
 pub const MAX_MESSAGE_CHARS: usize = 4000;
 
-/// UAR stream modes the site client can render; `dual` is what it sends.
-const STREAM_MODES: &[&str] = &["dual", "agui", "agui_spec"];
-const DEFAULT_STREAM_MODE: &str = "dual";
+const STREAM_MODE: &str = "dual";
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum ChatRequestError {
@@ -28,14 +32,10 @@ pub enum ChatRequestError {
     InvalidMessage,
     #[error("`message` is longer than {MAX_MESSAGE_CHARS} characters")]
     MessageTooLong,
-    #[error("`stream` must be a boolean")]
-    InvalidStream,
-    #[error("`stream_mode` must be one of dual, agui, agui_spec")]
-    InvalidStreamMode,
 }
 
-/// Returns the serialized upstream body: `agent_id`, `message`, `stream`
-/// (default false) and `stream_mode` (default `dual`).
+/// Returns the serialized upstream body: `agent_id`, `message`,
+/// `stream: true` and `stream_mode: "dual"`.
 pub fn build_site_chat_request(body: &[u8], agent_id: &str) -> Result<Vec<u8>, ChatRequestError> {
     let value: Value = serde_json::from_slice(body).map_err(|_| ChatRequestError::InvalidJson)?;
     let input = value.as_object().ok_or(ChatRequestError::NotAnObject)?;
@@ -47,23 +47,12 @@ pub fn build_site_chat_request(body: &[u8], agent_id: &str) -> Result<Vec<u8>, C
     if message.chars().count() > MAX_MESSAGE_CHARS {
         return Err(ChatRequestError::MessageTooLong);
     }
-    let stream = match input.get("stream") {
-        None => false,
-        Some(v) => v.as_bool().ok_or(ChatRequestError::InvalidStream)?,
-    };
-    let stream_mode = match input.get("stream_mode") {
-        None => DEFAULT_STREAM_MODE,
-        Some(v) => v
-            .as_str()
-            .filter(|mode| STREAM_MODES.contains(mode))
-            .ok_or(ChatRequestError::InvalidStreamMode)?,
-    };
 
     let forwarded = Map::from_iter([
         ("agent_id".to_owned(), Value::from(agent_id)),
         ("message".to_owned(), Value::from(message)),
-        ("stream".to_owned(), Value::from(stream)),
-        ("stream_mode".to_owned(), Value::from(stream_mode)),
+        ("stream".to_owned(), Value::from(true)),
+        ("stream_mode".to_owned(), Value::from(STREAM_MODE)),
     ]);
     // Serializing a map of strings and booleans cannot fail.
     serde_json::to_vec(&forwarded).map_err(|_| ChatRequestError::InvalidJson)
@@ -78,6 +67,15 @@ mod tests {
             .map(|bytes| serde_json::from_slice(&bytes).unwrap())
     }
 
+    fn pinned(message: &str) -> Value {
+        serde_json::json!({
+            "agent_id": "knowme-site",
+            "message": message,
+            "stream": true,
+            "stream_mode": "dual"
+        })
+    }
+
     #[test]
     fn should_keep_only_allowlisted_fields_and_force_agent() {
         let out = build(
@@ -87,17 +85,20 @@ mod tests {
                 "stream_mode":"agui"}"#,
         )
         .unwrap();
-        assert_eq!(
-            out,
-            serde_json::json!({"agent_id":"knowme-site","message":"hi","stream":true,"stream_mode":"agui"})
-        );
+        assert_eq!(out, pinned("hi"));
     }
 
     #[test]
-    fn title_request_should_default_stream_mode_to_dual() {
-        let out = build(r#"{"message":"title please","stream":false}"#).unwrap();
-        assert_eq!(out["stream_mode"], "dual");
-        assert_eq!(out["stream"], false);
+    fn stream_and_stream_mode_should_always_be_pinned_whatever_the_client_sent() {
+        for body in [
+            r#"{"message":"t","stream":false}"#,
+            r#"{"message":"t","stream_mode":"agui_spec"}"#,
+            r#"{"message":"t","stream_mode":"openai","stream":false}"#,
+            r#"{"message":"t","stream":"yes","stream_mode":7}"#,
+            r#"{"message":"t"}"#,
+        ] {
+            assert_eq!(build(body).unwrap(), pinned("t"), "{body}");
+        }
     }
 
     #[test]
@@ -109,7 +110,7 @@ mod tests {
     }
 
     #[test]
-    fn invalid_field_types_should_be_rejected() {
+    fn invalid_bodies_should_be_rejected() {
         assert_eq!(
             build(r#"{"stream":true}"#),
             Err(ChatRequestError::InvalidMessage)
@@ -117,14 +118,6 @@ mod tests {
         assert_eq!(
             build(r#"{"message":1}"#),
             Err(ChatRequestError::InvalidMessage)
-        );
-        assert_eq!(
-            build(r#"{"message":"a","stream":"yes"}"#),
-            Err(ChatRequestError::InvalidStream)
-        );
-        assert_eq!(
-            build(r#"{"message":"a","stream_mode":"openai"}"#),
-            Err(ChatRequestError::InvalidStreamMode)
         );
         assert_eq!(build("[1]"), Err(ChatRequestError::NotAnObject));
         assert_eq!(build("{nope"), Err(ChatRequestError::InvalidJson));

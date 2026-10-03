@@ -62,7 +62,7 @@ pub fn router(state: AppState) -> Router {
     app.layer(TraceLayer::new_for_http().on_response(DefaultOnResponse::new().level(Level::INFO)))
 }
 
-/// Every `/api` path outside the audited set and the site's own routes.
+/// Every `/api` path outside the proxied route and the site's own routes.
 async fn api_not_found() -> AppError {
     AppError::NotFound
 }
