@@ -28,8 +28,21 @@ async fn main() -> ExitCode {
 
 async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let config = Config::from_env()?;
-    if config.site_proxy_api_key.is_none() {
-        tracing::warn!("SITE_PROXY_API_KEY is unset; UAR will see proxied calls as anonymous");
+    match (&config.gate, &config.site_proxy_api_key) {
+        (Some(gate), key) => {
+            tracing::info!(
+                token_url = %gate.token_url,
+                client_id = %gate.client_id,
+                "UAR credential: gate client credentials"
+            );
+            if key.is_some() {
+                tracing::warn!("SITE_PROXY_API_KEY is ignored in gate mode");
+            }
+        }
+        (None, Some(_)) => tracing::info!("UAR credential: SITE_PROXY_API_KEY"),
+        (None, None) => {
+            tracing::warn!("no UAR credential configured; UAR will see proxied calls as anonymous")
+        }
     }
     let app = build_app(&config)?;
     let addr = SocketAddr::from((Ipv4Addr::UNSPECIFIED, config.port));

@@ -57,7 +57,12 @@ impl KillSwitch {
     pub fn spawn_watcher(switch: &Arc<Self>) {
         let weak = Arc::downgrade(switch);
         tokio::spawn(async move {
-            let mut tick = tokio::time::interval(POLL_INTERVAL);
+            // `new` already read the file; the first poll is one interval later
+            // (a plain `interval` would tick at once and re-read redundantly).
+            let mut tick = tokio::time::interval_at(
+                tokio::time::Instant::now() + POLL_INTERVAL,
+                POLL_INTERVAL,
+            );
             loop {
                 tick.tick().await;
                 let Some(switch) = weak.upgrade() else { break };

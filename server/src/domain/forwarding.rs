@@ -3,9 +3,10 @@
 //!
 //! Allowlists, not denylists: client credentials (`Authorization`,
 //! `X-API-Key`, `Cookie`) and anything else not listed never reach UAR. The
-//! proxy's own key is the only credential it sends, and the session header
-//! it sends is always the derived one (`session_binding`), never the
-//! client's `X-UAR-Session-ID`.
+//! proxy's own credential (API key or gate bearer) is the only one it sends,
+//! added by `infrastructure::upstream`, and the session header it sends is
+//! always the derived one (`session_binding`), never the client's
+//! `X-UAR-Session-ID`.
 
 use axum::http::header::{ACCEPT, CACHE_CONTROL, CONTENT_TYPE};
 use axum::http::{HeaderMap, HeaderName, HeaderValue};
@@ -16,18 +17,11 @@ pub const API_KEY_HEADER: HeaderName = HeaderName::from_static("x-api-key");
 const REQUEST_HEADERS: [HeaderName; 2] = [CONTENT_TYPE, ACCEPT];
 const RESPONSE_HEADERS: [HeaderName; 2] = [CONTENT_TYPE, CACHE_CONTROL];
 
-/// Headers sent upstream: the allowlisted client headers, the derived
-/// upstream session id and the proxy key.
-pub fn upstream_request_headers(
-    client: &HeaderMap,
-    proxy_key: Option<&HeaderValue>,
-    upstream_session: HeaderValue,
-) -> HeaderMap {
+/// Headers sent upstream: the allowlisted client headers and the derived
+/// upstream session id. The UAR client adds the proxy's credential.
+pub fn upstream_request_headers(client: &HeaderMap, upstream_session: HeaderValue) -> HeaderMap {
     let mut headers = copy_allowed(client, &REQUEST_HEADERS);
     headers.insert(SESSION_HEADER, upstream_session);
-    if let Some(key) = proxy_key {
-        headers.insert(API_KEY_HEADER, key.clone());
-    }
     headers
 }
 
@@ -52,25 +46,20 @@ mod tests {
     use axum::http::header::{AUTHORIZATION, COOKIE};
 
     #[test]
-    fn upstream_headers_should_drop_client_credentials_and_session_and_inject_ours() {
+    fn upstream_headers_should_drop_client_credentials_and_session() {
         let mut client = HeaderMap::new();
         client.insert(AUTHORIZATION, HeaderValue::from_static("Bearer stolen"));
         client.insert(API_KEY_HEADER, HeaderValue::from_static("client-key"));
         client.insert(COOKIE, HeaderValue::from_static("sid=1"));
         client.insert(SESSION_HEADER, HeaderValue::from_static("client-thread"));
         client.insert("last-event-id", HeaderValue::from_static("9"));
-        let key = HeaderValue::from_static("proxy-key");
 
-        let out = upstream_request_headers(
-            &client,
-            Some(&key),
-            HeaderValue::from_static("derived-session"),
-        );
+        let out = upstream_request_headers(&client, HeaderValue::from_static("derived-session"));
 
         assert!(out.get(AUTHORIZATION).is_none());
         assert!(out.get(COOKIE).is_none());
         assert!(out.get("last-event-id").is_none());
-        assert_eq!(out.get(API_KEY_HEADER), Some(&key));
+        assert!(out.get(API_KEY_HEADER).is_none());
         let sessions: Vec<_> = out.get_all(SESSION_HEADER).iter().collect();
         assert_eq!(sessions, vec!["derived-session"]);
     }

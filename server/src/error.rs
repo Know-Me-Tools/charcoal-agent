@@ -40,6 +40,10 @@ pub enum AppError {
     /// The meter store failed; turns fail closed.
     #[error("token meter unavailable")]
     MeterUnavailable,
+    /// No UAR token could be obtained from gate. Already logged; the
+    /// browser sees the same body as `UpstreamUnavailable`.
+    #[error("cannot authenticate to the upstream")]
+    UpstreamAuth,
     #[error("upstream timed out")]
     UpstreamTimeout,
     #[error("upstream unavailable: {0}")]
@@ -64,7 +68,9 @@ impl AppError {
             Self::BudgetExhausted => (StatusCode::SERVICE_UNAVAILABLE, "budget_exhausted"),
             Self::MeterUnavailable => (StatusCode::SERVICE_UNAVAILABLE, "meter_unavailable"),
             Self::UpstreamTimeout => (StatusCode::GATEWAY_TIMEOUT, "upstream_timeout"),
-            Self::UpstreamUnavailable(_) => (StatusCode::BAD_GATEWAY, "upstream_unavailable"),
+            Self::UpstreamUnavailable(_) | Self::UpstreamAuth => {
+                (StatusCode::BAD_GATEWAY, "upstream_unavailable")
+            }
             Self::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal_error"),
         }
     }
@@ -77,6 +83,7 @@ impl IntoResponse for AppError {
         let logged = matches!(
             self,
             Self::UpstreamStatus { .. }
+                | Self::UpstreamAuth
                 | Self::KillSwitchOn
                 | Self::BudgetExhausted
                 | Self::MeterUnavailable

@@ -27,7 +27,7 @@ use crate::infrastructure::assets::AssetSource;
 use crate::infrastructure::kill_switch::KillSwitch;
 use crate::infrastructure::meter_store::MeterStore;
 use crate::infrastructure::rate_limit::ClientRateLimiter;
-use crate::infrastructure::upstream::UarClient;
+use crate::infrastructure::upstream::{UarClient, UpstreamCredential};
 use crate::interface::state::{AppState, RouteLimit};
 
 const LIMITER_EVICTION_INTERVAL: Duration = Duration::from_secs(60);
@@ -58,16 +58,7 @@ pub fn build_app_with_upstream_tap(
 }
 
 fn build_proxy(config: &Config) -> Result<SiteProxy, StartupError> {
-    let api_key = config
-        .site_proxy_api_key
-        .as_deref()
-        .map(|key| {
-            let mut value = HeaderValue::from_str(key).map_err(|_| StartupError::ApiKey)?;
-            value.set_sensitive(true);
-            Ok::<_, StartupError>(value)
-        })
-        .transpose()?;
-    let uar = UarClient::new(config.uar_upstream.clone())?;
+    let uar = UarClient::new(config.uar_upstream.clone(), upstream_credential(config)?)?;
     let kill_switch = Arc::new(KillSwitch::new(config.kill_switch_file.clone()));
     KillSwitch::spawn_watcher(&kill_switch);
     let meter = Meter::new(
@@ -79,10 +70,24 @@ fn build_proxy(config: &Config) -> Result<SiteProxy, StartupError> {
     Ok(SiteProxy::new(
         uar,
         config.site_agent_id.clone(),
-        api_key,
         config.session_secret.clone(),
         Arc::new(meter),
     ))
+}
+
+/// Gate mode wins over the static key; see `config.rs`.
+fn upstream_credential(config: &Config) -> Result<UpstreamCredential, StartupError> {
+    if let Some(gate) = &config.gate {
+        return Ok(UpstreamCredential::Gate(gate.clone()));
+    }
+    match config.site_proxy_api_key.as_deref() {
+        None => Ok(UpstreamCredential::None),
+        Some(key) => {
+            let mut value = HeaderValue::from_str(key).map_err(|_| StartupError::ApiKey)?;
+            value.set_sensitive(true);
+            Ok(UpstreamCredential::ApiKey(value))
+        }
+    }
 }
 
 fn router(proxy: SiteProxy, config: &Config) -> Router {
