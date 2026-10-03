@@ -80,7 +80,7 @@ jobs:
     # created by the operator in the repo's Settings -> Environments; this
     # workflow only references it by name.
     environment:
-      name: knowme-production
+      name: production
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
