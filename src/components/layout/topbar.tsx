@@ -6,7 +6,7 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { WIDE_LAYOUT_QUERY } from "@/components/layout/breakpoints";
 import { KnowMeLockup } from "@/components/brand";
 import { UarStatus } from "@/components/common/uar-status";
-import { NAV_DESTINATIONS, isDestinationActive } from "@/components/layout/nav-destinations";
+import { getNavDestinations, isDestinationActive } from "@/components/layout/nav-destinations";
 import { cn } from "@/lib/utils";
 
 const ICON_BUTTON =
@@ -35,7 +35,7 @@ export function Topbar() {
         </Link>
 
         <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
-          {NAV_DESTINATIONS.map(({ to, label }) => {
+          {getNavDestinations().map(({ to, label }) => {
             const active = isDestinationActive(to, pathname);
             return (
               <Link

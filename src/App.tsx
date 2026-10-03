@@ -7,6 +7,7 @@ import { DbProvider } from "@/lib/db/db-provider";
 import { GraphProvider } from "@/lib/entity-graph/graph-provider";
 import { AppLayout } from "@/components/layout/app-layout";
 import { useSkillsSyncOnMount } from "@/hooks/use-skills-sync";
+import { isSiteBuild } from "@/hooks/use-site-config";
 import LandingPage from "@/pages/landing-page";
 import ThreadsPage from "@/pages/threads-page";
 import ThreadDetailPage from "@/pages/thread-detail-page";
@@ -19,14 +20,19 @@ import AppearancePage from "@/pages/appearance-page";
 import AboutPage from "@/pages/about-page";
 import UserSettingsPage from "@/pages/user-settings-page";
 import NotFound from "@/pages/NotFound";
+import type { RouteObject } from "react-router-dom";
 
-const router = createBrowserRouter([
-  { path: "/", element: <LandingPage /> },
-  {
-    element: <AppLayout />,
-    children: [
-      { path: "/threads", element: <ThreadsPage /> },
-      { path: "/threads/:id", element: <ThreadDetailPage /> },
+/**
+ * `/agents/*` and `/settings/*` all need UAR admin APIs (compiler, providers,
+ * skills CRUD, user settings) that the public site build's nginx proxy does
+ * not allow — see openspec/changes/site-chat-proxy. Excluded from the router
+ * entirely on that build (not just hidden from nav) so a direct link falls
+ * through to the catch-all NotFound route rather than rendering a page whose
+ * data calls would all 403.
+ */
+const adminRoutes: RouteObject[] = isSiteBuild()
+  ? []
+  : [
       { path: "/agents", element: <AgentsPage /> },
       { path: "/agents/new", element: <AgentDetailPage /> },
       { path: "/agents/:id", element: <AgentDetailPage /> },
@@ -42,6 +48,16 @@ const router = createBrowserRouter([
           { path: "account", element: <UserSettingsPage /> },
         ],
       },
+    ];
+
+const router = createBrowserRouter([
+  { path: "/", element: <LandingPage /> },
+  {
+    element: <AppLayout />,
+    children: [
+      { path: "/threads", element: <ThreadsPage /> },
+      { path: "/threads/:id", element: <ThreadDetailPage /> },
+      ...adminRoutes,
     ],
   },
   { path: "*", element: <NotFound /> },

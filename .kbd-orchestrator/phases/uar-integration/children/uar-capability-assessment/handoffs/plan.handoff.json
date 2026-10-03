@@ -1,0 +1,11 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-10-02T14:19:54Z",
+  "outputs": [
+    "plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "6 native changes (B1 record-decisions → B2 revise-parent-plan → B3 emit-openspec-changes → B4 reconcile-kbd-state; B5 file-uar-roadmap and B6 paper-corrections in parallel). They install Part A: uar-integration becomes the paper's Phase 0 with 36 registered changes (6 done, 3 in progress, 1 cancelled, 26 pending). Amendments: N9 config chunking, N14 pinned upstream request, N15 reserve-and-settle site-server meter in SurrealDB site/meter (fail closed). Two same-family review rounds; round-2 revisions (N15 especially) not re-reviewed. Start with record-decisions.",
+  "skipped": false,
+  "skipReason": null
+}

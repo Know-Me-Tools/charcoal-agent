@@ -1,0 +1,98 @@
+# surreal-memory-server — ClusterIP only, no public route. Local embeddings
+# (bge-small) in the "memory" SurrealDB namespace/database, per plan.md's
+# decision to defer DashScope embeddings for the memory server.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: surreal-memory-server
+  namespace: knowme
+  labels:
+    app.kubernetes.io/name: surreal-memory-server
+    app.kubernetes.io/component: memory
+    app.kubernetes.io/part-of: knowme-site
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: surreal-memory-server
+      app.kubernetes.io/component: memory
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: surreal-memory-server
+        app.kubernetes.io/component: memory
+        app.kubernetes.io/part-of: knowme-site
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+        - name: surreal-memory-server
+          image: ghcr.io/prometheus-ags/surreal-memory-server:main
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          ports:
+            - name: http
+              containerPort: 3001
+              protocol: TCP
+          env:
+            # No stdin in a pod: the stdio MCP transport would exit and take the
+            # server down. The HTTP MCP endpoint on :3001 stays on.
+            - name: MCP_STDIO
+              value: "false"
+            - name: SURREAL_MODE
+              value: server
+            - name: SURREAL_ENDPOINT
+              value: ws://surrealdb:8000
+            - name: SURREAL_USERNAME
+              value: root
+            - name: SURREAL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: surrealdb-auth
+                  key: SURREALDB_ROOT_PASSWORD
+            - name: SURREAL_NAMESPACE
+              value: memory
+            - name: SURREAL_DATABASE
+              value: main
+            - name: EMBEDDING_PROVIDER
+              value: local
+            - name: LOCAL_EMBEDDING_MODEL
+              value: BAAI/bge-small-en-v1.5
+            - name: MODEL_CACHE_DIR
+              value: /home/smserver/.cache/huggingface
+            - name: RUST_LOG
+              value: info
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+          volumeMounts:
+            - name: hf-cache
+              mountPath: /home/smserver/.cache/huggingface
+      volumes:
+        - name: hf-cache
+          emptyDir: {}

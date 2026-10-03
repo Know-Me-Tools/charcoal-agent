@@ -1,0 +1,93 @@
+# knowme-web — the Axum site server (server/): serves the embedded SPA and is
+# the only public path to the site agent. Distroless image, non-root UID 65532.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: knowme-web
+  namespace: knowme
+  labels:
+    app.kubernetes.io/name: knowme-web
+    app.kubernetes.io/component: web
+    app.kubernetes.io/part-of: knowme-site
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: knowme-web
+      app.kubernetes.io/component: web
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: knowme-web
+        app.kubernetes.io/component: web
+        app.kubernetes.io/part-of: knowme-site
+    spec:
+      # SIGTERM starts a drain that waits for in-flight chat streams; give
+      # them up to a minute before SIGKILL.
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: knowme-web
+          image: ghcr.io/know-me-tools/knowme-web:main
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: UAR_UPSTREAM
+              value: http://uar:6565
+            - name: SITE_AGENT_ID
+              value: knowme-site
+            # Envoy Gateway is the one proxy that appends to X-Forwarded-For;
+            # the client IP for rate limiting is the right-most entry.
+            - name: TRUSTED_PROXY_HOPS
+              value: "1"
+            # The chat limiter is in memory PER REPLICA and Envoy spreads a
+            # client across both pods, so each pod gets half the intended
+            # per-client quota: 2 x (5/min, burst 3) ~= 10/min, burst 6.
+            # Change these with `replicas` (and any HPA).
+            - name: CHAT_RATE_PER_MIN
+              value: "5"
+            - name: CHAT_BURST
+              value: "3"
+            - name: SITE_PROXY_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: site-proxy
+                  key: SITE_PROXY_API_KEY
+          # Keep serving while Envoy drops this endpoint, then SIGTERM. Native
+          # sleep action (Kubernetes 1.30+): the distroless image has no shell.
+          lifecycle:
+            preStop:
+              sleep:
+                seconds: 5
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi

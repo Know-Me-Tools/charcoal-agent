@@ -2,24 +2,25 @@
   "schemaVersion": "1",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 551,
-  "derivedRevision": 551,
+  "sourceRevision": 1090,
+  "derivedRevision": 1090,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 551
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 1090
   },
   "conflictCount": 0,
-  "updatedAt": "2026-09-27T22:43:39.678212Z",
+  "updatedAt": "2026-10-02T23:44:12.226214Z",
   "cursor": [
-    "complete-rebranding",
-    "execute"
+    "uar-integration",
+    "site-chat-proxy",
+    "1.5"
   ],
   "root": {
     "type": "phase",
     "id": "440c5818-223c-4091-8b7f-bc8083505a3c",
     "status": "ready",
     "progress": {
-      "done": 13,
-      "total": 13
+      "done": 25,
+      "total": 55
     },
     "children": [
       {
@@ -147,6 +148,410 @@
             "progress": {
               "done": 4,
               "total": 4
+            }
+          }
+        ],
+        "annotations": []
+      },
+      {
+        "type": "phase",
+        "id": "uar-integration",
+        "canonicalId": "uar-integration",
+        "status": "PENDING",
+        "progress": {
+          "done": 6,
+          "total": 36
+        },
+        "children": [
+          {
+            "type": "phase",
+            "id": "uar-capability-assessment",
+            "canonicalId": "uar-integration::uar-capability-assessment",
+            "status": "COMPLETE",
+            "progress": {
+              "done": 6,
+              "total": 6
+            },
+            "children": [
+              {
+                "type": "change",
+                "id": "record-decisions",
+                "status": "COMPLETE",
+                "progress": {
+                  "done": 2,
+                  "total": 2
+                }
+              },
+              {
+                "type": "change",
+                "id": "revise-parent-plan",
+                "status": "COMPLETE",
+                "progress": {
+                  "done": 2,
+                  "total": 2
+                }
+              },
+              {
+                "type": "change",
+                "id": "emit-openspec-changes",
+                "status": "COMPLETE",
+                "progress": {
+                  "done": 2,
+                  "total": 2
+                }
+              },
+              {
+                "type": "change",
+                "id": "reconcile-kbd-state",
+                "status": "COMPLETE",
+                "progress": {
+                  "done": 2,
+                  "total": 2
+                }
+              },
+              {
+                "type": "change",
+                "id": "file-uar-roadmap",
+                "status": "COMPLETE",
+                "progress": {
+                  "done": 2,
+                  "total": 2
+                }
+              },
+              {
+                "type": "change",
+                "id": "paper-corrections",
+                "status": "COMPLETE",
+                "progress": {
+                  "done": 2,
+                  "total": 2
+                }
+              }
+            ],
+            "annotations": []
+          },
+          {
+            "type": "change",
+            "id": "uar-ghcr-multiarch-publish",
+            "status": "COMPLETE",
+            "progress": {
+              "done": 4,
+              "total": 4
+            }
+          },
+          {
+            "type": "change",
+            "id": "uar-kb-retrieval-embedding",
+            "status": "COMPLETE",
+            "progress": {
+              "done": 4,
+              "total": 4
+            }
+          },
+          {
+            "type": "change",
+            "id": "memory-server-ghcr-publish",
+            "status": "COMPLETE",
+            "progress": {
+              "done": 4,
+              "total": 4
+            }
+          },
+          {
+            "type": "change",
+            "id": "cluster-gateway-and-cert",
+            "status": "COMPLETE",
+            "progress": {
+              "done": 4,
+              "total": 4
+            }
+          },
+          {
+            "type": "change",
+            "id": "site-knowledge-corpus",
+            "status": "COMPLETE",
+            "progress": {
+              "done": 4,
+              "total": 4
+            }
+          },
+          {
+            "type": "change",
+            "id": "local-compose-stack",
+            "status": "PENDING",
+            "progress": {
+              "done": 3,
+              "total": 4
+            }
+          },
+          {
+            "type": "change",
+            "id": "site-agent-seed",
+            "status": "PENDING",
+            "progress": {
+              "done": 2,
+              "total": 6
+            }
+          },
+          {
+            "type": "change",
+            "id": "site-chat-proxy",
+            "status": "IN_PROGRESS",
+            "progress": {
+              "done": 3,
+              "total": 5
+            }
+          },
+          {
+            "type": "change",
+            "id": "about-endpoint-truth",
+            "status": "PENDING",
+            "progress": {
+              "done": 1,
+              "total": 2
+            }
+          },
+          {
+            "type": "change",
+            "id": "k8s-stack-manifests",
+            "status": "PENDING",
+            "progress": {
+              "done": 3,
+              "total": 6
+            }
+          },
+          {
+            "type": "change",
+            "id": "github-deploy-workflows",
+            "status": "PENDING",
+            "progress": {
+              "done": 3,
+              "total": 7
+            }
+          },
+          {
+            "type": "change",
+            "id": "apex-dns-cutover",
+            "status": "SKIPPED",
+            "progress": {
+              "done": 0,
+              "total": 3
+            }
+          },
+          {
+            "type": "change",
+            "id": "ci-secrets-out",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 6
+            }
+          },
+          {
+            "type": "change",
+            "id": "uar-runtime-host-lockdown",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 6
+            }
+          },
+          {
+            "type": "change",
+            "id": "uar-jwks-es256",
+            "status": "IN_PROGRESS",
+            "progress": {
+              "done": 3,
+              "total": 4
+            }
+          },
+          {
+            "type": "change",
+            "id": "gate-ec-jwks-deploy",
+            "status": "COMPLETE",
+            "progress": {
+              "done": 4,
+              "total": 4
+            }
+          },
+          {
+            "type": "change",
+            "id": "gate-ext-authz-endpoint",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 6
+            }
+          },
+          {
+            "type": "change",
+            "id": "gate-site-credentials",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 8
+            }
+          },
+          {
+            "type": "change",
+            "id": "cluster-extauthz-policies",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 6
+            }
+          },
+          {
+            "type": "change",
+            "id": "gate-ci-gitops",
+            "status": "IN_PROGRESS",
+            "progress": {
+              "done": 3,
+              "total": 6
+            }
+          },
+          {
+            "type": "change",
+            "id": "kb-chunking-quality",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 7
+            }
+          },
+          {
+            "type": "change",
+            "id": "site-agent-tool-allowlist",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 10
+            }
+          },
+          {
+            "type": "change",
+            "id": "site-proxy-artifact-filter",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 4
+            }
+          },
+          {
+            "type": "change",
+            "id": "site-session-erasure",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 6
+            }
+          },
+          {
+            "type": "change",
+            "id": "site-session-binding",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 7
+            }
+          },
+          {
+            "type": "change",
+            "id": "site-proxy-hardening",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 9
+            }
+          },
+          {
+            "type": "change",
+            "id": "site-spend-ceiling",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 14
+            }
+          },
+          {
+            "type": "change",
+            "id": "site-security-headers",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 7
+            }
+          },
+          {
+            "type": "change",
+            "id": "ci-supply-chain-pins",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 9
+            }
+          },
+          {
+            "type": "change",
+            "id": "site-ai-disclosure-label",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 9
+            }
+          },
+          {
+            "type": "change",
+            "id": "site-retention-and-privacy",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 11
+            }
+          },
+          {
+            "type": "change",
+            "id": "site-citation-link-allowlist",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 8
+            }
+          },
+          {
+            "type": "change",
+            "id": "site-chat-offline-states",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 9
+            }
+          },
+          {
+            "type": "change",
+            "id": "site-agent-prompt-fixes",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 7
+            }
+          },
+          {
+            "type": "change",
+            "id": "site-agent-eval-text",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 8
+            }
+          },
+          {
+            "type": "change",
+            "id": "site-redteam-prompts",
+            "status": "PENDING",
+            "progress": {
+              "done": 0,
+              "total": 8
             }
           }
         ],

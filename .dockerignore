@@ -14,9 +14,9 @@ dist
 dist-ssr
 
 # ── Tauri / Rust ──────────────────────────────────────
-# Rust build artifacts are not needed for the web build stage.
-# The native binary is compiled on the host or in a separate
-# Rust build stage — not inside the web frontend container.
+# server/ (the site server) is built in the image; only its build output is
+# excluded. The Tauri shell is not part of the site image.
+server/target/
 src-tauri/target/
 src-tauri/gen/
 src-tauri/WixTools/
@@ -24,9 +24,11 @@ src-tauri/bundle/
 src-tauri/*.key
 
 # ── Environment ───────────────────────────────────────
+# All of them: Vite loads .env, .env.local, .env.production and
+# .env.production.local, and a developer key must never reach the bundle.
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 
 # ── Editor / OS ──────────────────────────────────────
 .vscode
@@ -46,6 +48,5 @@ coverage
 !README.md
 LICENSE
 
-# ── Docker / nginx — keep these in the build context ─────────────────────────
-!nginx.conf
+# ── Docker — keep in the build context ───────────────────────────────────────
 !docker-compose.yaml

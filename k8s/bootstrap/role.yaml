@@ -1,0 +1,45 @@
+# Namespace-scoped only — HTTPRoutes here reference a Gateway in namespace
+# argocd, but creating/patching an HTTPRoute needs RBAC only in the namespace
+# that owns the HTTPRoute object (knowme), not on the referenced Gateway.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: knowme-deployer
+  namespace: knowme
+  labels:
+    app.kubernetes.io/part-of: knowme-site
+rules:
+  # Resources kubectl apply -k k8s manages directly.
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["services", "configmaps"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["networkpolicies"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["httproutes"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+
+  # Secrets: created/updated idempotently from GitHub secrets each deploy.
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create", "patch", "get"]
+
+  # The seed-site-agent script runs from the CI runner via port-forward.
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods/portforward"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+
+  # Jobs: immutable once created, so delete is needed to rerun one.
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]

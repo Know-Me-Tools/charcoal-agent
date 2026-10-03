@@ -1,6 +1,123 @@
 services:
 
-  # ── KnowMe web client — Vite SPA served by nginx ──────────────────────────
+  # ── SurrealDB — shared persistence for UAR and the memory server ──────────
+  surrealdb:
+    image: surrealdb/surrealdb:v3.3.0@sha256:681c6c22c287421b5c7d99e0fde79b6e0d32c36c1ddeaab2762a1661cb04cd20
+    container_name: knowme-surrealdb
+    user: root
+    command:
+      - start
+      - --log=info
+      - --user=root
+      - --pass=${SURREALDB_ROOT_PASSWORD:?SURREALDB_ROOT_PASSWORD must be set}
+      - --bind=0.0.0.0:8000
+      - rocksdb:/data/database.db
+    volumes:
+      - surrealdb_data:/data
+    healthcheck:
+      # Exec form: the SurrealDB image has no /bin/sh.
+      test: ["CMD", "/surreal", "isready", "--endpoint", "http://localhost:8000"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - knowme-network
+    restart: unless-stopped
+
+  # ── Universal Agent Runtime — Rust agent backend ───────────────────────────
+  uar:
+    image: ghcr.io/prometheus-ags/universal-agent-runtime:main
+    container_name: knowme-uar
+    ports:
+      - "${UAR_PORT:-6565}:6565"
+    environment:
+      PORT: "6565"
+      UAR_SERVER__PORT: "6565"
+      UAR_SERVER__HOST: "0.0.0.0"
+
+      # ── Security — local JWT stays off; a validly-signed JWT (e.g. from
+      #    scripts/seed-site-agent.sh) still authenticates as its `sub` even
+      #    when JWT_REQUIRED=false, because the verifier is tried whenever an
+      #    Authorization header is present (src/uar/security/middleware.rs).
+      UAR_SECURITY__JWT_REQUIRED: "${UAR_SECURITY__JWT_REQUIRED:-false}"
+      UAR_SECURITY__JWT_SECRET: "${UAR_JWT_SECRET:?UAR_JWT_SECRET must be set}"
+      UAR_SECURITY__SETTINGS_ADMIN_KEY: "${UAR_SETTINGS_ADMIN_KEY:?UAR_SETTINGS_ADMIN_KEY must be set}"
+
+      # ── Persistence — remote SurrealDB, shared with the memory server ──────
+      UAR_PERSISTENCE__PROVIDER: surreal
+      UAR_PERSISTENCE__DATABASE_URL: http://surrealdb:8000
+      UAR_PERSISTENCE__VECTOR_DIMENSION: "1024"
+      UAR_PERSISTENCE__SURREAL_USER: root
+      UAR_PERSISTENCE__SURREAL_PASS: "${SURREALDB_ROOT_PASSWORD:?SURREALDB_ROOT_PASSWORD must be set}"
+      UAR_PERSISTENCE__SURREAL_AUTH_LEVEL: root
+      UAR_PERSISTENCE__SURREAL_NS: uar
+      UAR_PERSISTENCE__SURREAL_DB: uar
+
+      # ── LLM — Qwen Token Plan (OpenAI-compatible base URL) ──────────────────
+      # UAR_LLM__MODEL keeps a "provider/model" shape for liter-llm's registry
+      # bookkeeping only: once UAR_LLM__BASE_URL is non-empty, UAR sends just
+      # the model id on the wire, not the "openai/" prefix
+      # (src/llm/registry.rs: has_explicit_base_url / split_model_string).
+      UAR_LLM__MODEL: "openai/${QWEN_TOKEN_PLAN_MODEL:-qwen3.8-max}"
+      UAR_LLM__BASE_URL: "${QWEN_TOKEN_PLAN_OPENAI_URL:?QWEN_TOKEN_PLAN_OPENAI_URL must be set}"
+      UAR_LLM__API_KEY: "${QWEN_TOKEN_PLAN_API_KEY:?QWEN_TOKEN_PLAN_API_KEY must be set}"
+
+      # ── Embedding — DashScope text-embedding-v4 at 1024 dims ───────────────
+      UAR_LLM__EMBEDDING__BACKEND: openai
+      UAR_LLM__EMBEDDING__MODEL: "${QWEN_EMBEDDING_MODEL:-text-embedding-v4}"
+      UAR_LLM__EMBEDDING__API_KEY: "${DASHSCOPE_API_KEY:?DASHSCOPE_API_KEY must be set}"
+      UAR_LLM__EMBEDDING__BASE_URL: "${DASHSCOPE_OPENAI_URL:?DASHSCOPE_OPENAI_URL must be set}"
+      UAR_LLM__EMBEDDING__VECTOR_DIMENSION: "${QWEN_EMBEDDING_DIMENSIONS:-1024}"
+      # DashScope rejects embedding requests with more than 10 inputs.
+      UAR_LLM__EMBEDDING__BATCH_SIZE: "10"
+
+      RUST_LOG: "${RUST_LOG:-info}"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:6565/readyz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    depends_on:
+      surrealdb:
+        condition: service_healthy
+    networks:
+      - knowme-network
+    restart: unless-stopped
+
+  # ── Memory server — same SurrealDB, its own namespace, local embeddings ───
+  surreal-memory-server:
+    image: ghcr.io/prometheus-ags/surreal-memory-server:main
+    container_name: knowme-memory-server
+    ports:
+      - "${MEMORY_SERVER_PORT:-3001}:3001"
+    environment:
+      # The stdio MCP transport exits when there is no stdin (a detached
+      # container), taking the server down; the HTTP MCP endpoint stays on.
+      MCP_STDIO: "false"
+      SURREAL_MODE: server
+      SURREAL_ENDPOINT: ws://surrealdb:8000
+      SURREAL_USERNAME: root
+      SURREAL_PASSWORD: "${SURREALDB_ROOT_PASSWORD:?SURREALDB_ROOT_PASSWORD must be set}"
+      SURREAL_NAMESPACE: memory
+      SURREAL_DATABASE: main
+      EMBEDDING_PROVIDER: local
+      LOCAL_EMBEDDING_MODEL: BAAI/bge-small-en-v1.5
+      MODEL_CACHE_DIR: /home/smserver/.cache/huggingface
+      RUST_LOG: "${RUST_LOG:-info}"
+    volumes:
+      - memory_hf_cache:/home/smserver/.cache/huggingface
+    depends_on:
+      surrealdb:
+        condition: service_healthy
+    networks:
+      - knowme-network
+    restart: unless-stopped
+
+  # ── KnowMe site — Axum server (server/): embedded SPA + the site proxy ──
+  # The only public path to the site agent. The image is distroless (no shell
+  # or HTTP client), so there is no compose healthcheck; probe /readyz.
   knowme-web:
     build:
       context: .
@@ -9,41 +126,17 @@ services:
     container_name: knowme-web
     ports:
       - "${KNOWME_PORT:-${CHARCOAL_PORT:-8080}}:8080"
+    environment:
+      UAR_UPSTREAM: "http://uar:6565"
+      SITE_PROXY_API_KEY: "${SITE_PROXY_API_KEY:-}"
+      SITE_AGENT_ID: knowme-site
+      # Nothing sits in front of this container locally: rate-limit on the
+      # TCP peer and ignore X-Forwarded-For.
+      TRUSTED_PROXY_HOPS: "0"
+      RUST_LOG: "${RUST_LOG:-info}"
     depends_on:
       uar:
         condition: service_healthy
-    networks:
-      - knowme-network
-    restart: unless-stopped
-
-  # ── Universal Agent Runtime — Rust backend ─────────────────────────────────
-  uar:
-    image: knowme/universal-agent-runtime:latest
-    container_name: knowme-uar
-    build:
-      context: ../prometheus/universal-agent-runtime
-      dockerfile: Dockerfile
-    ports:
-      - "${UAR_PORT:-6565}:6565"
-    environment:
-      PORT: "6565"
-      UAR_SERVER__PORT: "6565"
-      LLM_BASE_URL: "${LLM_BASE_URL:-https://api.openai.com}"
-      LLM_MODEL: "${LLM_MODEL:-gpt-4o}"
-      LLM_API_KEY: "${LLM_API_KEY:?LLM_API_KEY must be set}"
-      UAR_SECURITY__JWT_REQUIRED: "${UAR_SECURITY__JWT_REQUIRED:-false}"
-      UAR_PERSISTENCE__PROVIDER: "${UAR_PERSISTENCE__PROVIDER:-surreal}"
-      UAR_PERSISTENCE__DATABASE_URL: "${UAR_PERSISTENCE__DATABASE_URL:-rocksdb:///data/uar.db}"
-      UAR_PERSISTENCE__VECTOR_DIMENSION: "${UAR_PERSISTENCE__VECTOR_DIMENSION:-384}"
-      RUST_LOG: "${RUST_LOG:-info}"
-    volumes:
-      - uar_data:/data
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:6565/healthz || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 6
-      start_period: 20s
     networks:
       - knowme-network
     restart: unless-stopped
@@ -53,5 +146,7 @@ networks:
     driver: bridge
 
 volumes:
-  uar_data:
+  surrealdb_data:
+    driver: local
+  memory_hf_cache:
     driver: local

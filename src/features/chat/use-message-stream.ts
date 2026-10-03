@@ -2,6 +2,7 @@ import { useCallback, useRef } from "react";
 import { useChatMessageStore } from "@/stores/chat-message-store";
 import { useThreadRegistryStore } from "@/stores/thread-registry-store";
 import { buildUrl, buildHeaders } from "@/lib/api-client";
+import { getSiteAgentId } from "@/hooks/use-site-config";
 import type { ToolCallContentBlock } from "@/types/chat-content";
 
 const UAR_PATH = "/api/chat/completion";
@@ -319,9 +320,15 @@ export function useMessageStream() {
       // Accumulate streaming tool-call arguments keyed by tool_call_id
       const pendingArgs = new Map<string, string>();
 
-      // Resolve the agent associated with this thread (if any)
+      // Resolve the agent associated with this thread (if any). On the
+      // public site build every request is pinned to the site agent,
+      // regardless of what the caller or thread registry requested — the
+      // agent picker is hidden in that build, but this is the actual
+      // enforcement point (the site's nginx proxy also enforces it server
+      // side; this keeps behaviour consistent when running against a
+      // non-proxied UAR in dev/tests).
       const threadAgent = useThreadRegistryStore.getState().threads[threadId];
-      const agentId = payload.agent_id ?? threadAgent?.agentId;
+      const agentId = getSiteAgentId() ?? payload.agent_id ?? threadAgent?.agentId;
 
       try {
         const res = await fetch(buildUrl(UAR_PATH), {

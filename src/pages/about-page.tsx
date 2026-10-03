@@ -1,9 +1,8 @@
 import { KnowMeLockup } from "@/components/brand";
 import { StatusBadge } from "@/components/common/status-badge";
 import { useHealth } from "@/hooks/use-health";
+import { resolveRuntimeEndpointDisplay } from "@/lib/utils";
 import { ABOUT_CONTENT } from "../../content/site/about";
-
-const UAR_BASE = (import.meta.env.VITE_UAR_BASE_URL as string | undefined) ?? "http://localhost:6565";
 
 interface AboutRowProps {
 	label: string;
@@ -22,6 +21,10 @@ function AboutRow({ label, children }: AboutRowProps) {
 
 export default function AboutPage() {
 	const { data: health } = useHealth();
+	const runtimeEndpoint = resolveRuntimeEndpointDisplay(
+		import.meta.env.VITE_UAR_BASE_URL as string | undefined,
+		window.location.origin,
+	);
 
 	return (
 		<div className="max-w-xl">
@@ -40,7 +43,7 @@ export default function AboutPage() {
 				<AboutRow label={ABOUT_CONTENT.rows.runtimeStatus}>
 					<StatusBadge status={health?.status === "ok" ? "connected" : "disconnected"} />
 				</AboutRow>
-				<AboutRow label={ABOUT_CONTENT.rows.runtimeEndpoint}>{UAR_BASE}</AboutRow>
+				<AboutRow label={ABOUT_CONTENT.rows.runtimeEndpoint}>{runtimeEndpoint}</AboutRow>
 				<AboutRow label={ABOUT_CONTENT.rows.agent}>{ABOUT_CONTENT.agentValue}</AboutRow>
 			</dl>
 

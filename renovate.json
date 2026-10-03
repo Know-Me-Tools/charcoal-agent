@@ -1,0 +1,31 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "kustomize": {
+    "managerFilePatterns": ["/^k8s/base/kustomization\\.yaml$/"]
+  },
+  "packageRules": [
+    {
+      "description": "Pin the UAR and surreal-memory-server images (built by their own repos' CI) to exact digests, in both k8s/base/kustomization.yaml (kustomize manager) and docker-compose.yaml (docker-compose manager).",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": [
+        "ghcr.io/prometheus-ags/universal-agent-runtime",
+        "ghcr.io/prometheus-ags/surreal-memory-server"
+      ],
+      "pinDigests": true,
+      "groupName": "prometheus-ags agent images"
+    },
+    {
+      "description": "knowme-web is built and pinned by this repo's own .github/workflows/site.yml on every deploy; Renovate must not open competing PRs against it.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/know-me-tools/knowme-web"],
+      "enabled": false
+    },
+    {
+      "description": "SurrealDB is already pinned by digest with a rationale comment (see docker-compose.yaml and k8s/base/surrealdb-statefulset.yaml) matched to the exact version UAR and surreal-memory-server link against; bump it deliberately, not via an automated PR.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["surrealdb/surrealdb"],
+      "enabled": false
+    }
+  ]
+}

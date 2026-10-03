@@ -2,38 +2,38 @@
   "schemaVersion": "5",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 551,
-  "derivedRevision": 551,
+  "sourceRevision": 1090,
+  "derivedRevision": 1090,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 551
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 1090
   },
   "conflictCount": 0,
   "projectId": "440c5818-223c-4091-8b7f-bc8083505a3c",
   "runId": "complete-rebranding-20260923T223312Z",
   "path": [
-    "complete-rebranding"
+    "uar-integration"
   ],
   "phaseIds": [
-    "complete-rebranding"
+    "uar-integration"
   ],
-  "activePhaseId": "complete-rebranding",
-  "activePhase": "complete-rebranding",
-  "phase": "complete-rebranding",
+  "activePhaseId": "uar-integration",
+  "activePhase": "uar-integration",
+  "phase": "uar-integration",
   "parentPhase": null,
   "childPointer": null,
-  "change": null,
-  "currentTask": null,
+  "change": "site-chat-proxy",
+  "currentTask": "1.5",
   "status": "ready",
   "lifecycle": "ready",
-  "stageId": "execute",
-  "stageStatus": "IN_PROGRESS",
+  "stageId": null,
+  "stageStatus": null,
   "completionMetric": "implementation",
-  "implementationCompleted": 13,
-  "implementationTotal": 13,
+  "implementationCompleted": 25,
+  "implementationTotal": 55,
   "planRevision": 2,
-  "revision": 551,
-  "exactNextCommand": "/opsx:continue tailwind-v4-foundation",
-  "nextChange": null,
-  "nextTask": null,
-  "updatedAt": "2026-09-27T22:43:39.678212Z"
+  "revision": 1090,
+  "exactNextCommand": "/kbd-status",
+  "nextChange": "site-chat-proxy",
+  "nextTask": "1.5",
+  "updatedAt": "2026-10-02T23:44:12.226214Z"
 }

@@ -1,0 +1,11 @@
+## 1. SHA and digest pins with a CI check
+
+- [ ] 1.1 Inventory every `uses:` line in `.github/workflows/site.yml` (`actions/checkout@v7`, `actions/setup-node@v7`, `docker/setup-buildx-action@v4`, `docker/login-action@v4`, `docker/build-push-action@v7`, `azure/setup-kubectl@v5`) and every `image:` in `k8s/base/*.yaml` and `docker-compose.yaml`; list each with its current tag in this change's evidence.
+- [ ] 1.2 Resolve each action tag to its full 40-character commit SHA from the action's official repository, and rewrite each `uses:` as `owner/repo@<sha> # vX.Y.Z`.
+- [ ] 1.3 Resolve the UAR image (`ghcr.io/prometheus-ags/universal-agent-runtime`) to a digest whose build contains #321 (and #324), verified from the image's build provenance or commit label; pin it as `:tag@sha256:<digest>` in `k8s/base/uar-deployment.yaml` and `docker-compose.yaml`.
+- [ ] 1.4 Resolve the memory-server image (`ghcr.io/prometheus-ags/surreal-memory-server`) to a digest and pin it in `k8s/base/memory-server-deployment.yaml` and `docker-compose.yaml`. Pin `alpine:3.21` in `k8s/base/seed-job.yaml` by digest too.
+- [ ] 1.5 Leave `knowme-web` as the CI-set digest (`kustomize edit set image … @${{ needs.image.outputs.digest }}`) and document that `ghcr.io/know-me-tools/knowme-web:main` in the base is replaced at deploy time; the check allows exactly this one exception.
+- [ ] 1.6 Add `scripts/check-pins.sh`: fails if any `uses:` in `.github/workflows/` is not `@<40-hex>`, or any `image:` in `k8s/` or `docker-compose.yaml` lacks `@sha256:`, except the documented `knowme-web` base entry. Run it as the first step of the CI workflow.
+- [ ] 1.7 Record the pinned SHAs and digests in `versions.toml`, and note Dependabot (or Renovate) for SHA updates as the update path.
+- [ ] 1.8 Mark `uar-jwks-es256` closable: record the pinned UAR digest and the evidence it carries #321.
+- [ ] 1.9 Integration check: `scripts/check-pins.sh` exits 0 on the branch and exits non-zero on a scratch edit that reverts one action to a tag and one image to `:main`; `kubectl kustomize k8s/ | grep 'image:'` shows only `@sha256:` references; the CI run on the branch is green with the pin check executed. Evidence filed for §6.4 item 13.
