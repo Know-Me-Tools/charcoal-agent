@@ -18,9 +18,14 @@ use std::time::Duration;
 use axum::Router;
 use axum::http::HeaderValue;
 
+use crate::application::meter::Meter;
+#[cfg(feature = "test-harness")]
+pub use crate::application::public_stream::UpstreamTap;
 use crate::application::site_proxy::SiteProxy;
 use crate::config::Config;
 use crate::infrastructure::assets::AssetSource;
+use crate::infrastructure::kill_switch::KillSwitch;
+use crate::infrastructure::meter_store::MeterStore;
 use crate::infrastructure::rate_limit::ClientRateLimiter;
 use crate::infrastructure::upstream::UarClient;
 use crate::interface::state::{AppState, RouteLimit};
@@ -38,6 +43,21 @@ pub enum StartupError {
 /// Builds the state and router. Call inside a Tokio runtime: it spawns the
 /// limiter eviction task.
 pub fn build_app(config: &Config) -> Result<Router, StartupError> {
+    Ok(router(build_proxy(config)?, config))
+}
+
+/// FR-11 harness (`test-harness` feature only, never in a release build):
+/// the same app, with `tap` receiving every upstream chat SSE chunk before
+/// the public-path artifact filter.
+#[cfg(feature = "test-harness")]
+pub fn build_app_with_upstream_tap(
+    config: &Config,
+    tap: UpstreamTap,
+) -> Result<Router, StartupError> {
+    Ok(router(build_proxy(config)?.with_upstream_tap(tap), config))
+}
+
+fn build_proxy(config: &Config) -> Result<SiteProxy, StartupError> {
     let api_key = config
         .site_proxy_api_key
         .as_deref()
@@ -48,9 +68,27 @@ pub fn build_app(config: &Config) -> Result<Router, StartupError> {
         })
         .transpose()?;
     let uar = UarClient::new(config.uar_upstream.clone())?;
+    let kill_switch = Arc::new(KillSwitch::new(config.kill_switch_file.clone()));
+    KillSwitch::spawn_watcher(&kill_switch);
+    let meter = Meter::new(
+        MeterStore::new(config.meter.store.clone())?,
+        config.meter.budgets,
+        config.meter.reservation_tokens,
+        kill_switch,
+    );
+    Ok(SiteProxy::new(
+        uar,
+        config.site_agent_id.clone(),
+        api_key,
+        config.session_secret.clone(),
+        Arc::new(meter),
+    ))
+}
+
+fn router(proxy: SiteProxy, config: &Config) -> Router {
     let limits = config.rate_limits;
     let state = AppState {
-        proxy: Arc::new(SiteProxy::new(uar, config.site_agent_id.clone(), api_key)),
+        proxy: Arc::new(proxy),
         assets: Arc::new(AssetSource::from_web_root(config.web_root.clone())),
         chat_limit: Arc::new(RouteLimit {
             limiter: ClientRateLimiter::new(limits.chat_per_minute, limits.chat_burst),
@@ -62,7 +100,7 @@ pub fn build_app(config: &Config) -> Result<Router, StartupError> {
         }),
     };
     spawn_limiter_eviction(&state);
-    Ok(interface::routes::router(state))
+    interface::routes::router(state)
 }
 
 fn spawn_limiter_eviction(state: &AppState) {

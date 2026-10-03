@@ -16,6 +16,7 @@ use tower_http::set_header::SetResponseHeaderLayer;
 use tower_http::trace::{DefaultOnResponse, TraceLayer};
 use tracing::Level;
 
+use crate::domain::csp;
 use crate::error::AppError;
 use crate::interface::middleware::rate_limit;
 use crate::interface::state::AppState;
@@ -31,11 +32,24 @@ const SECURITY_HEADERS: &[(&str, &str)] = &[
     ("referrer-policy", "strict-origin-when-cross-origin"),
     ("cross-origin-opener-policy", "same-origin"),
     ("cross-origin-embedder-policy", "require-corp"),
+    // Features the site never uses (site-security-headers 1.4).
+    (
+        "permissions-policy",
+        "accelerometer=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), \
+         hid=(), magnetometer=(), microphone=(), midi=(), payment=(), serial=(), usb=(), \
+         xr-spatial-tracking=()",
+    ),
 ];
 
+/// Report-only until a clean week (site-security-headers 1.6 switches it to
+/// `content-security-policy`).
+const CSP_HEADER: HeaderName = HeaderName::from_static("content-security-policy-report-only");
+const REPORTING_ENDPOINTS: HeaderName = HeaderName::from_static("reporting-endpoints");
+
 pub fn router(state: AppState) -> Router {
+    let csp = csp_header(&state);
     let api = Router::new()
-        .merge(api::routes())
+        .merge(api::routes(&state))
         .merge(uar_proxy::routes(&state))
         .fallback(api_not_found)
         .layer(DefaultBodyLimit::max(API_BODY_LIMIT_BYTES));
@@ -59,10 +73,43 @@ pub fn router(state: AppState) -> Router {
             HeaderValue::from_static(value),
         ));
     }
+    if let Some(csp) = csp {
+        app = app
+            .layer(SetResponseHeaderLayer::overriding(CSP_HEADER, csp))
+            .layer(SetResponseHeaderLayer::overriding(
+                REPORTING_ENDPOINTS,
+                HeaderValue::from_str(&csp::reporting_endpoints())
+                    .unwrap_or_else(|_| HeaderValue::from_static("")),
+            ));
+    }
     app.layer(TraceLayer::new_for_http().on_response(DefaultOnResponse::new().level(Level::INFO)))
 }
 
-/// Every `/api` path outside the audited set and the site's own routes.
+/// The CSP for the served bundle: its inline scripts are hashed at startup.
+fn csp_header(state: &AppState) -> Option<HeaderValue> {
+    let documents = state.assets.html_documents();
+    if documents.is_empty() {
+        tracing::warn!("no HTML in the web bundle; serving no CSP");
+        return None;
+    }
+    let mut hashes: Vec<String> = Vec::new();
+    for html in &documents {
+        for hash in csp::inline_script_hashes(&String::from_utf8_lossy(html)) {
+            if !hashes.contains(&hash) {
+                hashes.push(hash);
+            }
+        }
+    }
+    match HeaderValue::from_str(&csp::policy(&hashes)) {
+        Ok(value) => Some(value),
+        Err(_) => {
+            tracing::error!("CSP is not a valid header value; serving no CSP");
+            None
+        }
+    }
+}
+
+/// Every `/api` path outside the proxied route and the site's own routes.
 async fn api_not_found() -> AppError {
     AppError::NotFound
 }

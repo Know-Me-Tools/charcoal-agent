@@ -32,11 +32,44 @@ impl AssetSource {
         }
     }
 
+    /// Every `.html` file in the bundle, for the startup CSP hash scan. An
+    /// external root is walked once, synchronously, at startup.
+    pub fn html_documents(&self) -> Vec<Vec<u8>> {
+        match self {
+            Self::Embedded => EMBEDDED_ASSETS
+                .iter()
+                .filter(|(path, _)| path.ends_with(".html"))
+                .map(|(_, bytes)| bytes.to_vec())
+                .collect(),
+            Self::Directory(root) => {
+                let mut out = Vec::new();
+                collect_html(root, &mut out);
+                out
+            }
+        }
+    }
+
     /// An external root must be an existing bundle; the embedded one always is.
     pub fn is_ready(&self) -> bool {
         match self {
             Self::Embedded => true,
             Self::Directory(root) => root.join("index.html").is_file(),
+        }
+    }
+}
+
+fn collect_html(dir: &Path, out: &mut Vec<Vec<u8>>) {
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            collect_html(&path, out);
+        } else if path.extension().is_some_and(|ext| ext == "html")
+            && let Ok(bytes) = std::fs::read(&path)
+        {
+            out.push(bytes);
         }
     }
 }

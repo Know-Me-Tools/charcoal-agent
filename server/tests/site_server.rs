@@ -1,160 +1,12 @@
 // TJ-ARCH-MOB-001 compliant
-//! End-to-end tests over real loopback sockets: the site server (built with
-//! `KNOWME_WEB_DIST_DIR=tests/fixtures/web`) in front of an in-process stub
-//! UAR. Offline and fast; no npm, no real UAR.
+//! End-to-end tests of the proxy path over real loopback sockets; the
+//! harness is in `common/mod.rs`.
 
-use std::net::SocketAddr;
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
+mod common;
 
-use axum::Router;
-use axum::body::{Body, Bytes};
-use axum::http::{HeaderMap, Method, StatusCode, Uri};
-use axum::response::Response;
-use axum::routing::any;
-use knowme_site_server::build_app;
-use knowme_site_server::config::{Config, RateLimits};
-use tokio::net::TcpListener;
-use tokio::sync::{Notify, mpsc};
-
-const PROXY_KEY: &str = "proxy-secret-key";
-const STEP: Duration = Duration::from_secs(5);
-
-#[derive(Debug, Clone)]
-struct Seen {
-    method: Method,
-    uri: String,
-    headers: HeaderMap,
-    body: Bytes,
-}
-
-#[derive(Clone, Default)]
-struct Stub {
-    seen: Arc<Mutex<Vec<Seen>>>,
-    /// Released by the test to let the SSE stub emit its second event.
-    release: Arc<Notify>,
-}
-
-impl Stub {
-    fn last(&self) -> Seen {
-        self.seen
-            .lock()
-            .unwrap()
-            .last()
-            .cloned()
-            .expect("upstream saw no request")
-    }
-    fn count(&self) -> usize {
-        self.seen.lock().unwrap().len()
-    }
-}
-
-async fn stub_handler(
-    axum::extract::State(stub): axum::extract::State<Stub>,
-    method: Method,
-    uri: Uri,
-    headers: HeaderMap,
-    body: Bytes,
-) -> Response {
-    stub.seen.lock().unwrap().push(Seen {
-        method,
-        uri: uri.to_string(),
-        headers,
-        body,
-    });
-    match uri.path() {
-        "/readyz" => Response::new(Body::empty()),
-        "/api/chat/completion" => {
-            let (tx, rx) = mpsc::channel::<Result<Bytes, std::io::Error>>(4);
-            let release = stub.release.clone();
-            tokio::spawn(async move {
-                let _ = tx
-                    .send(Ok(Bytes::from_static(b"data: {\"type\":\"first\"}\n\n")))
-                    .await;
-                release.notified().await;
-                let _ = tx
-                    .send(Ok(Bytes::from_static(b"data: {\"type\":\"second\"}\n\n")))
-                    .await;
-            });
-            let stream = futures_util::stream::unfold(rx, |mut rx| async move {
-                rx.recv().await.map(|item| (item, rx))
-            });
-            Response::builder()
-                .header("content-type", "text/event-stream")
-                .header("set-cookie", "upstream=leak")
-                .body(Body::from_stream(stream))
-                .unwrap()
-        }
-        _ => Response::builder()
-            .header("content-type", "application/json")
-            .body(Body::from(r#"{"ok":true}"#))
-            .unwrap(),
-    }
-}
-
-async fn serve(app: Router) -> SocketAddr {
-    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let addr = listener.local_addr().unwrap();
-    tokio::spawn(async move {
-        axum::serve(
-            listener,
-            app.into_make_service_with_connect_info::<SocketAddr>(),
-        )
-        .await
-        .unwrap();
-    });
-    addr
-}
-
-struct Harness {
-    base: String,
-    stub: Stub,
-    http: reqwest::Client,
-}
-
-async fn start(upstream: Option<&str>) -> Harness {
-    let stub = Stub::default();
-    let upstream_url = match upstream {
-        Some(url) => url.to_owned(),
-        None => {
-            let addr = serve(
-                Router::new()
-                    .fallback(any(stub_handler))
-                    .with_state(stub.clone()),
-            )
-            .await;
-            format!("http://{addr}")
-        }
-    };
-    let config = Config {
-        port: 0,
-        uar_upstream: upstream_url,
-        site_proxy_api_key: Some(PROXY_KEY.to_owned()),
-        site_agent_id: "knowme-site".to_owned(),
-        trusted_proxy_hops: 0,
-        web_root: None,
-        rate_limits: RateLimits::default(),
-    };
-    let addr = serve(build_app(&config).unwrap()).await;
-    Harness {
-        base: format!("http://{addr}"),
-        stub,
-        http: reqwest::Client::new(),
-    }
-}
-
-impl Harness {
-    fn chat(&self, body: &'static str) -> reqwest::RequestBuilder {
-        self.http
-            .post(format!("{}/api/chat/completion", self.base))
-            .header("content-type", "application/json")
-            .body(body)
-    }
-}
-
-fn json(bytes: &[u8]) -> serde_json::Value {
-    serde_json::from_slice(bytes).unwrap()
-}
+use axum::http::{Method, StatusCode};
+use common::*;
+use knowme_site_server::config::RateLimits;
 
 #[tokio::test]
 async fn chat_should_forward_only_allowlisted_fields_with_forced_agent() {
@@ -178,27 +30,27 @@ async fn chat_should_forward_only_allowlisted_fields_with_forced_agent() {
         (seen.method, seen.uri.as_str()),
         (Method::POST, "/api/chat/completion")
     );
-    assert_eq!(
-        json(&seen.body),
-        serde_json::json!({"agent_id":"knowme-site","message":"hi","stream":true,"stream_mode":"dual"})
-    );
+    assert_eq!(json(&seen.body), pinned_body("hi"));
 }
 
 #[tokio::test]
-async fn chat_title_request_shape_should_pass_with_default_stream_mode() {
+async fn upstream_stream_shape_should_be_pinned_whatever_the_client_sent() {
     let h = start(None).await;
-    // The shape use-thread-naming.ts sends.
-    let res = h
-        .chat(r#"{"message":"Generate a title","stream":false}"#)
-        .send()
-        .await
-        .unwrap();
-    assert_eq!(res.status(), StatusCode::OK);
-    drop(res);
-    assert_eq!(
-        json(&h.stub.last().body),
-        serde_json::json!({"agent_id":"knowme-site","message":"Generate a title","stream":false,"stream_mode":"dual"})
-    );
+    // The first is the shape use-thread-naming.ts sends.
+    for body in [
+        r#"{"message":"Generate a title","stream":false}"#,
+        r#"{"message":"Generate a title","stream_mode":"agui_spec"}"#,
+        r#"{"message":"Generate a title","stream":"no","stream_mode":"openai"}"#,
+    ] {
+        let res = h.chat(body).send().await.unwrap();
+        assert_eq!(res.status(), StatusCode::OK, "{body}");
+        drop(res);
+        assert_eq!(
+            json(&h.stub.last().body),
+            pinned_body("Generate a title"),
+            "{body}"
+        );
+    }
 }
 
 #[tokio::test]
@@ -209,6 +61,7 @@ async fn chat_should_reject_oversize_message_and_bad_fields_before_upstream() {
         .http
         .post(format!("{}/api/chat/completion", h.base))
         .header("content-type", "application/json")
+        .header("x-uar-session-id", THREAD)
         .body(over)
         .send()
         .await
@@ -219,10 +72,7 @@ async fn chat_should_reject_oversize_message_and_bad_fields_before_upstream() {
         "payload_too_large"
     );
 
-    for body in [
-        r#"{"stream":true}"#,
-        r#"{"message":"a","stream_mode":"openai"}"#,
-    ] {
+    for body in [r#"{"stream":true}"#, r#"{"message":1}"#] {
         let res = h.chat(body).send().await.unwrap();
         assert_eq!(res.status(), StatusCode::BAD_REQUEST, "{body}");
     }
@@ -233,67 +83,244 @@ async fn chat_should_reject_oversize_message_and_bad_fields_before_upstream() {
 async fn proxied_calls_should_drop_client_credentials_and_inject_proxy_key() {
     let h = start(None).await;
     let res = h
-        .http
-        .get(format!(
-            "{}/api/sessions/0b7e3c1a-5f0e-4a8e-9c3b-2d1f4e5a6b7c/messages?limit=5",
-            h.base
-        ))
+        .chat(r#"{"message":"hi"}"#)
         .header("authorization", "Bearer client-jwt")
         .header("x-api-key", "client-key")
         .header("cookie", "sid=abc")
-        .header("x-uar-session-id", "0b7e3c1a-5f0e-4a8e-9c3b-2d1f4e5a6b7c")
+        .header("last-event-id", "7")
         .send()
         .await
         .unwrap();
     assert_eq!(res.status(), StatusCode::OK);
-    assert!(res.headers().get("set-cookie").is_none());
+    // The stub's `set-cookie: upstream=leak` is dropped; only ours is set.
+    let set_cookies: Vec<_> = res.headers().get_all("set-cookie").iter().collect();
+    assert_eq!(set_cookies.len(), 1, "{set_cookies:?}");
+    assert!(visitor_cookie(&res).is_some());
+    drop(res);
 
     let seen = h.stub.last();
-    assert_eq!(
-        seen.uri,
-        "/api/sessions/0b7e3c1a-5f0e-4a8e-9c3b-2d1f4e5a6b7c/messages?limit=5"
-    );
+    assert_eq!(seen.uri, "/api/chat/completion");
     assert!(seen.headers.get("authorization").is_none());
     assert!(seen.headers.get("cookie").is_none());
+    assert!(seen.headers.get("last-event-id").is_none());
     let keys: Vec<_> = seen.headers.get_all("x-api-key").iter().collect();
     assert_eq!(keys, vec![PROXY_KEY]);
-    assert_eq!(
-        seen.headers.get("x-uar-session-id").unwrap(),
-        "0b7e3c1a-5f0e-4a8e-9c3b-2d1f4e5a6b7c"
-    );
 }
 
 #[tokio::test]
-async fn delete_and_artifact_response_should_reach_their_upstream_routes() {
+async fn removed_routes_should_return_the_generic_404_without_an_upstream_call() {
     let h = start(None).await;
-    let del = h
-        .http
-        .delete(format!("{}/api/sessions/abc-123", h.base))
-        .send()
-        .await
-        .unwrap();
-    assert_eq!(del.status(), StatusCode::OK);
-    assert_eq!(
-        (h.stub.last().method, h.stub.last().uri),
-        (Method::DELETE, "/api/sessions/abc-123".to_owned())
-    );
-
-    let art = h
-        .http
-        .post(format!("{}/api/uar/runs/run_1/artifact-response", h.base))
-        .body(r#"{"value":1}"#)
-        .send()
-        .await
-        .unwrap();
-    assert_eq!(art.status(), StatusCode::OK);
-    let seen = h.stub.last();
-    assert_eq!(
-        (seen.uri.as_str(), &seen.body[..]),
+    let removed = [
+        (Method::GET, format!("/api/sessions/{THREAD}/messages")),
+        (Method::DELETE, format!("/api/sessions/{THREAD}")),
         (
-            "/api/uar/runs/run_1/artifact-response",
-            &br#"{"value":1}"#[..]
-        )
+            Method::POST,
+            "/api/uar/runs/run_1/artifact-response".to_owned(),
+        ),
+    ];
+    for (method, path) in removed {
+        let res = h
+            .http
+            .request(method.clone(), format!("{}{path}", h.base))
+            .header("content-type", "application/json")
+            .header("x-uar-session-id", THREAD)
+            .body(r#"{"value":1}"#)
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(res.status(), StatusCode::NOT_FOUND, "{method} {path}");
+        assert_eq!(
+            json(&res.bytes().await.unwrap()),
+            serde_json::json!({"error":"not_found","message":"not found"}),
+            "{method} {path}"
+        );
+    }
+    assert_eq!(h.stub.count(), 0);
+}
+
+#[tokio::test]
+async fn upstream_errors_should_reach_the_visitor_as_generic_bodies() {
+    let h = start(None).await;
+    for message in [
+        r#"{"message":"upstream-500"}"#,
+        r#"{"message":"upstream-400"}"#,
+    ] {
+        let res = h.chat(message).send().await.unwrap();
+        assert_eq!(res.status(), StatusCode::BAD_GATEWAY, "{message}");
+        let text = res.text().await.unwrap();
+        assert_eq!(
+            json(text.as_bytes()),
+            serde_json::json!({"error":"upstream_error","message":"upstream error"}),
+            "{message}"
+        );
+        for leak in ["surreal", "10.0.0.3", "knowme-internal", "invalid_request"] {
+            assert!(!text.contains(leak), "{leak} leaked: {text}");
+        }
+    }
+}
+
+#[tokio::test]
+async fn guardrail_block_should_map_to_the_visitor_message_without_uar_text() {
+    let h = start(None).await;
+    let res = h.chat(r#"{"message":"guardrail"}"#).send().await.unwrap();
+    assert_eq!(res.status(), StatusCode::BAD_REQUEST);
+    let text = res.text().await.unwrap();
+    assert_eq!(
+        json(text.as_bytes()),
+        serde_json::json!({
+            "error": "guardrail_blocked",
+            "message": knowme_site_server::error::GUARDRAIL_MESSAGE
+        })
     );
+    for leak in ["Input rejected", "policy", "guardrail_injection_blocked"] {
+        assert!(!text.contains(leak), "{leak} leaked: {text}");
+    }
+}
+
+#[tokio::test]
+async fn non_allowlisted_query_parameters_should_not_be_forwarded() {
+    let h = start(None).await;
+    let res = h
+        .http
+        .post(format!(
+            "{}/api/chat/completion?agent_id=other&model=x&debug",
+            h.base
+        ))
+        .header("content-type", "application/json")
+        .header("x-uar-session-id", THREAD)
+        .body(r#"{"message":"hi"}"#)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(res.status(), StatusCode::OK);
+    drop(res);
+    assert_eq!(h.stub.last().uri, "/api/chat/completion");
+}
+
+#[tokio::test]
+async fn first_turn_should_issue_a_secure_http_only_visitor_cookie() {
+    let h = start(None).await;
+    let res = h.chat(r#"{"message":"hi"}"#).send().await.unwrap();
+    let set_cookie = res.headers()["set-cookie"].to_str().unwrap().to_owned();
+    drop(res);
+    assert!(set_cookie.starts_with("knowme_vid="), "{set_cookie}");
+    for attr in ["HttpOnly", "Secure", "SameSite=Lax", "Path=/"] {
+        assert!(set_cookie.contains(attr), "{attr} missing: {set_cookie}");
+    }
+
+    // A valid cookie is kept: no new one is issued.
+    let cookie = set_cookie.split(';').next().unwrap();
+    let again = h
+        .chat(r#"{"message":"hi"}"#)
+        .header("cookie", cookie)
+        .send()
+        .await
+        .unwrap();
+    assert!(again.headers().get("set-cookie").is_none());
+}
+
+#[tokio::test]
+async fn client_thread_id_should_never_reach_upstream_and_sessions_should_bind_the_visitor() {
+    let h = start(None).await;
+    let a = new_visitor(&h).await;
+    let b = new_visitor(&h).await;
+    assert_ne!(a, b);
+
+    let a_session = h.upstream_session(THREAD, Some(&a)).await;
+    // UAR never sees the client's thread id, in any header.
+    assert_ne!(a_session, THREAD);
+    assert!(!format!("{:?}", h.stub.last().headers).contains(THREAD));
+    // Same cookie and thread: the same upstream session on every request.
+    assert_eq!(a_session, h.upstream_session(THREAD, Some(&a)).await);
+    // Another visitor naming A's thread lands in a different session.
+    assert_ne!(a_session, h.upstream_session(THREAD, Some(&b)).await);
+    // Another thread of the same visitor: a different session.
+    assert_ne!(a_session, h.upstream_session(OTHER_THREAD, Some(&a)).await);
+}
+
+#[tokio::test]
+async fn a_forged_cookie_should_be_replaced_not_trusted() {
+    let h = start(None).await;
+    let a = new_visitor(&h).await;
+    let a_session = h.upstream_session(THREAD, Some(&a)).await;
+
+    let (name_and_id, _signature) = a.split_once('.').unwrap();
+    let forged = format!("{name_and_id}.{}", "0".repeat(64));
+    let res = h
+        .chat(r#"{"message":"hi"}"#)
+        .header("cookie", forged.as_str())
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(res.status(), StatusCode::OK);
+    let replacement = visitor_cookie(&res).expect("forged cookie was not replaced");
+    drop(res);
+    assert_ne!(replacement, forged);
+    let forged_session = h.stub.last().headers["x-uar-session-id"]
+        .to_str()
+        .unwrap()
+        .to_owned();
+    assert_ne!(forged_session, a_session);
+}
+
+#[tokio::test]
+async fn non_uuid_v4_thread_ids_should_get_400_before_upstream() {
+    let h = start(None).await;
+    for thread in [
+        "a",
+        "s-1",
+        "0b7e3c1a-5f0e-1a8e-9c3b-2d1f4e5a6b7c",
+        "0b7e3c1a5f0e4a8e9c3b2d1f4e5a6b7c",
+    ] {
+        let res = h
+            .chat_on(thread, r#"{"message":"hi"}"#)
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(res.status(), StatusCode::BAD_REQUEST, "{thread}");
+        assert_eq!(json(&res.bytes().await.unwrap())["error"], "bad_request");
+    }
+    let missing = h
+        .http
+        .post(format!("{}/api/chat/completion", h.base))
+        .header("content-type", "application/json")
+        .body(r#"{"message":"hi"}"#)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(missing.status(), StatusCode::BAD_REQUEST);
+    assert_eq!(h.stub.count(), 0);
+}
+
+#[tokio::test]
+async fn public_stream_should_drop_internal_artifacts_while_the_harness_sees_them() {
+    let (tap, mut tapped) = tokio::sync::mpsc::unbounded_channel();
+    let h = start_with_tap(None, Some(tap)).await;
+    let public = h
+        .chat(r#"{"message":"artifacts"}"#)
+        .send()
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
+
+    assert!(!public.contains("effective_run_policy"), "{public}");
+    assert!(!public.contains("turn_manifest"), "{public}");
+    for kept in [
+        "agui.stream.start",
+        "agui.message.delta",
+        "\"code\"",
+        "agui.done",
+    ] {
+        assert!(public.contains(kept), "{kept} missing: {public}");
+    }
+
+    let mut raw = Vec::new();
+    while let Ok(chunk) = tapped.try_recv() {
+        raw.extend_from_slice(&chunk);
+    }
+    assert_eq!(String::from_utf8(raw).unwrap(), ARTIFACT_STREAM);
 }
 
 #[tokio::test]
@@ -322,14 +349,6 @@ async fn disallowed_api_paths_and_methods_should_never_reach_upstream() {
         .await
         .unwrap();
     assert_eq!(wrong_method.status(), StatusCode::METHOD_NOT_ALLOWED);
-    // Decodes to "a b": outside the id charset, rejected by the server itself.
-    let bad_id = h
-        .http
-        .delete(format!("{}/api/sessions/a%20b", h.base))
-        .send()
-        .await
-        .unwrap();
-    assert_eq!(bad_id.status(), StatusCode::BAD_REQUEST);
     assert_eq!(h.stub.count(), 0);
 }
 
@@ -349,6 +368,7 @@ async fn chat_should_reject_non_json_content_type_and_state_json_upstream() {
         .http
         .post(format!("{}/api/chat/completion", h.base))
         .header("content-type", "text/plain")
+        .header("x-uar-session-id", THREAD)
         .body(r#"{"message":"hi"}"#)
         .send()
         .await
@@ -360,6 +380,7 @@ async fn chat_should_reject_non_json_content_type_and_state_json_upstream() {
         .http
         .post(format!("{}/api/chat/completion", h.base))
         .header("content-type", "application/json; charset=utf-8")
+        .header("x-uar-session-id", THREAD)
         .body(r#"{"message":"hi"}"#)
         .send()
         .await
@@ -377,6 +398,7 @@ async fn body_over_32_kib_should_be_rejected() {
         .http
         .post(format!("{}/api/chat/completion", h.base))
         .header("content-type", "application/json")
+        .header("x-uar-session-id", THREAD)
         .body(big)
         .send()
         .await
@@ -436,10 +458,10 @@ async fn chat_burst_should_be_rate_limited_per_client() {
     assert!(limited.headers().get("retry-after").is_some());
     assert_eq!(h.stub.count(), burst as usize);
 
-    // Separate bucket: non-chat routes are not exhausted by chat turns.
+    // Separate bucket: /readyz is not exhausted by chat turns.
     let other = h
         .http
-        .delete(format!("{}/api/sessions/abc", h.base))
+        .get(format!("{}/readyz", h.base))
         .send()
         .await
         .unwrap();
