@@ -104,7 +104,17 @@ done
 for cmd in curl jq openssl; do
   command -v "$cmd" >/dev/null 2>&1 || die "required command not found: $cmd"
 done
-[[ -n "${UAR_JWT_SECRET:-}" ]] || die "UAR_JWT_SECRET must be set"
+# Auth mode: gate client credentials (cluster) when all three SITE_GATE_* are
+# set; otherwise a self-minted HS256 JWT from UAR_JWT_SECRET (local compose,
+# where UAR has no JWKS configured).
+GATE_MODE=0
+if [[ -n "${SITE_GATE_TOKEN_URL:-}" || -n "${SITE_GATE_CLIENT_ID:-}" || -n "${SITE_GATE_CLIENT_SECRET:-}" ]]; then
+  [[ -n "${SITE_GATE_TOKEN_URL:-}" && -n "${SITE_GATE_CLIENT_ID:-}" && -n "${SITE_GATE_CLIENT_SECRET:-}" ]] \
+    || die "set all of SITE_GATE_TOKEN_URL, SITE_GATE_CLIENT_ID, SITE_GATE_CLIENT_SECRET, or none"
+  GATE_MODE=1
+else
+  [[ -n "${UAR_JWT_SECRET:-}" ]] || die "UAR_JWT_SECRET must be set (or the SITE_GATE_* client credentials)"
+fi
 [[ -f "$AGENT_FILE" ]] || die "agent artifact not found: $AGENT_FILE (owned by km-conversational-designer)"
 
 if [[ -n "$MINT_KEY_TO_K8S_SECRET" ]]; then
@@ -134,7 +144,22 @@ mint_jwt() {
   printf '%s.%s' "$signing_input" "$signature_b64"
 }
 
-JWT="$(mint_jwt)"
+# Gate client credentials: the token's sub is the client id (knowme-site) and
+# its aud is the client's audience (uar). Never echoed.
+gate_token() {
+  local body
+  body="$(curl -sS --max-time 10 -X POST "$SITE_GATE_TOKEN_URL" \
+    --data-urlencode grant_type=client_credentials \
+    --data-urlencode "client_id=${SITE_GATE_CLIENT_ID}" \
+    --data-urlencode "client_secret=${SITE_GATE_CLIENT_SECRET}")" || die "gate token request failed"
+  jq -er '.access_token' <<<"$body" 2>/dev/null || die "gate returned no access_token"
+}
+
+if [[ "$GATE_MODE" == 1 ]]; then
+  JWT="$(gate_token)"
+else
+  JWT="$(mint_jwt)"
+fi
 
 # ── HTTP helper ──────────────────────────────────────────────────────────────
 # Sets API_STATUS (HTTP status) and REPLY_BODY. Must run in the current shell,

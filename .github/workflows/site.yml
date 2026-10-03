@@ -134,15 +134,15 @@ jobs:
           kubectl -n "$NAMESPACE" rollout status deployment/knowme-web --timeout=10m
 
       - name: Seed the site agent (idempotent, every deploy)
-        # ci-secrets-out 1.1/1.3: the seed step no longer receives
-        # UAR_JWT_SECRET and cannot self-mint an HS256 JWT. It is NOT yet
-        # authenticating with a gate-minted token either — that is
-        # ci-secrets-out 1.3, which waits on `gate-site-credentials` and is
-        # still open. Until 1.3 lands, this step (and therefore a full
-        # `main` deploy run) does not pass end to end; that is expected and
-        # tracked, not a silent regression. scripts/seed-site-agent.sh dies
-        # immediately with a clear message if UAR_JWT_SECRET/a gate token is
-        # absent, so this fails loudly rather than seeding with no auth.
+        # ci-secrets-out 1.3 / gate-site-credentials: the seed authenticates
+        # with a gate-minted client-credentials token (sub=knowme-site,
+        # aud=uar) from gate's public token endpoint; UAR verifies it via
+        # gate's JWKS. CI holds only this client credential, never UAR's or
+        # the database's secrets.
+        env:
+          SITE_GATE_TOKEN_URL: https://gate.know-me.tools/oauth/token
+          SITE_GATE_CLIENT_ID: ${{ secrets.SITE_GATE_CLIENT_ID }}
+          SITE_GATE_CLIENT_SECRET: ${{ secrets.SITE_GATE_CLIENT_SECRET }}
         run: |
           set -euo pipefail
           chmod +x scripts/seed-site-agent.sh

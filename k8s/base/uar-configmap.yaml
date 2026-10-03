@@ -14,6 +14,13 @@ data:
   UAR_SERVER__PORT: "6565"
   UAR_SERVER__HOST: "0.0.0.0"
   UAR_SECURITY__JWT_REQUIRED: "true"
+  # gate-site-credentials: UAR verifies flint-gate's ES256 tokens through
+  # gate's JWKS (in-cluster), so the site server and the seed job use
+  # gate-minted client-credentials tokens (sub=knowme-site, aud=uar).
+  # Once jwks_url is set, UAR accepts only JWKS-verified tokens.
+  UAR_SECURITY__JWKS_URL: "http://flint-gate.flint-core.svc:4456/.well-known/jwks.json"
+  UAR_SECURITY__JWT_ISSUER: "https://gate.know-me.tools"
+  UAR_SECURITY__JWT_AUDIENCE: "uar"
 
   UAR_PERSISTENCE__PROVIDER: "surreal"
   UAR_PERSISTENCE__DATABASE_URL: "http://surrealdb:8000"

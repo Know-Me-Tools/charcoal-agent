@@ -58,11 +58,21 @@ spec:
           env:
             - name: UAR_URL
               value: http://uar:6565
-            - name: UAR_JWT_SECRET
+            # gate-site-credentials: authenticate with a gate-minted token
+            # (client credentials, sub=knowme-site, aud=uar). The Secret is
+            # created out of band by the operator (D-18).
+            - name: SITE_GATE_TOKEN_URL
+              value: http://flint-gate.flint-core.svc:4456/oauth/token
+            - name: SITE_GATE_CLIENT_ID
               valueFrom:
                 secretKeyRef:
-                  name: uar-secrets
-                  key: UAR_SECURITY__JWT_SECRET
+                  name: site-gate-client
+                  key: SITE_GATE_CLIENT_ID
+            - name: SITE_GATE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: site-gate-client
+                  key: SITE_GATE_CLIENT_SECRET
             - name: AGENT_FILE
               value: /agent/knowme-site.json
             - name: CORPUS_DIR

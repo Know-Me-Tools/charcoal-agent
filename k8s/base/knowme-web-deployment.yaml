@@ -57,11 +57,22 @@ spec:
               value: "5"
             - name: CHAT_BURST
               value: "3"
-            - name: SITE_PROXY_API_KEY
+            # gate-site-credentials: the site server authenticates to UAR with a gate-minted token
+            # (client credentials, sub=knowme-site, aud=uar), replacing the UAR API
+            # key. The Secret is
+            # created out of band by the operator (D-18).
+            - name: SITE_GATE_TOKEN_URL
+              value: http://flint-gate.flint-core.svc:4456/oauth/token
+            - name: SITE_GATE_CLIENT_ID
               valueFrom:
                 secretKeyRef:
-                  name: site-proxy
-                  key: SITE_PROXY_API_KEY
+                  name: site-gate-client
+                  key: SITE_GATE_CLIENT_ID
+            - name: SITE_GATE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: site-gate-client
+                  key: SITE_GATE_CLIENT_SECRET
             # site-session-binding: HMAC secret the site server requires at
             # startup (raw bytes, >= 32 bytes, identical on every replica —
             # the HMAC derivation of each visitor's upstream UAR session id,
