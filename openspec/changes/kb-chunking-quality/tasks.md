@@ -19,3 +19,9 @@
   Not checked by this lane: this is a confirm-and-link task against another phase's artifact, not a file this lane owns to edit, and I did not want to assert "confirmed" without actually reading and cross-checking `uar-roadmap.md` item 3's current wording against this change's description. Left to whoever next works this change (`km-rust-engineer`/orchestrator) — the file `uar-roadmap.md` exists at the path named (seen in file listings), not opened/verified in this session.
 - [ ] 1.7 Done-when (local): on the compose stack, `scripts/seed-site-agent.sh --recreate-kb` completes, then the 1.4 checks pass: every document has at least one chunk, no chunk ends inside a version number, and the Boss-platforms question retrieves the `the-boss.md` chunk. Paste the command output here. The deployed FR-8 check is `site-agent-seed` 1.6, not this task.
   Open — this lane's instructions say explicitly not to run the seed script against a live UAR, and 1.4 (which this done-when checks) is itself open.
+
+## Finding 2026-10-04 (live local stack)
+
+- `chunk_strategy: "document"` was stored on the KB but ingestion ignored it: chunks still ended at "v0." and "Obsidian 1." (UAR `src/server.rs:814` chunks every KB with `Semantic { threshold: 0.5 }`). The 1.5 `chunk_size` fallback cannot help on this path.
+- Fix filed upstream as Prometheus-AGS/universal-agent-runtime#345. 1.7 and `site-agent-seed` 1.3 wait on its merge, a new image digest and a repin.
+- `scripts/seed-site-agent.sh` FR-8 check now requires `status == "indexed"` (UAR reports `chunk_count: 0` for indexed documents) and waits for ingestion to finish before checking.

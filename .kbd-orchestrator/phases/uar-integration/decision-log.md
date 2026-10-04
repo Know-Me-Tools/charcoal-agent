@@ -42,3 +42,9 @@ Applied as the paper's defaults, pending operator objection:
 - **D-20:** flint-infra `deploy.yaml` stays an open, tracked risk in `gate-ci-gitops`.
 
 Still open for Phase 0 exit: D-6, D-8, D-16.
+
+### D-22 correction · 2026-10-04 · KB config alone does not set chunking
+D-22 assumed chunking is set by KB config with no UAR code change. Live check on the local stack: the KB stored `chunk_strategy: "Document"`, but ingestion still cut chunks at "v0." and "Obsidian 1." because UAR chunks with a service-wide semantic chunker (`src/server.rs:814`). Operator chose to fix UAR (Prometheus-AGS/universal-agent-runtime#345). `kb-chunking-quality` 1.5 (larger `chunk_size`) cannot work on this path and is superseded. `site-agent-seed` 1.3 and `kb-chunking-quality` 1.7 wait on that PR merging, a new image digest, and a repin here.
+
+### D-22 revision · 2026-10-04 · section-sized chunks, per-KB retrieval threshold
+Operator chose option A after the live gate: the site KB uses `recursive` chunks of 1000 characters (not one chunk per document, which scored 0.66 for the right document). The FR-8 checks now search with an explicit low `min_score` and pass when, among the top 5 results, each full version string is intact, no chunk ends on a bare version fragment, and a chunk from `the-boss.md` names both Windows and macOS. Operator also chose a UAR change for the chat threshold (#353, per-KB `retrieval_min_score`/`retrieval_top_k`); the seed script sets 0.5 and 5 once an image with it is pinned. Evidence: FR-8 passes (exit 0); live chat turns on the pre-#353 image answered the unshipped-feature question correctly and failed the platforms question.

@@ -1,13 +1,16 @@
 # UAR — no PVC: persistence is the remote SurrealDB, not the embedded store.
-# Image pinned by digest (ci-supply-chain-pins): `main` as of 2026-10-02,
-# commit e73b5f674a15fda3c9910bdc10395b86b04796c7 (merge of
-# Prometheus-AGS/universal-agent-runtime#324; contains #321 — ES256/JWKS
-# verification — 16 commits ahead of #321's merge commit, 0 behind).
-# Verified: `docker buildx imagetools inspect
-# ghcr.io/prometheus-ags/universal-agent-runtime@sha256:94e4af0f524c3d9a4ec281c8e553909224ccfc212b6e87fac9f4a2bc0e2a7568`
-# resolves a linux/amd64 + linux/arm64 index; its SLSA provenance attestation
-# records `vcs:revision: e73b5f674a15fda3c9910bdc10395b86b04796c7`. Renovate
-# tracks this digest going forward (renovate.json); bump deliberately.
+# Image pinned by digest (ci-supply-chain-pins): the `main` image created on
+# 2026-10-04 21:37 UTC by the build of commit bb6ea8ba (merge of
+# Prometheus-AGS/universal-agent-runtime#344). That commit descends from #345
+# (a KB's chunk_strategy is honoured at ingest), #350 (version-safe sentence
+# chunkers), #353 (per-KB retrieval_min_score and retrieval_top_k) and #321
+# (ES256/JWKS verification). The digest is
+# ghcr.io/prometheus-ags/universal-agent-runtime@sha256:688a97e42a0be63247b95c3b1a3c5ebd9da9078c79d63c4f31d979d469b77888
+# and resolves a linux/amd64 + linux/arm64 index. Its attestation does not
+# expose a readable vcs revision, so the commit above comes from the build
+# timing; the KB's retrieval settings round-tripping through the API proves
+# #353 is in it. Renovate tracks this digest going forward (renovate.json);
+# bump deliberately.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -37,7 +40,7 @@ spec:
         fsGroup: 65532
       containers:
         - name: uar
-          image: ghcr.io/prometheus-ags/universal-agent-runtime:main@sha256:94e4af0f524c3d9a4ec281c8e553909224ccfc212b6e87fac9f4a2bc0e2a7568
+          image: ghcr.io/prometheus-ags/universal-agent-runtime:main@sha256:688a97e42a0be63247b95c3b1a3c5ebd9da9078c79d63c4f31d979d469b77888
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

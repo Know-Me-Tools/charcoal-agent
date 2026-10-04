@@ -23,8 +23,16 @@
 #   KB_EMBEDDING_PROVIDER   KB embedding provider for new KBs (default: openai)
 #   KB_EMBEDDING_MODEL      KB embedding model for new KBs (default: $QWEN_EMBEDDING_MODEL or text-embedding-v4)
 #   KB_VECTOR_DIMENSIONS    KB vector dimensions for new KBs (default: $QWEN_EMBEDDING_DIMENSIONS or 1024)
-#   KB_CHUNK_STRATEGY       KB chunk strategy for new KBs (default: document, D-22/kb-chunking-quality —
-#                           the 8-file, ~3.5k-token corpus fits whole-document chunks)
+#   KB_CHUNK_STRATEGY       KB chunk strategy for new KBs (default: recursive)
+#   KB_CHUNK_SIZE           Characters per chunk for the recursive strategy (default: 1000). One chunk
+#                           per whole document (`document`) scored 0.66 for the right document against
+#                           UAR's default min_score of 0.7 (2026-10-04), so a question retrieved nothing;
+#                           section-sized chunks keep each chunk on one topic.
+#   KB_RETRIEVAL_MIN_SCORE  Similarity a chunk needs to reach the agent's prompt (default: 0.5). UAR's
+#                           chat retrieval defaults to 0.7, but text-embedding-v4 scores real answers
+#                           0.58 to 0.67 for short questions. Needs a UAR image with
+#                           Prometheus-AGS/universal-agent-runtime#353; older images ignore it.
+#   KB_RETRIEVAL_TOP_K      Chunks retrieved per turn (default: 5; UAR's default is 3)
 #
 # Flags:
 #   --mint-key-to-file <path>          Mint a fresh site API key and write it to <path> (0600). Never printed.
@@ -59,7 +67,10 @@ KB_NAME="${KB_NAME:-knowme-site}"
 KB_EMBEDDING_PROVIDER="${KB_EMBEDDING_PROVIDER:-openai}"
 KB_EMBEDDING_MODEL="${KB_EMBEDDING_MODEL:-${QWEN_EMBEDDING_MODEL:-text-embedding-v4}}"
 KB_VECTOR_DIMENSIONS="${KB_VECTOR_DIMENSIONS:-${QWEN_EMBEDDING_DIMENSIONS:-1024}}"
-KB_CHUNK_STRATEGY="${KB_CHUNK_STRATEGY:-document}"
+KB_CHUNK_STRATEGY="${KB_CHUNK_STRATEGY:-recursive}"
+KB_CHUNK_SIZE="${KB_CHUNK_SIZE:-1000}"
+KB_RETRIEVAL_MIN_SCORE="${KB_RETRIEVAL_MIN_SCORE:-0.5}"
+KB_RETRIEVAL_TOP_K="${KB_RETRIEVAL_TOP_K:-5}"
 JWT_SUBJECT="knowme-site"
 JWT_TTL_SECS=600
 
@@ -224,14 +235,17 @@ if [[ "$RECREATE_KB" -eq 1 && -n "$KB_ID" ]]; then
 fi
 
 if [[ -z "$KB_ID" ]]; then
-  log "knowledge base '$KB_NAME' not found; creating (chunk_strategy=$KB_CHUNK_STRATEGY)"
+  log "knowledge base '$KB_NAME' not found; creating (chunk_strategy=$KB_CHUNK_STRATEGY, chunk_size=$KB_CHUNK_SIZE, retrieval_min_score=$KB_RETRIEVAL_MIN_SCORE, retrieval_top_k=$KB_RETRIEVAL_TOP_K)"
   create_body="$(jq -n \
     --arg name "$KB_NAME" \
     --arg provider "$KB_EMBEDDING_PROVIDER" \
     --arg model "$KB_EMBEDDING_MODEL" \
     --argjson dims "$KB_VECTOR_DIMENSIONS" \
     --arg chunk_strategy "$KB_CHUNK_STRATEGY" \
-    '{name: $name, description: "Public-safe KnowMe product content for the site agent.", config: {embedding_provider: $provider, embedding_model: $model, vector_dimensions: $dims, chunk_strategy: $chunk_strategy}}')"
+    --argjson chunk_size "$KB_CHUNK_SIZE" \
+    --argjson min_score "$KB_RETRIEVAL_MIN_SCORE" \
+    --argjson top_k "$KB_RETRIEVAL_TOP_K" \
+    '{name: $name, description: "Public-safe KnowMe product content for the site agent.", config: {embedding_provider: $provider, embedding_model: $model, vector_dimensions: $dims, chunk_strategy: $chunk_strategy, chunk_size: $chunk_size, retrieval_min_score: $min_score, retrieval_top_k: $top_k}}')"
   api POST "/api/uar/knowledge-bases" -H 'Content-Type: application/json' --data-binary "$create_body"
   status="$API_STATUS"
   require_2xx "$status" "create knowledge base"
@@ -342,17 +356,52 @@ fi
 # ── 4. FR-8 KB health check (site-agent-seed 1.4, kb-chunking-quality 1.4) ──
 #
 # Confirmed against UAR origin/main (src/uar/api/knowledge.rs:93-134,
-# administration_capabilities.rs:1326-1395): DocumentResponse carries
-# `chunk_count: usize`, and `POST /api/uar/knowledge-bases/{id}/search`
+# administration_capabilities.rs:1326-1395): `POST /api/uar/knowledge-bases/{id}/search`
 # takes `{query, limit, min_score}` (min_score defaults server-side to 0.7
 # when omitted) and returns `{results: [{content, score, metadata,
-# document_id}]}`. Both are used below instead of a fabricated
-# chunk-listing endpoint.
+# document_id}]}`. It is used below instead of a fabricated chunk-listing
+# endpoint.
+#
+# DocumentResponse also carries `chunk_count`, but observed on a live UAR
+# (2026-10-04, local compose stack) it stays 0 for documents whose status is
+# `indexed` and whose ingestion log reports 3 to 17 chunks. So "has at least
+# one chunk" is checked as `status == "indexed"`, and the search checks below
+# prove the chunks are retrievable. Ingestion is asynchronous, so the check
+# first waits for every corpus document to leave its in-progress status.
+
+INGEST_WAIT_SECS="${INGEST_WAIT_SECS:-180}"
+
+# wait_for_ingestion: poll the document list until no corpus document is in a
+# non-terminal status (anything other than `indexed` or `failed`), or the wait
+# expires. Leaves the last listing in POST_SYNC_DOCS_JSON.
+wait_for_ingestion() {
+  local deadline=$((SECONDS + INGEST_WAIT_SECS)) pending
+  while :; do
+    api GET "/api/uar/knowledge-bases/${KB_ID}/documents"
+    require_2xx "$API_STATUS" "list documents for FR-8 health check"
+    POST_SYNC_DOCS_JSON="$REPLY_BODY"
+    pending="$(printf '%s' "$POST_SYNC_DOCS_JSON" \
+      | jq '[.[] | select(.filename | test("\\.[0-9a-f]{12}\\.md$")) | select((.status // "") != "indexed" and (.status // "") != "failed")] | length')"
+    [[ "$pending" -eq 0 ]] && return 0
+    if (( SECONDS >= deadline )); then
+      log "FR-8: $pending document(s) still ingesting after ${INGEST_WAIT_SECS}s"
+      return 0
+    fi
+    sleep 3
+  done
+}
+
+# FR-8 checks test chunk integrity and routing, not UAR's retrieval threshold:
+# search with an explicit low min_score (UAR's default is 0.7, and relevant
+# chunks score 0.58 to 0.67 for short questions against text-embedding-v4).
+FR8_MIN_SCORE="${FR8_MIN_SCORE:-0.3}"
+FR8_TOP_N="${FR8_TOP_N:-5}"
 
 # search_kb: POST .../search, leaves the `results` array in SEARCH_RESULTS_JSON.
 search_kb() {
-  local query="$1" limit="${2:-3}" body
-  body="$(jq -n --arg q "$query" --argjson limit "$limit" '{query: $q, limit: $limit}')"
+  local query="$1" limit="${2:-$FR8_TOP_N}" body
+  body="$(jq -n --arg q "$query" --argjson limit "$limit" --argjson min_score "$FR8_MIN_SCORE" \
+    '{query: $q, limit: $limit, min_score: $min_score}')"
   api POST "/api/uar/knowledge-bases/${KB_ID}/search" -H 'Content-Type: application/json' --data-binary "$body"
   local search_status="$API_STATUS"
   require_2xx "$search_status" "search KB '$KB_NAME' for '$query'"
@@ -369,11 +418,8 @@ doc_id_for_base() {
     | head -n1
 }
 
-log "checking every corpus document is present, not failed, and has at least one chunk"
-api GET "/api/uar/knowledge-bases/${KB_ID}/documents"
-status="$API_STATUS"
-require_2xx "$status" "list documents for FR-8 health check"
-POST_SYNC_DOCS_JSON="$REPLY_BODY"
+log "checking every corpus document is present and indexed"
+wait_for_ingestion
 
 health_fail=0
 shopt -s nullglob
@@ -388,12 +434,8 @@ for f in "$CORPUS_DIR"/*.md; do
     continue
   fi
   doc_status="$(printf '%s' "$doc_json" | jq -r '.status // ""')"
-  chunk_count="$(printf '%s' "$doc_json" | jq -r '.chunk_count // 0')"
-  if [[ "$doc_status" == "failed" ]]; then
-    log "FR-8 health check: $base.md ingestion status is 'failed'"
-    health_fail=1
-  elif [[ "$chunk_count" -eq 0 ]]; then
-    log "FR-8 health check: $base.md has zero chunks"
+  if [[ "$doc_status" != "indexed" ]]; then
+    log "FR-8 health check: $base.md status is '${doc_status:-unknown}', not 'indexed' (rerun re-uploads failed documents)"
     health_fail=1
   fi
 done
@@ -401,54 +443,53 @@ shopt -u nullglob
 
 # No chunk ends inside a version number ("v0.", "Obsidian 1."). The corpus's
 # ipfs-sync-for-obsidian.md states "IPFS Sync for Obsidian is at v0.2.0" and
-# "needs Obsidian 1.12.3 or later" — the original bug's small recursive
-# chunks cut exactly at those fragments. Search for them and assert the
-# returned chunk carries the full version strings, not a bare fragment.
+# "needs Obsidian 1.12.3 or later" — the original bug cut chunks exactly at
+# those fragments. Among the top $FR8_TOP_N results, each full version string
+# must appear intact, and no result may end on a bare version fragment. With
+# section-sized chunks the two versions can sit in different chunks, so this
+# checks the set, not only the top result.
 if [[ -f "$CORPUS_DIR/ipfs-sync-for-obsidian.md" ]]; then
   log "FR-8: checking no chunk ends inside a version number (ipfs-sync-for-obsidian.md)"
   search_kb "What version of IPFS Sync for Obsidian is available, and what version of Obsidian does it need?"
-  top_content="$(printf '%s' "$SEARCH_RESULTS_JSON" | jq -r '.[0].content // empty')"
-  if [[ -z "$top_content" ]]; then
+  if [[ "$(printf '%s' "$SEARCH_RESULTS_JSON" | jq 'length')" -eq 0 ]]; then
     log "FR-8 version-number check: search returned no results"
     health_fail=1
   else
-    if [[ "$top_content" != *"v0.2.0"* ]]; then
-      log "FR-8 version-number check: top chunk does not contain the full version 'v0.2.0'"
-      health_fail=1
-    fi
-    if [[ "$top_content" != *"Obsidian 1.12.3"* ]]; then
-      log "FR-8 version-number check: top chunk does not contain the full version 'Obsidian 1.12.3'"
-      health_fail=1
-    fi
-    # The bug's exact signature: the chunk's text ends right at a bare
+    for version in "v0.2.0" "Obsidian 1.12.3"; do
+      if ! printf '%s' "$SEARCH_RESULTS_JSON" | jq -e --arg v "$version" 'any(.[]; .content | contains($v))' >/dev/null; then
+        log "FR-8 version-number check: no top-$FR8_TOP_N chunk contains the full version '$version'"
+        health_fail=1
+      fi
+    done
+    # The bug's exact signature: a chunk's text ends right at a bare
     # version-number fragment instead of the sentence that follows it.
-    last_line="$(printf '%s' "$top_content" | sed -e '/^[[:space:]]*$/d' | tail -n1)"
-    if printf '%s' "$last_line" | grep -qE '([Vv]|Obsidian )[0-9]+(\.[0-9]+)*\.[[:space:]]*$'; then
-      log "FR-8 version-number check: top chunk ends on a bare version-number fragment: '$last_line'"
+    fragment="$(printf '%s' "$SEARCH_RESULTS_JSON" \
+      | jq -r '.[] | .content | rtrimstr("\n") | split("\n") | map(select(test("\\S"))) | last // empty' \
+      | grep -E '([Vv]|Obsidian )[0-9]+(\.[0-9]+)*\.[[:space:]]*$' | head -n1 || true)"
+    if [[ -n "$fragment" ]]; then
+      log "FR-8 version-number check: a chunk ends on a bare version-number fragment: '$fragment'"
       health_fail=1
     fi
   fi
 fi
 
-# A question about The Boss's platforms retrieves the chunk from
-# the-boss.md that states them.
+# A question about The Boss's platforms retrieves a chunk from the-boss.md that
+# states them: among the top $FR8_TOP_N results, one from the-boss.md names both
+# Windows and macOS. (The intro chunk of the-boss.md can outrank the chunk that
+# states the platforms, so "top result" is too strict for section-sized chunks.)
 if [[ -f "$CORPUS_DIR/the-boss.md" ]]; then
   log "FR-8: checking The Boss's platforms question retrieves the-boss.md"
   boss_doc_id="$(doc_id_for_base "the-boss")"
   search_kb "What platforms does The Boss support?"
-  top_doc_id="$(printf '%s' "$SEARCH_RESULTS_JSON" | jq -r '.[0].document_id // empty')"
-  top_content="$(printf '%s' "$SEARCH_RESULTS_JSON" | jq -r '.[0].content // empty')"
   if [[ -z "$boss_doc_id" ]]; then
     log "FR-8 platforms check: could not resolve the-boss.md's document id"
     health_fail=1
-  elif [[ "$top_doc_id" != "$boss_doc_id" ]]; then
-    log "FR-8 platforms check: top result's document_id ($top_doc_id) is not the-boss.md's ($boss_doc_id)"
-    health_fail=1
-  elif [[ "$top_content" != *"Windows"* || "$top_content" != *"macOS"* ]]; then
-    log "FR-8 platforms check: top result from the-boss.md does not state both platforms"
-    health_fail=1
+  elif printf '%s' "$SEARCH_RESULTS_JSON" | jq -e --arg id "$boss_doc_id" \
+      'any(.[]; .document_id == $id and (.content | contains("Windows") and contains("macOS")))' >/dev/null; then
+    log "FR-8 platforms check passed: a top-$FR8_TOP_N chunk from the-boss.md states Windows and macOS"
   else
-    log "FR-8 platforms check passed: top result is the-boss.md and states Windows/macOS"
+    log "FR-8 platforms check: no top-$FR8_TOP_N chunk from the-boss.md ($boss_doc_id) states both Windows and macOS"
+    health_fail=1
   fi
 fi
 
