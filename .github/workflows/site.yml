@@ -1,0 +1,264 @@
+name: Deploy site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: knowme-site-deploy
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/know-me-tools/knowme-web
+  NAMESPACE: knowme
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      # ci-supply-chain-pins: first step, before anything else trusts a
+      # workflow `uses:` SHA or a manifest image digest.
+      - name: Check supply-chain pins
+        run: ./scripts/check-pins.sh
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  image:
+    name: Build and push image
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      digest: ${{ steps.push.outputs.digest }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # Multi-stage: Node web bundle -> Rust server (bundle embedded) ->
+      # distroless runtime. The gha cache keeps the npm ci and crate-graph
+      # layers, so only changed stages rebuild.
+      - id: push
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64
+          build-args: |
+            VITE_SITE_AGENT_ID=knowme-site
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}:main
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to knowme
+    needs: image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    # ci-secrets-out 1.4: required reviewers gate the deploy. The
+    # `knowme-production` environment itself (with its reviewer list) is
+    # created by the operator in the repo's Settings -> Environments; this
+    # workflow only references it by name.
+    environment:
+      name: production
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@829323503d1be3d00ca8346e5391ca0b07a9ab0d # v5
+        with:
+          version: "1.36.0"
+
+      - name: Install kustomize
+        run: |
+          set -euo pipefail
+          curl -sSLo kustomize.tar.gz \
+            "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v5.8.1/kustomize_v5.8.1_linux_amd64.tar.gz"
+          tar xzf kustomize.tar.gz
+          chmod +x kustomize
+          sudo mv kustomize /usr/local/bin/kustomize
+          rm kustomize.tar.gz
+          kustomize version
+
+      - name: Write kubeconfig
+        run: |
+          set -euo pipefail
+          umask 077
+          printf '%s' "${{ secrets.KNOWME_KUBECONFIG }}" > "$RUNNER_TEMP/knowme.kubeconfig"
+          echo "KUBECONFIG=$RUNNER_TEMP/knowme.kubeconfig" >> "$GITHUB_ENV"
+
+      # ci-secrets-out 1.1: this workflow no longer holds or writes
+      # UAR_JWT_SECRET, UAR_SETTINGS_ADMIN_KEY or SURREALDB_ROOT_PASSWORD.
+      # Secrets `uar-secrets` and `surrealdb-auth` — the whole Secret, not
+      # just those three keys, including the QWEN_TOKEN_PLAN_API_KEY and
+      # DASHSCOPE_API_KEY entries previously applied here — are created
+      # once, out of band, by the operator with operator credentials
+      # (ci-secrets-out 1.2) and are never read or written by this
+      # workflow. The former "Mask secrets in logs" and "Apply Secrets
+      # (idempotent)" steps are removed with them.
+
+      - name: Set image digest and apply the stack
+        run: |
+          set -euo pipefail
+          cd k8s
+          kustomize edit set image "${IMAGE}=${IMAGE}@${{ needs.image.outputs.digest }}"
+          cd ..
+          kubectl kustomize k8s | kubectl apply -f -
+
+      - name: Wait for rollout
+        run: |
+          set -euo pipefail
+          kubectl -n "$NAMESPACE" rollout status statefulset/surrealdb --timeout=10m
+          kubectl -n "$NAMESPACE" rollout status deployment/uar --timeout=10m
+          kubectl -n "$NAMESPACE" rollout status deployment/surreal-memory-server --timeout=10m
+          kubectl -n "$NAMESPACE" rollout status deployment/knowme-web --timeout=10m
+
+      - name: Seed the site agent (idempotent, every deploy)
+        # ci-secrets-out 1.3 / gate-site-credentials: the seed authenticates
+        # with a gate-minted client-credentials token (sub=knowme-site,
+        # aud=uar) from gate's public token endpoint; UAR verifies it via
+        # gate's JWKS. CI holds only this client credential, never UAR's or
+        # the database's secrets.
+        env:
+          SITE_GATE_TOKEN_URL: https://gate.know-me.tools/oauth/token
+          SITE_GATE_CLIENT_ID: ${{ secrets.SITE_GATE_CLIENT_ID }}
+          SITE_GATE_CLIENT_SECRET: ${{ secrets.SITE_GATE_CLIENT_SECRET }}
+        run: |
+          set -euo pipefail
+          chmod +x scripts/seed-site-agent.sh
+
+          kubectl -n "$NAMESPACE" port-forward svc/uar 6565:6565 >/tmp/port-forward.log 2>&1 &
+          PF_PID=$!
+          trap 'kill "$PF_PID" 2>/dev/null || true' EXIT
+
+          for _ in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:6565/readyz >/dev/null 2>&1 && break
+            sleep 1
+          done
+
+          UAR_URL=http://127.0.0.1:6565 \
+            ./scripts/seed-site-agent.sh
+
+          kill "$PF_PID" 2>/dev/null || true
+          trap - EXIT
+
+  smoke:
+    name: Smoke test
+    needs: deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Site responds (pre-cutover DNS pin to the gateway)
+        run: |
+          set -euo pipefail
+          curl --resolve know-me.tools:443:23.239.29.33 -fsS -o /dev/null -w '%{http_code}\n' https://know-me.tools/ | grep -qx 200
+
+      # uar-runtime-host-lockdown (D-7, FR-37): runtime.know-me.tools is
+      # deleted. No HTTPRoute exposes uar on any listener
+      # (k8s/base/httproutes.yaml), so no UAR endpoint should answer there.
+      # A refusal can be a connection failure (no route, no listener) or a
+      # non-2xx response (e.g. the gateway's default backend); only an
+      # actual 2xx would mean something is still serving UAR traffic on
+      # that host.
+      - name: Runtime host answers nothing
+        run: |
+          set -euo pipefail
+          for path in readyz metrics admin api/agents; do
+            status="$(curl --resolve runtime.know-me.tools:443:23.239.29.33 -sS -o /dev/null -w '%{http_code}' --max-time 10 "https://runtime.know-me.tools/${path}" || echo "000")"
+            case "$status" in
+              2??)
+                echo "unexpected 2xx on /${path}: HTTP ${status} (runtime.know-me.tools should answer nothing)"
+                exit 1
+                ;;
+              *)
+                echo "/${path}: HTTP ${status} (no UAR endpoint answered)"
+                ;;
+            esac
+          done
+
+      # github-deploy-workflows 1.7: the first deploy ships with the site
+      # chat kill switch on (out-of-band ConfigMap, site-spend-ceiling 1.9),
+      # so no public chat turn reaches UAR until the operator starts
+      # site-spend-ceiling 1.14 with the test budget and turns it off. The
+      # operator flips the `SITE_CHAT_KILL_SWITCH_EXPECTED` repository
+      # variable to "off" at that point (Settings -> Secrets and variables
+      # -> Actions -> Variables); this workflow does not probe the real
+      # switch state, it asserts whichever behavior the operator says to
+      # expect.
+      - name: Resolve expected kill switch state
+        id: kill_switch
+        run: echo "expected=${{ vars.SITE_CHAT_KILL_SWITCH_EXPECTED || 'on' }}" >> "$GITHUB_OUTPUT"
+
+      - name: Site chat turn is refused (kill switch on)
+        if: steps.kill_switch.outputs.expected != 'off'
+        run: |
+          set -euo pipefail
+          session_id="$(cat /proc/sys/kernel/random/uuid)"
+          status="$(curl --resolve know-me.tools:443:23.239.29.33 -sS -o /tmp/chat-smoke-offline.log -w '%{http_code}' --max-time 15 \
+            -X POST https://know-me.tools/api/chat/completion \
+            -H 'Content-Type: application/json' \
+            -H "X-UAR-Session-ID: ${session_id}" \
+            -d '{"message":"What is KnowMe?","stream":true,"stream_mode":"dual"}')"
+          case "$status" in
+            2??)
+              echo "expected a refusal while the kill switch is on, got HTTP $status"
+              cat /tmp/chat-smoke-offline.log
+              exit 1
+              ;;
+          esac
+          # server/src/error.rs's generic envelope is {"error": code, "message": ...}
+          # on every refusal path that exists today. The specific kill-switch
+          # error code is not pinned yet (site-spend-ceiling / site-chat-offline-states
+          # are not implemented); tighten this grep to that code once they land.
+          grep -q '"error"' /tmp/chat-smoke-offline.log || {
+            echo "refusal body carried no error code"
+            cat /tmp/chat-smoke-offline.log
+            exit 1
+          }
+          echo "chat refused while the kill switch is on (HTTP $status)"
+
+      - name: Site chat turn streams a reply (kill switch off)
+        if: steps.kill_switch.outputs.expected == 'off'
+        run: |
+          set -euo pipefail
+          session_id="$(cat /proc/sys/kernel/random/uuid)"
+          curl --resolve know-me.tools:443:23.239.29.33 -fsS -N \
+            -X POST https://know-me.tools/api/chat/completion \
+            -H 'Content-Type: application/json' \
+            -H "X-UAR-Session-ID: ${session_id}" \
+            -d '{"message":"What is KnowMe?","stream":true,"stream_mode":"dual"}' \
+            -o /tmp/chat-smoke.log
+
+          if grep -q '"type":"RUN_ERROR"' /tmp/chat-smoke.log; then
+            echo "chat stream reported a RUN_ERROR event:"
+            grep '"type":"RUN_ERROR"' /tmp/chat-smoke.log
+            exit 1
+          fi
+          # dual stream mode never emits TEXT_MESSAGE_CONTENT; the client
+          # dialect is agui.message.delta (FR-13).
+          grep -q '"type":"agui.message.delta"' /tmp/chat-smoke.log || {
+            echo "chat stream never emitted agui.message.delta"
+            cat /tmp/chat-smoke.log
+            exit 1
+          }

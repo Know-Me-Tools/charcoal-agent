@@ -1,0 +1,49 @@
+# Non-secret UAR settings. Secrets (API keys, JWT secret, settings admin key,
+# the SurrealDB password) live in Secret `uar-secrets`, created out-of-band
+# by .github/workflows/site.yml — never committed here.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: uar-config
+  namespace: knowme
+  labels:
+    app.kubernetes.io/name: uar
+    app.kubernetes.io/part-of: knowme-site
+data:
+  PORT: "6565"
+  UAR_SERVER__PORT: "6565"
+  UAR_SERVER__HOST: "0.0.0.0"
+  UAR_SECURITY__JWT_REQUIRED: "true"
+  # gate-site-credentials: UAR verifies flint-gate's ES256 tokens through
+  # gate's JWKS (in-cluster), so the site server and the seed job use
+  # gate-minted client-credentials tokens (sub=knowme-site, aud=uar).
+  # Once jwks_url is set, UAR accepts only JWKS-verified tokens.
+  UAR_SECURITY__JWKS_URL: "http://flint-gate.flint-core.svc:4456/.well-known/jwks.json"
+  UAR_SECURITY__JWT_ISSUER: "https://gate.know-me.tools"
+  UAR_SECURITY__JWT_AUDIENCE: "uar"
+
+  UAR_PERSISTENCE__PROVIDER: "surreal"
+  UAR_PERSISTENCE__DATABASE_URL: "http://surrealdb:8000"
+  UAR_PERSISTENCE__VECTOR_DIMENSION: "1024"
+  UAR_PERSISTENCE__SURREAL_USER: "root"
+  UAR_PERSISTENCE__SURREAL_AUTH_LEVEL: "root"
+  UAR_PERSISTENCE__SURREAL_NS: "uar"
+  UAR_PERSISTENCE__SURREAL_DB: "uar"
+
+  # Qwen Token Plan chat model. UAR_LLM__MODEL keeps the "provider/model"
+  # shape only for liter-llm's registry bookkeeping; once UAR_LLM__BASE_URL
+  # is non-empty, UAR sends just the model id on the wire, not "openai/"
+  # (src/llm/registry.rs: has_explicit_base_url / split_model_string).
+  UAR_LLM__MODEL: "openai/qwen3.8-max"
+  # Token Plan endpoint (verified live, HTTP 200, 2026-09-30).
+  UAR_LLM__BASE_URL: "https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1"
+
+  # DashScope text-embedding-v4, 1024 dims.
+  UAR_LLM__EMBEDDING__BACKEND: "openai"
+  UAR_LLM__EMBEDDING__MODEL: "text-embedding-v4"
+  UAR_LLM__EMBEDDING__BASE_URL: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+  UAR_LLM__EMBEDDING__VECTOR_DIMENSION: "1024"
+  # DashScope rejects embedding requests with more than 10 inputs.
+  UAR_LLM__EMBEDDING__BATCH_SIZE: "10"
+
+  RUST_LOG: "info"

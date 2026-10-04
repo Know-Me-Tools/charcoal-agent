@@ -14,8 +14,6 @@ export const ENTITY = {
   ProviderRegistry: "ProviderRegistry",
   Skill: "Skill",
   Session: "Session",
-  /** id: thread id — server-side transcript used as a fallback when PGlite is empty. */
-  SessionTranscript: "SessionTranscript",
   /** Singleton (`USER_SETTINGS_ID`). */
   UserSettings: "UserSettings",
   /** ids: `healthz`, `readyz`. */

@@ -1,0 +1,100 @@
+# seed-site-agent — runs scripts/seed-site-agent.sh in-cluster against the
+# uar Service.
+#
+# NOT included in kustomization.yaml's `resources:`, and not applied by
+# `kubectl apply -k k8s`. Two reasons:
+#
+#   1. Jobs are immutable once created (spec.template can't be patched), so a
+#      Job that's part of a repeatedly-applied kustomize base breaks the
+#      second `kubectl apply -k` after any change to it — exactly the
+#      "verify what you claim" trap this stack otherwise avoids.
+#   2. The corpus (content/knowledge/*.md) and the agent artifact
+#      (uar/agents/knowme-site.json) aren't produced by this change — they
+#      belong to km-content-creator / km-conversational-designer — and this
+#      manifest must still render today via `kubectl kustomize k8s`, so it
+#      cannot embed files that don't exist yet.
+#
+# .github/workflows/site.yml runs the same script directly from the CI
+# runner instead (port-forwarding svc/uar), which is why this file exists
+# but is inert. It's kept for an operator who wants to run the seed
+# in-cluster by hand, from the repo root:
+#
+#   kubectl -n knowme create configmap seed-site-agent-script \
+#     --from-file=seed-site-agent.sh=scripts/seed-site-agent.sh
+#   kubectl -n knowme create configmap seed-site-agent-artifact \
+#     --from-file=knowme-site.json=uar/agents/knowme-site.json
+#   kubectl -n knowme create configmap seed-site-agent-corpus \
+#     --from-file=content/knowledge/
+#   kubectl apply -f k8s/base/seed-job.yaml
+#   # Jobs don't rerun in place — delete before reapplying:
+#   kubectl -n knowme delete job seed-site-agent
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: seed-site-agent
+  namespace: knowme
+  labels:
+    app.kubernetes.io/name: seed-site-agent
+    app.kubernetes.io/part-of: knowme-site
+spec:
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: seed-site-agent
+        app.kubernetes.io/part-of: knowme-site
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: seed-site-agent
+          image: alpine:3.21@sha256:ce64758a109eb420d874a118f87920e625e12d3634e03b4a5573fd9f6e5d3507
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              apk add --no-cache bash curl jq openssl >/dev/null
+              exec bash /scripts/seed-site-agent.sh
+          env:
+            - name: UAR_URL
+              value: http://uar:6565
+            # gate-site-credentials: authenticate with a gate-minted token
+            # (client credentials, sub=knowme-site, aud=uar). The Secret is
+            # created out of band by the operator (D-18).
+            - name: SITE_GATE_TOKEN_URL
+              value: http://flint-gate.flint-core.svc:4456/oauth/token
+            - name: SITE_GATE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: site-gate-client
+                  key: SITE_GATE_CLIENT_ID
+            - name: SITE_GATE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: site-gate-client
+                  key: SITE_GATE_CLIENT_SECRET
+            - name: AGENT_FILE
+              value: /agent/knowme-site.json
+            - name: CORPUS_DIR
+              value: /corpus
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+              readOnly: true
+            - name: agent-artifact
+              mountPath: /agent
+              readOnly: true
+            - name: corpus
+              mountPath: /corpus
+              readOnly: true
+      volumes:
+        - name: script
+          configMap:
+            name: seed-site-agent-script
+            defaultMode: 0555
+        - name: agent-artifact
+          configMap:
+            name: seed-site-agent-artifact
+        - name: corpus
+          configMap:
+            name: seed-site-agent-corpus

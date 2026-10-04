@@ -1,0 +1,66 @@
+{
+  "mode": "artifact",
+  "verdict": "BLOCK",
+  "judge_model": "artifact-critic (harness-native)",
+  "isolation_mode": "harness-native",
+  "producer_model": "claude-opus-5-5",
+  "cross_model_check": "same-model-collision",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "assessment.md",
+      "line": 111,
+      "claim": "The rewritten spend-ceiling analysis (F3, matrix rows 3-4, U18 row, roadmap row 'Usage on the AG-UI stream') is built on two false premises. First, it names as 'known design' gate-side metering of response usage, which the paper's own U18 rules out under ext_authz. Second, it says U18 'needs UAR to report usage', but UAR already emits per-run usage on the stream. So the plan stage would build toward a metering path that cannot see tokens, file a redundant UAR roadmap item, and miss the site-owned option that works today.",
+      "evidence": "(1) assessment.md:111 says 'Its known design is gate-side metering of response usage [L65][L66], which needs UAR to report usage (matrix row 4)', and :80 says 'known design is gate-side metering of response usage [L65][L66]'. The paper's U18 (10-unresolved-review-findings.md:15) says: 'Under ext_authz the site server calls UAR directly inside the cluster, so gate never sees a run's tokens.' Its listed options are 'A usage feed from UAR to gate, UAR's own agent-scope budget, or a per-turn counter in the site server.' The assessment evaluates none of the three. landscape.md:51 places the L65 metering in Envoy AI Gateway, with ext_authz supplying only the limit. It also carries a caveat the assessment drops: 'the usage it reads comes from OpenAI-schema LLM responses, not from an AG-UI SSE stream.' (2) UAR origin/main src/uar/api/sse.rs:690-709 maps NormalizedEvent::RunDoneWithUsage to 'agui.done' with usage {input_tokens, output_tokens, total_tokens, cost_usd_estimate, model}. src/uar/api/adapters.rs:395 maps it for the spec dialect, and src/uar/runtime/manager.rs:6707 emits it in production. Matrix row 4 (:43) still calls this 'unverified'. The site server relays this stream, so a per-turn counter in the site server is implementable with no UAR change. The real UAR gap is narrower and unnamed: cancelled runs carry no usage (paper 04-architecture.md:349: '`agui.cancelled` carries no usage (`sse.rs:627-633`), but the input has already been billed').",
+      "suggested_fix": "Rewrite F3, row 4, U18 and blocker 5. State that UAR already emits per-run usage on `agui.done`. Evaluate U18's three options explicitly, with site-server metering (reading `agui.done` usage and debiting gate or a shared counter) as the zero-UAR-change candidate. Drop 'gate-side metering of response usage' as the known design for this topology. Re-scope the UAR roadmap item to 'usage on cancelled/errored runs, plus AG-UI 1.0 field mapping' instead of 'usage on the stream'."
+    },
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "line": 111,
+      "claim": "F3 recommends `max_cost_per_session_usd` without noting that any finite USD limit makes every model call fail when the site model has no catalog price. It also silently drops the round-1 fix's `llm.budget.global_limit` backstop, the only zero-code cross-visitor cap. The disposition table nevertheless marks that finding 'Accepted'.",
+      "evidence": "UAR origin/main src/uar/runtime/cost_budget.rs:336-345: if `max_cost_per_session_usd` or any finite scope limit is set and `estimate_cost(model, ...)` is None, admission fails with 'Model has no catalog price for enforcing the active cost budget'. Pricing resolves only from the models.dev build-time catalog (src/llm/catalog.rs:1-12, 281-285) or an operator-set `pricing_identity` (src/llm/registry.rs:560-566). The site runs `UAR_LLM__MODEL: \"openai/qwen3.8-max\"` (k8s/base/uar-configmap.yaml:30) behind a custom base URL, and nothing in the assessment checks that it is priced. The round-1 suggested fix said to 'add UAR `llm.budget.global_limit` as a backstop', but F3 and blocker 5 (:126) name only per-turn and per-session limits. Row 3 dismisses the global limit as 'not shared across replicas', yet UAR runs `replicas: 1` (k8s/base/uar-deployment.yaml:15), so for this site-dedicated deployment it is a working deployment-wide USD cap, reset on restart. The disposition table (:175) records the round-1 CRITICAL as 'Accepted' without saying this part of the fix was dropped.",
+      "suggested_fix": "Add a precondition to F3: confirm that `openai/qwen3.8-max` resolves a catalog price, or set a `pricing_identity`, before any USD limit is configured, and verify with one priced turn. Add `llm.budget.global_limit` as a Phase 0 backstop, valid while UAR has one replica, with the restart-reset caveat. Correct the disposition row."
+    },
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "line": 115,
+      "claim": "F5 says enabling `block_on_injection` 'costs nothing' and describes the screen as 'probabilistic'. It is a 15-phrase substring list that includes everyday phrasing, it returns an HTTP 400 that neither the site server nor the client handles, and the guardrail failure state is a Phase 1 change. Matrix row 6 also marks input guardrails 'Present' and 'General', although only one handler screens input.",
+      "evidence": "UAR origin/main src/uar/guardrails.rs:41-57: INJECTION_PHRASES includes \"you are now\", \"act as if\" and \"developer mode\", matched as lowercase substrings (:69-70). A visitor typing 'can you act as if I'm a startup' or 'what are you now able to do' is rejected. When blocking, server.rs:5389-5402 returns 400 `guardrail_blocked`. `grep -rn guardrail server/src src/features/chat/*.ts` in charcoal-agent returns nothing. §9 places 'budget, guardrail and cancel states' in Phase 1 `site-chat-failure-states` (09-implementation-plan.md:108). Coverage: the only `screen_input` call is server.rs:5375, inside `api_chat_completion` (:5234), which serves `/api/chat/completion` and `/v1/chat/completions` (:1621, :1901). `/v1/messages` (`api_messages`, :4071), `POST /api/uar/runs` (src/uar/api/routes.rs:40, `create_run` :436) and A2A entry points do not screen, which bears on goal 3's general-use weighing.",
+      "suggested_fix": "Restate F5 as a decision with a false-positive cost: measure the phrase list against the golden set and red-team set first, and pair it with the client and proxy handling of `guardrail_blocked`, moved into Phase 0. Change row 6 to 'Present on chat completion only; heuristic phrase list'. Add 'guardrail coverage on /v1/messages, run creation and A2A' as a general UAR roadmap candidate."
+    },
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "line": 141,
+      "claim": "The roadmap candidate 'Aggregate budget scope (per agent / per principal)' never engages with the fact that UAR implemented a per-agent cost limit and its maintainers deliberately removed it. Goal 3 requires weighing proposed UAR changes against the runtime's other uses, so re-proposing a reverted design without the maintainers' rationale skips that weighing.",
+      "evidence": "UAR openspec/changes/ch06-wire-agent-cost-budget/proposal.md (commit e68e2fb4) wired `cost_budget.set_limit(BudgetScope::Agent, agent_id, ...)` from `extensions.budgets.max_cost_per_session_usd`. Commit d6f4f862 (2026-09-05, 'complete governed execution...') removed that call and made `agent_cost_limit_from_extensions` `#[cfg(test)]` ('Legacy parser tests only; execution uses strict `ThreadBudgets` decoding'). origin/main manager.rs:4550-4551 now says 'This artifact's session ceiling belongs to the captured root session, not the aggregate spend of every session using the same agent.' Agent-scope spend is still recorded (cost_budget.rs:709; manager.rs:6625), so the remaining work is a distinct limit key, not a new scope. The assessment's evidence base cites `manager.rs:4550-4567` but not this history.",
+      "suggested_fix": "In the candidate row, cite ch06 and d6f4f862. State that the proposal must use a new, explicitly aggregate key (for example `max_cost_per_agent_usd`) and must not re-overload `max_cost_per_session_usd`. Note that the tracking dimension already exists."
+    },
+    {
+      "severity": "SUGGESTION",
+      "file": "assessment.md",
+      "line": 138,
+      "claim": "The U1 roadmap candidate fixes only `activate_skill`, but the exemption is a class rule for every built-in `ModelOnly` tool. A general fix scoped to one tool leaves the same gap for other deployments.",
+      "evidence": "UAR origin/main src/uar/runtime/turn/contributors.rs:209-210: `model_control = descriptor.source == ToolSource::BuiltIn && descriptor.exposure == Exposure::ModelOnly` bypasses selection policy. `search_tools` (native_skills/search_tools.rs:64), the agent controls `spawn_agent`/`send_agent_message`/... (native_skills/agents/mod.rs:164; registered when thread bindings exist, manager.rs:4182-4192) and the team tools (team_tools.rs:77) are all ModelOnly. For the site's root runs only `activate_skill` is unconditional (manager.rs:4170-4180), so the site-level claim holds.",
+      "suggested_fix": "Phrase the candidate as 'built-in ModelOnly tools respect `tools`/`skills` selection when the corresponding mode is explicitly `none`', with activate_skill as the site-visible case."
+    },
+    {
+      "severity": "SUGGESTION",
+      "file": "assessment.md",
+      "line": 75,
+      "claim": "Two external claims drop the qualifiers that the landscape attaches to them.",
+      "evidence": "U13 row (:75) says 'Art. 50(1) timing now confirmed by the Commission guidelines [L48]', but L48 is a Cooley law-firm note, listed as 'Secondary (legal)' at landscape.md:233. Landscape :175 says 'U13 remains open for counsel'. F8 (:118) says 'Adobe reports AI-referred visitors outperforming' but drops landscape :134's 'retail-only panel data from a vendor' and 'about visitors who arrive from AI assistants, not about on-site agents'.",
+      "suggested_fix": "Say 'reported by a law-firm summary of the Commission guidelines [L48]'. Carry the retail-panel and arriving-visitor qualifiers into F8."
+    },
+    {
+      "severity": "SUGGESTION",
+      "file": "assessment.md",
+      "line": 11,
+      "claim": "The deep-research deviation from goal 4 is labelled 'Accepted' with no record of who accepted it. The round-1 fix asked for it to be raised to the operator, but it is absent from 'Open questions for plan'.",
+      "evidence": "assessment.md:11 says '**Accepted deviation from goal 4**', and the disposition row (:184) says 'Recorded as an accepted deviation in the evidence base.' `grep -n -i 'deep-research|deviation|max_sources'` over .prometheus/decisions.md and the child's progress.json, handoff-in.md and scope.json finds no acceptance. goals.md:6 still requires the skill. The open questions (:156-160) do not include it.",
+      "suggested_fix": "Add it as open question 6 for the operator, or re-run deep-research with a raised `max_sources`."
+    }
+  ]
+}

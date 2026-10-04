@@ -1,0 +1,34 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: knowme
+
+resources:
+  - namespace.yaml
+  - surrealdb-statefulset.yaml
+  - surrealdb-service.yaml
+  - surrealdb-networkpolicy.yaml
+  - uar-configmap.yaml
+  - uar-deployment.yaml
+  - uar-service.yaml
+  - uar-networkpolicy.yaml
+  - memory-server-deployment.yaml
+  - memory-server-service.yaml
+  - knowme-web-deployment.yaml
+  - knowme-web-service.yaml
+  - httproutes.yaml
+  # seed-job.yaml is deliberately NOT listed here — see the comment at the
+  # top of that file. It's an operator-run, manually-applied utility Job,
+  # not part of the continuously re-applied stack. (It also can't be: its
+  # ConfigMaps would need to source files from outside k8s/base, which
+  # `kubectl kustomize` refuses by default for security reasons.)
+
+# Only knowme-web goes through the images transformer: CI sets its digest
+# fresh on every deploy (`kustomize edit set image`, .github/workflows/site.yml).
+# uar and surreal-memory-server are pinned directly in their own Deployment
+# manifests (`:main@sha256:...`, ci-supply-chain-pins) — they are NOT listed
+# here, because this transformer matches by image name and a `newTag: main`
+# entry would strip the digest back off on every `kubectl kustomize`.
+images:
+  - name: ghcr.io/know-me-tools/knowme-web
+    newTag: main

@@ -1,0 +1,60 @@
+# Namespace-scoped only — HTTPRoutes here reference a Gateway in namespace
+# argocd, but creating/patching an HTTPRoute needs RBAC only in the namespace
+# that owns the HTTPRoute object (knowme), not on the referenced Gateway.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: knowme-deployer
+  namespace: knowme
+  labels:
+    app.kubernetes.io/part-of: knowme-site
+rules:
+  # Resources kubectl apply -k k8s manages directly.
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["services", "configmaps"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["networkpolicies"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["httproutes"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+
+  # Secrets: ci-secrets-out 1.1/1.5 — uar-secrets and surrealdb-auth are
+  # created once, out of band, by the operator and are never read or
+  # written by the deploy workflow. The only Secret the deploy can still
+  # touch is site-proxy, and only while scripts/seed-site-agent.sh's
+  # --mint-key-to-k8s-secret path exists (removed entirely once
+  # gate-site-credentials lands — see that change's task 1.6).
+  # `get`/`patch` are scoped to site-proxy by resourceNames. `create` is
+  # kept for the first time site-proxy is missing, but Kubernetes RBAC
+  # cannot restrict `create` by resourceNames (there is no object yet to
+  # name) — it stays a separate, unscoped rule. The ci-secrets-out 1.6
+  # check (`kubectl auth can-i get secret/uar-secrets` -> no) is a `get`,
+  # which the scoped rule below does cover.
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["site-proxy"]
+    verbs: ["get", "patch"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create"]
+
+  # The seed-site-agent script runs from the CI runner via port-forward.
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods/portforward"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+
+  # Jobs: immutable once created, so delete is needed to rerun one.
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]

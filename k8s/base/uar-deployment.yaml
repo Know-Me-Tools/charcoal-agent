@@ -1,0 +1,82 @@
+# UAR — no PVC: persistence is the remote SurrealDB, not the embedded store.
+# Image pinned by digest (ci-supply-chain-pins): `main` as of 2026-10-02,
+# commit e73b5f674a15fda3c9910bdc10395b86b04796c7 (merge of
+# Prometheus-AGS/universal-agent-runtime#324; contains #321 — ES256/JWKS
+# verification — 16 commits ahead of #321's merge commit, 0 behind).
+# Verified: `docker buildx imagetools inspect
+# ghcr.io/prometheus-ags/universal-agent-runtime@sha256:94e4af0f524c3d9a4ec281c8e553909224ccfc212b6e87fac9f4a2bc0e2a7568`
+# resolves a linux/amd64 + linux/arm64 index; its SLSA provenance attestation
+# records `vcs:revision: e73b5f674a15fda3c9910bdc10395b86b04796c7`. Renovate
+# tracks this digest going forward (renovate.json); bump deliberately.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uar
+  namespace: knowme
+  labels:
+    app.kubernetes.io/name: uar
+    app.kubernetes.io/component: app
+    app.kubernetes.io/part-of: knowme-site
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: uar
+      app.kubernetes.io/component: app
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: uar
+        app.kubernetes.io/component: app
+        app.kubernetes.io/part-of: knowme-site
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+      containers:
+        - name: uar
+          image: ghcr.io/prometheus-ags/universal-agent-runtime:main@sha256:94e4af0f524c3d9a4ec281c8e553909224ccfc212b6e87fac9f4a2bc0e2a7568
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          ports:
+            - name: http
+              containerPort: 6565
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: uar-config
+            - secretRef:
+                name: uar-secrets
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 1Gi
+            limits:
+              cpu: "2"
+              memory: 4Gi
+          volumeMounts:
+            - name: uar-data
+              mountPath: /var/lib/uar
+      volumes:
+        - name: uar-data
+          emptyDir: {}

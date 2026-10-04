@@ -69,7 +69,15 @@ export async function generateThreadTitle(
       return fallback;
     }
 
-    // ── Streaming fallback: collect all text deltas ───────────────────────
+    // ── Streaming fallback: collect text deltas ───────────────────────────
+    // The site server now always forwards `stream: true, stream_mode: "dual"`
+    // upstream regardless of what this call sends (site-proxy-hardening task
+    // 1.6), so this request's `stream: false` is ignored and the response is
+    // always a dual-mode stream: every delta arrives twice, once as
+    // `agui.message.delta` and once as an OpenAI-style `event: message`
+    // chunk carrying the same text. Collecting from both doubled every
+    // title. `agui.message.delta` is the single source of truth here, same
+    // as `use-message-stream.ts`'s primary stream handling.
     if (!res.body) return fallback;
 
     const reader = res.body.getReader();
@@ -104,17 +112,11 @@ export async function generateThreadTitle(
           } catch {
             // ignore parse errors
           }
-        } else if (event === "message" && data && data !== "[DONE]") {
-          try {
-            const parsed = JSON.parse(data) as {
-              choices?: { delta?: { content?: string } }[];
-            };
-            const chunk = parsed.choices?.[0]?.delta?.content;
-            if (chunk) collected += chunk;
-          } catch {
-            // ignore parse errors
-          }
         }
+        // The OpenAI-style `event: message` chunk is intentionally skipped:
+        // in the now-always-dual-mode response it carries the exact same
+        // text as `agui.message.delta` above, so collecting it too would
+        // double every title (see the comment above this loop).
       }
     }
 

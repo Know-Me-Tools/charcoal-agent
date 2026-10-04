@@ -1,0 +1,131 @@
+{
+  "mode": "diff",
+  "verdict": "BLOCK",
+  "judge_model": "artifact-critic (harness-native)",
+  "isolation_mode": "harness-native",
+  "producer_model": "claude-opus-5-5",
+  "cross_model_check": "same-model-collision",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "docs/agent-led-site/sections/04-architecture.md",
+      "claim": "The paper still says gate's max_token_budget is the site's spend ceiling. The text is unmarked, so the paper contradicts N15 and its own \u00a74.8 revision. The same stale line is copied into the assembled agent-led-site.md.",
+      "evidence": "04-architecture.md:240 (list 'Site server to UAR (PLANNED, Phase 0)', not marked superseded): \"Gate's `max_token_budget` hook and a per-credential rate limit on the site identity are the site's spend ceiling (\u00a74.8).\" \u00a74.8 at 04-architecture.md:347-352 says the opposite: \"an earlier version made gate's `max_token_budget` the ceiling; that design is superseded\" and \"Gate is optional\". The B6 done-when grep (`ceiling at flint-gate|ceiling is flint-gate|ceiling is flint-gate's`) cannot match this wording, so B6's own check passes while the defect stays. Acceptance criterion 4: no leftover section may still make flint-gate the enforcing spend ceiling.",
+      "suggested_fix": "Rewrite line 240: the site server's reserve-and-settle meter is the ceiling (\u00a74.8); gate's budget is optional (D-4); the per-credential rate limit can still apply. Reassemble agent-led-site.md. Replace the B6 grep with one that also matches `max_token_budget.*spend ceiling`.",
+      "line": 240
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "openspec/changes/site-agent-seed/tasks.md",
+      "claim": "The deployed FR-8 check was moved into site-agent-seed 1.3, but the old 'Depends on' edges were never updated, so the dependency graph now has a cycle and no longer matches A3.",
+      "evidence": "site-agent-seed/tasks.md:5 says 1.3 \"also holds the **deployed** FR-8 chunk check\", which needs the stack deployed (k8s-stack-manifests, then github-deploy-workflows). But k8s-stack-manifests/proposal.md:9 still reads \"Depends on: ... `site-agent-seed`, `site-chat-proxy`\", and site-chat-proxy/proposal.md:9 still reads \"Depends on: `local-compose-stack`, `site-agent-seed`\". In A3, site-chat-proxy is in step 2 (before the first deploy) and site-agent-seed is in step 6 (after kb-chunking-quality and gate-site-credentials). The edges A3 adds are also missing from the proposals: github-deploy-workflows/proposal.md:9 lacks `ci-secrets-out`; k8s-stack-manifests/proposal.md:9 lacks `uar-runtime-host-lockdown`; site-agent-seed/proposal.md:9 lacks `kb-chunking-quality` and `gate-site-credentials`. Plan review round 2 judged this 'one direction, no cycle', but it checked only the N9 to site-agent-seed edge.",
+      "suggested_fix": "Split site-agent-seed: a local gate (1.3), and a separate deployed FR-8 check task, or a separate change, that runs after github-deploy-workflows. Update the 'Depends on' lines in all four existing proposals to match A3.",
+      "line": 5
+    },
+    {
+      "severity": "WARNING",
+      "file": "openspec/changes/site-spend-ceiling/tasks.md",
+      "claim": "The claim that the meter 'can never overshoot' is unsupported. Settlement to the actual usage.total_tokens is unconditional and has no cap, and nothing proves a run's total_tokens stays at or below the reserved max_tokens_per_turn.",
+      "evidence": "Child plan.md:61 says \"the budget can never be overshot\"; site-spend-ceiling/proposal.md:7 says \"concurrent turns cannot overshoot\". Task 1.3 settles to `usage.total_tokens` with no condition. Task 1.8 only asks to 'set max_tokens_per_turn so a reservation covers the largest turn'. UAR's run-scope token limit is checked when each model attempt is admitted (`cost_budget.rs` check_limits: `tokens + reserved >= limit` then bail). It does not cap the tokens of the attempt already running, so a multi-step run (KB retrieval, a tool loop) can report total_tokens above the limit. The plan's Risks section asks for 'an atomic conditional update ... per settlement', but no task specifies settlement semantics. Done-when (3) tests only concurrent reservations, so it cannot catch an overshoot during settlement. Task 1.4 also asks for daily and monthly in 'the same atomic reservation', which one `UPDATE ... WHERE` on one row cannot do without a transaction.",
+      "suggested_fix": "Specify settlement: one atomic update that adds (actual - reserved). Define behaviour when actual > reserved: record the overshoot, alert, and bound it by documenting the UAR per-turn cap. Use a SurrealDB transaction for the daily and monthly rows together. Add a done-when case: a run whose usage exceeds its reservation, and the total afterwards.",
+      "line": 5
+    },
+    {
+      "severity": "WARNING",
+      "file": "openspec/changes/site-spend-ceiling/tasks.md",
+      "claim": "Task 1.2 refuses any turn whose conditional UPDATE matches no row. No task creates the daily or monthly counter row, so as written the meter refuses every turn at each day and month rollover.",
+      "evidence": "1.2: \"run the single atomic `UPDATE \u2026 SET total += n WHERE total + n <= budget` ... If no row is updated, refuse the turn with the offline state.\" No task in 1.1-1.12 creates or upserts a per-day or per-month record, or defines how a period key such as the date is chosen, so the first turn of each period updates zero rows. The plan and spec carry the same single-statement wording (spec.md:4, 09-implementation-plan.md:50).",
+      "suggested_fix": "Define the period key and create the row (an UPSERT, or a transaction that creates the row at total 0 when missing) before the conditional update. Add a rollover case to done-when.",
+      "line": 4
+    },
+    {
+      "severity": "WARNING",
+      "file": "openspec/changes/site-spend-ceiling/tasks.md",
+      "claim": "Done-when (5) cannot tell a fail-closed meter from a fail-open one. The production SurrealDB that test (5) stops is the same instance UAR runs on, and the task's pass condition doesn't require 'no upstream call'.",
+      "evidence": "1.12(5): \"with SurrealDB stopped, turns are refused\". The meter lives on the same StatefulSet as UAR's ns=uar (k8s/base/surrealdb-statefulset.yaml, replicas: 1), so stopping it also breaks UAR. A fail-open meter would forward the turn, UAR would fail, and the visitor would still see a refusal. Only spec.md:32 adds \"and no upstream call is made\"; the task omits it. site-chat-offline-states/tasks.md 1.9 has the same flaw (\"stop SurrealDB \u2192 offline notice\"). The child plan (line 179) also says the six tests must pass 'on the deployed stack', and D-1 means that is production. Task 1.12 names no environment, and stopping production SurrealDB is a destructive action with no confirmation step.",
+      "suggested_fix": "Make (5) assert that UAR receives no request (UAR request log or counter) or block only the meter's connection (NetworkPolicy or credential revocation) instead of stopping SurrealDB. State the environment for 1.12, and add an operator confirmation step for any production outage test.",
+      "line": 14
+    },
+    {
+      "severity": "WARNING",
+      "file": "docs/agent-led-site/sections/09-implementation-plan.md",
+      "claim": "With D-2 recorded as an accepted risk and U12 open, \u00a76.4 item 3 can never get its evidence. Phase 0 exit then either can't be reached, or will be passed by counting the accepted risk as evidence, which in effect closes U12. Neither the plan nor the paper says which.",
+      "evidence": "09:88 exit criterion: \"Every \u00a76.4 item from 1 to 18 has evidence filed in the change mapped to it above.\" 09:69 maps item 3 to \"Operator, D-2 ... neither exit was taken, so U12 stays open\". 06-security-privacy.md:89 item 3 still requires written confirmation or a capped pay-as-you-go key. 01-whitepaper.md:94: \"Until the operator has written confirmation ... the site cannot launch its agent.\" The child plan's D-2 row covers only kill criterion 1 and the spend alert, not this exit criterion.",
+      "suggested_fix": "State explicitly that \u00a76.4 item 3 is either (a) excluded from Phase 0 exit as an operator-accepted risk, and say what is filed in its place, or (b) still blocking, so Phase 0 cannot exit until an exit route is taken. Record the choice in the decision log.",
+      "line": 88
+    },
+    {
+      "severity": "WARNING",
+      "file": ".kbd-orchestrator/phases/uar-integration/plan.md",
+      "claim": "A3 puts the first deploy before the spend ceiling and kill switch. The production stack, reachable by anyone who sends a Host header, will make paid model calls with no global ceiling and no kill switch until step 7 lands.",
+      "evidence": "Parent plan Order: step 6 'Deploy path' (E10, E11, E7), then step 7 'On the deployed stack: N15 ...'. The kill switch is a task of site-spend-ceiling (1.9). 09-implementation-plan.md:15 admits \"Not public does not mean unreachable: anyone who sends `Host: know-me.tools` to the gateway reaches the deployment.\" 06-security-privacy.md T1: the per-IP limiter is per replica and in memory, and \"A botnet of N IPs gets N times the quota.\" Combined with D-2 (Token Plan, with suspension risk), the window between the first deploy and N15 has no global cap. The plan names no failure scenario for that window and accepts no risk for it.",
+      "suggested_fix": "Either land the kill switch, and a minimal fail-closed meter or the knowme-web route held at 0 replicas, before the first deploy, or record this window as an operator-accepted risk with a bound (duration, provider-side alert in place first).",
+      "line": 79
+    },
+    {
+      "severity": "WARNING",
+      "file": ".kbd-orchestrator/phases/uar-integration/progress.json",
+      "claim": "uar-kb-retrieval-embedding, memory-server-ghcr-publish and gate-ec-jwks-deploy are DONE in KBD, but their OpenSpec done-when tasks are still unchecked and no file in scope records the done-when output that B4 requires.",
+      "evidence": "progress.json: all three are \"status\": \"DONE\", tasks_done 4/4. openspec/changes/uar-kb-retrieval-embedding/tasks.md 1.4, memory-server-ghcr-publish/tasks.md 1.4 and gate-ec-jwks-deploy/tasks.md 1.4 are all still `- [ ]`. The gate 1.4 task asks for 'output recorded'. No `imagetools`, `/health` or `jq -e` output appears in the child's execution.md, tasks.md, the parent tasks.md, or .prometheus/. B4: \"Complete ... only after running each one's done-when check, with its output recorded.\" Also, apex-dns-cutover is SKIPPED, not CANCELLED as the A3 table and the B4 done-when require.",
+      "suggested_fix": "Record each check's command and output (in the OpenSpec tasks.md and the B4 record), tick the OpenSpec 1.4 tasks, and either cancel apex-dns-cutover through the CANCELLED transition or amend the A3 table to say SKIPPED is KBD's term for cancelled."
+    },
+    {
+      "severity": "WARNING",
+      "file": ".prometheus/decisions.md",
+      "claim": "B1's done-when requires the operator's words in both files. .prometheus/decisions.md paraphrases D-2 and has no operator quote for D-21, D-22 or D-23.",
+      "evidence": "B1 done-when: \"Both files carry the four entries with dates and the operator's words.\" decisions.md:14-17 contain paraphrase only (e.g. \"D-21 (operator): adopt ...\"); the quotes \"Adopt in this phase.\", \"do as you recommend\" and \"Yes. accept.\" appear only in decision-log.md. Line 18 also adds a 'Spend ceiling design' entry that B1 did not call for.",
+      "suggested_fix": "Append a correcting entry (the file is append-only) that carries the operator's words for D-2, D-21, D-22 and D-23.",
+      "line": 14
+    },
+    {
+      "severity": "WARNING",
+      "file": "docs/agent-led-site/sections/09-implementation-plan.md",
+      "claim": "The N10 amendment (guardrail stays detect-only in Phase 0; confirm UAR_GUARDRAILS__INPUT_SCREENING_ENABLED is on and flagged inputs are logged) is in OpenSpec and the parent plan but nowhere in the paper.",
+      "evidence": "Child plan A2 N10 carries the amendment; it appears in site-agent-tool-allowlist/proposal.md:11 and tasks.md 1.8, and in parent plan.md N10. `grep -n 'detect-only\\|INPUT_SCREENING' docs/agent-led-site/sections/*.md` returns nothing, and the \u00a79 row at 09-implementation-plan.md:45 omits it. Acceptance criterion 1 requires every A2 amendment in all three places. The N24 rationale in the paper (the false-positive rate decides whether blocking can be turned on) assumes a detect-only state the paper never states.",
+      "suggested_fix": "Add the detect-only amendment to the \u00a79 site-agent-tool-allowlist row, and to \u00a76.2 T2 or \u00a76.4 item 5.",
+      "line": 45
+    },
+    {
+      "severity": "WARNING",
+      "file": "openspec/changes/k8s-stack-manifests/tasks.md",
+      "claim": "In the three amended existing changes, the last task is not the done-when. The new tasks were appended after the gate with a 'complete before 1.x' note, so the gate does not cover the new work.",
+      "evidence": "k8s-stack-manifests: the gate is 1.4, but 1.5 and 1.6 come after it and 1.4's checks (render, dry-run, no secrets) do not cover the NetworkPolicy, the meter Secret reference or the removed runtime route. github-deploy-workflows: the gate is 1.4, 1.5 and 1.6 come after it. site-agent-seed: the gate is 1.3, 1.4 and 1.5 come after it, and 1.5 (key-minting removal) is not covered by any gate. Acceptance criterion 3: each change's last task is a real done-when. github-deploy-workflows 1.3 is also still [x] although new 1.5 says its chat assertion 'can never pass' (.github/workflows/site.yml:210,218).",
+      "suggested_fix": "Renumber so the gate is last, and extend each gate to check the new tasks (rendered NetworkPolicy and secretRef present, no runtime route; smoke greps agui.message.delta; seed runs without minting). Un-tick github-deploy-workflows 1.3 or annotate it as invalidated.",
+      "line": 8
+    },
+    {
+      "severity": "WARNING",
+      "file": "docs/agent-led-site/sections/10-unresolved-review-findings.md",
+      "claim": "U17 still describes the old D-3/D-4/D-18 split, in which D-18 owns 'who changes budgets' and D-4 'the limiter and window'. That contradicts the re-worded D rows.",
+      "evidence": "10:37: \"D-3 holds the budget numbers, D-4 the limiter and window, D-18 key custody and who changes budgets.\" The revised 09-implementation-plan.md:226-241 says D-18 is \"Gate credential custody ... the budget values moved to D-3\" and D-4 is whether to feed the meter to gate, with the store decided.",
+      "suggested_fix": "Revise U17 to match the new split, or close it as resolved by the 2026-10-02 rewording.",
+      "line": 37
+    },
+    {
+      "severity": "SUGGESTION",
+      "file": ".kbd-orchestrator/phases/uar-integration/plan.md",
+      "claim": "The parent plan adds an N21 amendment ('covers \"meter unavailable\"') that the child plan's A2 does not have (N21 is '\u2014' there).",
+      "evidence": "Child plan.md:67: `| N21 | site-chat-offline-states | new | \u2014 |`. Parent plan.md:55 bolds it as an amendment. The change itself (site-chat-offline-states 1.9) does test the SurrealDB-stopped case, so the content agrees, but its source isn't recorded.",
+      "suggested_fix": "Either cite N15 fail-closed as the source in the parent plan, or drop the bold amendment marker.",
+      "line": 55
+    },
+    {
+      "severity": "SUGGESTION",
+      "file": "openspec/changes/kb-chunking-quality/tasks.md",
+      "claim": "Task 1.6 says to 'File the UAR default-chunker fix on the UAR roadmap', but B5 says filing in UAR waits on D-12.",
+      "evidence": "kb-chunking-quality/tasks.md 1.6 vs uar-roadmap.md:3: \"Filing them in Prometheus-AGS/universal-agent-runtime waits on operator decision D-12.\" The roadmap draft already holds item 3. Read literally, 1.6 either blocks on D-12 or bypasses it.",
+      "suggested_fix": "Reword 1.6: 'link uar-roadmap.md item 3 here; filing upstream waits on D-12'.",
+      "line": 8
+    }
+  ],
+  "confidence": 75,
+  "what_would_change_this": "The finding on 04-architecture.md:240 would change if that line sat in a block marked superseded. The dependency-cycle finding would change if KBD/OpenSpec ignore proposal 'Depends on' lines, or if A3 is meant to override them. The B4 evidence finding would change if KBD's canonical store holds the done-when outputs as task notes.",
+  "disconfirming": [
+    "openspec validate --strict --all: 49 passed, 0 failed.",
+    "Every section file is embedded verbatim in agent-led-site.md (checked with a Python substring test).",
+    "Every \u00a79 Phase 0 change id appears in the parent plan and in openspec/changes/.",
+    "No artifact claims U12 is closed; D-2 is worded as an accepted risk in decision-log.md, decisions.md, \u00a79 and \u00a710.",
+    "N14 (pinning stream and stream_mode) and N15 done-when (1)-(6), fail-closed, site/meter scope and no USD limits match across the child plan, OpenSpec, the parent plan and \u00a79, \u00a76.4 and FR-36.",
+    "KBD projection counts are 36 changes: 6 DONE, 3 IN_PROGRESS, 26 PENDING, 1 SKIPPED."
+  ]
+}

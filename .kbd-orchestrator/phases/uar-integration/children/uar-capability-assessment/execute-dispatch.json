@@ -1,0 +1,7 @@
+{
+  "phase": "uar-integration::uar-capability-assessment",
+  "dispatchedAt": "2026-10-02T14:54:39Z",
+  "backend": "native-tool",
+  "assignedChanges": ["record-decisions","revise-parent-plan","emit-openspec-changes","reconcile-kbd-state","file-uar-roadmap","paper-corrections"],
+  "pendingWork": ["all six changes", "final gate", "cumulative review"]
+}

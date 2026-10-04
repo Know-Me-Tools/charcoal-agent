@@ -1,0 +1,12 @@
+## 1. Site and seed identities with gate-minted UAR tokens
+
+- [ ] 1.1 Confirm D-18 is recorded in the decision log (who sets the site identity's budget values; who issues, stores and rotates the site's gate credential). Do not proceed without it.
+- [ ] 1.2 Settle the OPEN QUESTION: `/oauth/token` client credentials (enabled and guarded) or token exchange from a database-backed gate API key. Record the choice and its reason in the decision log.
+- [ ] 1.3 Create the site identity (the principal that owns agent `knowme-site` and its KB) and the seed identity in gate; their tokens carry `sub` = the identity, `aud` = `uar` and a short TTL.
+- [ ] 1.4 Put the site's gate credential in Secret `site-proxy` in place of the UAR `X-API-Key`, and change the site server (`server/`) to obtain a short-lived token from the chosen path and send it to UAR as a bearer.
+  - [x] Server part (km-rust-engineer): gate mode via `SITE_GATE_TOKEN_URL`, `SITE_GATE_CLIENT_ID`, `SITE_GATE_CLIENT_SECRET` (all three, or none for the `SITE_PROXY_API_KEY` fallback; partial refuses to start). Client-credentials token from `/oauth/token`, cached until `expires_in` - 30 s, single-flight refresh, one retry on a UAR 401, 3 s gate timeout; sent as `Authorization: Bearer`, no `X-API-Key`. `server/src/infrastructure/gate_token.rs`, `server/tests/gate_credentials.rs`.
+  - [ ] Secret `site-proxy` carries the three gate values in place of the API key (km-devops-engineer).
+- [ ] 1.5 Set `UAR_SECURITY__JWKS_URL` (gate's JWKS), `UAR_SECURITY__JWT_ISSUER=https://gate.know-me.tools` and `UAR_SECURITY__JWT_AUDIENCE=uar` in `k8s/base/uar-configmap.yaml`.
+- [ ] 1.6 Remove `--mint-key-to-file` and `--mint-key-to-k8s-secret` from `scripts/seed-site-agent.sh` and the `--mint-key-to-k8s-secret` path from `.github/workflows/site.yml`; the seed script authenticates with the seed identity's gate token.
+- [ ] 1.7 Test whether a key valid for one gate route is accepted on another (U5); if it is, add a Cedar authorize hook that refuses it, and record the before and after results.
+- [ ] 1.8 Integration check: after `kubectl -n knowme rollout restart deployment/uar`, a chat turn through the site server authenticates as the site identity and the run sees KB `knowme-site` (never `anonymous`); a request to UAR with no gate JWT, with an HS256 token signed with UAR's own secret, or with a wrong issuer or audience returns 401; `grep -rn 'api/uar/auth/keys' server/ scripts/seed-site-agent.sh` finds nothing. Evidence filed for §6.4 item 17.

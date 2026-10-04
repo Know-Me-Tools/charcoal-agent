@@ -1,0 +1,142 @@
+{
+  "schemaVersion": "2",
+  "generatedBy": "kbd-runtime",
+  "projectionContractVersion": 2,
+  "sourceRevision": 1089,
+  "derivedRevision": 1089,
+  "frontier": {
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 1089
+  },
+  "conflictCount": 0,
+  "phase": "uar-capability-assessment",
+  "phaseId": "uar-integration::uar-capability-assessment",
+  "parentPhase": "uar-integration",
+  "last_updated": "2026-10-02T23:43:32.763736Z",
+  "last_updated_by": "kbd-runtime",
+  "changes_total": 6,
+  "changes_completed": 6,
+  "implementation_total": 6,
+  "implementation_completed": 6,
+  "completion": {
+    "primaryCounter": "implementation",
+    "implementation": {
+      "completed": 6,
+      "total": 6,
+      "status": "COMPLETE"
+    },
+    "evidence": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    },
+    "certification": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    },
+    "publication": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    }
+  },
+  "completionScopes": {
+    "completion": "phase",
+    "runCompletion": "run"
+  },
+  "runCompletion": {
+    "scope": "run",
+    "runId": "complete-rebranding-20260923T223312Z",
+    "primaryCounter": "implementation",
+    "implementation": {
+      "completed": 25,
+      "total": 55,
+      "status": "IN_PROGRESS"
+    },
+    "evidence": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    },
+    "certification": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    },
+    "publication": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    }
+  },
+  "changes": [
+    {
+      "id": "record-decisions",
+      "title": "Record D-2, D-21, D-22, D-23",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 2,
+      "tasks_done": 2,
+      "last_task_completed": "Append them to .prometheus/decisions.md and verify both files",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "revise-parent-plan",
+      "title": "Rewrite the uar-integration plan as revision 3 from Part A",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 2,
+      "tasks_done": 2,
+      "last_task_completed": "Grep check that every §9 Phase 0 change id appears in the parent plan",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "emit-openspec-changes",
+      "title": "Create the 24 new OpenSpec changes and amend the existing ones",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 2,
+      "tasks_done": 2,
+      "last_task_completed": "Run openspec validate --strict on every change",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "reconcile-kbd-state",
+      "title": "Register the new changes and reconcile canonical state",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 2,
+      "tasks_done": 2,
+      "last_task_completed": "Apply transitions one by one and confirm the A3 state table (36: 6/3/1/26)",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "file-uar-roadmap",
+      "title": "Draft the UAR upstream items (filing waits on D-12)",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 2,
+      "tasks_done": 2,
+      "last_task_completed": "Record that filing waits on D-12",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "paper-corrections",
+      "title": "Correct the agent-led-site paper to match the adjusted plan",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 2,
+      "tasks_done": 2,
+      "last_task_completed": "Reassemble agent-led-site.md and run the B6 grep checks",
+      "next_task_pending": null,
+      "blockers": []
+    }
+  ],
+  "children": {},
+  "migrationStatus": null
+}

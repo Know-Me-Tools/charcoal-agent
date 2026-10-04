@@ -1,4 +1,5 @@
 import {
+	BanIcon,
 	CheckCircle2Icon,
 	ChevronDownIcon,
 	Loader2Icon,
@@ -11,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { ShikiCodeBlock } from "@/features/artifacts/shiki-code-block";
 import { cn } from "@/lib/utils";
 
-export type ToolStatus = "running" | "complete" | "failed";
+/** "denied": the launch run policy refused this call (agui.tool_call.denied, FR-11). */
+export type ToolStatus = "running" | "complete" | "failed" | "denied";
 
 interface ToolCallBlockProps {
 	toolName: string;
@@ -45,6 +47,12 @@ const statusConfig: Record<
 		label: "Failed",
 		fillClass: "bg-danger-soft",
 		toneClass: "text-danger-text",
+	},
+	denied: {
+		Icon: BanIcon,
+		label: "Blocked by policy",
+		fillClass: "bg-warning-soft",
+		toneClass: "text-warning-text",
 	},
 };
 
@@ -122,9 +130,15 @@ export const ToolCallBlock: FC<ToolCallBlockProps> = ({
 
 					{result !== undefined && (
 						<div>
-							<p className="mb-1.5 font-ui text-xs font-semibold text-fg-secondary">Result</p>
+							<p className="mb-1.5 font-ui text-xs font-semibold text-fg-secondary">
+								{status === "denied" ? "Reason" : "Result"}
+							</p>
 							{status === "failed" ? (
 								<p className="whitespace-pre-wrap rounded-md bg-danger-soft px-3 py-2 font-body text-sm text-danger-text wrap-break-word">
+									{result}
+								</p>
+							) : status === "denied" ? (
+								<p className="whitespace-pre-wrap rounded-md bg-warning-soft px-3 py-2 font-body text-sm text-warning-text wrap-break-word">
 									{result}
 								</p>
 							) : resultJson !== null ? (

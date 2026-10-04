@@ -1,0 +1,160 @@
+# knowme-web — the Axum site server (server/): serves the embedded SPA and is
+# the only public path to the site agent. Distroless image, non-root UID 65532.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: knowme-web
+  namespace: knowme
+  labels:
+    app.kubernetes.io/name: knowme-web
+    app.kubernetes.io/component: web
+    app.kubernetes.io/part-of: knowme-site
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: knowme-web
+      app.kubernetes.io/component: web
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: knowme-web
+        app.kubernetes.io/component: web
+        app.kubernetes.io/part-of: knowme-site
+    spec:
+      # SIGTERM starts a drain that waits for in-flight chat streams; give
+      # them up to a minute before SIGKILL.
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: knowme-web
+          image: ghcr.io/know-me-tools/knowme-web:main
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: UAR_UPSTREAM
+              value: http://uar:6565
+            - name: SITE_AGENT_ID
+              value: knowme-site
+            # Envoy Gateway is the one proxy that appends to X-Forwarded-For;
+            # the client IP for rate limiting is the right-most entry.
+            - name: TRUSTED_PROXY_HOPS
+              value: "1"
+            # The chat limiter is in memory PER REPLICA and Envoy spreads a
+            # client across both pods, so each pod gets half the intended
+            # per-client quota: 2 x (5/min, burst 3) ~= 10/min, burst 6.
+            # Change these with `replicas` (and any HPA).
+            - name: CHAT_RATE_PER_MIN
+              value: "5"
+            - name: CHAT_BURST
+              value: "3"
+            # gate-site-credentials: the site server authenticates to UAR with a gate-minted token
+            # (client credentials, sub=knowme-site, aud=uar), replacing the UAR API
+            # key. The Secret is
+            # created out of band by the operator (D-18).
+            - name: SITE_GATE_TOKEN_URL
+              value: http://flint-gate.flint-core.svc:4456/oauth/token
+            - name: SITE_GATE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: site-gate-client
+                  key: SITE_GATE_CLIENT_ID
+            - name: SITE_GATE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: site-gate-client
+                  key: SITE_GATE_CLIENT_SECRET
+            # site-session-binding: HMAC secret the site server requires at
+            # startup (raw bytes, >= 32 bytes, identical on every replica —
+            # the HMAC derivation of each visitor's upstream UAR session id,
+            # HMAC-SHA256(secret, cookie_id ‖ thread_id), must agree across
+            # pods) and refuses to start without. Its own Secret, created
+            # out of band by the operator — not in k8s/, and this reference
+            # never carries or generates a value.
+            - name: SITE_SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: site-session
+                  key: secret
+            # site-spend-ceiling: the reserve-and-settle meter's own
+            # SurrealDB user, scoped `ON DATABASE` to ns=site/db=meter only
+            # (no rights in uar's or the memory server's namespace/database).
+            # Created out of band by the operator before the first deploy
+            # (site-spend-ceiling 1.1); CI never holds this credential.
+            - name: SITE_METER_URL
+              value: http://surrealdb:8000
+            - name: SITE_METER_NS
+              value: site
+            - name: SITE_METER_DB
+              value: meter
+            - name: SITE_METER_USER
+              valueFrom:
+                secretKeyRef:
+                  name: site-meter-auth
+                  key: SITE_METER_USER
+            - name: SITE_METER_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: site-meter-auth
+                  key: SITE_METER_PASS
+            # site-spend-ceiling 1.9: the kill switch. The operator creates
+            # this ConfigMap out of band (NOT in k8s/, so `kubectl apply -k`
+            # never resets it); its initial value is on. The server reads
+            # the mounted file, not this env var — the env var only tells it
+            # where to look, which does pass per that task's "an environment
+            # variable does not pass" rule (that rule is about carrying the
+            # switch VALUE in an env var, which would need a pod restart to
+            # change; the file path is fixed and the mounted file's CONTENT
+            # is what the server re-reads).
+            - name: SITE_KILL_SWITCH_FILE
+              value: /etc/knowme/kill-switch/state
+          volumeMounts:
+            - name: kill-switch
+              mountPath: /etc/knowme/kill-switch
+              readOnly: true
+          # Keep serving while Envoy drops this endpoint, then SIGTERM. Native
+          # sleep action (Kubernetes 1.30+): the distroless image has no shell.
+          lifecycle:
+            preStop:
+              sleep:
+                seconds: 5
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+      volumes:
+        # site-spend-ceiling 1.9: created out of band by the operator, not
+        # by this kustomize base — intentionally absent from
+        # kustomization.yaml's resources. Key `enabled` holds "true" (kill
+        # switch on, the initial state before the first deploy) or "false".
+        - name: kill-switch
+          configMap:
+            name: site-chat-kill-switch

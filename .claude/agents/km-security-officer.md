@@ -7,7 +7,8 @@
     "security-and-hardening",
     "best-practices",
     "agent-runtime-security",
-    "adversarial-review"
+    "adversarial-review",
+    "hybrid-mobile-architecture"
   ],
   "model": "opus"
 }

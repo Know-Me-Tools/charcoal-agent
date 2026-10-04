@@ -1,7 +1,9 @@
 import { useCallback, useRef } from "react";
 import { useChatMessageStore } from "@/stores/chat-message-store";
+import { useChatConnectivityStore } from "@/stores/chat-connectivity-store";
 import { useThreadRegistryStore } from "@/stores/thread-registry-store";
 import { buildUrl, buildHeaders } from "@/lib/api-client";
+import { getSiteAgentId } from "@/hooks/use-site-config";
 import type { ToolCallContentBlock } from "@/types/chat-content";
 
 const UAR_PATH = "/api/chat/completion";
@@ -90,6 +92,16 @@ interface AguiToolResult {
   name: string;
   content: string;
   success: boolean;
+}
+/** The launch run policy denies every tool call (site-chat-offline-states, FR-11 client case). */
+interface AguiToolCallDenied {
+  kind: "tool_call";
+  phase: "denied";
+  request_id: string;
+  call_index: number;
+  id: string;
+  name: string;
+  reason: string;
 }
 interface AguiError {
   kind: "error";
@@ -201,6 +213,7 @@ type AguiPayload =
   | AguiToolCallDelta
   | AguiToolCallComplete
   | AguiToolResult
+  | AguiToolCallDenied
   | AguiError
   | AguiDone
   | AguiStatePatch
@@ -273,6 +286,60 @@ function parseSseBlock(raw: string): SseBlock | null {
   return { event, data, id };
 }
 
+// ─── Response-failure classification (site-chat-offline-states) ──────────────
+//
+// The generic `{ "error", "message" }` body from `server/src/error.rs`. The
+// client keys on `error` (a stable code), never on `message` text, which can
+// change independently of behaviour.
+interface ErrorResponseBody {
+  error?: string;
+  message?: string;
+}
+
+/**
+ * `error` codes that mean "the agent itself is unreachable right now" rather
+ * than a request-specific failure: UAR down (`upstream_unavailable` 502,
+ * `upstream_timeout` 504, `upstream_error` 502 — any other UAR non-2xx), the
+ * token budget spent (`budget_exhausted`), the spend meter's own store down
+ * — it fails closed (`meter_unavailable`), or the operator's kill switch
+ * (`kill_switch_on`). All four show the same static offline notice (FR-27);
+ * none of them should ever reach the thread as a per-message error.
+ */
+const OFFLINE_ERROR_CODES: ReadonlySet<string> = new Set([
+  "upstream_unavailable",
+  "upstream_timeout",
+  "upstream_error",
+  "budget_exhausted",
+  "meter_unavailable",
+  "kill_switch_on",
+]);
+
+type ChatRequestFailure =
+  | { kind: "offline" }
+  | { kind: "rate-limited"; retryAfterSeconds?: number }
+  /** Anything else — a generic, per-message failure (existing behaviour). */
+  | { kind: "generic" };
+
+function parseRetryAfterSeconds(value: string | null): number | undefined {
+  if (!value) return undefined;
+  const seconds = Number(value);
+  return Number.isFinite(seconds) && seconds >= 0 ? seconds : undefined;
+}
+
+function classifyResponseFailure(
+  status: number,
+  body: ErrorResponseBody | null,
+  retryAfterHeader: string | null,
+): ChatRequestFailure {
+  if (status === 429) {
+    return { kind: "rate-limited", retryAfterSeconds: parseRetryAfterSeconds(retryAfterHeader) };
+  }
+  if (body?.error && OFFLINE_ERROR_CODES.has(body.error)) {
+    return { kind: "offline" };
+  }
+  return { kind: "generic" };
+}
+
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useMessageStream() {
@@ -313,15 +380,25 @@ export function useMessageStream() {
       // Stable run ID for this assistant turn
       const runId = `run-${Date.now()}`;
 
-      // Mark that we're waiting for the first token (loading state)
+      // Mark that we're waiting for the first token (loading state). A new
+      // attempt clears any prior offline/rate-limited notice for this
+      // thread — the visitor is retrying, so the stale notice shouldn't
+      // linger if this attempt gets further than the last one.
       useChatMessageStore.getState().beginStream(threadId, runId);
+      useChatConnectivityStore.getState().clear(threadId);
 
       // Accumulate streaming tool-call arguments keyed by tool_call_id
       const pendingArgs = new Map<string, string>();
 
-      // Resolve the agent associated with this thread (if any)
+      // Resolve the agent associated with this thread (if any). On the
+      // public site build every request is pinned to the site agent,
+      // regardless of what the caller or thread registry requested — the
+      // agent picker is hidden in that build, but this is the actual
+      // enforcement point (the site's nginx proxy also enforces it server
+      // side; this keeps behaviour consistent when running against a
+      // non-proxied UAR in dev/tests).
       const threadAgent = useThreadRegistryStore.getState().threads[threadId];
-      const agentId = payload.agent_id ?? threadAgent?.agentId;
+      const agentId = getSiteAgentId() ?? payload.agent_id ?? threadAgent?.agentId;
 
       try {
         const res = await fetch(buildUrl(UAR_PATH), {
@@ -340,8 +417,37 @@ export function useMessageStream() {
         });
 
         if (!res.ok) {
-          const text = await res.text().catch(() => "Request failed");
-          throw new Error(`POST /api/chat/completion ${res.status}: ${text}`);
+          let body: ErrorResponseBody | null = null;
+          try {
+            body = (await res.json()) as ErrorResponseBody;
+          } catch {
+            body = null;
+          }
+          const failure = classifyResponseFailure(
+            res.status,
+            body,
+            res.headers.get("Retry-After"),
+          );
+
+          if (failure.kind === "offline") {
+            useChatConnectivityStore.getState().setOffline(threadId);
+            useChatMessageStore.getState().clearStreaming(threadId);
+            callbacks?.onError?.(new Error("offline"));
+            return;
+          }
+          if (failure.kind === "rate-limited") {
+            useChatConnectivityStore
+              .getState()
+              .setRateLimited(threadId, failure.retryAfterSeconds);
+            useChatMessageStore.getState().clearStreaming(threadId);
+            callbacks?.onError?.(new Error("rate_limited"));
+            return;
+          }
+
+          // Generic failure — unchanged behaviour: surfaces as a failed
+          // assistant message via the catch block below (setStreamError
+          // never echoes this text to the user; see MessageError).
+          throw new Error(`POST /api/chat/completion ${res.status}`);
         }
 
         if (!res.body) {
@@ -461,6 +567,37 @@ export function useMessageStream() {
                     result: e.content,
                     status: e.success ? "complete" : "failed",
                   });
+                  break;
+                }
+
+                case "agui.tool_call.denied": {
+                  // The launch run policy denies the call before it ever
+                  // runs, so there is usually no existing tool-call block to
+                  // update — only `agui.tool_call.delta` (streamed
+                  // arguments) may have run first. Add one if none exists
+                  // yet; otherwise mark the existing one denied.
+                  const e = agui as AguiToolCallDenied;
+                  const hasExistingBlock = useChatMessageStore
+                    .getState()
+                    .messagesByThread[threadId]
+                    ?.some((m) =>
+                      m.content.some(
+                        (b) => b.type === "tool-call" && b.toolCallId === e.id,
+                      ),
+                    );
+                  if (hasExistingBlock) {
+                    updateToolCall(threadId, e.id, { status: "denied", result: e.reason });
+                  } else {
+                    addToolCall(threadId, {
+                      type: "tool-call",
+                      toolCallId: e.id,
+                      toolName: e.name,
+                      args: {},
+                      result: e.reason,
+                      status: "denied",
+                    });
+                  }
+                  pendingArgs.delete(e.id);
                   break;
                 }
 

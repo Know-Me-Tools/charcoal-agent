@@ -14,7 +14,9 @@
     "gsap-react",
     "tdd",
     "e2e-testing",
-    "knowme-brand-standard"
+    "knowme-brand-standard",
+    "hybrid-mobile-architecture",
+    "hybrid-runtime-verification"
   ],
   "model": "sonnet"
 }

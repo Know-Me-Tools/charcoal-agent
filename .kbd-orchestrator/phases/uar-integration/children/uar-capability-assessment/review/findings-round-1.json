@@ -1,0 +1,90 @@
+{
+  "mode": "artifact",
+  "verdict": "BLOCK",
+  "judge_model": "artifact-critic (harness-native)",
+  "isolation_mode": "harness-native",
+  "producer_model": "claude-opus-5-5",
+  "cross_model_check": "same-model-collision",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "assessment.md",
+      "line": 63,
+      "claim": "F2, matrix row 3 and ranked gap 6 say UAR can enforce per-agent spend ceilings from `knowme-site.json` `extensions.budgets` today. The code has no per-agent field there, and the per-session ceiling does not cap total spend on a public endpoint.",
+      "evidence": "`ThreadBudgets` (origin/main src/uar/runtime/thread/policy_intersection.rs:129-136) has exactly these fields: max_tokens_per_turn, max_tokens_per_session, max_tool_calls_per_turn, max_cost_per_session_usd, timeout_seconds and rate_limit. None is per-agent. `check_limits` (src/uar/runtime/cost_budget.rs:280-316) applies token limits only to the Run and Session scopes. The Agent scope reads `inner.limits`, and `set_limit` is called outside tests only for `BudgetScope::Global` (manager.rs:1553, `with_global_cost_budget` from server config `LlmBudgetConfig.global_limit`, config.rs:2103). `rate_limit` is keyed on `usage_id = run_id` (cost_budget.rs:697, 349-351), so it is per-run. The session id is client-supplied: `session_id: Option<String>` in the chat request (server.rs:4738), and the paper's HMAC binding derives a new one for every new thread or cookie. A scraper that opens new threads gets a fresh session budget each time. The only aggregate cap in UAR is the process-global, in-memory `global_limit`, and the assessment never mentions it. The paper also places the ceiling at flint-gate (09-implementation-plan.md:48 `site-spend-ceiling`: 'The ceiling is flint-gate's ... the agent policy has no `max_tokens` key'). The assessment moves the ceiling to 'Site config now' without reconciling with that.",
+      "suggested_fix": "Rewrite F2 and row 3 as follows. UAR enforces per-turn and per-session ceilings and a per-run rate limit from the artifact, plus a process-global USD ceiling from server config. None of these bounds spend across many sessions. Keep the paper's gate-side `site-spend-ceiling` as the Phase 0 control, add UAR `llm.budget.global_limit` as a backstop, and state that tracker state is in-process and lost on restart. Make 'per-principal/agent aggregate ceiling' the UAR roadmap candidate."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "assessment.md",
+      "line": 72,
+      "claim": "F7 and 'The uncomfortable part' list about nine of the paper's Phase 0 controls and tell the plan stage to merge or gate on 'them'. The paper actually defines 24 new Phase 0 changes plus required edits to the existing changes, so the adjusted plan would silently drop more than half of them.",
+      "evidence": "docs/agent-led-site/sections/09-implementation-plan.md:34-57 lists these new changes before Phase 0 exits: ci-secrets-out, uar-runtime-host-lockdown, uar-jwks-es256, gate-ec-jwks-deploy, gate-ext-authz-endpoint, gate-site-credentials, cluster-extauthz-policies, gate-ci-gitops, kb-chunking-quality, site-agent-tool-allowlist, site-proxy-artifact-filter, site-session-erasure, site-session-binding, site-proxy-hardening, site-spend-ceiling, site-security-headers, ci-supply-chain-pins, site-ai-disclosure-label, site-retention-and-privacy, site-citation-link-allowlist, site-chat-offline-states, site-agent-prompt-fixes, site-agent-eval-text and site-redteam-prompts. Assessment lines 73-75 name 9 of them. The rest are absent from F7, including `uar-runtime-host-lockdown` ('Lands before the first deploy'), which conflicts directly with parent plan.md change 10 (`runtime.know-me.tools` → `uar` HTTPRoute), and `site-agent-tool-allowlist` (FR-41 `memory_enabled: false` at the proxy). Lines 17-26 of the same section also prescribe edits to existing parent changes that the assessment never carries: the `github-deploy-workflows` chat smoke test 'can never pass' (dual-mode grep mismatch), `k8s-stack-manifests` 'must not contain the runtime.know-me.tools HTTPRoute', `site-agent-seed` is gated after `kb-chunking-quality`, and `apex-dns-cutover` 'moves to the end of Phase 1'. The goal requires 'an adjusted plan for the parent uar-integration phase (its remaining changes)'.",
+      "suggested_fix": "Replace F7's list with the full §9 Phase 0 table and the §9 'Remaining uar-integration work' edits. Map each one to keep, merge, defer or reject, with a reason. Drop 'about nine'."
+    },
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "line": 35,
+      "claim": "The goals require assessing 'the unresolved findings U1-U19'. The assessment addresses about 9 of them and never mentions U5, U8, U10, U11, U12, U13, U14, U15, U16, U17 or U19. That includes U12, which threatens the model the whole deployment runs on.",
+      "evidence": "10-unresolved-review-findings.md:31 says 'U12 Qwen Token Plan terms appear to forbid application backends'. Parent plan.md:12 runs UAR on `qwen3.8-max (Token Plan)`, and its operator actions (plan.md:310) and uncomfortable part (plan.md:319) flag the same risk. The assessment treats `qwen3.8-max` as given (line 120). U8 (`activate_skill` exposure traced from source only) bears directly on matrix row 5. U10 (client IP behind Envoy unverified) undercuts matrix row 10 and F6. U11 (Host-header exposure window) is the ordering rule behind `uar-runtime-host-lockdown`. None of them appears in the matrix, the findings or the ranked gaps.",
+      "suggested_fix": "Add a U1-U19 traceability table: for each ID give the status on origin/main, the owner and the plan action, or 'out of UAR scope' with a reason. Put U12 in the ranked gaps as a deployment precondition."
+    },
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "line": 45,
+      "claim": "Row 9, F4, ranked gap 4 and the roadmap candidates treat U3 grounding as either a UAR chunker change or a new 'Full-context KB mode'. They miss that UAR already lets each KB choose its chunk strategy through the KB API, including whole-document chunks.",
+      "evidence": "origin/main src/uar/api/knowledge.rs:61-68 `KbConfigRequest { chunk_strategy: Option<String>, chunk_size: Option<usize> }`; :757-759 updates them on an existing KB; :764-775 `parse_chunk_strategy` accepts 'document' → `ChunkingStrategy::Document` ('Keep full document (no chunking)', src/uar/rag/chunking.rs:18-19), plus 'token', 'sentence' and a configurable `chunk_size`. With 8 files totalling 2,627 words (verified with `cat content/knowledge/*.md | wc -w`), `document` or a larger `chunk_size` is a config-only workaround available today. The paper itself allows 'a corpus-side workaround' (U3). Roadmap line 104 ('Full-context KB mode') partly duplicates an existing capability, so the 'distort the runtime' risk the goals warn about is understated.",
+      "suggested_fix": "Add 'set the knowme-site KB `chunk_strategy` to document (or raise `chunk_size`) and re-ingest' as the Phase 0 grounding option. Keep the general chunker fix (minimum chunk size) on the UAR roadmap. Re-scope or drop the 'Full-context KB mode' candidate."
+    },
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "line": 22,
+      "claim": "Goal 1 names one root cause (rmcp resolution) for the failed image run. In the same run the arm64 leg failed on a separate error, so fixing rmcp may not produce a multi-arch image.",
+      "evidence": "`gh run view 36881586257 --log-failed` shows arm64 failing first at 15:07:50: `GHCR Build (linux/arm64) ... #20 ERROR: blob sha256:0a17203d... not found`. amd64 hit `failed to select a version for rmcp` at 15:13:55. Run history also shows main failing on 2026-09-30 (e7840c75, e6a2caae, a204cd76) and at 2026-10-01 15:02 (19ec514c) before the cited run, so 'failed since 2026-10-01 15:05' is imprecise. The post-merge run 36997759532 (e73b5f67) is still in progress on both arches.",
+      "suggested_fix": "Record the arm64 blob-not-found failure as a second, unexplained cause. Make 'both GHCR Build legs and GHCR Merge Manifest succeed on e73b5f67' the exit check for goal 1."
+    },
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "line": 93,
+      "claim": "Goal 3 ('weigh every proposed UAR change against UAR's other general uses') is met one-sidedly: the roadmap table lists only beneficiaries and never names a cost or regression for another use. F5 overgeneralises in the opposite direction.",
+      "evidence": "Line 95 has only the columns 'General-use beneficiaries' and 'Site need'. No candidate is checked for harm. For example, a session TTL 'cascading across all four stores' could break long-lived personal sessions in the desktop/mobile and BossFang uses listed at line 33 unless it defaults off. Removing `activate_skill` could change behaviour for tenants with skills off. Line 70 says session TTL is 'a GDPR blocker for every UAR deployment with real users', which overstates it for single-user local desktop deployments.",
+      "suggested_fix": "Add a 'risk to other uses / default' column. For example: TTL opt-in per deployment with no default expiry, and `activate_skill` removal only when `skills.mode == none`. Narrow F5 to multi-user or hosted deployments."
+    },
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "line": 67,
+      "claim": "F4 states the [L56] threshold more strongly than the source and drops the cost qualifier that the landscape attaches to it.",
+      "evidence": "Landscape line 63 quotes Anthropic: 'you can just include the entire knowledge base in the prompt ... with no need for RAG', 'made cheap by prompt caching'. The assessment says 'the threshold below which putting the whole corpus in context beats RAG'. Landscape line 169 adds: 'Full context raises per-turn input tokens (local measurement: 1,425–1,459 per turn with retrieval) unless prompt caching applies. Whether Alibaba's implicit cache hits is open.' F4 omits this. A ≈3.5k-token corpus on every turn roughly 2–3x's input tokens on a public endpoint whose spend control is unresolved (see the F2 finding).",
+      "suggested_fix": "Restate F4 as 'permitted at this size, cost-neutral only if provider caching hits', and make the Alibaba cache-hit question part of the operator decision."
+    },
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "line": 9,
+      "claim": "The evidence base says 'every present/partial claim cited file:line'. Several matrix rows have no anchor, and the row 12 anchor points at a test fixture.",
+      "evidence": "Rows 2, 5, 7, 11, 13, 16 and 17 have no file:line. Row 12 cites `src/uar/security/middleware.rs:266`. On origin/main that line is inside `fn jwks_config(...)` in the test module (line 217 imports `verifier::test_support::{TestJwksServer,...}`; line 385 is a `#[tokio::test]`), not the production verifier. The audit is pinned at `6e0479eb`, but origin/main is now `e73b5f67` (#324 merged 2026-10-02T10:51:08Z), so 'Fixed, pending merge' is already stale.",
+      "suggested_fix": "Add anchors for the unanchored rows: for example manager.rs:4170-4180 for `activate_skill`'s unconditional registration, server.rs:1347 for `InMemoryApiKeyStorage`, and server.rs:4742-4745 for the `memory_enabled` default. Point row 12 at the production verifier, and re-pin to e73b5f67."
+    },
+    {
+      "severity": "SUGGESTION",
+      "file": "assessment.md",
+      "line": 41,
+      "claim": "Row 5 drops the landscape's own qualifier on the meta-tool claim.",
+      "evidence": "Landscape line 83: 'No surveyed platform documents exempting framework-internal tools ... This is an inference from the absence of an [explicit statement]'. Assessment: 'No surveyed platform exempts meta-tools'.",
+      "suggested_fix": "Say 'no surveyed platform documents an exemption (inference from absence)'."
+    },
+    {
+      "severity": "SUGGESTION",
+      "file": "assessment.md",
+      "line": 11,
+      "claim": "The goal 'Use the deep-research skill for the external landscape' was not met. The substitute Firecrawl landscape is weighted 'Primary' without the skill's verification stage, and the deviation is not raised as an operator decision.",
+      "evidence": "Line 11: deep-research package 'Unusable ... Nothing below rests on it'. Line 10: landscape.md weighted 'Primary for the external norm'. The assessment's own 'Unverified' list (line 119) carries landscape items that remain unverified.",
+      "suggested_fix": "Add the deep-research substitution to 'Open questions for plan' as an accepted deviation, or re-run with a raised `max_sources`."
+    }
+  ]
+}
