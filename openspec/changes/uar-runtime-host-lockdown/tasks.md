@@ -2,7 +2,9 @@
 
 - [x] 1.1 Delete the `knowme-runtime` and `knowme-runtime-http-redirect` HTTPRoutes (`runtime.know-me.tools`, `k8s/base/httproutes.yaml` lines ~125-185) from the manifests. If the operator records D-7 as "keep the host", stop and route it behind a fail-closed gate policy in `cluster-extauthz-policies` instead.
   D-7 (decision log, 2026-10-03): delete it. Both HTTPRoutes removed from `k8s/base/httproutes.yaml`; top-of-file comment updated. `kubectl kustomize k8s | grep -c runtime.know-me.tools` prints `0` (see 1.6 evidence).
-- [ ] 1.2 Operator: `kubectl --context know-me -n knowme get httproute knowme-runtime knowme-runtime-http-redirect`; delete any that exist with operator credentials, and record the command output in this change.
+- [x] 1.2 Operator: `kubectl --context know-me -n knowme get httproute knowme-runtime knowme-runtime-http-redirect`; delete any that exist with operator credentials, and record the command output in this change.
+
+  **Evidence, 2026-10-05.** `kubectl --context know-me -n knowme get httproute knowme-runtime knowme-runtime-http-redirect` returned `Error from server (NotFound): httproutes.gateway.networking.k8s.io "knowme-runtime" not found` and the same for `knowme-runtime-http-redirect`. Nothing to delete. The only HTTPRoutes in `knowme` are `knowme-site`, `knowme-site-http-redirect`, `knowme-www-redirect` and `knowme-www-redirect-http`. The deploy smoke test's "Runtime host answers nothing" step passed on runs 37294625454 and 37314775399. Observation, outside this task: the gateway in `argocd` still has a `knowme-runtime-https` listener (Programmed) and the certificate still lists `runtime.know-me.tools`; no route is attached to it.
   Open — no cluster access from this lane. Operator: run the two commands above against context `know-me` and paste the output here.
 - [x] 1.3 Rewrite the `.github/workflows/site.yml` steps that call `https://runtime.know-me.tools/readyz` and `/api/agents` (lines ~194-199) to run inside the cluster or against the proxy.
   Replaced the "Runtime is ready" / "Runtime requires auth" steps with one "Runtime host answers nothing" step: it probes `/readyz`, `/metrics`, `/admin`, `/api/agents` against the gateway IP (`--resolve runtime.know-me.tools:443:23.239.29.33`, same pre-cutover pin already used for `know-me.tools`) and fails only on an HTTP 2xx — a connection failure or a non-2xx refusal both pass, matching this change's own spec ("no UAR endpoint answers (no route, or a refusal)"). `actionlint .github/workflows/site.yml` passes.
@@ -19,3 +21,8 @@
   2
   ```
   The live `curl` against `runtime.know-me.tools` and the pod-connectivity test need a deployed cluster and stay open for the operator/QA at the deployed gate.
+
+  **Live evidence, 2026-10-05 (the two parts above that were open).**
+  - `curl -sS -o /dev/null -w '%{http_code}' https://runtime.know-me.tools/{readyz,metrics,admin,api/agents}` returned `404`, `404`, `404`, `404`; the same four, pinned to the gateway with `--resolve runtime.know-me.tools:443:23.239.29.33`, also `404`. No UAR endpoint answers. `kubectl kustomize k8s | grep -c runtime.know-me.tools` prints `0`.
+  - A throwaway pod with no admitted label (`kubectl run nettest-denied`, image = the UAR image, then deleted) running `curl -m 6 http://uar:6565/healthz` failed with `curl: (28) Connection timed out after 6002 milliseconds`. The policy `allow-knowme-web-and-gate-to-uar` admits only `knowme-web` and `seed-site-agent`. `knowme-web` reaches UAR: its `/readyz` reports `{"assets":true,"status":"ok","upstream":true}`.
+  - This task had been ticked while its own note said these two parts were open; the runtime ledger still showed it pending, which is why it is closed through the driver now.

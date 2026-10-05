@@ -2,25 +2,25 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 1275,
-  "derivedRevision": 1275,
+  "sourceRevision": 1305,
+  "derivedRevision": 1305,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 1275
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 1305
   },
   "conflictCount": 0,
   "phase": "uar-integration",
   "phaseId": "uar-integration",
   "parentPhase": null,
-  "last_updated": "2026-10-05T06:00:42.859811Z",
+  "last_updated": "2026-10-05T13:25:18.690366Z",
   "last_updated_by": "kbd-runtime",
   "changes_total": 36,
-  "changes_completed": 8,
+  "changes_completed": 10,
   "implementation_total": 36,
-  "implementation_completed": 8,
+  "implementation_completed": 10,
   "completion": {
     "primaryCounter": "implementation",
     "implementation": {
-      "completed": 8,
+      "completed": 10,
       "total": 36,
       "status": "IN_PROGRESS"
     },
@@ -49,7 +49,7 @@
     "runId": "complete-rebranding-20260923T223312Z",
     "primaryCounter": "implementation",
     "implementation": {
-      "completed": 27,
+      "completed": 29,
       "total": 55,
       "status": "IN_PROGRESS"
     },
@@ -172,12 +172,12 @@
     {
       "id": "k8s-stack-manifests",
       "title": "Kubernetes manifests for the four-service stack",
-      "status": "IN_PROGRESS",
-      "implementation_status": "IN_PROGRESS",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
       "tasks_total": 6,
-      "tasks_done": 5,
+      "tasks_done": 6,
       "last_task_completed": "Add a NetworkPolicy allowing knowme-web pods to reach the SurrealDB pod on port 8000, and a Secret…",
-      "next_task_pending": "Gate: `kubectl kustomize k8s` renders; `kubectl --context know-me apply -k k8s --dry-run=server` succeeds; a grep finds ",
+      "next_task_pending": null,
       "blockers": []
     },
     {
@@ -205,23 +205,23 @@
     {
       "id": "ci-secrets-out",
       "title": "Signing secret, admin key and database password out of CI",
-      "status": "IN_PROGRESS",
-      "implementation_status": "IN_PROGRESS",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
       "tasks_total": 6,
-      "tasks_done": 3,
+      "tasks_done": 5,
       "last_task_completed": "Restrict the Secret rule in k8s/bootstrap/role.yaml (today create, patch, get on all Secrets) with…",
-      "next_task_pending": "Operator creates uar-secrets and surrealdb-auth in namespace knowme once, out of band, with operator…",
+      "next_task_pending": "Integration check: grep -rnE 'UAR_JWT_SECRET|UAR_SETTINGS_ADMIN_KEY|SURREALDB_ROOT_PASSWORD'…",
       "blockers": []
     },
     {
       "id": "uar-runtime-host-lockdown",
       "title": "Close the runtime host",
-      "status": "IN_PROGRESS",
-      "implementation_status": "IN_PROGRESS",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
       "tasks_total": 6,
-      "tasks_done": 4,
-      "last_task_completed": "Add a NetworkPolicy in k8s/base/ selecting the uar pods that admits ingress on 6565 only from knowme-web,…",
-      "next_task_pending": "Operator: kubectl --context know-me -n knowme get httproute knowme-runtime knowme-runtime-http-redirect;…",
+      "tasks_done": 6,
+      "last_task_completed": "Integration check: kubectl kustomize k8s | grep -c runtime.know-me.tools prints 0; curl -sS -o /dev/null…",
+      "next_task_pending": null,
       "blockers": []
     },
     {
@@ -359,12 +359,12 @@
     {
       "id": "site-spend-ceiling",
       "title": "Reserve-and-settle meter, kill switch and usage records",
-      "status": "IN_PROGRESS",
-      "implementation_status": "IN_PROGRESS",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
       "tasks_total": 14,
-      "tasks_done": 6,
+      "tasks_done": 7,
       "last_task_completed": "Rollover: counter rows keyed by UTC period, created on first use",
-      "next_task_pending": "(operator, km-devops-engineer) Create the meter store out of band, with root, before the first deploy:…",
+      "next_task_pending": "Add the monthly token budget (D-3) to the same meter and the same atomic reservation. Set no USD limit…",
       "blockers": []
     },
     {
