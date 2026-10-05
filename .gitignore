@@ -77,3 +77,6 @@ Thumbs.db
 
 # local compose state (kill switch file)
 .compose/
+
+# nested git worktrees created by Claude Code agents
+.claude/worktrees/
