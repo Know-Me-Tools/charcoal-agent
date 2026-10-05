@@ -74,11 +74,14 @@ cmd_secrets() {
 
   # 1. Namespace and the CI deploy identity (namespace-scoped).
   log "minting the CI deploy kubeconfig (namespace $NS)"
-  local kubeconfig
-  kubeconfig="$(mktemp)"; chmod 600 "$kubeconfig"
+  # The mint script refuses to overwrite an existing file, so give it a path
+  # that does not exist yet inside a private temp directory.
+  local kubeconfig_dir kubeconfig
+  kubeconfig_dir="$(mktemp -d)"; chmod 700 "$kubeconfig_dir"
+  kubeconfig="$kubeconfig_dir/kubeconfig"
   "$(dirname "$0")/../../k8s/bootstrap/mint-deployer-kubeconfig.sh" "$CONTEXT" "$kubeconfig"
   gh secret set KNOWME_KUBECONFIG -R "$REPO" <"$kubeconfig"
-  rm -f "$kubeconfig"
+  rm -rf "$kubeconfig_dir"
   log "set GitHub secret KNOWME_KUBECONFIG"
 
   # 2. Database root password: one value shared by SurrealDB and UAR.

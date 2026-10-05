@@ -35,7 +35,9 @@ spec:
                 secretKeyRef:
                   name: surrealdb-auth
                   key: SURREALDB_ROOT_PASSWORD
-          command:
+          # `args`, not `command`: the image's entrypoint is /surreal, and a
+          # Kubernetes `command` replaces it (Compose's `command` does not).
+          args:
             - start
             - --log=info
             - --user=root
@@ -70,13 +72,27 @@ spec:
           volumeMounts:
             - name: surrealdb-data
               mountPath: /data
-  volumeClaimTemplates:
-    - metadata:
-        name: surrealdb-data
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        storageClassName: linode-block-storage-retain
-        resources:
-          requests:
-            storage: 20Gi
+      # TEMPORARY: the node's own disk. The Linode account has hit its limit on
+      # active services, so the block-storage volume this StatefulSet used to
+      # claim cannot be provisioned ("You've reached a limit for the number of
+      # active services on your account"). Everything here is lost when the pod
+      # restarts or moves: UAR's sessions, the site agent and knowledge base
+      # (the seed step re-creates those on every deploy), and the spend meter's
+      # counters, which restart at zero. While the chat kill switch is on that
+      # loses nothing that matters. Do not turn the chat on for visitors on
+      # ephemeral storage. Once the limit is raised, restore the
+      # volumeClaimTemplates block below and delete this volume.
+      volumes:
+        - name: surrealdb-data
+          emptyDir:
+            sizeLimit: 5Gi
+  # volumeClaimTemplates:
+  #   - metadata:
+  #       name: surrealdb-data
+  #     spec:
+  #       accessModes:
+  #         - ReadWriteOnce
+  #       storageClassName: linode-block-storage-retain
+  #       resources:
+  #         requests:
+  #           storage: 20Gi
