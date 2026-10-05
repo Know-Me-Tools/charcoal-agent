@@ -2,16 +2,16 @@
   "schemaVersion": "1",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 1275,
-  "derivedRevision": 1275,
+  "sourceRevision": 1305,
+  "derivedRevision": 1305,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 1275
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 1305
   },
   "conflictCount": 0,
-  "updatedAt": "2026-10-05T06:00:42.859811Z",
+  "updatedAt": "2026-10-05T13:25:18.690366Z",
   "cursor": [
     "uar-integration",
-    "k8s-stack-manifests",
+    "github-deploy-workflows",
     "1.4"
   ],
   "root": {
@@ -19,7 +19,7 @@
     "id": "440c5818-223c-4091-8b7f-bc8083505a3c",
     "status": "ready",
     "progress": {
-      "done": 27,
+      "done": 29,
       "total": 55
     },
     "children": [
@@ -159,7 +159,7 @@
         "canonicalId": "uar-integration",
         "status": "PENDING",
         "progress": {
-          "done": 8,
+          "done": 10,
           "total": 36
         },
         "children": [
@@ -314,9 +314,9 @@
           {
             "type": "change",
             "id": "k8s-stack-manifests",
-            "status": "IN_PROGRESS",
+            "status": "COMPLETE",
             "progress": {
-              "done": 5,
+              "done": 6,
               "total": 6
             }
           },
@@ -341,18 +341,18 @@
           {
             "type": "change",
             "id": "ci-secrets-out",
-            "status": "IN_PROGRESS",
+            "status": "PENDING",
             "progress": {
-              "done": 3,
+              "done": 5,
               "total": 6
             }
           },
           {
             "type": "change",
             "id": "uar-runtime-host-lockdown",
-            "status": "IN_PROGRESS",
+            "status": "COMPLETE",
             "progress": {
-              "done": 4,
+              "done": 6,
               "total": 6
             }
           },
@@ -467,9 +467,9 @@
           {
             "type": "change",
             "id": "site-spend-ceiling",
-            "status": "IN_PROGRESS",
+            "status": "PENDING",
             "progress": {
-              "done": 6,
+              "done": 7,
               "total": 14
             }
           },
