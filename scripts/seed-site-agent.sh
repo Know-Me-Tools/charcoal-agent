@@ -396,13 +396,33 @@ wait_for_ingestion() {
 # chunks score 0.58 to 0.67 for short questions against text-embedding-v4).
 FR8_MIN_SCORE="${FR8_MIN_SCORE:-0.3}"
 FR8_TOP_N="${FR8_TOP_N:-5}"
+# The first search right after a KB is created and filled can time out (HTTP
+# 408 "Request timed out") and then succeed on retry. Seen on the local stack
+# and on the cluster's first deploy, where it failed the whole deploy even
+# though ingestion had succeeded. Retry timeouts and 5xx; anything else (401,
+# 404, 400) is a real error and fails at once.
+FR8_SEARCH_ATTEMPTS="${FR8_SEARCH_ATTEMPTS:-6}"
+FR8_SEARCH_RETRY_SECS="${FR8_SEARCH_RETRY_SECS:-10}"
 
 # search_kb: POST .../search, leaves the `results` array in SEARCH_RESULTS_JSON.
 search_kb() {
-  local query="$1" limit="${2:-$FR8_TOP_N}" body
+  local query="$1" limit="${2:-$FR8_TOP_N}" body attempt=1
   body="$(jq -n --arg q "$query" --argjson limit "$limit" --argjson min_score "$FR8_MIN_SCORE" \
     '{query: $q, limit: $limit, min_score: $min_score}')"
-  api POST "/api/uar/knowledge-bases/${KB_ID}/search" -H 'Content-Type: application/json' --data-binary "$body"
+  while :; do
+    api POST "/api/uar/knowledge-bases/${KB_ID}/search" -H 'Content-Type: application/json' --data-binary "$body"
+    case "$API_STATUS" in
+      408 | 5?? | 000)
+        if (( attempt < FR8_SEARCH_ATTEMPTS )); then
+          log "search KB '$KB_NAME' got HTTP $API_STATUS (attempt $attempt of $FR8_SEARCH_ATTEMPTS); retrying in ${FR8_SEARCH_RETRY_SECS}s"
+          attempt=$((attempt + 1))
+          sleep "$FR8_SEARCH_RETRY_SECS"
+          continue
+        fi
+        ;;
+    esac
+    break
+  done
   local search_status="$API_STATUS"
   require_2xx "$search_status" "search KB '$KB_NAME' for '$query'"
   SEARCH_RESULTS_JSON="$(printf '%s' "$REPLY_BODY" | jq -c '.results // []')"
