@@ -2,24 +2,24 @@
   "schemaVersion": "1",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 1090,
-  "derivedRevision": 1090,
+  "sourceRevision": 1275,
+  "derivedRevision": 1275,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 1090
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 1275
   },
   "conflictCount": 0,
-  "updatedAt": "2026-10-02T23:44:12.226214Z",
+  "updatedAt": "2026-10-05T06:00:42.859811Z",
   "cursor": [
     "uar-integration",
-    "site-chat-proxy",
-    "1.5"
+    "k8s-stack-manifests",
+    "1.4"
   ],
   "root": {
     "type": "phase",
     "id": "440c5818-223c-4091-8b7f-bc8083505a3c",
     "status": "ready",
     "progress": {
-      "done": 25,
+      "done": 27,
       "total": 55
     },
     "children": [
@@ -159,7 +159,7 @@
         "canonicalId": "uar-integration",
         "status": "PENDING",
         "progress": {
-          "done": 6,
+          "done": 8,
           "total": 36
         },
         "children": [
@@ -289,16 +289,16 @@
             "id": "site-agent-seed",
             "status": "PENDING",
             "progress": {
-              "done": 2,
+              "done": 4,
               "total": 6
             }
           },
           {
             "type": "change",
             "id": "site-chat-proxy",
-            "status": "IN_PROGRESS",
+            "status": "COMPLETE",
             "progress": {
-              "done": 3,
+              "done": 5,
               "total": 5
             }
           },
@@ -314,18 +314,18 @@
           {
             "type": "change",
             "id": "k8s-stack-manifests",
-            "status": "PENDING",
+            "status": "IN_PROGRESS",
             "progress": {
-              "done": 3,
+              "done": 5,
               "total": 6
             }
           },
           {
             "type": "change",
             "id": "github-deploy-workflows",
-            "status": "PENDING",
+            "status": "IN_PROGRESS",
             "progress": {
-              "done": 3,
+              "done": 6,
               "total": 7
             }
           },
@@ -341,27 +341,27 @@
           {
             "type": "change",
             "id": "ci-secrets-out",
-            "status": "PENDING",
+            "status": "IN_PROGRESS",
             "progress": {
-              "done": 0,
+              "done": 3,
               "total": 6
             }
           },
           {
             "type": "change",
             "id": "uar-runtime-host-lockdown",
-            "status": "PENDING",
+            "status": "IN_PROGRESS",
             "progress": {
-              "done": 0,
+              "done": 4,
               "total": 6
             }
           },
           {
             "type": "change",
             "id": "uar-jwks-es256",
-            "status": "IN_PROGRESS",
+            "status": "COMPLETE",
             "progress": {
-              "done": 3,
+              "done": 4,
               "total": 4
             }
           },
@@ -377,9 +377,9 @@
           {
             "type": "change",
             "id": "gate-ext-authz-endpoint",
-            "status": "PENDING",
+            "status": "IN_PROGRESS",
             "progress": {
-              "done": 0,
+              "done": 4,
               "total": 6
             }
           },
@@ -415,7 +415,7 @@
             "id": "kb-chunking-quality",
             "status": "PENDING",
             "progress": {
-              "done": 0,
+              "done": 4,
               "total": 7
             }
           },
@@ -424,16 +424,16 @@
             "id": "site-agent-tool-allowlist",
             "status": "PENDING",
             "progress": {
-              "done": 0,
+              "done": 2,
               "total": 10
             }
           },
           {
             "type": "change",
             "id": "site-proxy-artifact-filter",
-            "status": "PENDING",
+            "status": "IN_PROGRESS",
             "progress": {
-              "done": 0,
+              "done": 3,
               "total": 4
             }
           },
@@ -449,9 +449,9 @@
           {
             "type": "change",
             "id": "site-session-binding",
-            "status": "PENDING",
+            "status": "IN_PROGRESS",
             "progress": {
-              "done": 0,
+              "done": 5,
               "total": 7
             }
           },
@@ -460,43 +460,43 @@
             "id": "site-proxy-hardening",
             "status": "PENDING",
             "progress": {
-              "done": 0,
+              "done": 7,
               "total": 9
             }
           },
           {
             "type": "change",
             "id": "site-spend-ceiling",
-            "status": "PENDING",
+            "status": "IN_PROGRESS",
             "progress": {
-              "done": 0,
+              "done": 6,
               "total": 14
             }
           },
           {
             "type": "change",
             "id": "site-security-headers",
-            "status": "PENDING",
+            "status": "IN_PROGRESS",
             "progress": {
-              "done": 0,
+              "done": 3,
               "total": 7
             }
           },
           {
             "type": "change",
             "id": "ci-supply-chain-pins",
-            "status": "PENDING",
+            "status": "IN_PROGRESS",
             "progress": {
-              "done": 0,
+              "done": 7,
               "total": 9
             }
           },
           {
             "type": "change",
             "id": "site-ai-disclosure-label",
-            "status": "PENDING",
+            "status": "IN_PROGRESS",
             "progress": {
-              "done": 0,
+              "done": 6,
               "total": 9
             }
           },
@@ -512,27 +512,27 @@
           {
             "type": "change",
             "id": "site-citation-link-allowlist",
-            "status": "PENDING",
+            "status": "IN_PROGRESS",
             "progress": {
-              "done": 0,
+              "done": 5,
               "total": 8
             }
           },
           {
             "type": "change",
             "id": "site-chat-offline-states",
-            "status": "PENDING",
+            "status": "IN_PROGRESS",
             "progress": {
-              "done": 0,
+              "done": 6,
               "total": 9
             }
           },
           {
             "type": "change",
             "id": "site-agent-prompt-fixes",
-            "status": "PENDING",
+            "status": "IN_PROGRESS",
             "progress": {
-              "done": 0,
+              "done": 5,
               "total": 7
             }
           },

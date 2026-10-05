@@ -2,10 +2,10 @@
   "schemaVersion": "5",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 1090,
-  "derivedRevision": 1090,
+  "sourceRevision": 1275,
+  "derivedRevision": 1275,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 1090
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 1275
   },
   "conflictCount": 0,
   "projectId": "440c5818-223c-4091-8b7f-bc8083505a3c",
@@ -21,19 +21,19 @@
   "phase": "uar-integration",
   "parentPhase": null,
   "childPointer": null,
-  "change": "site-chat-proxy",
-  "currentTask": "1.5",
+  "change": "k8s-stack-manifests",
+  "currentTask": "1.4",
   "status": "ready",
   "lifecycle": "ready",
   "stageId": null,
   "stageStatus": null,
   "completionMetric": "implementation",
-  "implementationCompleted": 25,
+  "implementationCompleted": 27,
   "implementationTotal": 55,
   "planRevision": 2,
-  "revision": 1090,
+  "revision": 1275,
   "exactNextCommand": "/kbd-status",
-  "nextChange": "site-chat-proxy",
-  "nextTask": "1.5",
-  "updatedAt": "2026-10-02T23:44:12.226214Z"
+  "nextChange": "k8s-stack-manifests",
+  "nextTask": "1.4",
+  "updatedAt": "2026-10-05T06:00:42.859811Z"
 }

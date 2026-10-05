@@ -1,23 +1,9 @@
 {
   "phase": "uar-integration",
-  "dispatchedAt": "2026-09-30T10:02:02Z",
+  "revision": 3,
+  "dispatchedAt": "2026-10-03T09:23:03Z",
+  "baseCommit": "e7e9b9a",
   "backend": "openspec",
-  "assigned": {
-    "wave1": [
-      "uar-ghcr-multiarch-publish",
-      "uar-kb-retrieval-embedding",
-      "memory-server-ghcr-publish",
-      "cluster-gateway-and-cert",
-      "site-knowledge-corpus"
-    ]
-  },
-  "pending": [
-    "local-compose-stack",
-    "site-agent-seed",
-    "site-chat-proxy",
-    "about-endpoint-truth",
-    "k8s-stack-manifests",
-    "github-deploy-workflows",
-    "apex-dns-cutover"
-  ]
+  "lanes": ["R1","R2","F","D","C","G","self:gate-ci-gitops-1.5"],
+  "pendingWork": ["all lanes", "merge", "operator actions", "first deploy", "phase gate", "cumulative review"]
 }
