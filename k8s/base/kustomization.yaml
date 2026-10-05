@@ -4,7 +4,10 @@ kind: Kustomization
 namespace: knowme
 
 resources:
-  - namespace.yaml
+  # No namespace.yaml: `scripts/ops/bootstrap-site.sh secrets` creates the
+  # namespace (k8s/bootstrap/namespace.yaml), and the CI deployer is
+  # namespace-scoped, so it cannot `get namespaces` and `kubectl apply` of a
+  # Namespace object fails with Forbidden.
   - surrealdb-statefulset.yaml
   - surrealdb-service.yaml
   - surrealdb-networkpolicy.yaml
