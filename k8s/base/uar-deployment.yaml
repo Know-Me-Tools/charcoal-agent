@@ -54,6 +54,19 @@ spec:
                 name: uar-config
             - secretRef:
                 name: uar-secrets
+          # UAR takes 50 to 95 seconds to start (it connects to SurrealDB, runs
+          # governance preflight and starts its listeners). The liveness probe
+          # alone gives up after about 75 seconds (30s delay + 3 failures at
+          # 15s), so a slow start was killed with exit 137 (seen on the first
+          # deploy). Liveness and readiness do not run until this probe
+          # succeeds; it allows 5 minutes (30 x 10s).
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /healthz
