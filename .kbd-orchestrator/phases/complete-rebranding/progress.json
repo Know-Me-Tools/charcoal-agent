@@ -2,16 +2,16 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 756,
-  "derivedRevision": 756,
+  "sourceRevision": 1088,
+  "derivedRevision": 1088,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 756
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 1088
   },
   "conflictCount": 0,
   "phase": "complete-rebranding",
   "phaseId": "complete-rebranding",
   "parentPhase": null,
-  "last_updated": "2026-09-30T12:30:25.559751Z",
+  "last_updated": "2026-10-02T23:43:05.849342Z",
   "last_updated_by": "kbd-runtime",
   "changes_total": 13,
   "changes_completed": 13,
@@ -49,8 +49,8 @@
     "runId": "complete-rebranding-20260923T223312Z",
     "primaryCounter": "implementation",
     "implementation": {
-      "completed": 14,
-      "total": 25,
+      "completed": 25,
+      "total": 55,
       "status": "IN_PROGRESS"
     },
     "evidence": {
