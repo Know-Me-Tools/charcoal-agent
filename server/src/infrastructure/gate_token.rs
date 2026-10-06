@@ -185,6 +185,10 @@ impl TokenFetcher for GateFetcher {
                 "application/x-www-form-urlencoded",
             )
             .header(reqwest::header::ACCEPT, "application/json")
+            // Gate's rate limiter keys on the forwarded address and answers a
+            // request without one with `500 Unable To Extract Key!`. This is a
+            // service-to-service call, so name the caller as loopback.
+            .header("x-forwarded-for", "127.0.0.1")
             .body(client_credentials_form(
                 &self.config.client_id,
                 &self.config.client_secret,

@@ -110,6 +110,26 @@ async fn gate_mode_should_send_a_cached_bearer_and_no_api_key() {
     );
 }
 
+/// Gate's rate limiter keys on the forwarded client address and answers a
+/// request without one with `500 Unable To Extract Key!`, so every token
+/// fetch from a pod failed until the site server named itself.
+#[tokio::test]
+async fn the_gate_request_should_carry_a_forwarded_for_header() {
+    let (h, gate) = start_gated(vec!["site-token-1"]).await;
+    let res = h
+        .chat(r#"{"message":"usage"}"#)
+        .header("authorization", "Bearer client-jwt")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(res.status(), StatusCode::OK);
+    drop(res.bytes().await);
+
+    let calls = gate.calls();
+    let (headers, _) = &calls[0];
+    assert_eq!(headers.get("x-forwarded-for").unwrap(), "127.0.0.1");
+}
+
 #[tokio::test]
 async fn a_401_from_uar_should_refresh_the_token_and_retry_once() {
     let rejected = REJECTED_BEARER.trim_start_matches("Bearer ");
