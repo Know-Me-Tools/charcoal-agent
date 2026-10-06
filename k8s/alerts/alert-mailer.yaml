@@ -1,0 +1,77 @@
+# Emails the site server's alert log lines to the operator every 5 minutes.
+# Reads pod logs in this namespace only; sends through Resend using the
+# Secret site-alert-mail (RESEND_API_KEY, ALERT_TO, ALERT_FROM), which the
+# bootstrap command creates.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: alert-mailer
+  namespace: knowme
+  labels: {app.kubernetes.io/name: alert-mailer, app.kubernetes.io/part-of: knowme-site}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: alert-mailer
+  namespace: knowme
+  labels: {app.kubernetes.io/name: alert-mailer, app.kubernetes.io/part-of: knowme-site}
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: alert-mailer
+  namespace: knowme
+  labels: {app.kubernetes.io/name: alert-mailer, app.kubernetes.io/part-of: knowme-site}
+subjects:
+  - kind: ServiceAccount
+    name: alert-mailer
+    namespace: knowme
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: alert-mailer
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: alert-mailer
+  namespace: knowme
+  labels: {app.kubernetes.io/name: alert-mailer, app.kubernetes.io/part-of: knowme-site}
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 120
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 120
+      ttlSecondsAfterFinished: 3600
+      template:
+        metadata:
+          labels: {app.kubernetes.io/name: alert-mailer}
+        spec:
+          serviceAccountName: alert-mailer
+          restartPolicy: Never
+          containers:
+            - name: mailer
+              image: alpine/k8s:1.33.4@sha256:b0523f0a244ddc4c8e055aa335c040d3d78b3ead5528f4544395f7f9f69c7b68
+              command: ["sh", "/scripts/alert-mailer.sh"]
+              envFrom:
+                - secretRef: {name: site-alert-mail}
+              volumeMounts:
+                - {name: script, mountPath: /scripts, readOnly: true}
+              resources:
+                requests: {cpu: 10m, memory: 32Mi}
+                limits: {cpu: 200m, memory: 128Mi}
+          volumes:
+            - name: script
+              configMap: {name: alert-mailer-script}
