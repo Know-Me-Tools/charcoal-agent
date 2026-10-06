@@ -25,19 +25,7 @@ spec:
         app.kubernetes.io/part-of: knowme-site
     spec:
       securityContext:
-        fsGroup: 0
-      initContainers:
-        # A hostPath directory is created root-owned and fsGroup does not apply
-        # to it, but the SurrealDB image runs as `nonroot` (65532). Hand the
-        # directory over before it starts. Remove with the hostPath volume.
-        - name: fix-data-ownership
-          image: alpine:3.21@sha256:ce64758a109eb420d874a118f87920e625e12d3634e03b4a5573fd9f6e5d3507
-          command: ["chown", "-R", "65532:65532", "/data"]
-          securityContext:
-            runAsUser: 0
-          volumeMounts:
-            - name: surrealdb-data
-              mountPath: /data
+        fsGroup: 65532
       containers:
         - name: surrealdb
           image: surrealdb/surrealdb:v3.3.0@sha256:681c6c22c287421b5c7d99e0fde79b6e0d32c36c1ddeaab2762a1661cb04cd20
@@ -84,30 +72,13 @@ spec:
           volumeMounts:
             - name: surrealdb-data
               mountPath: /data
-      # TEMPORARY: a directory on one node's own disk. The Linode account has
-      # hit its limit on active services, so the block-storage volume this
-      # StatefulSet used to claim cannot be provisioned ("You've reached a limit
-      # for the number of active services on your account"). Data survives pod
-      # restarts but NOT the loss of the node (an LKE upgrade or recycle, or a
-      # delete): then it is gone, and with the label below missing the pod stays
-      # Pending instead of starting empty on another node. The operator labels
-      # the node once: kubectl label node <node> knowme.tools/surrealdb=true
-      # Once the limit is raised, restore the volumeClaimTemplates block below,
-      # delete this volume and the nodeSelector, and copy the data across first.
-      nodeSelector:
-        knowme.tools/surrealdb: "true"
-      volumes:
-        - name: surrealdb-data
-          hostPath:
-            path: /var/lib/knowme/surrealdb
-            type: DirectoryOrCreate
-  # volumeClaimTemplates:
-  #   - metadata:
-  #       name: surrealdb-data
-  #     spec:
-  #       accessModes:
-  #         - ReadWriteOnce
-  #       storageClassName: linode-block-storage-retain
-  #       resources:
-  #         requests:
-  #           storage: 20Gi
+  volumeClaimTemplates:
+    - metadata:
+        name: surrealdb-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: linode-block-storage-retain
+        resources:
+          requests:
+            storage: 20Gi
