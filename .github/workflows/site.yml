@@ -197,49 +197,7 @@ jobs:
             esac
           done
 
-      # github-deploy-workflows 1.7: the first deploy ships with the site
-      # chat kill switch on (out-of-band ConfigMap, site-spend-ceiling 1.9),
-      # so no public chat turn reaches UAR until the operator starts
-      # site-spend-ceiling 1.14 with the test budget and turns it off. The
-      # operator flips the `SITE_CHAT_KILL_SWITCH_EXPECTED` repository
-      # variable to "off" at that point (Settings -> Secrets and variables
-      # -> Actions -> Variables); this workflow does not probe the real
-      # switch state, it asserts whichever behavior the operator says to
-      # expect.
-      - name: Resolve expected kill switch state
-        id: kill_switch
-        run: echo "expected=${{ vars.SITE_CHAT_KILL_SWITCH_EXPECTED || 'on' }}" >> "$GITHUB_OUTPUT"
-
-      - name: Site chat turn is refused (kill switch on)
-        if: steps.kill_switch.outputs.expected != 'off'
-        run: |
-          set -euo pipefail
-          session_id="$(cat /proc/sys/kernel/random/uuid)"
-          status="$(curl --resolve know-me.tools:443:23.239.29.33 -sS -o /tmp/chat-smoke-offline.log -w '%{http_code}' --max-time 15 \
-            -X POST https://know-me.tools/api/chat/completion \
-            -H 'Content-Type: application/json' \
-            -H "X-UAR-Session-ID: ${session_id}" \
-            -d '{"message":"What is KnowMe?","stream":true,"stream_mode":"dual"}')"
-          case "$status" in
-            2??)
-              echo "expected a refusal while the kill switch is on, got HTTP $status"
-              cat /tmp/chat-smoke-offline.log
-              exit 1
-              ;;
-          esac
-          # server/src/error.rs's generic envelope is {"error": code, "message": ...}
-          # on every refusal path that exists today. The specific kill-switch
-          # error code is not pinned yet (site-spend-ceiling / site-chat-offline-states
-          # are not implemented); tighten this grep to that code once they land.
-          grep -q '"error"' /tmp/chat-smoke-offline.log || {
-            echo "refusal body carried no error code"
-            cat /tmp/chat-smoke-offline.log
-            exit 1
-          }
-          echo "chat refused while the kill switch is on (HTTP $status)"
-
-      - name: Site chat turn streams a reply (kill switch off)
-        if: steps.kill_switch.outputs.expected == 'off'
+      - name: Site chat turn streams a reply
         run: |
           set -euo pipefail
           session_id="$(cat /proc/sys/kernel/random/uuid)"
