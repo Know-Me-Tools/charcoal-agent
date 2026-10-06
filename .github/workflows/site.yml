@@ -214,8 +214,9 @@ jobs:
             exit 1
           fi
           # dual stream mode never emits TEXT_MESSAGE_CONTENT; the client
-          # dialect is agui.message.delta (FR-13).
-          grep -q '"type":"agui.message.delta"' /tmp/chat-smoke.log || {
+          # dialect is the SSE event name agui.message.delta (FR-13). The name
+          # is on the `event:` line, not in a `"type"` field of the data.
+          grep -q '^event: agui.message.delta' /tmp/chat-smoke.log || {
             echo "chat stream never emitted agui.message.delta"
             cat /tmp/chat-smoke.log
             exit 1
