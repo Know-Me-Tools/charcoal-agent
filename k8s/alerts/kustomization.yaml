@@ -1,0 +1,13 @@
+# Operator-applied (scripts/ops/bootstrap-site.sh alert-email), NOT part of
+# k8s/base: the CI deployer cannot create ServiceAccounts, Roles or CronJobs.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: knowme
+resources:
+  - alert-mailer.yaml
+configMapGenerator:
+  - name: alert-mailer-script
+    files:
+      - alert-mailer.sh
+generatorOptions:
+  disableNameSuffixHash: true

@@ -19,6 +19,11 @@
 #       database-scoped user (ns=site, db=meter) from Secret site-meter-auth.
 #   scripts/ops/bootstrap-site.sh kill-switch on|off
 #       Sets the site chat kill switch. The site server reads it within ~10 s.
+#   RESEND_API_KEY=... scripts/ops/bootstrap-site.sh alert-email <to-address> [from-address]
+#       Creates Secret site-alert-mail and applies k8s/alerts: a CronJob that
+#       emails the site server's alert log lines every 5 minutes. The key is
+#       read from the environment, never printed. The from-address must be on
+#       a domain verified in Resend (default site-alerts@prometheusags.ai).
 #
 # Requires: kubectl, gh, openssl, htpasswd, jq.
 set -euo pipefail
@@ -196,7 +201,22 @@ cmd_kill_switch() {
   log "kill switch $state (applies within ~10 s, no restart)"
 }
 
+cmd_alert_email() {
+  local to="${1:-}" from="${2:-site-alerts@prometheusags.ai}"
+  [ -n "$to" ] || die "usage: alert-email <to-address> [from-address]"
+  [ -n "${RESEND_API_KEY:-}" ] || die "RESEND_API_KEY is not set (a send-only Resend key)"
+  local tmp
+  tmp="$(mktemp)"; chmod 600 "$tmp"
+  printf '%s\n' "RESEND_API_KEY=$RESEND_API_KEY" "ALERT_TO=$to" "ALERT_FROM=$from" >"$tmp"
+  kc -n "$NS" create secret generic site-alert-mail --from-env-file="$tmp" \
+    --dry-run=client -o yaml | kc -n "$NS" apply -f - >/dev/null
+  rm -f "$tmp"
+  kc apply -k "$(dirname "$0")/../../k8s/alerts" >/dev/null
+  log "alert mailer applied: alerts go to $to from $from, every 5 minutes"
+}
+
 case "${1:-}" in
+  alert-email) shift; cmd_alert_email "$@" ;;
   secrets) shift; cmd_secrets "$@" ;;
   meter-user) cmd_meter_user ;;
   kill-switch) shift; cmd_kill_switch "$@" ;;
