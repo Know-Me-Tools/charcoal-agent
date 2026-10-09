@@ -43,7 +43,11 @@ pub const ARTIFACT_STREAM: &str = concat!(
     "event: agui.artifact\nid: 2\ndata: {\"artifact_type\":\"effective_run_policy\",\"content\":\"{}\"}\n\n",
     "event: agui.message.delta\nid: 3\ndata: {\"delta\":{\"text\":\"hi\"}}\n\n",
     "event: agui.artifact\nid: 4\ndata: {\"artifact_type\":\"turn_manifest\"}\n\n",
-    "event: agui.artifact\nid: 5\ndata: {\"artifact_type\":\"code\"}\n\n",
+    "event: agui.artifact\nid: 5\ndata: {\"artifact_type\":\"a2ui\",\"content\":\"{}\"}\n\n",
+    "event: agui.artifact\nid: 7\ndata: {\"artifact_type\":\"provider_event\"}\n\n",
+    "event: agui.artifact\nid: 8\ndata: {\"artifact_type\":\"attempt_manifest\"}\n\n",
+    "event: runtime.step\nid: 9\ndata: {\"step\":1}\n\n",
+    "data: {\"choices\":[{\"delta\":{\"content\":\"hi\"}}]}\n\n",
     "event: agui.done\nid: 6\ndata: {\"usage\":{\"input_tokens\":1}}\n\n",
 );
 /// A completed run: one delta, then `agui.done` with usage.
@@ -139,11 +143,15 @@ pub async fn stub_handler(
             let release = stub.release.clone();
             tokio::spawn(async move {
                 let _ = tx
-                    .send(Ok(Bytes::from_static(b"data: {\"type\":\"first\"}\n\n")))
+                    .send(Ok(Bytes::from_static(
+                        b"event: agui.message.delta\ndata: {\"type\":\"first\"}\n\n",
+                    )))
                     .await;
                 release.notified().await;
                 let _ = tx
-                    .send(Ok(Bytes::from_static(b"data: {\"type\":\"second\"}\n\n")))
+                    .send(Ok(Bytes::from_static(
+                        b"event: agui.message.delta\ndata: {\"type\":\"second\"}\n\n",
+                    )))
                     .await;
             });
             let stream = futures_util::stream::unfold(rx, |mut rx| async move {

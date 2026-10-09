@@ -1,30 +1,57 @@
 // TJ-ARCH-MOB-001 compliant
-//! Drops UAR's internal run artifacts from the public SSE stream (FR-45).
+//! Allowlist filter for the public SSE stream (FR-45).
 //!
-//! UAR emits `event: agui.artifact` frames whose JSON `artifact_type` is
-//! `effective_run_policy` or `turn_manifest` on every run (UAR
-//! `src/uar/api/sse.rs`, `to_agui_event`). They expose the agent's policy and
-//! tool set. The filter splits the stream at SSE event boundaries (a blank
-//! line, with `\n`, `\r\n` or `\r` line endings), drops those two artifact
-//! types, and returns every other event's original bytes, in order. A
-//! complete event is released as soon as its terminating blank line arrives;
-//! only an incomplete event is held.
+//! UAR emits many `agui.*` and `runtime.*` events and several artifact types
+//! that expose the agent's policy, tool set, provider and model names
+//! (`effective_run_policy`, `turn_manifest`, `provider_event`,
+//! `attempt_manifest`, and whatever UAR adds next). A denylist leaks every new
+//! diagnostic until someone names it, so this filter forwards only what the
+//! public client renders or the meter needs, and drops everything else.
 //!
-//! An `agui.artifact` whose `artifact_type` cannot be read (bad JSON, missing
-//! field) is dropped too, because it could be an internal one, but it is
-//! reported as [`Verdict::DropMalformed`] so the caller logs it rather than
-//! counting it as an internal artifact.
+//! The stream is split at SSE event boundaries (a blank line, with `\n`,
+//! `\r\n` or `\r` line endings). Kept events are returned as their original
+//! bytes, in order. A complete event is released as soon as its terminating
+//! blank line arrives; only an incomplete event is held.
+//!
+//! What is kept:
+//! - the events in [`ALLOWED_EVENTS`];
+//! - `agui.artifact` only when `artifact_type` is in [`ALLOWED_ARTIFACT_TYPES`];
+//! - `agui.state.patch` only when every op's path is under `/a2ui/`;
+//! - an event-less frame only when its data is `[DONE]`;
+//! - comment-only frames (keep-alives), which carry no data.
+//!
+//! An `agui.artifact` or `agui.state.patch` whose payload cannot be read (bad
+//! JSON, missing field) is dropped, but reported as [`Verdict::DropMalformed`]
+//! so the caller logs it rather than counting it as internal.
 //!
 //! The same pass reports the run signals the meter needs ([`Signal`]): the
 //! first `agui.message.delta` (time to first token), `agui.done` with its
-//! usage, `agui.cancelled` and `agui.error`.
+//! usage, `agui.cancelled` and `agui.error`. Signals are read from the
+//! upstream event whether or not it is forwarded.
 
 use serde_json::Value;
 
 use crate::domain::meter::{Usage, parse_done_usage};
 
 pub const ARTIFACT_EVENT: &str = "agui.artifact";
-pub const INTERNAL_ARTIFACT_TYPES: [&str; 2] = ["effective_run_policy", "turn_manifest"];
+pub const STATE_PATCH_EVENT: &str = "agui.state.patch";
+/// Artifact types a visitor may receive. Everything else is diagnostic.
+pub const ALLOWED_ARTIFACT_TYPES: [&str; 1] = ["a2ui"];
+/// Events a visitor may receive. `agui.done` carries the usage the meter reads.
+pub const ALLOWED_EVENTS: [&str; 8] = [
+    "agui.stream.start",
+    "agui.message.delta",
+    "agui.done",
+    "agui.error",
+    "agui.cancelled",
+    "agui.citation.added",
+    "agui.rag_citations",
+    "agui.tool_call.denied",
+];
+/// A state patch is public only when every op writes under this prefix.
+pub const A2UI_PATH_PREFIX: &str = "/a2ui/";
+/// The client's safety-net terminator, the one event-less frame that is kept.
+const DONE_SENTINEL: &str = "[DONE]";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Verdict {
@@ -169,18 +196,55 @@ impl ParsedEvent {
     }
 
     fn verdict(&self) -> Verdict {
-        if self.event_type.as_deref() != Some(ARTIFACT_EVENT) {
-            return Verdict::Forward;
+        match self.event_type.as_deref() {
+            None => {
+                let data = self.data.trim();
+                if data.is_empty() || data == DONE_SENTINEL {
+                    Verdict::Forward
+                } else {
+                    Verdict::DropInternal
+                }
+            }
+            Some(ARTIFACT_EVENT) => self.artifact_verdict(),
+            Some(STATE_PATCH_EVENT) => self.state_patch_verdict(),
+            Some(name) if ALLOWED_EVENTS.contains(&name) => Verdict::Forward,
+            Some(_) => Verdict::DropInternal,
         }
+    }
+
+    fn artifact_verdict(&self) -> Verdict {
         let payload: Option<Value> = serde_json::from_str(&self.data).ok();
         match payload
             .as_ref()
             .and_then(|v| v.get("artifact_type"))
             .and_then(Value::as_str)
         {
-            Some(kind) if INTERNAL_ARTIFACT_TYPES.contains(&kind) => Verdict::DropInternal,
-            Some(_) => Verdict::Forward,
+            Some(kind) if ALLOWED_ARTIFACT_TYPES.contains(&kind) => Verdict::Forward,
+            Some(_) => Verdict::DropInternal,
             None => Verdict::DropMalformed,
+        }
+    }
+
+    /// Fail closed: one op outside `/a2ui/` drops the whole patch.
+    fn state_patch_verdict(&self) -> Verdict {
+        let payload: Option<Value> = serde_json::from_str(&self.data).ok();
+        let Some(ops) = payload
+            .as_ref()
+            .and_then(|v| v.get("patch"))
+            .and_then(Value::as_array)
+        else {
+            return Verdict::DropMalformed;
+        };
+        let all_public = !ops.is_empty()
+            && ops.iter().all(|op| {
+                op.get("path")
+                    .and_then(Value::as_str)
+                    .is_some_and(|path| path.starts_with(A2UI_PATH_PREFIX))
+            });
+        if all_public {
+            Verdict::Forward
+        } else {
+            Verdict::DropInternal
         }
     }
 
@@ -255,18 +319,149 @@ mod tests {
         );
     }
 
+    const PROVIDER: &str =
+        "event: agui.artifact\nid: 7\ndata: {\"artifact_type\":\"provider_event\"}\n\n";
+    const ATTEMPT: &str =
+        "event: agui.artifact\nid: 8\ndata: {\"artifact_type\":\"attempt_manifest\"}\n\n";
+    const A2UI: &str =
+        "event: agui.artifact\nid: 9\ndata: {\"artifact_type\":\"a2ui\",\"content\":\"{}\"}\n\n";
+    const DONE_SENTINEL_FRAME: &str = "data: [DONE]\n\n";
+
     #[test]
-    fn should_drop_only_the_two_internal_artifacts_and_keep_order_and_bytes() {
+    fn should_forward_only_allowlisted_frames_and_keep_order_and_bytes() {
         let stream = [
-            START, POLICY, DELTA, MANIFEST, OPENAI, CODE, KEEPALIVE, DONE,
+            START,
+            POLICY,
+            DELTA,
+            MANIFEST,
+            PROVIDER,
+            ATTEMPT,
+            OPENAI,
+            CODE,
+            A2UI,
+            KEEPALIVE,
+            DONE_SENTINEL_FRAME,
+            DONE,
         ]
         .concat();
         let out = run(&[stream.as_bytes()]);
         assert_eq!(
             String::from_utf8(out.forward).unwrap(),
-            [START, DELTA, OPENAI, CODE, KEEPALIVE, DONE].concat()
+            [START, DELTA, A2UI, KEEPALIVE, DONE_SENTINEL_FRAME, DONE].concat()
         );
-        assert_eq!((out.dropped_internal, out.dropped_malformed), (2, 0));
+        assert_eq!((out.dropped_internal, out.dropped_malformed), (6, 0));
+    }
+
+    #[test]
+    fn every_allowed_event_name_should_be_forwarded() {
+        for name in ALLOWED_EVENTS {
+            let frame = format!("event: {name}\ndata: {{}}\n\n");
+            assert_eq!(classify(frame.as_bytes()), Verdict::Forward, "{name}");
+        }
+    }
+
+    #[test]
+    fn every_other_event_name_should_be_dropped() {
+        for name in [
+            "agui.thinking.delta",
+            "agui.reasoning.delta",
+            "agui.tool_call.delta",
+            "agui.tool_call.complete",
+            "agui.tool_result",
+            "agui.memory.recall",
+            "agui.memory.mutation",
+            "agui.memory.update",
+            "agui.skill.activated",
+            "agui.context.update",
+            "agui.budget.alert",
+            "agui.guardrail",
+            "agui.mcp.state",
+            "agui.quality.score",
+            "agui.subagent.started",
+            "agui.artifact_input_request",
+            "agui.custom",
+            "agui.raw",
+            "runtime.run",
+            "runtime.step",
+            "agui.some.future.event",
+        ] {
+            let frame = format!("event: {name}\ndata: {{}}\n\n");
+            assert_eq!(classify(frame.as_bytes()), Verdict::DropInternal, "{name}");
+        }
+    }
+
+    #[test]
+    fn unlisted_and_diagnostic_artifact_types_should_be_dropped_and_a2ui_kept() {
+        for kind in [
+            "effective_run_policy",
+            "turn_manifest",
+            "provider_event",
+            "attempt_manifest",
+            "code",
+            "a2ui_extra",
+            "",
+        ] {
+            let frame = format!("event: agui.artifact\ndata: {{\"artifact_type\":\"{kind}\"}}\n\n");
+            assert_eq!(classify(frame.as_bytes()), Verdict::DropInternal, "{kind}");
+        }
+        assert_eq!(classify(A2UI.as_bytes()), Verdict::Forward);
+    }
+
+    fn patch(ops: &str) -> String {
+        format!("event: agui.state.patch\ndata: {{\"kind\":\"state\",\"patch\":{ops}}}\n\n")
+    }
+
+    #[test]
+    fn a_state_patch_should_be_kept_only_when_every_op_is_under_a2ui() {
+        let public = patch(r#"[{"op":"add","path":"/a2ui/surface1","value":{}}]"#);
+        assert_eq!(classify(public.as_bytes()), Verdict::Forward);
+
+        let two_public = patch(
+            r#"[{"op":"add","path":"/a2ui/a","value":1},{"op":"replace","path":"/a2ui/b/c","value":2}]"#,
+        );
+        assert_eq!(classify(two_public.as_bytes()), Verdict::Forward);
+
+        for private in [
+            patch(r#"[{"op":"add","path":"/presentation","value":{}}]"#),
+            patch(r#"[{"op":"add","path":"/a2uix/y","value":{}}]"#),
+            patch(r#"[{"op":"add","path":"/a2ui","value":{}}]"#),
+            patch(
+                r#"[{"op":"add","path":"/a2ui/ok","value":1},{"op":"add","path":"/presentation","value":2}]"#,
+            ),
+            patch(r#"[{"op":"add","value":1}]"#),
+            patch(r#"[{"op":"add","path":7}]"#),
+            patch("[]"),
+        ] {
+            assert_eq!(
+                classify(private.as_bytes()),
+                Verdict::DropInternal,
+                "{private}"
+            );
+        }
+    }
+
+    #[test]
+    fn an_unreadable_state_patch_should_fail_closed_as_malformed() {
+        for bad in [
+            "event: agui.state.patch\ndata: {not json\n\n",
+            "event: agui.state.patch\ndata: {\"kind\":\"state\"}\n\n",
+            "event: agui.state.patch\ndata: {\"patch\":\"x\"}\n\n",
+        ] {
+            assert_eq!(classify(bad.as_bytes()), Verdict::DropMalformed, "{bad}");
+        }
+    }
+
+    #[test]
+    fn event_less_frames_should_be_kept_only_for_done_and_comments() {
+        assert_eq!(classify(b"data: [DONE]\n\n"), Verdict::Forward);
+        assert_eq!(classify(b"data:[DONE]\r\n\r\n"), Verdict::Forward);
+        assert_eq!(classify(b": keep-alive\n\n"), Verdict::Forward);
+        assert_eq!(classify(OPENAI.as_bytes()), Verdict::DropInternal);
+        assert_eq!(classify(b"data: {not json\n\n"), Verdict::DropInternal);
+        assert_eq!(
+            classify(b"id: 4\ndata: [DONE] x\n\n"),
+            Verdict::DropInternal
+        );
     }
 
     #[test]
@@ -317,8 +512,6 @@ mod tests {
             assert_eq!((out.dropped_internal, out.dropped_malformed), (0, 1));
             assert_eq!(String::from_utf8(out.forward).unwrap(), DELTA);
         }
-        // Non-JSON data on any other event is not this filter's concern.
-        assert_eq!(classify(b"data: [DONE]\n\n"), Verdict::Forward);
     }
 
     #[test]
