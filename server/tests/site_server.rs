@@ -310,11 +310,19 @@ async fn public_stream_should_drop_internal_artifacts_while_the_harness_sees_the
         .unwrap();
 
     assert!(!public.contains("effective_run_policy"), "{public}");
-    assert!(!public.contains("turn_manifest"), "{public}");
+    for dropped in [
+        "turn_manifest",
+        "provider_event",
+        "attempt_manifest",
+        "runtime.step",
+        "choices",
+    ] {
+        assert!(!public.contains(dropped), "{dropped} leaked: {public}");
+    }
     for kept in [
         "agui.stream.start",
         "agui.message.delta",
-        "\"code\"",
+        "\"a2ui\"",
         "agui.done",
     ] {
         assert!(public.contains(kept), "{kept} missing: {public}");
