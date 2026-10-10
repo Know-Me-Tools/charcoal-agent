@@ -9,7 +9,6 @@ import {
 	ThreadPrimitive,
 	useAuiState,
 	type MessagePartStatus,
-	type ToolCallMessagePartProps,
 } from "@assistant-ui/react";
 import {
 	AlertCircleIcon,
@@ -44,13 +43,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ArtifactBlock } from "@/features/chat/components/artifact-block";
-import { A2uiInputBlock, A2uiDisplayBlock } from "@/features/chat/components/a2ui-artifact-block";
-import { ContextUpdateBlock } from "@/features/chat/components/context-update-block";
-import { MemoryMutationBlock, MemoryRecallBlock } from "@/features/chat/components/memory-block";
-import { SkillActivationBlock } from "@/features/chat/components/skill-activation-block";
-import { ToolCallBlock, ToolCallBlockWrapper } from "@/features/chat/components/tool-call-block";
-import { CitationBlock } from "@/features/chat/components/citation-block";
+import { ToolCallPart } from "@/features/chat/render-registry/tool-call-part";
 import { ChatConnectivityBanner } from "@/features/chat/components/chat-connectivity-banner";
 import { cn } from "@/lib/utils";
 import { KnowMeMark } from "@/components/brand";
@@ -362,7 +355,8 @@ const AssistantMessage: FC = () => {
 								case "reasoning":
 									return <ReasoningPart text={part.text} status={part.status} />;
 								case "tool-call":
-									// KnowMe rich blocks are encoded as tool calls (see ToolCallPart).
+									// KnowMe rich blocks are encoded as tool calls; ToolCallPart routes them
+									// through the render registry (features/chat/render-registry).
 									return <ToolCallPart {...part} />;
 								default:
 									return null;
@@ -434,170 +428,6 @@ const ReasoningPart: FC<ReasoningPartProps> = ({ text, status }) => {
 				</CollapsibleContent>
 			</Collapsible>
 		</div>
-	);
-};
-
-// ─── Tool Call Part (routes all tool types) ───────────────────────────────────
-
-const ToolCallPart: FC<ToolCallMessagePartProps> = ({
-	toolName,
-	args,
-	result,
-	status,
-	isError,
-}) => {
-	if (toolName === "__skill__") {
-		const a = args as {
-			skillId: string;
-			skillName: string;
-			selectionMethod?: string;
-			status: "active" | "complete";
-		};
-		return (
-			<SkillActivationBlock
-				skillId={a.skillId}
-				skillName={a.skillName}
-				selectionMethod={a.selectionMethod}
-				status={a.status}
-			/>
-		);
-	}
-
-	if (toolName === "__context__") {
-		const a = args as {
-			strategy: string;
-			messagesRemoved: number;
-			tokensSaved: number;
-			wasApplied: boolean;
-			summaryGenerated: boolean;
-		};
-		return (
-			<ContextUpdateBlock
-				strategy={a.strategy}
-				messagesRemoved={a.messagesRemoved}
-				tokensSaved={a.tokensSaved}
-				wasApplied={a.wasApplied}
-				summaryGenerated={a.summaryGenerated}
-			/>
-		);
-	}
-
-	if (toolName === "__citation__") {
-		const a = args as { source: string; content: string; url?: string };
-		return <CitationBlock source={a.source} content={a.content} url={a.url} />;
-	}
-
-	if (toolName === "__denied__") {
-		// agui.tool_call.denied (FR-11 client case, site-chat-offline-states):
-		// the launch run policy refused this call. Always "Blocked by
-		// policy" — never "running" and never silently dropped.
-		const a = args as { toolName: string; reason?: string };
-		return <ToolCallBlock toolName={a.toolName} args={{}} result={a.reason} status="denied" />;
-	}
-
-	if (toolName === "__memory_recall__") {
-		const a = args as {
-			items: Array<{
-				key: string;
-				value: string;
-				source: string;
-				scope?: string;
-				memoryType?: string;
-				importance?: number;
-			}>;
-			count: number;
-		};
-		return <MemoryRecallBlock items={a.items} count={a.count} />;
-	}
-
-	if (toolName === "__memory_mutation__") {
-		const a = args as {
-			operation: string;
-			memoryId: string;
-			content: string;
-			scope: string;
-			memoryType: string;
-		};
-		return (
-			<MemoryMutationBlock
-				operation={a.operation}
-				memoryId={a.memoryId}
-				content={a.content}
-				scope={a.scope}
-				memoryType={a.memoryType}
-			/>
-		);
-	}
-
-	if (toolName === "__artifact_input__") {
-		const a = args as {
-			runId: string;
-			artifactId: string;
-			artifactType: string;
-			title: string;
-			content: string;
-			metadata: Record<string, unknown>;
-		};
-		const artifactStatus =
-			status.type === "running"
-				? "running"
-				: status.type === "incomplete"
-					? "failed"
-					: "complete";
-		return (
-			<A2uiInputBlock
-				runId={a.runId ?? ""}
-				artifactId={a.artifactId}
-				artifactType={a.artifactType}
-				title={a.title}
-				content={a.content}
-				metadata={a.metadata ?? {}}
-				status={artifactStatus}
-			/>
-		);
-	}
-
-	if (toolName === "__artifact__") {
-		const a = args as {
-			artifactId: string;
-			artifactType: string;
-			title: string;
-			content: string;
-			language?: string;
-			isInputRequest: boolean;
-		};
-		// Display-only: use A2uiDisplayBlock for proper rendering, fall back to
-		// ArtifactBlock for legacy persisted records that lack the new fields.
-		if (!a.isInputRequest) {
-			return (
-				<A2uiDisplayBlock
-					artifactType={a.artifactType}
-					title={a.title}
-					content={a.content}
-					language={a.language}
-				/>
-			);
-		}
-		return (
-			<ArtifactBlock
-				artifactId={a.artifactId}
-				artifactType={a.artifactType}
-				title={a.title}
-				content={a.content}
-				language={a.language}
-				isInputRequest={a.isInputRequest}
-			/>
-		);
-	}
-
-	return (
-		<ToolCallBlockWrapper
-			toolName={toolName}
-			args={args as Record<string, unknown>}
-			result={result}
-			status={status}
-			isError={isError}
-		/>
 	);
 };
 

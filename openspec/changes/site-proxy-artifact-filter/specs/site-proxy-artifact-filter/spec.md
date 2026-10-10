@@ -1,6 +1,8 @@
 ## ADDED Requirements
 
 ### Requirement: Internal artifacts stay internal
+> Superseded 2026-10-09 by change `agui-public-artifact-allowlist` (D-29): the denylist below leaked `provider_event` and `attempt_manifest`. The public stream is now an allowlist; this requirement remains true but is no longer sufficient.
+
 The site server SHALL drop every `agui.artifact` event whose `artifact_type` is `effective_run_policy` or `turn_manifest` from the public stream, and SHALL forward all other events unchanged and in order.
 
 #### Scenario: Public stream carries no internal artifact
