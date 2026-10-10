@@ -1,0 +1,18 @@
+{
+  "title": "Answer card",
+  "description": "A short sourced answer card. Use it for a factual reply: set data.title (a few words), data.answer (plain text, no angle brackets) and data.source (the knowledge base source).",
+  "enabled": true,
+  "template": {
+    "version": "v0.9.1",
+    "catalog_id": "urn:uar:a2ui:catalog:1",
+    "components": [
+      { "id": "root", "component": "Card", "child": "body" },
+      { "id": "body", "component": "Column", "children": ["title", "rule", "answer", "source"] },
+      { "id": "title", "component": "Text", "variant": "h3", "text": { "path": "/title" } },
+      { "id": "rule", "component": "Divider" },
+      { "id": "answer", "component": "Text", "variant": "body", "text": { "path": "/answer" } },
+      { "id": "source", "component": "Text", "variant": "caption", "text": { "path": "/source" } }
+    ],
+    "default_data": { "title": "Answer", "answer": "", "source": "" }
+  }
+}
