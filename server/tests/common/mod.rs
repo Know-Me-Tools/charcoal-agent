@@ -50,6 +50,18 @@ pub const ARTIFACT_STREAM: &str = concat!(
     "data: {\"choices\":[{\"delta\":{\"content\":\"hi\"}}]}\n\n",
     "event: agui.done\nid: 6\ndata: {\"usage\":{\"input_tokens\":1}}\n\n",
 );
+/// A forced `activate_skill` call: UAR denies it, and the tool lifecycle events
+/// around it are diagnostic.
+pub const TOOL_STREAM: &str = concat!(
+    "event: agui.stream.start\nid: 1\ndata: {\"request_id\":\"r3\"}\n\n",
+    "event: agui.tool_call.delta\nid: 2\ndata: {\"tool\":\"activate_skill\"}\n\n",
+    "event: agui.tool_call.approval_required\nid: 3\ndata: {\"tool\":\"activate_skill\"}\n\n",
+    "event: agui.tool_call.denied\nid: 4\ndata: {\"tool\":\"activate_skill\"}\n\n",
+    "event: agui.tool_call.complete\nid: 5\ndata: {\"tool\":\"activate_skill\"}\n\n",
+    "event: agui.tool_result\nid: 6\ndata: {\"tool\":\"activate_skill\"}\n\n",
+    "event: agui.message.delta\nid: 7\ndata: {\"delta\":{\"text\":\"no\"}}\n\n",
+    "event: agui.done\nid: 8\ndata: {\"usage\":{\"input_tokens\":1}}\n\n",
+);
 /// A completed run: one delta, then `agui.done` with usage.
 pub const USAGE_STREAM: &str = concat!(
     "event: agui.stream.start\nid: 1\ndata: {\"request_id\":\"r2\"}\n\n",
@@ -125,6 +137,10 @@ pub async fn stub_handler(
         "/api/chat/completion" if body_has(&stub.last(), "usage") => Response::builder()
             .header("content-type", "text/event-stream")
             .body(Body::from(USAGE_STREAM))
+            .unwrap(),
+        "/api/chat/completion" if body_has(&stub.last(), "toolcalls") => Response::builder()
+            .header("content-type", "text/event-stream")
+            .body(Body::from(TOOL_STREAM))
             .unwrap(),
         "/api/chat/completion" if body_has(&stub.last(), "artifacts") => {
             // Two bytes per upstream chunk: every event spans chunks.
