@@ -624,3 +624,84 @@ async fn healthz_should_be_local_and_readyz_should_track_upstream() {
     let chat = down.chat(r#"{"message":"hi"}"#).send().await.unwrap();
     assert_eq!(chat.status(), StatusCode::BAD_GATEWAY);
 }
+
+#[tokio::test]
+async fn upstream_should_ask_for_text_whenever_the_a2ui_switch_is_not_on() {
+    // No file variable, an off file, and an unrecognised file all read as off.
+    for a2ui_optin in [None, Some("off"), Some("enabled"), Some("")] {
+        let h = start_with(Options {
+            a2ui_optin,
+            ..Options::default()
+        })
+        .await;
+        let res = h
+            .chat(r#"{"message":"hi","presentation_mode":"a2ui"}"#)
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(res.status(), StatusCode::OK, "{a2ui_optin:?}");
+        drop(res);
+        assert_eq!(
+            json(&h.stub.last().body),
+            pinned_body("hi"),
+            "{a2ui_optin:?}"
+        );
+    }
+}
+
+#[tokio::test]
+async fn upstream_should_ask_for_a2ui_only_while_the_switch_reads_on() {
+    let h = start_with(Options {
+        a2ui_optin: Some("on\n"),
+        ..Options::default()
+    })
+    .await;
+    // The visitor's own presentation fields never decide it.
+    let res = h
+        .chat(
+            r#"{"message":"hi","presentation_mode":"legacy",
+                "client_rendering":{"a2ui_profiles":["evil/9"]}}"#,
+        )
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(res.status(), StatusCode::OK);
+    drop(res);
+    assert_eq!(json(&h.stub.last().body), pinned_body_a2ui("hi"));
+}
+
+#[tokio::test]
+async fn a2ui_message_action_and_surface_routes_should_stay_closed() {
+    // Closed with the switch ON as well as off: the opt-in never opens a route.
+    let h = start_with(Options {
+        a2ui_optin: Some("on"),
+        ..Options::default()
+    })
+    .await;
+    let closed = [
+        (Method::POST, "/api/uar/runs/run_1/a2ui/actions"),
+        (Method::POST, "/api/uar/runs/run_1/a2ui/messages"),
+        (Method::GET, "/api/uar/runs/run_1/a2ui/surfaces"),
+        (Method::GET, "/api/uar/runs/run_1/a2ui/surfaces/s1"),
+        (Method::POST, "/api/a2ui/actions"),
+        (Method::POST, "/api/a2ui/messages"),
+    ];
+    for (method, path) in closed {
+        let res = h
+            .http
+            .request(method.clone(), format!("{}{path}", h.base))
+            .header("content-type", "application/json")
+            .header("x-uar-session-id", THREAD)
+            .body(r#"{"event":{"name":"x"}}"#)
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(res.status(), StatusCode::NOT_FOUND, "{method} {path}");
+        assert_eq!(
+            json(&res.bytes().await.unwrap()),
+            serde_json::json!({"error":"not_found","message":"not found"}),
+            "{method} {path}"
+        );
+    }
+    assert_eq!(h.stub.count(), 0);
+}

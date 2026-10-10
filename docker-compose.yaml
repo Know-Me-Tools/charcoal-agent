@@ -173,9 +173,12 @@ services:
       SITE_METER_PASS: "${SITE_METER_PASS:?SITE_METER_PASS must be set}"
       # The file holds `on` or `off`; missing or unreadable means on.
       SITE_KILL_SWITCH_FILE: /etc/knowme/kill-switch/state
+      # Optional; the file holds `on` or `off`, and missing means off.
+      SITE_A2UI_OPTIN_FILE: /etc/knowme/a2ui-optin/state
       RUST_LOG: "${RUST_LOG:-info}"
     volumes:
       - ./.compose/kill-switch:/etc/knowme/kill-switch:ro
+      - ./.compose/a2ui-optin:/etc/knowme/a2ui-optin:ro
     depends_on:
       uar:
         condition: service_healthy
