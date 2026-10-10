@@ -119,8 +119,9 @@ impl SiteProxy {
             return Err(AppError::UnsupportedMediaType);
         }
         let thread = thread_id(headers)?;
-        let pinned = build_site_chat_request(body, &self.agent_id, self.a2ui_optin.is_enabled())
-            .map_err(chat_error)?;
+        // Read once: the body asks for what the filter then lets through.
+        let a2ui = self.a2ui_optin.is_enabled();
+        let pinned = build_site_chat_request(body, &self.agent_id, a2ui).map_err(chat_error)?;
 
         let mut session = HeaderValue::from_str(&self.secret.upstream_session_id(visitor, &thread))
             .map_err(|_| AppError::Internal("derived session id is not a header value"))?;
@@ -146,7 +147,7 @@ impl SiteProxy {
             )
             .await;
         match sent {
-            Ok(response) => Ok(self.public_stream(response, tracker)),
+            Ok(response) => Ok(self.public_stream(response, tracker, a2ui)),
             Err(err) => {
                 tracker.finish(Outcome::UpstreamError);
                 Err(err)
@@ -160,14 +161,18 @@ impl SiteProxy {
 
     /// Runs an SSE body through the internal-artifact filter and the turn
     /// tracker. Any other body passes unchanged and keeps its reservation.
-    fn public_stream(&self, response: Response, mut tracker: TurnTracker) -> Response {
+    fn public_stream(&self, response: Response, mut tracker: TurnTracker, a2ui: bool) -> Response {
         if !is_event_stream(response.headers()) {
             tracker.finish(Outcome::Incomplete);
             return response;
         }
         let (parts, body) = response.into_parts();
-        let filtered =
-            filter_internal_artifacts(body.into_data_stream(), self.tap.clone(), Some(tracker));
+        let filtered = filter_internal_artifacts(
+            body.into_data_stream(),
+            self.tap.clone(),
+            Some(tracker),
+            a2ui,
+        );
         Response::from_parts(parts, Body::from_stream(filtered))
     }
 }

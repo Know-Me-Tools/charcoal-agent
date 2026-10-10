@@ -299,7 +299,12 @@ async fn non_uuid_v4_thread_ids_should_get_400_before_upstream() {
 #[tokio::test]
 async fn public_stream_should_drop_internal_artifacts_while_the_harness_sees_them() {
     let (tap, mut tapped) = tokio::sync::mpsc::unbounded_channel();
-    let h = start_with_tap(None, Some(tap)).await;
+    let h = start_with(Options {
+        tap: Some(tap),
+        a2ui_optin: Some("on"),
+        ..Options::default()
+    })
+    .await;
     let public = h
         .chat(r#"{"message":"artifacts"}"#)
         .send()
@@ -333,6 +338,23 @@ async fn public_stream_should_drop_internal_artifacts_while_the_harness_sees_the
         raw.extend_from_slice(&chunk);
     }
     assert_eq!(String::from_utf8(raw).unwrap(), ARTIFACT_STREAM);
+}
+
+#[tokio::test]
+async fn a2ui_artifacts_should_not_reach_visitors_while_the_switch_is_off() {
+    let h = start(None).await;
+    let public = h
+        .chat(r#"{"message":"artifacts"}"#)
+        .send()
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
+    assert!(!public.contains("a2ui"), "a2ui leaked: {public}");
+    for kept in ["agui.stream.start", "agui.message.delta", "agui.done"] {
+        assert!(public.contains(kept), "{kept} missing: {public}");
+    }
 }
 
 #[tokio::test]
