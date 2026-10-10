@@ -23,7 +23,6 @@ use crate::application::meter::Meter;
 pub use crate::application::public_stream::UpstreamTap;
 use crate::application::site_proxy::SiteProxy;
 use crate::config::Config;
-use crate::infrastructure::a2ui_optin::A2uiOptIn;
 use crate::infrastructure::assets::AssetSource;
 use crate::infrastructure::kill_switch::KillSwitch;
 use crate::infrastructure::meter_store::MeterStore;
@@ -68,14 +67,11 @@ fn build_proxy(config: &Config) -> Result<SiteProxy, StartupError> {
         config.meter.reservation_tokens,
         kill_switch,
     );
-    let a2ui_optin = Arc::new(A2uiOptIn::new(config.a2ui_optin_file.clone()));
-    A2uiOptIn::spawn_watcher(&a2ui_optin);
     Ok(SiteProxy::new(
         uar,
         config.site_agent_id.clone(),
         config.session_secret.clone(),
         Arc::new(meter),
-        a2ui_optin,
     ))
 }
 

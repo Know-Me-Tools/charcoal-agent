@@ -301,7 +301,6 @@ async fn public_stream_should_drop_internal_artifacts_while_the_harness_sees_the
     let (tap, mut tapped) = tokio::sync::mpsc::unbounded_channel();
     let h = start_with(Options {
         tap: Some(tap),
-        a2ui_optin: Some("on"),
         ..Options::default()
     })
     .await;
@@ -338,23 +337,6 @@ async fn public_stream_should_drop_internal_artifacts_while_the_harness_sees_the
         raw.extend_from_slice(&chunk);
     }
     assert_eq!(String::from_utf8(raw).unwrap(), ARTIFACT_STREAM);
-}
-
-#[tokio::test]
-async fn a2ui_artifacts_should_not_reach_visitors_while_the_switch_is_off() {
-    let h = start(None).await;
-    let public = h
-        .chat(r#"{"message":"artifacts"}"#)
-        .send()
-        .await
-        .unwrap()
-        .text()
-        .await
-        .unwrap();
-    assert!(!public.contains("a2ui"), "a2ui leaked: {public}");
-    for kept in ["agui.stream.start", "agui.message.delta", "agui.done"] {
-        assert!(public.contains(kept), "{kept} missing: {public}");
-    }
 }
 
 #[tokio::test]
@@ -648,36 +630,8 @@ async fn healthz_should_be_local_and_readyz_should_track_upstream() {
 }
 
 #[tokio::test]
-async fn upstream_should_ask_for_text_whenever_the_a2ui_switch_is_not_on() {
-    // No file variable, an off file, and an unrecognised file all read as off.
-    for a2ui_optin in [None, Some("off"), Some("enabled"), Some("")] {
-        let h = start_with(Options {
-            a2ui_optin,
-            ..Options::default()
-        })
-        .await;
-        let res = h
-            .chat(r#"{"message":"hi","presentation_mode":"a2ui"}"#)
-            .send()
-            .await
-            .unwrap();
-        assert_eq!(res.status(), StatusCode::OK, "{a2ui_optin:?}");
-        drop(res);
-        assert_eq!(
-            json(&h.stub.last().body),
-            pinned_body("hi"),
-            "{a2ui_optin:?}"
-        );
-    }
-}
-
-#[tokio::test]
-async fn upstream_should_ask_for_a2ui_only_while_the_switch_reads_on() {
-    let h = start_with(Options {
-        a2ui_optin: Some("on\n"),
-        ..Options::default()
-    })
-    .await;
+async fn upstream_should_always_ask_for_a2ui() {
+    let h = start(None).await;
     // The visitor's own presentation fields never decide it.
     let res = h
         .chat(
@@ -689,17 +643,12 @@ async fn upstream_should_ask_for_a2ui_only_while_the_switch_reads_on() {
         .unwrap();
     assert_eq!(res.status(), StatusCode::OK);
     drop(res);
-    assert_eq!(json(&h.stub.last().body), pinned_body_a2ui("hi"));
+    assert_eq!(json(&h.stub.last().body), pinned_body("hi"));
 }
 
 #[tokio::test]
 async fn a2ui_message_action_and_surface_routes_should_stay_closed() {
-    // Closed with the switch ON as well as off: the opt-in never opens a route.
-    let h = start_with(Options {
-        a2ui_optin: Some("on"),
-        ..Options::default()
-    })
-    .await;
+    let h = start(None).await;
     let closed = [
         (Method::POST, "/api/uar/runs/run_1/a2ui/actions"),
         (Method::POST, "/api/uar/runs/run_1/a2ui/messages"),

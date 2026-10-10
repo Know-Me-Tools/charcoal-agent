@@ -52,7 +52,6 @@ pub fn filter_internal_artifacts<S, E>(
     upstream: S,
     tap: Option<UpstreamTap>,
     tracker: Option<TurnTracker>,
-    a2ui: bool,
 ) -> impl Stream<Item = Result<Bytes, E>> + Send + 'static
 where
     S: Stream<Item = Result<Bytes, E>> + Send + Unpin + 'static,
@@ -60,7 +59,7 @@ where
 {
     let state = State {
         upstream,
-        filter: InternalArtifactFilter::new(a2ui),
+        filter: InternalArtifactFilter::new(),
         tap,
         tracker,
         done: false,
@@ -133,7 +132,7 @@ mod tests {
         let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
         let upstream = futures_util::stream::iter(chunks(&[POLICY, &DELTA[..10], &DELTA[10..]]));
 
-        let out: Vec<Bytes> = filter_internal_artifacts(upstream, Some(tx), None, true)
+        let out: Vec<Bytes> = filter_internal_artifacts(upstream, Some(tx), None)
             .map(|r| r.unwrap())
             .collect()
             .await;
