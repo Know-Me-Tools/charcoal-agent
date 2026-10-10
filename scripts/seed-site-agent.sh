@@ -19,6 +19,7 @@
 #   UAR_JWT_SECRET    HS256 secret UAR verifies JWTs with (required)
 #   AGENT_FILE        Path to the AgentArtifact JSON (default: uar/agents/knowme-site.json)
 #   CORPUS_DIR        Directory of *.md corpus files (default: content/knowledge)
+#   PRESENTATIONS_DIR Directory of presentation template drafts (default: uar/presentations)
 #   KB_NAME           Knowledge base name (default: knowme-site)
 #   KB_EMBEDDING_PROVIDER   KB embedding provider for new KBs (default: openai)
 #   KB_EMBEDDING_MODEL      KB embedding model for new KBs (default: $QWEN_EMBEDDING_MODEL or text-embedding-v4)
@@ -63,6 +64,7 @@ set -euo pipefail
 UAR_URL="${UAR_URL:-http://localhost:6565}"
 AGENT_FILE="${AGENT_FILE:-uar/agents/knowme-site.json}"
 CORPUS_DIR="${CORPUS_DIR:-content/knowledge}"
+PRESENTATIONS_DIR="${PRESENTATIONS_DIR:-uar/presentations}"
 KB_NAME="${KB_NAME:-knowme-site}"
 KB_EMBEDDING_PROVIDER="${KB_EMBEDDING_PROVIDER:-openai}"
 KB_EMBEDDING_MODEL="${KB_EMBEDDING_MODEL:-${QWEN_EMBEDDING_MODEL:-text-embedding-v4}}"
@@ -215,6 +217,35 @@ else
   require_2xx "$status" "replace agent"
 fi
 log "agent '$AGENT_ID' is up to date"
+
+# ── 1b. Presentation templates (A2UI answer cards) ─────────────────────────
+# Owned by the same identity as the agent (sub=knowme-site), which is what makes
+# them eligible for the site proxy's runs. Matched by title; created when
+# missing, replaced only when the stored content differs, so a second run
+# against unchanged inputs writes nothing.
+shopt -s nullglob
+for tpl in "$PRESENTATIONS_DIR"/*.json; do
+  tpl_title="$(jq -er '.title' "$tpl")" || die "presentation $tpl has no .title"
+  log "seeding presentation '$tpl_title' from $tpl"
+  api GET "/api/uar/presentations"
+  require_2xx "$API_STATUS" "list presentations"
+  existing="$(printf '%s' "$REPLY_BODY" | jq -c --arg t "$tpl_title" '[.presentations[] | select(.content.title == $t)] | first // empty')"
+  if [[ -z "$existing" ]]; then
+    api POST "/api/uar/presentations" -H 'Content-Type: application/json' --data-binary @"$tpl"
+    require_2xx "$API_STATUS" "create presentation '$tpl_title'"
+    log "created presentation '$tpl_title'"
+  elif [[ "$(printf '%s' "$existing" | jq -S '.content')" == "$(jq -S . "$tpl")" ]]; then
+    log "presentation '$tpl_title' is up to date"
+  else
+    tpl_id="$(printf '%s' "$existing" | jq -r '.id')"
+    tpl_rev="$(printf '%s' "$existing" | jq -r '.revision')"
+    update_body="$(jq -n --argjson rev "$tpl_rev" --slurpfile c "$tpl" '{expected_revision: $rev, content: $c[0]}')"
+    api PUT "/api/uar/presentations/${tpl_id}" -H 'Content-Type: application/json' --data-binary "$update_body"
+    require_2xx "$API_STATUS" "update presentation '$tpl_title'"
+    log "updated presentation '$tpl_title'"
+  fi
+done
+shopt -u nullglob
 
 # ── 2. Knowledge base: create if missing, looked up by name ────────────────
 log "looking up knowledge base '$KB_NAME'"
