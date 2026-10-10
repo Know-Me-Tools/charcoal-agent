@@ -12,4 +12,6 @@
 
   Written, compile-checked, not run: unit tests in `domain/agui_filter.rs` and `application/public_stream.rs`; integration test `public_stream_should_drop_internal_artifacts_while_the_harness_sees_them` in `server/tests/site_server.rs`.
 
-- [ ] 1.4 Done-when (local): on the compose stack, a chat turn through the site server on :8080, captured with `curl -N`, contains no `effective_run_policy` or `turn_manifest` artifact, while the harness hook observes both from the same run. Paste the grep counts here.
+- [x] 1.4 Done-when (local): on the compose stack, a chat turn through the site server on :8080, captured with `curl -N`, contains no `effective_run_policy` or `turn_manifest` artifact, while the harness hook observes both from the same run. Paste the grep counts here.
+
+  Superseded by `agui-public-artifact-allowlist` 1.6 and 1.7 (denylist replaced by an allowlist; the capture that proves the filter is taken against the allowlist, not the two-type denylist). Closed here without its own capture because the capture it asked for would have passed while `provider_event` and `attempt_manifest` still reached visitors.

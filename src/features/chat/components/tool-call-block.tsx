@@ -2,7 +2,9 @@ import {
 	BanIcon,
 	CheckCircle2Icon,
 	ChevronDownIcon,
+	CircleSlashIcon,
 	Loader2Icon,
+	ShieldAlertIcon,
 	WrenchIcon,
 	XCircleIcon,
 	type LucideIcon,
@@ -12,8 +14,12 @@ import { Button } from "@/components/ui/button";
 import { ShikiCodeBlock } from "@/features/artifacts/shiki-code-block";
 import { cn } from "@/lib/utils";
 
-/** "denied": the launch run policy refused this call (agui.tool_call.denied, FR-11). */
-export type ToolStatus = "running" | "complete" | "failed" | "denied";
+/**
+ * "denied": the launch run policy refused this call (agui.tool_call.denied, FR-11).
+ * "approval": the call waits for approval (agui.tool_call.approval_required); read-only.
+ * "cancelled": a subagent run was cancelled (agui.subagent.*).
+ */
+export type ToolStatus = "running" | "complete" | "failed" | "denied" | "approval" | "cancelled";
 
 interface ToolCallBlockProps {
 	toolName: string;
@@ -53,6 +59,18 @@ const statusConfig: Record<
 		label: "Blocked by policy",
 		fillClass: "bg-warning-soft",
 		toneClass: "text-warning-text",
+	},
+	approval: {
+		Icon: ShieldAlertIcon,
+		label: "Needs approval",
+		fillClass: "bg-warning-soft",
+		toneClass: "text-warning-text",
+	},
+	cancelled: {
+		Icon: CircleSlashIcon,
+		label: "Cancelled",
+		fillClass: "bg-muted-surface",
+		toneClass: "text-fg-secondary",
 	},
 };
 
@@ -131,13 +149,13 @@ export const ToolCallBlock: FC<ToolCallBlockProps> = ({
 					{result !== undefined && (
 						<div>
 							<p className="mb-1.5 font-ui text-xs font-semibold text-fg-secondary">
-								{status === "denied" ? "Reason" : "Result"}
+								{status === "denied" || status === "approval" ? "Reason" : "Result"}
 							</p>
 							{status === "failed" ? (
 								<p className="whitespace-pre-wrap rounded-md bg-danger-soft px-3 py-2 font-body text-sm text-danger-text wrap-break-word">
 									{result}
 								</p>
-							) : status === "denied" ? (
+							) : status === "denied" || status === "approval" ? (
 								<p className="whitespace-pre-wrap rounded-md bg-warning-soft px-3 py-2 font-body text-sm text-warning-text wrap-break-word">
 									{result}
 								</p>
