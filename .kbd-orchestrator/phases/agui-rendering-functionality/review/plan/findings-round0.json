@@ -1,0 +1,63 @@
+{
+  "mode": "artifact",
+  "verdict": "BLOCK",
+  "judge_model": "gpt-6.1-sol",
+  "producer_model": "claude-sonnet-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "unverified-producer-unknown",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "file": "plan.md",
+      "line": 0,
+      "claim": "The execution order runs the site proxy opt-in in parallel with the UAR validator parity work even though the proxy opt-in depends on the validator if new A2UI components are needed.",
+      "evidence": "Round 4 is defined as parallel: `Round 4 (parallel): agui-inferred-a2ui, site-proxy-a2ui-optin, uar-a2ui-validator-parity`. But `uar-a2ui-validator-parity` is the conditional change that may open UAR's closed validator, and the public proxy opt-in causes UAR to emit A2UI: change 7 says `Have the proxy set [presentation_mode and client_rendering] itself`; change 9 says it starts with a spike for what renderers/templates need beyond the nine and ends with a UAR PR if a gap exists. If the spike finds a required validator gap, opt-in work can be built/tested against an incompatible UAR.",
+      "suggested_fix": "Split Round 4 so the UAR validator gap spike runs before site-proxy-a2ui-optin and site-agent-a2ui-policy; if it finds a gap, make the UAR PR a dependency of proxy opt-in/public-agent go-live."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "plan.md",
+      "line": 0,
+      "claim": "The plan violates the blocking read-only reference-folder constraint by planning writes under this repo's `uar/agents/` path for the public agent policy.",
+      "evidence": "Constraint `reference-folders-read-only` says: `No writes to reference workspace folders (UAR, artifact-refiner, openfang)` and `Changes to the UAR contract are made in that repo separately; this project only consumes it`. The file tree shows `./uar/agents`, and change 8 says `Lands in: this repo (uar/agents/, scripts/)` with details: `Allow only the A2UI render tool, seed a declarative template under the site identity`.",
+      "suggested_fix": "Move the agent policy/template changes to the UAR repo as a separate PR/worktree, or prove that `uar/agents/` in this repo is not a reference copy and update the constraint/workspace metadata before planning writes there."
+    },
+    {
+      "severity": "CRITICAL",
+      "file": "plan.md",
+      "line": 0,
+      "claim": "The plan omits any work to leverage flint-forge beyond naming it in the goals, so a stated goal has no corresponding change or explicit cut.",
+      "evidence": "Goals say: `Leverage prometheus-entity-management, which has A2UI-based components, and the flint-forge libraries, which have them too.` The assessment says flint-forge is not a drop-in renderer but can be `a design reference for component coverage and the slug-to-component registry pattern`. The change list references PEM in changes 3 and 5, but no change mentions flint-forge, and `DEFERRED AND CUT` does not cut or defer flint-forge.",
+      "suggested_fix": "Add a scoped task/change to review and apply flint-forge as a design reference for registry/component coverage, or explicitly cut it with the reason from the assessment."
+    },
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "line": 0,
+      "claim": "The plan depends on `dispatch-judge.sh` for adversarial review tasks even though the packet's cited-path check marks that script missing.",
+      "evidence": "`cited_paths` says `MISSING  dispatch-judge.sh`. The task table assigns judge tasks using `adversarial-review dispatch-judge.sh REST call` and handoff `dispatch-judge.sh --mode artifact|diff --packet <packet>` for `site-proxy-a2ui-optin` and `agui-a2ui-live-verification`.",
+      "suggested_fix": "Replace the judge invocation with an existing script/tool path or add a prerequisite task to create/locate `dispatch-judge.sh` before any judge task depends on it."
+    },
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "line": 0,
+      "claim": "The plan's final verification gates everything at the end, but the constraints require `npm run build` after each iteration and `npm test && npm run lint` after each change.",
+      "evidence": "Constraints define workflow triggers: `on_iteration_complete` runs `npm run build`; `on_change_complete` runs `npm test && npm run lint`. Change 10 says: `Run the integration and review gates once, at the end`, and the ordering rationale says `The gate runs once, at the end`.",
+      "suggested_fix": "Add per-change/per-round validation steps matching the workflow triggers, and keep change 10 only for cumulative live verification."
+    },
+    {
+      "severity": "WARNING",
+      "file": "plan.md",
+      "line": 0,
+      "claim": "Acceptance criteria for the public leak fix are ambiguous because the plan does not specify the allowlisted event/artifact set that must remain visible.",
+      "evidence": "Change 2 says `Replace the denylist with an allowlist that fails closed, keep what the spend meter and client need, and prove it on a live capture.` It does not name the allowed types/events, despite assessment evidence table listing specific artifact types and dispositions.",
+      "suggested_fix": "Define the exact allowlist in the plan, e.g. include or reference the artifact/event disposition table and require tests for every allowed and denied type."
+    }
+  ],
+  "judge_identity": {
+    "providerConnectionId": "openai-proxy-8181",
+    "providerId": "openai",
+    "modelId": "gpt-6.1-sol"
+  }
+}

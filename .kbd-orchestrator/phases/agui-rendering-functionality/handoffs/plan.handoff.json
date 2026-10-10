@@ -1,0 +1,11 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-10-09T09:34:12Z",
+  "outputs": [
+    "plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "10 changes and 70 tasks in 7 rounds, three operator checkpoints (CP1 leak-fix deploy, CP2 PEM release after a dry run, CP3 one workflow_dispatch deploy then the A2UI switch). Order: leak allowlist and PEM workspace registration first, PEM 0.12.0 upgrade beside the render registry, then the surface renderer, inference and proxy opt-in, then the public agent policy, a conditional UAR validator spike, and a live gate; first change to execute is register-pem-workspace (or agui-public-artifact-allowlist, which has no dependencies). Task model assignments are in plan.md, one row per task, keyed by phase path, change ID and ordinal; no unresolved routes block planning, but assignments rest on task profile only (no benchmark). Review: three passes, final cap reached; fixes after round 2 are unreviewed and the changes most worth a fresh look in diff review are site-proxy-a2ui-optin (switch OFF must be explicit presentation_mode text) and site-agent-a2ui-policy (presentation_render only; merge only after the local red team). The round-1 gateway judge never returned; the critics are same-family. Open before execution: confirm the PEM version number (4.2.0 proposed), the D-15 public tool list, and who presses npm publish at CP2.",
+  "skipped": false,
+  "skipReason": null
+}

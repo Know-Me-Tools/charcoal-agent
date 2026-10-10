@@ -1,0 +1,24 @@
+{
+  "phase": "agui-rendering-functionality",
+  "backend": "openspec",
+  "driver": "kbd-apply",
+  "dispatchedAt": "2026-10-09",
+  "assignedChanges": [
+    "register-pem-workspace",
+    "agui-public-artifact-allowlist",
+    "pem-a2ui-official-0-12-0",
+    "agui-render-registry",
+    "app-a2ui-surface-renderer",
+    "agui-inferred-a2ui",
+    "site-proxy-a2ui-optin",
+    "site-agent-a2ui-policy",
+    "uar-a2ui-validator-parity",
+    "agui-a2ui-live-verification"
+  ],
+  "pending": "all ten changes; execute remains active",
+  "operatorConfirmations": {
+    "pemVersion": "4.2.0",
+    "publicToolList": "presentation_render only",
+    "pemPublication": "required, after dry run, at CP2"
+  }
+}

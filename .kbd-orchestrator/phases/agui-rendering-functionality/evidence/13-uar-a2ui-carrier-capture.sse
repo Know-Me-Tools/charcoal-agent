@@ -1,0 +1,177 @@
+data: {"id":"chatcmpl-885bc49e-9f83-4de4-8c99-4db879f8a315","object":"chat.completion.chunk","created":1791547110,"model":"openai/qwen3.8-max","choices":[{"index":0,"delta":{"role":"assistant"}}]}
+
+event: agui.artifact
+data: {"kind":"artifact","phase":"complete","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","artifact_id":"run-policy-885bc49e-9f83-4de4-8c99-4db879f8a315","artifact_type":"effective_run_policy","title":"Effective run policy","content":"[{\"version\":\"v0.9.1\",\"createSurface\":{\"surfaceId\":\"run-policy-885bc49e-9f83-4de4-8c99-4db879f8a315\",\"catalogId\":\"urn:uar:a2ui:catalog:1\"}},{\"version\":\"v0.9.1\",\"updateComponents\":{\"surfaceId\":\"run-policy-885bc49e-9f83-4de4-8c99-4db879f8a315\",\"components\":[{\"id\":\"title\",\"component\":\"Text\",\"text\":{\"path\":\"/title\"},\"variant\":\"h2\"},{\"id\":\"subtitle\",\"component\":\"Text\",\"text\":{\"path\":\"/subtitle\"},\"variant\":\"caption\"},{\"id\":\"overview-heading\",\"component\":\"Text\",\"text\":\"Execution\",\"variant\":\"h3\"},{\"id\":\"chat-mode\",\"component\":\"Text\",\"text\":{\"path\":\"/chatMode\"},\"variant\":\"body\"},{\"id\":\"model\",\"component\":\"Text\",\"text\":{\"path\":\"/model\"},\"variant\":\"body\"},{\"id\":\"agent\",\"component\":\"Text\",\"text\":{\"path\":\"/agent\"},\"variant\":\"body\"},{\"id\":\"overview-column\",\"component\":\"Column\",\"children\":[\"overview-heading\",\"chat-mode\",\"model\",\"agent\"]},{\"id\":\"overview-card\",\"component\":\"Card\",\"child\":\"overview-column\"},{\"id\":\"capabilities-heading\",\"component\":\"Text\",\"text\":\"Available capabilities\",\"variant\":\"h3\"},{\"id\":\"skills\",\"component\":\"Text\",\"text\":{\"path\":\"/skills\"},\"variant\":\"body\"},{\"id\":\"tools\",\"component\":\"Text\",\"text\":{\"path\":\"/tools\"},\"variant\":\"body\"},{\"id\":\"mcp-servers\",\"component\":\"Text\",\"text\":{\"path\":\"/mcpServers\"},\"variant\":\"body\"},{\"id\":\"knowledge-bases\",\"component\":\"Text\",\"text\":{\"path\":\"/knowledgeBases\"},\"variant\":\"body\"},{\"id\":\"capabilities-column\",\"component\":\"Column\",\"children\":[\"capabilities-heading\",\"skills\",\"tools\",\"mcp-servers\",\"knowledge-bases\"]},{\"id\":\"capabilities-card\",\"component\":\"Card\",\"child\":\"capabilities-column\"},{\"id\":\"runtime-heading\",\"component\":\"Text\",\"text\":\"Runtime controls\",\"variant\":\"h3\"},{\"id\":\"memory\",\"component\":\"Text\",\"text\":{\"path\":\"/memory\"},\"variant\":\"body\"},{\"id\":\"prompt-caching\",\"component\":\"Text\",\"text\":{\"path\":\"/promptCaching\"},\"variant\":\"body\"},{\"id\":\"context\",\"component\":\"Text\",\"text\":{\"path\":\"/context\"},\"variant\":\"body\"},{\"id\":\"approval\",\"component\":\"Text\",\"text\":{\"path\":\"/approval\"},\"variant\":\"body\"},{\"id\":\"runtime-column\",\"component\":\"Column\",\"children\":[\"runtime-heading\",\"memory\",\"prompt-caching\",\"context\",\"approval\"]},{\"id\":\"runtime-card\",\"component\":\"Card\",\"child\":\"runtime-column\"},{\"id\":\"warnings-heading\",\"component\":\"Text\",\"text\":{\"path\":\"/warningsHeading\"},\"variant\":\"h3\"},{\"id\":\"warnings\",\"component\":\"Text\",\"text\":{\"path\":\"/warnings\"},\"variant\":\"body\"},{\"id\":\"warnings-column\",\"component\":\"Column\",\"children\":[\"warnings-heading\",\"warnings\"]},{\"id\":\"warnings-card\",\"component\":\"Card\",\"child\":\"warnings-column\"},{\"id\":\"root\",\"component\":\"Column\",\"children\":[\"title\",\"subtitle\",\"overview-card\",\"capabilities-card\",\"runtime-card\",\"warnings-card\"]}]}},{\"version\":\"v0.9.1\",\"updateDataModel\":{\"surfaceId\":\"run-policy-885bc49e-9f83-4de4-8c99-4db879f8a315\",\"path\":\"/\",\"value\":{\"title\":\"Effective run policy\",\"subtitle\":\"Resolved policy v1 · A2UI v0.9.1\",\"chatMode\":\"Chat mode · agent\",\"model\":\"Model · openai / qwen3.8-max\",\"agent\":\"Agent · scratch-a2ui-spike\",\"skills\":\"Skills · none · 0 available · agent scope\",\"tools\":\"Tools · selected · 1 available · agent scope\",\"mcpServers\":\"MCP servers · none · 0 available · agent scope\",\"knowledgeBases\":\"Knowledge bases · none · 0 available · agent scope\",\"memory\":\"Memory · off\",\"promptCaching\":\"Prompt caching · off\",\"context\":\"Context · sliding window\",\"approval\":\"Tool approval · auto\",\"warningsHeading\":\"Warnings · 0\",\"warnings\":\"No policy warnings.\"}}}]","language":"a2ui","metadata":{"profile":"uar.a2ui/1","protocol_version":"v0.9.1","catalog_id":"urn:uar:a2ui:catalog:1","version":1,"warnings":[]}}
+id: 1:0:2
+
+event: agui.state.patch
+data: {"kind":"state","phase":"patch","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","patch":[{"op":"add","path":"/presentation","value":{"version":1,"requested_mode":null,"effective_mode":"legacy","admission_fallback_reason":null,"fallback_reason":null,"run_outcome":"running","eligible_templates":[],"published_templates":[],"surface_published":false,"generation_failed":false,"receipt_status":"available","client_display":"unconfirmed"}}]}
+id: 2:0:2
+
+event: agui.artifact
+data: {"kind":"artifact","phase":"complete","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","artifact_id":"turn-manifest-885bc49e-9f83-4de4-8c99-4db879f8a315","artifact_type":"turn_manifest","title":"Turn manifest","content":"{\"schema_version\":1,\"manifest_hash\":\"ca9950f2b677e532ada073b1f0bb1f8436b217da26cf490a514f86dac49c3d47\",\"fragments\":[{\"id\":\"agent.identity\",\"section\":\"agent_identity\",\"source\":\"artifact:scratch-a2ui-spike\",\"authority\":\"system\",\"role\":\"system\",\"retention\":\"session\",\"content_hash\":\"8eadffeac975da28e5c75e89c62732d9a381773bc9f7e6b655fa249a53cb8acc\"},{\"id\":\"policy.effective\",\"section\":\"enforced_policy\",\"source\":\"effective_run_policy\",\"authority\":\"policy\",\"role\":\"system\",\"retention\":\"turn\",\"content_hash\":\"f86aa22d1bfd88cfc10b353750138415972077adbead55f1b5d80788f5072e87\"},{\"id\":\"world_state.current_time\",\"section\":\"world_state\",\"source\":\"host.world_state\",\"authority\":\"host\",\"role\":\"system\",\"retention\":\"session\",\"content_hash\":\"ca9494857c3ea6e9c434c562b28287f8f7cfe06e751313429f0974ebe420c05c\"},{\"id\":\"world_state.environment\",\"section\":\"world_state\",\"source\":\"host.world_state\",\"authority\":\"host\",\"role\":\"system\",\"retention\":\"session\",\"content_hash\":\"14b6d4aaef39f064c008aab31ab55770ce0cfbda1a27afb85650822e43f19cb5\"},{\"id\":\"world_state.permissions\",\"section\":\"world_state\",\"source\":\"host.world_state\",\"authority\":\"host\",\"role\":\"system\",\"retention\":\"session\",\"content_hash\":\"3de617532aa500eb59ab7c98678fe7f9362ae3a9c878fa4fdc8037445fff0153\"},{\"id\":\"world_state.project_instructions\",\"section\":\"world_state\",\"source\":\"host.world_state\",\"authority\":\"host\",\"role\":\"system\",\"retention\":\"session\",\"content_hash\":\"ae02a71f9847b4174f62323d69e05ded8921eb7d1ee73ca6c34f99f55ed16dad\"}],\"counts\":{\"total\":6,\"by_section\":{\"agent_identity\":1,\"enforced_policy\":1,\"world_state\":4},\"by_authority\":{\"host\":4,\"policy\":1,\"system\":1}},\"budgets\":{\"rendered_bytes\":2048,\"rendered_characters\":2048,\"context_window_tokens\":8192},\"selected_skills\":[],\"selected_tools\":[\"a2ui_render\",\"activate_skill\"],\"warnings\":[]}","language":"json","metadata":{"schema_version":1,"manifest_hash":"ca9950f2b677e532ada073b1f0bb1f8436b217da26cf490a514f86dac49c3d47","fragment_count":6}}
+id: 3:0:2
+
+event: agui.stream.start
+data: {"kind":"stream","phase":"start","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","agent_id":"scratch-a2ui-spike"}
+id: 4:0:2
+
+event: runtime.run
+data: {"type":"run_started","id":"885bc49e-9f83-4de4-8c99-4db879f8a315","run_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","agent_id":"scratch-a2ui-spike","status":"running","started_at":"2026-10-09T11:58:30.017305111+00:00","updated_at":"2026-10-09T11:58:30.017308236+00:00"}
+id: 4:1:2
+
+event: agui.state.patch
+data: {"kind":"state","phase":"patch","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","patch":[{"op":"replace","path":"/run","value":{"run_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","conversation_id":"5e54b909-810b-4578-98be-a8b4f94fb69a","status":"running"}}]}
+id: 5:0:2
+
+event: runtime.step
+data: {"type":"step_started","id":"885bc49e-9f83-4de4-8c99-4db879f8a315-1","run_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","step":1,"status":"started","updated_at":"2026-10-09T11:58:30.017322986+00:00"}
+id: 6:0:2
+
+event: agui.artifact
+data: {"kind":"artifact","phase":"complete","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","artifact_id":"uar.turn:resolved_step","artifact_type":"provider_event","title":"resolved_step","content":"{\"source\":\"uar.turn\",\"payload\":{\"step\":1,\"model\":\"qwen3.8-max\",\"mcp_catalog\":[],\"manifest\":{\"schema_version\":1,\"manifest_hash\":\"850daaedb03bb9ec190000f19b454f302aa88b77521ceb7799e94a63cbcf703d\",\"fragments\":[{\"id\":\"agent.identity\",\"section\":\"agent_identity\",\"source\":\"artifact:scratch-a2ui-spike\",\"authority\":\"system\",\"role\":\"system\",\"retention\":\"session\",\"content_hash\":\"8eadffeac975da28e5c75e89c62732d9a381773bc9f7e6b655fa249a53cb8acc\"},{\"id\":\"policy.effective\",\"section\":\"enforced_policy\",\"source\":\"effective_run_policy\",\"authority\":\"policy\",\"role\":\"system\",\"retention\":\"turn\",\"content_hash\":\"f86aa22d1bfd88cfc10b353750138415972077adbead55f1b5d80788f5072e87\"},{\"id\":\"world_state.current_time\",\"section\":\"world_state\",\"source\":\"host.world_state\",\"authority\":\"host\",\"role\":\"system\",\"retention\":\"session\",\"content_hash\":\"ca9494857c3ea6e9c434c562b28287f8f7cfe06e751313429f0974ebe420c05c\"},{\"id\":\"world_state.environment\",\"section\":\"world_state\",\"source\":\"host.world_state\",\"authority\":\"host\",\"role\":\"system\",\"retention\":\"session\",\"content_hash\":\"14b6d4aaef39f064c008aab31ab55770ce0cfbda1a27afb85650822e43f19cb5\"},{\"id\":\"world_state.permissions\",\"section\":\"world_state\",\"source\":\"host.world_state\",\"authority\":\"host\",\"role\":\"system\",\"retention\":\"session\",\"content_hash\":\"3de617532aa500eb59ab7c98678fe7f9362ae3a9c878fa4fdc8037445fff0153\"},{\"id\":\"world_state.project_instructions\",\"section\":\"world_state\",\"source\":\"host.world_state\",\"authority\":\"host\",\"role\":\"system\",\"retention\":\"session\",\"content_hash\":\"ae02a71f9847b4174f62323d69e05ded8921eb7d1ee73ca6c34f99f55ed16dad\"}],\"counts\":{\"total\":6,\"by_section\":{\"agent_identity\":1,\"enforced_policy\":1,\"world_state\":4},\"by_authority\":{\"host\":4,\"policy\":1,\"system\":1}},\"budgets\":{\"rendered_bytes\":2903,\"rendered_characters\":2903,\"context_window_tokens\":8192},\"selected_skills\":[],\"selected_tools\":[\"a2ui_render\",\"activate_skill\"],\"warnings\":[]}}}","language":"json","metadata":{"source":"external_llm_driver"}}
+id: 7:0:2
+
+event: agui.artifact
+data: {"kind":"artifact","phase":"complete","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","artifact_id":"attempt-manifest-885bc49e-9f83-4de4-8c99-4db879f8a315-qwen3.8-max","artifact_type":"attempt_manifest","title":"Provider attempt manifest","content":"{\"schema_version\":\"uar.attempt-manifest.v1\",\"destination_model\":\"qwen3.8-max\",\"budgeting\":{\"label\":\"legacy_unbudgeted\",\"contract_present\":false,\"fit_guarantee\":false},\"warning\":\"Provider dispatch is using the legacy unbudgeted path\"}","language":"json","metadata":{"source":"uar.request","budgeting_label":"legacy_unbudgeted"}}
+id: 8:0:2
+
+event: agui.tool_call.delta
+data: {"kind":"tool_call","phase":"delta","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","call_index":0,"id":"call_63c36b971f524dc8a1ece5db","delta":{"arguments":"\"\""}}
+id: 9:0:2
+
+data: {"id":"chatcmpl-885bc49e-9f83-4de4-8c99-4db879f8a315","object":"chat.completion.chunk","created":1791547110,"model":"openai/qwen3.8-max","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_63c36b971f524dc8a1ece5db","type":"function","function":{"arguments":""}}]}}]}
+id: 9:1:2
+
+event: agui.tool_call.complete
+data: {"kind":"tool_call","phase":"complete","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","call_index":0,"id":"call_63c36b971f524dc8a1ece5db","name":"a2ui_render","arguments_json":"{\"messages\":[{\"version\":\"v0.9.1\",\"createSurface\":{\"surfaceId\":\"spike-card\",\"catalogId\":\"https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json\"}},{\"version\":\"v0.9.1\",\"updateComponents\":{\"surfaceId\":\"spike-card\",\"components\":[{\"id\":\"root\",\"component\":\"Card\",\"child\":\"body\"},{\"id\":\"body\",\"component\":\"Column\",\"children\":[\"heading\",\"go\"]},{\"id\":\"heading\",\"component\":\"Text\",\"text\":{\"path\":\"/message\"}},{\"id\":\"go\",\"component\":\"Button\",\"child\":\"goLabel\",\"action\":{\"event\":{\"name\":\"spikeContinue\",\"context\":{}}}},{\"id\":\"goLabel\",\"component\":\"Text\",\"text\":\"Continue\"}]}},{\"version\":\"v0.9.1\",\"updateDataModel\":{\"surfaceId\":\"spike-card\",\"path\":\"/message\",\"value\":\"Hello from the spike\"}}]}"}
+id: 10:0:2
+
+event: runtime.tool_call
+data: {"type":"tool_call_started","id":"call_63c36b971f524dc8a1ece5db","run_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","call_index":0,"tool_call_id":"call_63c36b971f524dc8a1ece5db","name":"a2ui_render","arguments_json":"{\"messages\":[{\"version\":\"v0.9.1\",\"createSurface\":{\"surfaceId\":\"spike-card\",\"catalogId\":\"https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json\"}},{\"version\":\"v0.9.1\",\"updateComponents\":{\"surfaceId\":\"spike-card\",\"components\":[{\"id\":\"root\",\"component\":\"Card\",\"child\":\"body\"},{\"id\":\"body\",\"component\":\"Column\",\"children\":[\"heading\",\"go\"]},{\"id\":\"heading\",\"component\":\"Text\",\"text\":{\"path\":\"/message\"}},{\"id\":\"go\",\"component\":\"Button\",\"child\":\"goLabel\",\"action\":{\"event\":{\"name\":\"spikeContinue\",\"context\":{}}}},{\"id\":\"goLabel\",\"component\":\"Text\",\"text\":\"Continue\"}]}},{\"version\":\"v0.9.1\",\"updateDataModel\":{\"surfaceId\":\"spike-card\",\"path\":\"/message\",\"value\":\"Hello from the spike\"}}]}","status":"running","updated_at":"2026-10-09T11:58:38.429332333+00:00"}
+id: 10:1:2
+
+data: {"id":"chatcmpl-885bc49e-9f83-4de4-8c99-4db879f8a315","object":"chat.completion.chunk","created":1791547110,"model":"openai/qwen3.8-max","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_63c36b971f524dc8a1ece5db","type":"function","function":{"name":"a2ui_render","arguments":"{\"messages\":[{\"version\":\"v0.9.1\",\"createSurface\":{\"surfaceId\":\"spike-card\",\"catalogId\":\"https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json\"}},{\"version\":\"v0.9.1\",\"updateComponents\":{\"surfaceId\":\"spike-card\",\"components\":[{\"id\":\"root\",\"component\":\"Card\",\"child\":\"body\"},{\"id\":\"body\",\"component\":\"Column\",\"children\":[\"heading\",\"go\"]},{\"id\":\"heading\",\"component\":\"Text\",\"text\":{\"path\":\"/message\"}},{\"id\":\"go\",\"component\":\"Button\",\"child\":\"goLabel\",\"action\":{\"event\":{\"name\":\"spikeContinue\",\"context\":{}}}},{\"id\":\"goLabel\",\"component\":\"Text\",\"text\":\"Continue\"}]}},{\"version\":\"v0.9.1\",\"updateDataModel\":{\"surfaceId\":\"spike-card\",\"path\":\"/message\",\"value\":\"Hello from the spike\"}}]}"}}]}}]}
+id: 10:2:2
+
+event: agui.state.patch
+data: {"kind":"state","phase":"patch","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","patch":[{"op":"add","path":"/a2ui/surfaces/spike-card","value":{"surfaceId":"spike-card","catalogId":"https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json"}}]}
+id: 11:0:2
+
+event: agui.state.patch
+data: {"kind":"state","phase":"patch","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","patch":[{"op":"add","path":"/presentation","value":{"version":1,"requested_mode":null,"effective_mode":"legacy","admission_fallback_reason":null,"fallback_reason":null,"run_outcome":"running","eligible_templates":[],"published_templates":[],"surface_published":true,"generation_failed":false,"receipt_status":"available","client_display":"unconfirmed"}}]}
+id: 12:0:2
+
+event: agui.state.patch
+data: {"kind":"state","phase":"patch","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","patch":[{"op":"replace","path":"/a2ui/surfaces/spike-card/components","value":{"surfaceId":"spike-card","components":[{"id":"root","component":"Card","child":"body"},{"id":"body","component":"Column","children":["heading","go"]},{"id":"heading","component":"Text","text":{"path":"/message"}},{"id":"go","component":"Button","child":"goLabel","action":{"event":{"name":"spikeContinue","context":{}}}},{"id":"goLabel","component":"Text","text":"Continue"}]}}]}
+id: 13:0:2
+
+event: agui.state.patch
+data: {"kind":"state","phase":"patch","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","patch":[{"op":"replace","path":"/a2ui/surfaces/spike-card/dataModel","value":{"surfaceId":"spike-card","path":"/message","value":"Hello from the spike"}}]}
+id: 14:0:2
+
+event: agui.artifact
+data: {"kind":"artifact","phase":"complete","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","artifact_id":"a2ui:f94e3d72-257e-43af-b3f5-081fa48f25eb","artifact_type":"a2ui","title":"Interactive UI","content":"{\"version\":\"v0.9.1\",\"createSurface\":{\"surfaceId\":\"spike-card\",\"catalogId\":\"https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json\"}}\n{\"version\":\"v0.9.1\",\"updateComponents\":{\"surfaceId\":\"spike-card\",\"components\":[{\"id\":\"root\",\"component\":\"Card\",\"child\":\"body\"},{\"id\":\"body\",\"component\":\"Column\",\"children\":[\"heading\",\"go\"]},{\"id\":\"heading\",\"component\":\"Text\",\"text\":{\"path\":\"/message\"}},{\"id\":\"go\",\"component\":\"Button\",\"child\":\"goLabel\",\"action\":{\"event\":{\"name\":\"spikeContinue\",\"context\":{}}}},{\"id\":\"goLabel\",\"component\":\"Text\",\"text\":\"Continue\"}]}}\n{\"version\":\"v0.9.1\",\"updateDataModel\":{\"surfaceId\":\"spike-card\",\"path\":\"/message\",\"value\":\"Hello from the spike\"}}","language":"application/a2ui+json","metadata":{"profile":"uar.a2ui/1","surfaceIds":["spike-card"],"sourceTool":"a2ui_render","presentation":null,"publication_status":"published"}}
+id: 15:0:2
+
+event: agui.tool_result
+data: {"kind":"tool_result","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","call_index":0,"id":"call_63c36b971f524dc8a1ece5db","name":"a2ui_render","content":"{\"status\":\"prepared\",\"terminal\":true,\"instruction\":\"The interactive surface messages are prepared for host publication. Do not call a2ui_render again for this request; describe the content without claiming client display.\"}","success":true}
+id: 16:0:2
+
+event: runtime.tool_call
+data: {"type":"tool_call_finished","id":"call_63c36b971f524dc8a1ece5db","run_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","call_index":0,"tool_call_id":"call_63c36b971f524dc8a1ece5db","name":"a2ui_render","result":"{\"status\":\"prepared\",\"terminal\":true,\"instruction\":\"The interactive surface messages are prepared for host publication. Do not call a2ui_render again for this request; describe the content without claiming client display.\"}","status":"completed","updated_at":"2026-10-09T11:58:38.582582674+00:00"}
+id: 16:1:2
+
+data: {"id":"chatcmpl-885bc49e-9f83-4de4-8c99-4db879f8a315","object":"chat.completion.chunk","created":1791547110,"model":"openai/qwen3.8-max","choices":[{"index":0,"delta":{"tool_results":[{"index":0,"id":"call_63c36b971f524dc8a1ece5db","name":"a2ui_render","content":"{\"status\":\"prepared\",\"terminal\":true,\"instruction\":\"The interactive surface messages are prepared for host publication. Do not call a2ui_render again for this request; describe the content without claiming client display.\"}","success":true}]}}]}
+id: 16:2:2
+
+event: runtime.step
+data: {"type":"step_finished","id":"885bc49e-9f83-4de4-8c99-4db879f8a315-1","run_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","step":1,"status":"finished","updated_at":"2026-10-09T11:58:38.582610132+00:00"}
+id: 17:0:2
+
+event: runtime.step
+data: {"type":"step_started","id":"885bc49e-9f83-4de4-8c99-4db879f8a315-2","run_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","step":2,"status":"started","updated_at":"2026-10-09T11:58:38.589546055+00:00"}
+id: 18:0:2
+
+event: agui.artifact
+data: {"kind":"artifact","phase":"complete","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","artifact_id":"uar.turn:resolved_step","artifact_type":"provider_event","title":"resolved_step","content":"{\"source\":\"uar.turn\",\"payload\":{\"step\":2,\"model\":\"qwen3.8-max\",\"mcp_catalog\":[],\"manifest\":{\"schema_version\":1,\"manifest_hash\":\"91ce45af33260e889e871537ed26456cc0d82f4f3ac2d8afbac293bc1b859ad8\",\"fragments\":[{\"id\":\"agent.identity\",\"section\":\"agent_identity\",\"source\":\"artifact:scratch-a2ui-spike\",\"authority\":\"system\",\"role\":\"system\",\"retention\":\"session\",\"content_hash\":\"8eadffeac975da28e5c75e89c62732d9a381773bc9f7e6b655fa249a53cb8acc\"},{\"id\":\"policy.effective\",\"section\":\"enforced_policy\",\"source\":\"effective_run_policy\",\"authority\":\"policy\",\"role\":\"system\",\"retention\":\"turn\",\"content_hash\":\"f86aa22d1bfd88cfc10b353750138415972077adbead55f1b5d80788f5072e87\"}],\"counts\":{\"total\":2,\"by_section\":{\"agent_identity\":1,\"enforced_policy\":1},\"by_authority\":{\"policy\":1,\"system\":1}},\"budgets\":{\"rendered_bytes\":3128,\"rendered_characters\":3128,\"context_window_tokens\":8192},\"selected_skills\":[],\"selected_tools\":[\"a2ui_render\",\"activate_skill\"],\"warnings\":[]}}}","language":"json","metadata":{"source":"external_llm_driver"}}
+id: 19:0:2
+
+event: agui.artifact
+data: {"kind":"artifact","phase":"complete","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","artifact_id":"attempt-manifest-885bc49e-9f83-4de4-8c99-4db879f8a315-qwen3.8-max","artifact_type":"attempt_manifest","title":"Provider attempt manifest","content":"{\"schema_version\":\"uar.attempt-manifest.v1\",\"destination_model\":\"qwen3.8-max\",\"budgeting\":{\"label\":\"legacy_unbudgeted\",\"contract_present\":false,\"fit_guarantee\":false},\"warning\":\"Provider dispatch is using the legacy unbudgeted path\"}","language":"json","metadata":{"source":"uar.request","budgeting_label":"legacy_unbudgeted"}}
+id: 20:0:2
+
+event: agui.message.delta
+data: {"kind":"message","phase":"delta","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","delta":{"text":"The greeting"}}
+id: 21:0:2
+
+data: {"id":"chatcmpl-885bc49e-9f83-4de4-8c99-4db879f8a315","object":"chat.completion.chunk","created":1791547110,"model":"openai/qwen3.8-max","choices":[{"index":0,"delta":{"content":"The greeting"}}]}
+id: 21:1:2
+
+event: agui.message.delta
+data: {"kind":"message","phase":"delta","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","delta":{"text":" card contains a \""}}
+id: 22:0:2
+
+data: {"id":"chatcmpl-885bc49e-9f83-4de4-8c99-4db879f8a315","object":"chat.completion.chunk","created":1791547110,"model":"openai/qwen3.8-max","choices":[{"index":0,"delta":{"content":" card contains a \""}}]}
+id: 22:1:2
+
+event: agui.message.delta
+data: {"kind":"message","phase":"delta","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","delta":{"text":"Hello from"}}
+id: 23:0:2
+
+data: {"id":"chatcmpl-885bc49e-9f83-4de4-8c99-4db879f8a315","object":"chat.completion.chunk","created":1791547110,"model":"openai/qwen3.8-max","choices":[{"index":0,"delta":{"content":"Hello from"}}]}
+id: 23:1:2
+
+event: agui.message.delta
+data: {"kind":"message","phase":"delta","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","delta":{"text":" the spike\" heading"}}
+id: 24:0:2
+
+data: {"id":"chatcmpl-885bc49e-9f83-4de4-8c99-4db879f8a315","object":"chat.completion.chunk","created":1791547110,"model":"openai/qwen3.8-max","choices":[{"index":0,"delta":{"content":" the spike\" heading"}}]}
+id: 24:1:2
+
+event: agui.message.delta
+data: {"kind":"message","phase":"delta","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","delta":{"text":" with a Continue button"}}
+id: 25:0:2
+
+data: {"id":"chatcmpl-885bc49e-9f83-4de4-8c99-4db879f8a315","object":"chat.completion.chunk","created":1791547110,"model":"openai/qwen3.8-max","choices":[{"index":0,"delta":{"content":" with a Continue button"}}]}
+id: 25:1:2
+
+event: agui.message.delta
+data: {"kind":"message","phase":"delta","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","delta":{"text":" that fires a spike"}}
+id: 26:0:2
+
+data: {"id":"chatcmpl-885bc49e-9f83-4de4-8c99-4db879f8a315","object":"chat.completion.chunk","created":1791547110,"model":"openai/qwen3.8-max","choices":[{"index":0,"delta":{"content":" that fires a spike"}}]}
+id: 26:1:2
+
+event: agui.message.delta
+data: {"kind":"message","phase":"delta","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","delta":{"text":"Continue"}}
+id: 27:0:2
+
+data: {"id":"chatcmpl-885bc49e-9f83-4de4-8c99-4db879f8a315","object":"chat.completion.chunk","created":1791547110,"model":"openai/qwen3.8-max","choices":[{"index":0,"delta":{"content":"Continue"}}]}
+id: 27:1:2
+
+event: agui.message.delta
+data: {"kind":"message","phase":"delta","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","delta":{"text":" event."}}
+id: 28:0:2
+
+data: {"id":"chatcmpl-885bc49e-9f83-4de4-8c99-4db879f8a315","object":"chat.completion.chunk","created":1791547110,"model":"openai/qwen3.8-max","choices":[{"index":0,"delta":{"content":" event."}}]}
+id: 28:1:2
+
+event: agui.state.patch
+data: {"kind":"state","phase":"patch","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","patch":[{"op":"add","path":"/presentation","value":{"version":1,"requested_mode":null,"effective_mode":"legacy","admission_fallback_reason":null,"fallback_reason":null,"run_outcome":"finished","eligible_templates":[],"published_templates":[],"surface_published":true,"generation_failed":false,"receipt_status":"available","client_display":"unconfirmed"}}]}
+id: 29:0:2
+
+event: agui.done
+data: {"kind":"done","request_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","usage":{"input_tokens":4345,"output_tokens":377,"total_tokens":4722,"cost_usd_estimate":null,"model":"qwen3.8-max"}}
+id: 30:0:2
+
+event: runtime.run
+data: {"type":"run_finished","id":"885bc49e-9f83-4de4-8c99-4db879f8a315","run_id":"885bc49e-9f83-4de4-8c99-4db879f8a315","status":"completed","input_tokens":4345,"output_tokens":377,"total_tokens":4722,"cost_usd_estimate":null,"updated_at":"2026-10-09T11:58:41.436002995+00:00"}
+id: 30:1:2
+
+data: {"id":"chatcmpl-885bc49e-9f83-4de4-8c99-4db879f8a315","object":"chat.completion.chunk","created":1791547110,"model":"openai/qwen3.8-max","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
+id: 30:2:2
+
+data: [DONE]
+id: 30:3:2
+

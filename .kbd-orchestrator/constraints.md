@@ -52,7 +52,7 @@ constraints:
   - id: reference-folders-read-only
     severity: blocking
     description: 'No writes to reference workspace folders (UAR, artifact-refiner, openfang)'
-    note: 'Changes to the UAR contract are made in that repo separately; this project only consumes it'
+    note: 'Changes to the UAR contract are made in that repo separately, one PR per change in a separate worktree; this project only consumes it. prometheus-entity-management is not a reference folder: it is the operator''s own library and is writable by operator direction (D-30).'
 
   - id: pglite-migrations-append-only
     severity: blocking
