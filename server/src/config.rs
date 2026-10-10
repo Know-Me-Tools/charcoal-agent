@@ -34,6 +34,9 @@
 //!   Raise `n` with `max_tokens_per_turn`.
 //! - `SITE_KILL_SWITCH_FILE` (required): the mounted kill switch file
 //!   (`on`/`off`), from an operator-owned ConfigMap.
+//! - `SITE_A2UI_OPTIN_FILE` (optional): the mounted A2UI opt-in file
+//!   (`on`/`off`). Unset, missing, unreadable or anything but `on` means the
+//!   proxy asks UAR for plain text (`presentation_mode: "text"`).
 //!
 //! UAR credential (gate-site-credentials 1.4):
 //! - Gate mode: `SITE_GATE_TOKEN_URL` (`http://` only, e.g.
@@ -136,6 +139,8 @@ pub struct Config {
     pub meter: MeterConfig,
     /// The mounted kill switch file.
     pub kill_switch_file: PathBuf,
+    /// The mounted A2UI opt-in file; `None` is permanently off.
+    pub a2ui_optin_file: Option<PathBuf>,
 }
 
 /// The spend meter's store and sizes.
@@ -196,6 +201,7 @@ impl Config {
             kill_switch_file: get("SITE_KILL_SWITCH_FILE")
                 .map(PathBuf::from)
                 .ok_or(ConfigError::Missing("SITE_KILL_SWITCH_FILE"))?,
+            a2ui_optin_file: get("SITE_A2UI_OPTIN_FILE").map(PathBuf::from),
         })
     }
 }

@@ -18,8 +18,14 @@
 //! (`agui.done`) for the spend meter, and the public-path artifact filter
 //! sees one event vocabulary. The client's `stream` and `stream_mode` are
 //! ignored, whatever their type or value.
+//!
+//! `presentation_mode` is set here on every turn and never omitted: UAR
+//! treats an absent field as Legacy, which allows A2UI surfaces. It is
+//! `"text"` unless the operator's out-of-band switch is on, then `"a2ui"`
+//! with the profile the site client renders. The visitor's own value, if any,
+//! is dropped with every other field.
 
-use serde_json::{Map, Value};
+use serde_json::{Map, Value, json};
 
 /// Longest accepted `message`, in characters. The site's own title prompt is
 /// about 1.2k characters.
@@ -39,9 +45,18 @@ pub enum ChatRequestError {
     MessageTooLong,
 }
 
+/// The A2UI profile the site client renders (UAR's nine-component catalog).
+const A2UI_PROFILE: &str = "uar.a2ui/1";
+
 /// Returns the serialized upstream body: `agent_id`, `message`,
-/// `stream: true`, `stream_mode: "dual"` and `memory_enabled: false`.
-pub fn build_site_chat_request(body: &[u8], agent_id: &str) -> Result<Vec<u8>, ChatRequestError> {
+/// `stream: true`, `stream_mode: "dual"`, `memory_enabled: false` and
+/// `presentation_mode` (`"a2ui"` plus `client_rendering` only when
+/// `a2ui_enabled`, `"text"` otherwise).
+pub fn build_site_chat_request(
+    body: &[u8],
+    agent_id: &str,
+    a2ui_enabled: bool,
+) -> Result<Vec<u8>, ChatRequestError> {
     let value: Value = serde_json::from_slice(body).map_err(|_| ChatRequestError::InvalidJson)?;
     let input = value.as_object().ok_or(ChatRequestError::NotAnObject)?;
 
@@ -53,13 +68,22 @@ pub fn build_site_chat_request(body: &[u8], agent_id: &str) -> Result<Vec<u8>, C
         return Err(ChatRequestError::MessageTooLong);
     }
 
-    let forwarded = Map::from_iter([
+    let mut forwarded = Map::from_iter([
         ("agent_id".to_owned(), Value::from(agent_id)),
         ("message".to_owned(), Value::from(message)),
         ("stream".to_owned(), Value::from(true)),
         ("stream_mode".to_owned(), Value::from(STREAM_MODE)),
         ("memory_enabled".to_owned(), Value::from(false)),
     ]);
+    if a2ui_enabled {
+        forwarded.insert("presentation_mode".to_owned(), Value::from("a2ui"));
+        forwarded.insert(
+            "client_rendering".to_owned(),
+            json!({ "a2ui_profiles": [A2UI_PROFILE] }),
+        );
+    } else {
+        forwarded.insert("presentation_mode".to_owned(), Value::from("text"));
+    }
     // Serializing a map of strings and booleans cannot fail.
     serde_json::to_vec(&forwarded).map_err(|_| ChatRequestError::InvalidJson)
 }
@@ -68,9 +92,13 @@ pub fn build_site_chat_request(body: &[u8], agent_id: &str) -> Result<Vec<u8>, C
 mod tests {
     use super::*;
 
-    fn build(body: &str) -> Result<Value, ChatRequestError> {
-        build_site_chat_request(body.as_bytes(), "knowme-site")
+    fn build_with(body: &str, a2ui: bool) -> Result<Value, ChatRequestError> {
+        build_site_chat_request(body.as_bytes(), "knowme-site", a2ui)
             .map(|bytes| serde_json::from_slice(&bytes).unwrap())
+    }
+
+    fn build(body: &str) -> Result<Value, ChatRequestError> {
+        build_with(body, false)
     }
 
     fn pinned(message: &str) -> Value {
@@ -79,8 +107,41 @@ mod tests {
             "message": message,
             "stream": true,
             "stream_mode": "dual",
-            "memory_enabled": false
+            "memory_enabled": false,
+            "presentation_mode": "text"
         })
+    }
+
+    fn pinned_a2ui(message: &str) -> Value {
+        let mut value = pinned(message);
+        value["presentation_mode"] = "a2ui".into();
+        value["client_rendering"] = serde_json::json!({ "a2ui_profiles": ["uar.a2ui/1"] });
+        value
+    }
+
+    #[test]
+    fn presentation_mode_should_be_text_while_a2ui_is_off_and_never_omitted() {
+        let out = build(r#"{"message":"hi"}"#).unwrap();
+        assert_eq!(out["presentation_mode"], "text");
+        assert!(out.get("client_rendering").is_none());
+    }
+
+    #[test]
+    fn presentation_mode_should_be_a2ui_with_the_profile_while_on() {
+        assert_eq!(
+            build_with(r#"{"message":"hi"}"#, true).unwrap(),
+            pinned_a2ui("hi")
+        );
+    }
+
+    #[test]
+    fn visitor_supplied_presentation_fields_should_always_be_ignored() {
+        let body = r#"{"message":"hi","presentation_mode":"a2ui",
+            "client_rendering":{"a2ui_profiles":["evil/9"]}}"#;
+        assert_eq!(build_with(body, false).unwrap(), pinned("hi"));
+        assert_eq!(build_with(body, true).unwrap(), pinned_a2ui("hi"));
+        let legacy = r#"{"message":"hi","presentation_mode":"legacy"}"#;
+        assert_eq!(build_with(legacy, true).unwrap(), pinned_a2ui("hi"));
     }
 
     #[test]

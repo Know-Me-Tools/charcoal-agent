@@ -19,6 +19,9 @@
 #       database-scoped user (ns=site, db=meter) from Secret site-meter-auth.
 #   scripts/ops/bootstrap-site.sh kill-switch on|off
 #       Sets the site chat kill switch. The site server reads it within ~10 s.
+#   scripts/ops/bootstrap-site.sh a2ui on|off
+#       Sets the A2UI opt-in (ConfigMap site-a2ui-optin). The site server
+#       reads it within ~10 s. Absent means off. `off` creates it if missing.
 #   RESEND_API_KEY=... scripts/ops/bootstrap-site.sh alert-email <to-address> [from-address]
 #       Creates Secret site-alert-mail and applies k8s/alerts: a CronJob that
 #       emails the site server's alert log lines every 5 minutes. The key is
@@ -35,6 +38,7 @@ GATE_NS="flint-core"
 GATE_CLIENT_ID="knowme-site"
 GATE_AUDIENCE="uar"
 KILL_SWITCH_CM="site-chat-kill-switch"
+A2UI_OPTIN_CM="site-a2ui-optin"
 UAR_IMAGE="ghcr.io/prometheus-ags/universal-agent-runtime@sha256:688a97e42a0be63247b95c3b1a3c5ebd9da9078c79d63c4f31d979d469b77888"
 
 log() { printf '[bootstrap-site] %s\n' "$*" >&2; }
@@ -201,6 +205,15 @@ cmd_kill_switch() {
   log "kill switch $state (applies within ~10 s, no restart)"
 }
 
+cmd_a2ui() {
+  need kubectl
+  local state="${1:-}"
+  [[ "$state" == on || "$state" == off ]] || die "a2ui takes on|off"
+  kc -n "$NS" create configmap "$A2UI_OPTIN_CM" --from-literal=state="$state" \
+    --dry-run=client -o yaml | kc apply -f - >/dev/null
+  log "A2UI opt-in $state (applies within ~10 s, no restart)"
+}
+
 cmd_alert_email() {
   local to="${1:-}" from="${2:-site-alerts@prometheusags.ai}"
   [ -n "$to" ] || die "usage: alert-email <to-address> [from-address]"
@@ -220,5 +233,6 @@ case "${1:-}" in
   secrets) shift; cmd_secrets "$@" ;;
   meter-user) cmd_meter_user ;;
   kill-switch) shift; cmd_kill_switch "$@" ;;
-  *) die "usage: $0 secrets [--env-file <path>] | meter-user | kill-switch on|off" ;;
+  a2ui) shift; cmd_a2ui "$@" ;;
+  *) die "usage: $0 secrets [--env-file <path>] | meter-user | kill-switch on|off | a2ui on|off" ;;
 esac

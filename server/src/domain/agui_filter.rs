@@ -15,7 +15,8 @@
 //!
 //! What is kept:
 //! - the events in [`ALLOWED_EVENTS`];
-//! - `agui.artifact` only when `artifact_type` is in [`ALLOWED_ARTIFACT_TYPES`];
+//! - `agui.artifact` only when `artifact_type` is in [`ALLOWED_ARTIFACT_TYPES`]
+//!   and, for `a2ui`, `content` is a string of at most [`MAX_A2UI_CONTENT_BYTES`];
 //! - `agui.state.patch` only when every op's path is under `/a2ui/`;
 //! - an event-less frame only when its data is `[DONE]`;
 //! - comment-only frames (keep-alives), which carry no data.
@@ -49,6 +50,9 @@ pub const ALLOWED_EVENTS: [&str; 8] = [
     "agui.tool_call.denied",
 ];
 /// A state patch is public only when every op writes under this prefix.
+/// Largest `a2ui` artifact `content` forwarded, in bytes. Matches the site
+/// client's own cap (`A2UI_MAX_CONTENT_BYTES`), which refuses anything larger.
+pub const MAX_A2UI_CONTENT_BYTES: usize = 256 * 1024;
 pub const A2UI_PATH_PREFIX: &str = "/a2ui/";
 /// The client's safety-net terminator, the one event-less frame that is kept.
 const DONE_SENTINEL: &str = "[DONE]";
@@ -214,14 +218,25 @@ impl ParsedEvent {
 
     fn artifact_verdict(&self) -> Verdict {
         let payload: Option<Value> = serde_json::from_str(&self.data).ok();
-        match payload
+        let Some(kind) = payload
             .as_ref()
             .and_then(|v| v.get("artifact_type"))
             .and_then(Value::as_str)
+        else {
+            return Verdict::DropMalformed;
+        };
+        if !ALLOWED_ARTIFACT_TYPES.contains(&kind) {
+            return Verdict::DropInternal;
+        }
+        // A public `a2ui` artifact is a string the client parses and caps, so
+        // anything else, or anything larger, never reaches a visitor.
+        match payload
+            .as_ref()
+            .and_then(|v| v.get("content"))
+            .and_then(Value::as_str)
         {
-            Some(kind) if ALLOWED_ARTIFACT_TYPES.contains(&kind) => Verdict::Forward,
-            Some(_) => Verdict::DropInternal,
-            None => Verdict::DropMalformed,
+            Some(content) if content.len() <= MAX_A2UI_CONTENT_BYTES => Verdict::Forward,
+            _ => Verdict::DropMalformed,
         }
     }
 
@@ -405,6 +420,31 @@ mod tests {
             assert_eq!(classify(frame.as_bytes()), Verdict::DropInternal, "{kind}");
         }
         assert_eq!(classify(A2UI.as_bytes()), Verdict::Forward);
+    }
+
+    fn a2ui_with(content: &str) -> String {
+        format!("event: agui.artifact\ndata: {{\"artifact_type\":\"a2ui\"{content}}}\n\n")
+    }
+
+    #[test]
+    fn an_a2ui_artifact_should_be_kept_only_with_string_content_within_the_cap() {
+        let at_cap = format!(r#","content":"{}""#, "a".repeat(MAX_A2UI_CONTENT_BYTES));
+        assert_eq!(classify(a2ui_with(&at_cap).as_bytes()), Verdict::Forward);
+
+        let over = format!(r#","content":"{}""#, "a".repeat(MAX_A2UI_CONTENT_BYTES + 1));
+        for (name, content) in [
+            ("oversized", over.as_str()),
+            ("missing content", ""),
+            ("object content", r#","content":{"x":1}"#),
+            ("null content", r#","content":null"#),
+            ("number content", r#","content":7"#),
+        ] {
+            assert_eq!(
+                classify(a2ui_with(content).as_bytes()),
+                Verdict::DropMalformed,
+                "{name}"
+            );
+        }
     }
 
     fn patch(ops: &str) -> String {
