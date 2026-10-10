@@ -18,9 +18,6 @@
 //! - `agui.artifact` only when `artifact_type` is in [`ALLOWED_ARTIFACT_TYPES`]
 //!   and, for `a2ui`, `content` is a string of at most [`MAX_A2UI_CONTENT_BYTES`];
 //! - `agui.state.patch` only when every op's path is under `/a2ui/`;
-//! - both `a2ui` artifacts and `/a2ui/` patches only while the turn was
-//!   built with the A2UI opt-in on, so the filter does not rely on UAR
-//!   honouring `presentation_mode: "text"`;
 //! - an event-less frame only when its data is `[DONE]`;
 //! - comment-only frames (keep-alives), which carry no data.
 //!
@@ -91,12 +88,12 @@ pub struct Filtered {
 }
 
 impl Filtered {
-    fn take(&mut self, event: &[u8], a2ui: bool) {
+    fn take(&mut self, event: &[u8]) {
         let parsed = ParsedEvent::parse(event);
         if let Some(signal) = parsed.signal() {
             self.signals.push(signal);
         }
-        match parsed.verdict(a2ui) {
+        match parsed.verdict() {
             Verdict::Forward => self.forward.extend_from_slice(event),
             Verdict::DropInternal => self.dropped_internal += 1,
             Verdict::DropMalformed => self.dropped_malformed += 1,
@@ -108,16 +105,11 @@ impl Filtered {
 #[derive(Debug, Default)]
 pub struct InternalArtifactFilter {
     pending: Vec<u8>,
-    a2ui: bool,
 }
 
 impl InternalArtifactFilter {
-    /// `a2ui` is the A2UI opt-in the turn was built with.
-    pub fn new(a2ui: bool) -> Self {
-        Self {
-            pending: Vec::new(),
-            a2ui,
-        }
+    pub fn new() -> Self {
+        Self::default()
     }
 
     /// Feeds one upstream chunk and returns every event it completed.
@@ -126,7 +118,7 @@ impl InternalArtifactFilter {
         let mut out = Filtered::default();
         let mut start = 0;
         while let Some(len) = event_len(&self.pending[start..]) {
-            out.take(&self.pending[start..start + len], self.a2ui);
+            out.take(&self.pending[start..start + len]);
             start += len;
         }
         self.pending.drain(..start);
@@ -138,7 +130,7 @@ impl InternalArtifactFilter {
         let rest = std::mem::take(&mut self.pending);
         let mut out = Filtered::default();
         if !rest.is_empty() {
-            out.take(&rest, self.a2ui);
+            out.take(&rest);
         }
         out
     }
@@ -174,8 +166,8 @@ fn event_len(buf: &[u8]) -> Option<usize> {
 }
 
 /// Classifies one event block (its bytes, with or without the terminator).
-pub fn classify(event: &[u8], a2ui: bool) -> Verdict {
-    ParsedEvent::parse(event).verdict(a2ui)
+pub fn classify(event: &[u8]) -> Verdict {
+    ParsedEvent::parse(event).verdict()
 }
 
 /// The `event` and joined `data` fields of one SSE event block.
@@ -207,7 +199,7 @@ impl ParsedEvent {
         }
     }
 
-    fn verdict(&self, a2ui: bool) -> Verdict {
+    fn verdict(&self) -> Verdict {
         match self.event_type.as_deref() {
             None => {
                 let data = self.data.trim();
@@ -217,14 +209,14 @@ impl ParsedEvent {
                     Verdict::DropInternal
                 }
             }
-            Some(ARTIFACT_EVENT) => self.artifact_verdict(a2ui),
-            Some(STATE_PATCH_EVENT) => self.state_patch_verdict(a2ui),
+            Some(ARTIFACT_EVENT) => self.artifact_verdict(),
+            Some(STATE_PATCH_EVENT) => self.state_patch_verdict(),
             Some(name) if ALLOWED_EVENTS.contains(&name) => Verdict::Forward,
             Some(_) => Verdict::DropInternal,
         }
     }
 
-    fn artifact_verdict(&self, a2ui: bool) -> Verdict {
+    fn artifact_verdict(&self) -> Verdict {
         let payload: Option<Value> = serde_json::from_str(&self.data).ok();
         let Some(kind) = payload
             .as_ref()
@@ -233,7 +225,7 @@ impl ParsedEvent {
         else {
             return Verdict::DropMalformed;
         };
-        if !a2ui || !ALLOWED_ARTIFACT_TYPES.contains(&kind) {
+        if !ALLOWED_ARTIFACT_TYPES.contains(&kind) {
             return Verdict::DropInternal;
         }
         // A public `a2ui` artifact is a string the client parses and caps, so
@@ -249,10 +241,7 @@ impl ParsedEvent {
     }
 
     /// Fail closed: one op outside `/a2ui/` drops the whole patch.
-    fn state_patch_verdict(&self, a2ui: bool) -> Verdict {
-        if !a2ui {
-            return Verdict::DropInternal;
-        }
+    fn state_patch_verdict(&self) -> Verdict {
         let payload: Option<Value> = serde_json::from_str(&self.data).ok();
         let Some(ops) = payload
             .as_ref()
@@ -301,7 +290,7 @@ mod tests {
     const DONE: &str = "event: agui.done\nid: 6\ndata: {\"usage\":{\"input_tokens\":1}}\n\n";
 
     fn run(chunks: &[&[u8]]) -> Filtered {
-        let mut filter = InternalArtifactFilter::new(true);
+        let mut filter = InternalArtifactFilter::new();
         let mut total = Filtered::default();
         for chunk in chunks {
             let out = filter.push(chunk);
@@ -382,7 +371,7 @@ mod tests {
     fn every_allowed_event_name_should_be_forwarded() {
         for name in ALLOWED_EVENTS {
             let frame = format!("event: {name}\ndata: {{}}\n\n");
-            assert_eq!(classify(frame.as_bytes(), true), Verdict::Forward, "{name}");
+            assert_eq!(classify(frame.as_bytes()), Verdict::Forward, "{name}");
         }
     }
 
@@ -413,7 +402,7 @@ mod tests {
         ] {
             let frame = format!("event: {name}\ndata: {{}}\n\n");
             assert_eq!(
-                classify(frame.as_bytes(), true),
+                classify(frame.as_bytes()),
                 Verdict::DropInternal,
                 "{name}"
             );
@@ -433,12 +422,12 @@ mod tests {
         ] {
             let frame = format!("event: agui.artifact\ndata: {{\"artifact_type\":\"{kind}\"}}\n\n");
             assert_eq!(
-                classify(frame.as_bytes(), true),
+                classify(frame.as_bytes()),
                 Verdict::DropInternal,
                 "{kind}"
             );
         }
-        assert_eq!(classify(A2UI.as_bytes(), true), Verdict::Forward);
+        assert_eq!(classify(A2UI.as_bytes()), Verdict::Forward);
     }
 
     fn a2ui_with(content: &str) -> String {
@@ -449,7 +438,7 @@ mod tests {
     fn an_a2ui_artifact_should_be_kept_only_with_string_content_within_the_cap() {
         let at_cap = format!(r#","content":"{}""#, "a".repeat(MAX_A2UI_CONTENT_BYTES));
         assert_eq!(
-            classify(a2ui_with(&at_cap).as_bytes(), true),
+            classify(a2ui_with(&at_cap).as_bytes()),
             Verdict::Forward
         );
 
@@ -462,21 +451,11 @@ mod tests {
             ("number content", r#","content":7"#),
         ] {
             assert_eq!(
-                classify(a2ui_with(content).as_bytes(), true),
+                classify(a2ui_with(content).as_bytes()),
                 Verdict::DropMalformed,
                 "{name}"
             );
         }
-    }
-
-    #[test]
-    fn a2ui_artifacts_and_patches_should_be_dropped_while_the_switch_is_off() {
-        assert_eq!(classify(A2UI.as_bytes(), false), Verdict::DropInternal);
-        let public = patch(r#"[{"op":"add","path":"/a2ui/surface1","value":{}}]"#);
-        assert_eq!(classify(public.as_bytes(), false), Verdict::DropInternal);
-        // Everything else is unaffected by the switch.
-        assert_eq!(classify(DELTA.as_bytes(), false), Verdict::Forward);
-        assert_eq!(classify(DONE.as_bytes(), false), Verdict::Forward);
     }
 
     fn patch(ops: &str) -> String {
@@ -486,12 +465,12 @@ mod tests {
     #[test]
     fn a_state_patch_should_be_kept_only_when_every_op_is_under_a2ui() {
         let public = patch(r#"[{"op":"add","path":"/a2ui/surface1","value":{}}]"#);
-        assert_eq!(classify(public.as_bytes(), true), Verdict::Forward);
+        assert_eq!(classify(public.as_bytes()), Verdict::Forward);
 
         let two_public = patch(
             r#"[{"op":"add","path":"/a2ui/a","value":1},{"op":"replace","path":"/a2ui/b/c","value":2}]"#,
         );
-        assert_eq!(classify(two_public.as_bytes(), true), Verdict::Forward);
+        assert_eq!(classify(two_public.as_bytes()), Verdict::Forward);
 
         for private in [
             patch(r#"[{"op":"add","path":"/presentation","value":{}}]"#),
@@ -505,7 +484,7 @@ mod tests {
             patch("[]"),
         ] {
             assert_eq!(
-                classify(private.as_bytes(), true),
+                classify(private.as_bytes()),
                 Verdict::DropInternal,
                 "{private}"
             );
@@ -520,7 +499,7 @@ mod tests {
             "event: agui.state.patch\ndata: {\"patch\":\"x\"}\n\n",
         ] {
             assert_eq!(
-                classify(bad.as_bytes(), true),
+                classify(bad.as_bytes()),
                 Verdict::DropMalformed,
                 "{bad}"
             );
@@ -529,16 +508,16 @@ mod tests {
 
     #[test]
     fn event_less_frames_should_be_kept_only_for_done_and_comments() {
-        assert_eq!(classify(b"data: [DONE]\n\n", true), Verdict::Forward);
-        assert_eq!(classify(b"data:[DONE]\r\n\r\n", true), Verdict::Forward);
-        assert_eq!(classify(b": keep-alive\n\n", true), Verdict::Forward);
-        assert_eq!(classify(OPENAI.as_bytes(), true), Verdict::DropInternal);
+        assert_eq!(classify(b"data: [DONE]\n\n"), Verdict::Forward);
+        assert_eq!(classify(b"data:[DONE]\r\n\r\n"), Verdict::Forward);
+        assert_eq!(classify(b": keep-alive\n\n"), Verdict::Forward);
+        assert_eq!(classify(OPENAI.as_bytes()), Verdict::DropInternal);
         assert_eq!(
-            classify(b"data: {not json\n\n", true),
+            classify(b"data: {not json\n\n"),
             Verdict::DropInternal
         );
         assert_eq!(
-            classify(b"id: 4\ndata: [DONE] x\n\n", true),
+            classify(b"id: 4\ndata: [DONE] x\n\n"),
             Verdict::DropInternal
         );
     }
@@ -574,7 +553,7 @@ mod tests {
 
     #[test]
     fn a_complete_event_should_be_released_without_waiting_for_the_next() {
-        let mut filter = InternalArtifactFilter::new(true);
+        let mut filter = InternalArtifactFilter::new();
         let out = filter.push(format!("{DELTA}event: agui.mes").as_bytes());
         assert_eq!(String::from_utf8(out.forward).unwrap(), DELTA);
     }
@@ -587,7 +566,7 @@ mod tests {
             "event: agui.artifact\ndata: {\"artifact_type\":7}\n\n",
         ] {
             assert_eq!(
-                classify(bad.as_bytes(), true),
+                classify(bad.as_bytes()),
                 Verdict::DropMalformed,
                 "{bad}"
             );
@@ -600,7 +579,7 @@ mod tests {
     #[test]
     fn multi_line_data_should_be_joined_before_parsing() {
         let split = "event: agui.artifact\ndata: {\"artifact_type\":\ndata: \"turn_manifest\"}\n\n";
-        assert_eq!(classify(split.as_bytes(), true), Verdict::DropInternal);
+        assert_eq!(classify(split.as_bytes()), Verdict::DropInternal);
     }
 
     #[test]

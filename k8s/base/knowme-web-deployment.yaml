@@ -117,17 +117,9 @@ spec:
             # is what the server re-reads).
             - name: SITE_KILL_SWITCH_FILE
               value: /etc/knowme/kill-switch/state
-            # site-proxy-a2ui-optin: the A2UI opt-in switch. Same mechanism
-            # as the kill switch, opposite default: the file must exist and
-            # say `on` for the proxy to ask UAR for A2UI surfaces.
-            - name: SITE_A2UI_OPTIN_FILE
-              value: /etc/knowme/a2ui-optin/state
           volumeMounts:
             - name: kill-switch
               mountPath: /etc/knowme/kill-switch
-              readOnly: true
-            - name: a2ui-optin
-              mountPath: /etc/knowme/a2ui-optin
               readOnly: true
           # Keep serving while Envoy drops this endpoint, then SIGTERM. Native
           # sleep action (Kubernetes 1.30+): the distroless image has no shell.
@@ -166,11 +158,3 @@ spec:
         - name: kill-switch
           configMap:
             name: site-chat-kill-switch
-        # site-proxy-a2ui-optin: created out of band by
-        # `scripts/ops/bootstrap-site.sh a2ui on|off`, never by this base.
-        # OPTIONAL: while the ConfigMap does not exist the pod still starts
-        # and the switch reads OFF, so the rollout cannot fail on it.
-        - name: a2ui-optin
-          configMap:
-            name: site-a2ui-optin
-            optional: true

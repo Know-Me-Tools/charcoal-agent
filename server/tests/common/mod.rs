@@ -230,8 +230,6 @@ pub struct Options<'a> {
     pub tap: Option<knowme_site_server::UpstreamTap>,
     /// Kill switch file content; `None` writes `off`.
     pub kill_switch: Option<&'a str>,
-    /// A2UI opt-in file content; `None` configures no file (permanently off).
-    pub a2ui_optin: Option<&'a str>,
     pub meter_mode: MeterMode,
     /// Points the meter elsewhere than the stub (e.g. a closed port).
     pub meter_url: Option<&'a str>,
@@ -266,11 +264,6 @@ pub async fn start_with(options: Options<'_>) -> Harness {
     .await;
     let kill_switch = temp_path("kill-switch");
     std::fs::write(&kill_switch, options.kill_switch.unwrap_or("off")).unwrap();
-    let a2ui_optin_file = options.a2ui_optin.map(|content| {
-        let path = temp_path("a2ui-optin");
-        std::fs::write(&path, content).unwrap();
-        path
-    });
     let config = Config {
         port: 0,
         uar_upstream: upstream_url,
@@ -303,7 +296,6 @@ pub async fn start_with(options: Options<'_>) -> Harness {
             reservation_tokens: RESERVATION,
         },
         kill_switch_file: kill_switch.clone(),
-        a2ui_optin_file,
     };
     let app = match options.tap {
         Some(tap) => build_app_with_upstream_tap(&config, tap),
@@ -548,16 +540,9 @@ pub fn pinned_body(message: &str) -> serde_json::Value {
         "stream": true,
         "stream_mode": "dual",
         "memory_enabled": false,
-        "presentation_mode": "text"
+        "presentation_mode": "a2ui",
+        "client_rendering": { "a2ui_profiles": ["uar.a2ui/1"] }
     })
-}
-
-/// The upstream body while the A2UI opt-in switch reads `on`.
-pub fn pinned_body_a2ui(message: &str) -> serde_json::Value {
-    let mut body = pinned_body(message);
-    body["presentation_mode"] = "a2ui".into();
-    body["client_rendering"] = serde_json::json!({ "a2ui_profiles": ["uar.a2ui/1"] });
-    body
 }
 
 /// `knowme_vid=<value>` from a response's Set-Cookie, as a Cookie header.

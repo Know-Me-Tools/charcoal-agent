@@ -27,7 +27,6 @@ use crate::domain::meter::Outcome;
 use crate::domain::query::allowlisted_query;
 use crate::domain::session_binding::{SessionSecret, ThreadId, VISITOR_ID_BYTES, VisitorId};
 use crate::error::AppError;
-use crate::infrastructure::a2ui_optin::A2uiOptIn;
 use crate::infrastructure::upstream::UarClient;
 
 const CHAT_PATH: &str = "/api/chat/completion";
@@ -40,7 +39,6 @@ pub struct SiteProxy {
     agent_id: String,
     secret: SessionSecret,
     meter: Arc<Meter>,
-    a2ui_optin: Arc<A2uiOptIn>,
     /// Always `None` outside the `test-harness` build.
     tap: Option<UpstreamTap>,
 }
@@ -59,14 +57,12 @@ impl SiteProxy {
         agent_id: String,
         secret: SessionSecret,
         meter: Arc<Meter>,
-        a2ui_optin: Arc<A2uiOptIn>,
     ) -> Self {
         Self {
             uar,
             agent_id,
             secret,
             meter,
-            a2ui_optin,
             tap: None,
         }
     }
@@ -119,9 +115,7 @@ impl SiteProxy {
             return Err(AppError::UnsupportedMediaType);
         }
         let thread = thread_id(headers)?;
-        // Read once: the body asks for what the filter then lets through.
-        let a2ui = self.a2ui_optin.is_enabled();
-        let pinned = build_site_chat_request(body, &self.agent_id, a2ui).map_err(chat_error)?;
+        let pinned = build_site_chat_request(body, &self.agent_id).map_err(chat_error)?;
 
         let mut session = HeaderValue::from_str(&self.secret.upstream_session_id(visitor, &thread))
             .map_err(|_| AppError::Internal("derived session id is not a header value"))?;
@@ -147,7 +141,7 @@ impl SiteProxy {
             )
             .await;
         match sent {
-            Ok(response) => Ok(self.public_stream(response, tracker, a2ui)),
+            Ok(response) => Ok(self.public_stream(response, tracker)),
             Err(err) => {
                 tracker.finish(Outcome::UpstreamError);
                 Err(err)
@@ -161,7 +155,7 @@ impl SiteProxy {
 
     /// Runs an SSE body through the internal-artifact filter and the turn
     /// tracker. Any other body passes unchanged and keeps its reservation.
-    fn public_stream(&self, response: Response, mut tracker: TurnTracker, a2ui: bool) -> Response {
+    fn public_stream(&self, response: Response, mut tracker: TurnTracker) -> Response {
         if !is_event_stream(response.headers()) {
             tracker.finish(Outcome::Incomplete);
             return response;
@@ -171,7 +165,6 @@ impl SiteProxy {
             body.into_data_stream(),
             self.tap.clone(),
             Some(tracker),
-            a2ui,
         );
         Response::from_parts(parts, Body::from_stream(filtered))
     }
