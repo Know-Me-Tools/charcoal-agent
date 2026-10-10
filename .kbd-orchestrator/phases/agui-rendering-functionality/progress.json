@@ -1,0 +1,186 @@
+{
+  "schemaVersion": "2",
+  "generatedBy": "kbd-runtime",
+  "projectionContractVersion": 2,
+  "sourceRevision": 1472,
+  "derivedRevision": 1472,
+  "frontier": {
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 1472
+  },
+  "conflictCount": 0,
+  "phase": "agui-rendering-functionality",
+  "phaseId": "agui-rendering-functionality",
+  "parentPhase": null,
+  "last_updated": "2026-10-09T14:19:17.172440Z",
+  "last_updated_by": "kbd-runtime",
+  "changes_total": 10,
+  "changes_completed": 2,
+  "implementation_total": 10,
+  "implementation_completed": 2,
+  "completion": {
+    "primaryCounter": "implementation",
+    "implementation": {
+      "completed": 2,
+      "total": 10,
+      "status": "IN_PROGRESS"
+    },
+    "evidence": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    },
+    "certification": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    },
+    "publication": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    }
+  },
+  "completionScopes": {
+    "completion": "phase",
+    "runCompletion": "run"
+  },
+  "runCompletion": {
+    "scope": "run",
+    "runId": "complete-rebranding-20260923T223312Z",
+    "primaryCounter": "implementation",
+    "implementation": {
+      "completed": 31,
+      "total": 65,
+      "status": "IN_PROGRESS"
+    },
+    "evidence": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    },
+    "certification": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    },
+    "publication": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    }
+  },
+  "changes": [
+    {
+      "id": "register-pem-workspace",
+      "title": "Register PEM as a writable workspace folder",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 3,
+      "tasks_done": 3,
+      "last_task_completed": "1.3 Integration check: `git diff` shows only those two files changed by this change, and `prometheus kbd status --json` still reports lifecycle `ready` with no conflicts.",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "agui-public-artifact-allowlist",
+      "title": "Public stream: allowlist events and artifact types, replacing the two-type denylist",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 7,
+      "tasks_done": 7,
+      "last_task_completed": "1.7 Done-when (deployed, operator-approved Train A): a live capture (types only, no content) has no `provider_event` or `attempt_manifest`, a chat turn still streams, and the meter writes its usage row. Save under a dated evidence folder with a README.",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "pem-a2ui-official-0-12-0",
+      "title": "PEM a2ui-react on official A2UI 0.12.0, pinned, released as a new version",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 11,
+      "tasks_done": 1,
+      "last_task_completed": "1.1 Create a PEM worktree from `origin/main` and pin `@a2ui/react` 0.12.0, `@a2ui/web_core` 0.12.0 and `@a2ui/markdown-it` 0.2.0 exactly in `packages/a2ui-react/package.json`; refresh the lockfile.",
+      "next_task_pending": "1.2 Root-cause `Official A2UI function is unavailable: add` with a failing test first, then fix `official/catalog.ts` (the `Catalog` constructor signature) accordingly.",
+      "blockers": []
+    },
+    {
+      "id": "agui-render-registry",
+      "title": "Client AG-UI render registry: events and artifact types map to renderers, hide or adapt",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 10,
+      "tasks_done": 1,
+      "last_task_completed": "1.1 Write characterization tests for the current event handling in `use-message-stream` and tool-name dispatch in `enhanced-thread`, so the refactor preserves behaviour.",
+      "next_task_pending": "1.2 Review flint-forge's `FlintRegistry`, `slugMap` and `FlintAgUiAdapter` as a design reference for the registry and record what is adopted or declined and why (it is not a renderer: unpublished on npm, own `a2ui:surface` dialect).",
+      "blockers": []
+    },
+    {
+      "id": "app-a2ui-surface-renderer",
+      "title": "Render A2UI surfaces in the app with PEM a2ui-react and a shadcn catalog",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 9,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "1.1 Add `@prometheus-ags/a2ui-react` (version from the PEM release) with exact pins, plus its `@ag-ui/core` peer (this repo does not have it; pin an exact version inside the peer range), and confirm the lockfile has one version of each official A2UI package and no ranges for them.",
+      "blockers": []
+    },
+    {
+      "id": "agui-inferred-a2ui",
+      "title": "Infer A2UI for events that have no registered template",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 5,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "1.1 Define the inference rules and caps (depth, size, escaping; only the nine components) and record them in the change design.",
+      "blockers": []
+    },
+    {
+      "id": "site-proxy-a2ui-optin",
+      "title": "Site proxy opts into A2UI itself and keeps A2UI action routes closed",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 7,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "1.1 Write failing tests first: the built upstream body always carries `presentation_mode`: `\"text\"` while the out-of-band switch is OFF, absent, unreadable or unrecognised, and `\"a2ui\"` plus `client_rendering` only while it is ON; the field is never omitted; visitor-supplied values are always ignored.",
+      "blockers": []
+    },
+    {
+      "id": "site-agent-a2ui-policy",
+      "title": "Public agent: allow A2UI rendering, seed a presentation template, red-team it",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 9,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "1.1 Confirm against the **pinned** UAR build (digest `688a97e4…` in `docker-compose.yaml` and `k8s/base/uar-deployment.yaml`, not `origin/main`), from its source and a live local run: the exact names and arguments of `presentation_render` and `a2ui_render` (both exist at the pinned build; `a2ui_render` is gated only by `allows_surfaces()`, `presentation_render` also needs persisted templates), the `policy.presentations.ids` field and `ui.artifacts` semantics; record the tool choice (the public agent uses `presentation_render` only, D-36); and record anything the pinned build lacks that this phase needs (the A2UI tool, UAR #358 non-streaming usage, #360 input screening, #361 cancelled usage).",
+      "blockers": []
+    },
+    {
+      "id": "uar-a2ui-validator-parity",
+      "title": "UAR A2UI validator: add components only where a recorded need exists (conditional)",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 4,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "1.1 Spike: write the gap table (components that agent-authored surfaces need, from change 8's template findings and any other recorded need, against UAR's nine and the v0.9.1 basic catalog) and record whether any gap exists.",
+      "blockers": []
+    },
+    {
+      "id": "agui-a2ui-live-verification",
+      "title": "Phase gate: end-to-end A2UI rendering, live leak check, cumulative review",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 5,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "1.1 Playwright test on the local compose stack: a real turn produces an A2UI surface that renders as components, diagnostics are hidden, and a cancelled run shows its state.",
+      "blockers": []
+    }
+  ],
+  "children": {},
+  "migrationStatus": null
+}

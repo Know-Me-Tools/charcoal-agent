@@ -1,0 +1,52 @@
+{
+  "mode": "artifact",
+  "verdict": "PASS",
+  "judge_model": "gpt-6.1-sol",
+  "producer_model": "claude-sonnet-5-5",
+  "isolation_mode": "rest-gateway:http://localhost:4000/v1",
+  "cross_model_check": "unverified-producer-unknown",
+  "findings": [
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "line": 0,
+      "claim": "The assessment contradicts its own attached evidence about PEM publish authority, which will mislead planning around whether a PEM release is blocked.",
+      "evidence": "assessment F11 says \"`npm whoami` failed here with `EBADDEVENGINES` ... so publish authority is unconfirmed\" and section 7 repeats \"`npm whoami` failed with `EBADDEVENGINES`\"; attached evidence 08 instead shows under \"npm login check from this machine\" the output `babyice1906`, followed by the contradictory note \"`EBADDEVENGINES` is an npm-version mismatch... publish authority is unknown\".",
+      "suggested_fix": "Reconcile the npm login evidence: either replace F11/section 7 with the actual `npm whoami` output and distinguish login from publish permission, or correct evidence 08 if the output is stale/wrong."
+    },
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "line": 0,
+      "claim": "The assessment contains a concrete counting error in the AG-UI event inventory, making the gap size unreliable.",
+      "evidence": "F15 states \"UAR can emit 32 events; the client handles 21\" and evidence 03 says \"UAR emits 32 distinct events; the client has a `case` for 21; 12 UAR events have no client handler.\" The table marks 12 rows with client case `no`, but 32 emitted minus 21 handled is 11, not 12; the extra handled client-only `agui.raw` is not a UAR emitted event and cannot resolve the arithmetic as written.",
+      "suggested_fix": "Recount UAR-emitted events and client handlers using a single definition, then correct F15/evidence wording and list exactly which UAR events are missing."
+    },
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "line": 0,
+      "claim": "The assessment cites an incorrect constraint filename/path that is not supported by the packet and may cause later stages to edit or check the wrong file.",
+      "evidence": "Section 5.1 says \"`constraints.md` carries a blocking rule\" and proposes registering PEM in \"`project.json`\" and \"`constraints.md`\"; the constraints packet identifies `.kbd-orchestrator/constraints.md`, and the file tree contains `.kbd-orchestrator/constraints.md` and `.kbd-orchestrator/project.json` but no root `constraints.md` or root `project.json`.",
+      "suggested_fix": "Name the repository paths explicitly as `.kbd-orchestrator/constraints.md` and `.kbd-orchestrator/project.json`, or explain if another constraints/project file is intended."
+    },
+    {
+      "severity": "WARNING",
+      "file": "assessment.md",
+      "line": 0,
+      "claim": "The assessment treats non-repository external evidence paths as if they were reviewable project files, leaving major UAR/PEM/flint findings unsupported by the provided file tree unless the attached evidence is accepted as primary.",
+      "evidence": "The artifact cites paths such as `src/uar/a2ui/protocol.rs`, `src/uar/runtime/manager.rs`, `src/official/catalog.ts`, `src/ag-ui/AgUiEventHandlers.ts`, and `RELEASING.md`; `cited_paths` marks all of these as MISSING in this repo, and the file tree only shows `uar/agents` rather than UAR source files. The artifact itself says \"The judge and later stages cannot read other repositories\" but still bases F3, F5, F10, F11, and F13 on those external paths.",
+      "suggested_fix": "For every external-repo claim needed downstream, cite only the attached evidence file path and include enough excerpted content there; avoid presenting missing external source paths as directly inspectable repo paths."
+    }
+  ],
+  "judge_identity": {
+    "providerConnectionId": "openai-proxy-8181",
+    "providerId": "openai",
+    "modelId": "gpt-6.1-sol"
+  },
+  "sycophancy_screen": {
+    "reject_cap": 2,
+    "cap_overridden": false,
+    "cap_default": 2
+  }
+}

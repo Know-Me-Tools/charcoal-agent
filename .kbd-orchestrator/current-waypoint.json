@@ -2,38 +2,38 @@
   "schemaVersion": "5",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 1305,
-  "derivedRevision": 1305,
+  "sourceRevision": 1472,
+  "derivedRevision": 1472,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 1305
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 1472
   },
   "conflictCount": 0,
   "projectId": "440c5818-223c-4091-8b7f-bc8083505a3c",
   "runId": "complete-rebranding-20260923T223312Z",
   "path": [
-    "uar-integration"
+    "agui-rendering-functionality"
   ],
   "phaseIds": [
-    "uar-integration"
+    "agui-rendering-functionality"
   ],
-  "activePhaseId": "uar-integration",
-  "activePhase": "uar-integration",
-  "phase": "uar-integration",
+  "activePhaseId": "agui-rendering-functionality",
+  "activePhase": "agui-rendering-functionality",
+  "phase": "agui-rendering-functionality",
   "parentPhase": null,
   "childPointer": null,
-  "change": "github-deploy-workflows",
-  "currentTask": "1.4",
+  "change": "pem-a2ui-official-0-12-0",
+  "currentTask": "2",
   "status": "ready",
   "lifecycle": "ready",
-  "stageId": null,
-  "stageStatus": null,
+  "stageId": "execute",
+  "stageStatus": "IN_PROGRESS",
   "completionMetric": "implementation",
-  "implementationCompleted": 29,
-  "implementationTotal": 55,
+  "implementationCompleted": 31,
+  "implementationTotal": 65,
   "planRevision": 2,
-  "revision": 1305,
-  "exactNextCommand": "/kbd-status",
-  "nextChange": "github-deploy-workflows",
-  "nextTask": "1.4",
-  "updatedAt": "2026-10-05T13:25:18.690366Z"
+  "revision": 1472,
+  "exactNextCommand": "/kbd-assess agui-rendering-functionality",
+  "nextChange": "pem-a2ui-official-0-12-0",
+  "nextTask": "2",
+  "updatedAt": "2026-10-09T14:19:17.172440Z"
 }
