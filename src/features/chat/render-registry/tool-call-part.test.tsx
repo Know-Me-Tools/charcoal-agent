@@ -224,6 +224,38 @@ describe("ToolCallPart: registry-driven rendering (tasks 1.7, 1.8)", () => {
     expect(screen.getByTestId("a2ui-surface")).toBeInTheDocument();
   });
 
+  it("a display-only confirm artifact is inferred into a read-only A2UI surface", async () => {
+    render(
+      <ToolCallPart
+        {...part("__artifact__", {
+          artifactId: "c1",
+          artifactType: "confirm",
+          title: "Send the email?",
+          content: JSON.stringify({ message: "Send to Ada", accept_label: "Send" }),
+          isInputRequest: false,
+        })}
+      />,
+    );
+    expect(await screen.findByText("Send to Ada")).toBeInTheDocument();
+    expect(screen.getByTestId("a2ui-surface")).toBeInTheDocument();
+  });
+
+  it("a confirm input request keeps its interactive form", () => {
+    render(
+      <ToolCallPart
+        {...part("__artifact_input__", {
+          runId: "r",
+          artifactId: "c2",
+          artifactType: "confirm",
+          title: "Send the email?",
+          content: JSON.stringify({ message: "Send to Ada" }),
+          metadata: {},
+        })}
+      />,
+    );
+    expect(screen.queryByTestId("a2ui-surface")).not.toBeInTheDocument();
+  });
+
   it("__cancelled__ shows a cancelled state with token usage", () => {
     render(<ToolCallPart {...part("__cancelled__", { usage: { input_tokens: 1200, output_tokens: 34 } })} />);
     expect(screen.getByRole("status")).toHaveTextContent("Run cancelled");

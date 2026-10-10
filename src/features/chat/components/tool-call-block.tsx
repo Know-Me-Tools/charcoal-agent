@@ -9,8 +9,10 @@ import {
 	XCircleIcon,
 	type LucideIcon,
 } from "lucide-react";
-import { type FC, useState } from "react";
+import { type FC, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { LazyA2uiSurfaceBlock } from "@/features/a2ui/lazy-a2ui-surface-block";
+import { inferA2uiFromJson, noteInferenceFallback } from "@/features/a2ui/infer";
 import { ShikiCodeBlock } from "@/features/artifacts/shiki-code-block";
 import { cn } from "@/lib/utils";
 
@@ -96,6 +98,15 @@ export const ToolCallBlock: FC<ToolCallBlockProps> = ({
 	const argsJson = JSON.stringify(args, null, 2);
 	const hasArgs = argsJson !== "{}";
 	const resultJson = result !== undefined ? tryFormatJson(result) : null;
+	// A finished call whose result is a JSON object has no registered
+	// template, so it is shown as an inferred A2UI surface; over a cap or not
+	// an object, the JSON view below stays (agui-inferred-a2ui).
+	const inferred = useMemo(() => {
+		if (status !== "complete" || result === undefined) return null;
+		const outcome = inferA2uiFromJson(result);
+		noteInferenceFallback(outcome);
+		return outcome.ok ? outcome.content : null;
+	}, [status, result]);
 
 	return (
 		<div className="my-3 min-w-0 overflow-hidden rounded-lg bg-surface first:mt-0 last:mb-0">
@@ -159,6 +170,8 @@ export const ToolCallBlock: FC<ToolCallBlockProps> = ({
 								<p className="whitespace-pre-wrap rounded-md bg-warning-soft px-3 py-2 font-body text-sm text-warning-text wrap-break-word">
 									{result}
 								</p>
+							) : inferred !== null ? (
+								<LazyA2uiSurfaceBlock content={inferred} />
 							) : resultJson !== null ? (
 								<ShikiCodeBlock code={resultJson} language="json" />
 							) : (

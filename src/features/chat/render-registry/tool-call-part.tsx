@@ -1,6 +1,7 @@
 import type { ToolCallMessagePartProps } from "@assistant-ui/react";
 import type { FC } from "react";
 import { ArtifactBlock } from "@/features/chat/components/artifact-block";
+import { inferA2uiFromJson, noteInferenceFallback } from "@/features/a2ui/infer";
 import { LazyA2uiSurfaceBlock } from "@/features/a2ui/lazy-a2ui-surface-block";
 import { A2uiDisplayBlock, A2uiInputBlock } from "@/features/chat/components/a2ui-artifact-block";
 import { CitationBlock } from "@/features/chat/components/citation-block";
@@ -38,6 +39,9 @@ interface ArtifactArgs {
  */
 const isArtifactHidden = (artifactType: string): boolean =>
   defaultRenderRegistry.resolve({ kind: "artifact", name: artifactType }).disposition === "hide";
+
+/** Input-request artifact types whose display-only copies are inferred. */
+const INFERRED_ARTIFACT_TYPES: ReadonlySet<string> = new Set(["confirm", "form", "select", "text_input"]);
 
 const SkillPart: PartRenderer = ({ args }) => {
   const a = args as {
@@ -152,6 +156,14 @@ const ArtifactPart: PartRenderer = ({ args }) => {
   // `adapt`: the `a2ui` carrier is NDJSON A2UI v0.9.1, rendered as a surface.
   if (a.artifactType === "a2ui" && !a.isInputRequest) {
     return <LazyA2uiSurfaceBlock content={a.content} title={a.title} />;
+  }
+  // Display-only copies of input requests (persisted or answered) have no
+  // template; infer a read-only surface, and keep the existing view when the
+  // content is not a small JSON object. Live input requests never get here.
+  if (!a.isInputRequest && INFERRED_ARTIFACT_TYPES.has(a.artifactType)) {
+    const inferred = inferA2uiFromJson(a.content, { title: a.title });
+    if (inferred.ok) return <LazyA2uiSurfaceBlock content={inferred.content} />;
+    noteInferenceFallback(inferred);
   }
   // Display-only: use A2uiDisplayBlock for proper rendering, fall back to
   // ArtifactBlock for legacy persisted records that lack the new fields.

@@ -86,3 +86,41 @@ describe("ToolCallBlock — denied status", () => {
 		expect(screen.getByText("Tool calls are disabled for this agent.")).toBeInTheDocument();
 	});
 });
+
+describe("ToolCallBlock result (inferred A2UI)", () => {
+	it("shows a flat JSON object result as an A2UI surface, not raw JSON", async () => {
+		render(
+			<ToolCallBlock
+				toolName="lookup_weather"
+				args={{}}
+				result={JSON.stringify({ city: "Oslo", temp: "4C" })}
+				status="complete"
+			/>,
+		);
+		await userEvent.click(screen.getByRole("button", { name: /lookup_weather/ }));
+
+		expect(await screen.findByText("Oslo")).toBeInTheDocument();
+		expect(screen.getByTestId("a2ui-surface")).toBeInTheDocument();
+		expect(screen.queryByText(/"city"/)).not.toBeInTheDocument();
+	});
+
+	it("keeps the JSON view when the result is over a cap", async () => {
+		const deep = { a: { b: { c: { d: { e: "x" } } } } };
+		render(
+			<ToolCallBlock toolName="deep" args={{}} result={JSON.stringify(deep)} status="complete" />,
+		);
+		await userEvent.click(screen.getByRole("button", { name: /deep/ }));
+
+		expect(screen.queryByTestId("a2ui-surface")).not.toBeInTheDocument();
+		expect(await screen.findByText(/"e"/)).toBeInTheDocument();
+	});
+
+	it("never infers for failed calls or plain-text results", async () => {
+		render(
+			<ToolCallBlock toolName="boom" args={{}} result='{"error":"nope"}' status="failed" />,
+		);
+		await userEvent.click(screen.getByRole("button", { name: /boom/ }));
+		expect(screen.queryByTestId("a2ui-surface")).not.toBeInTheDocument();
+		expect(screen.getByText('{"error":"nope"}')).toBeInTheDocument();
+	});
+});
