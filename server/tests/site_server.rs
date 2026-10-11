@@ -352,6 +352,12 @@ async fn forced_tool_call_should_reach_the_visitor_only_as_a_denial() {
         .unwrap();
 
     assert!(public.contains("agui.tool_call.denied"), "{public}");
+    // The denial names the tool, not the policy that denied it.
+    assert!(public.contains("activate_skill"), "{public}");
+    assert!(public.contains("This action is not permitted."), "{public}");
+    for leak in ["effective_run_policy", "tools.mode", "run-9", "qwen3.8-max"] {
+        assert!(!public.contains(leak), "{leak} leaked: {public}");
+    }
     for dropped in [
         "agui.tool_call.delta",
         "agui.tool_call.approval_required",

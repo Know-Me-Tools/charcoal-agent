@@ -23,12 +23,54 @@ export const ACCEPTED_CATALOG_IDS: readonly string[] = [
   A2UI_BASIC_CATALOG_ID,
 ];
 
+/**
+ * The components the public site may render: layout and text, nothing that
+ * takes input. Mirrors `PASSIVE_A2UI_COMPONENTS` in
+ * `server/src/domain/agui_filter.rs`, which enforces the same set before a
+ * surface leaves the server. Change both together.
+ */
+export const PASSIVE_A2UI_COMPONENTS: ReadonlySet<string> = new Set([
+  "Card",
+  "Column",
+  "Row",
+  "Text",
+  "Divider",
+]);
+
+export interface A2uiParseOptions {
+  /** Reject any component outside this set, and any `action` or function `call`. */
+  allowedComponents?: ReadonlySet<string>;
+}
+
 export type A2uiCarrierResult =
   | { ok: true; messages: Record<string, unknown>[] }
-  | { ok: false; reason: "empty" | "too_large" | "too_many_messages" | "malformed" | "catalog" };
+  | {
+      ok: false;
+      reason: "empty" | "too_large" | "too_many_messages" | "malformed" | "catalog" | "component";
+    };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/** An `action` (event or function) or a function `call` anywhere inside `value`. */
+function hasInteractiveKey(value: unknown): boolean {
+  if (Array.isArray(value)) return value.some(hasInteractiveKey);
+  if (!isRecord(value)) return false;
+  return Object.entries(value).some(
+    ([key, inner]) => key === "action" || key === "call" || hasInteractiveKey(inner),
+  );
+}
+
+/** True when `message` only updates components from `allowed`, with no action or call. */
+function componentsAllowed(message: Record<string, unknown>, allowed: ReadonlySet<string>): boolean {
+  const update = message.updateComponents;
+  if (update === undefined) return true;
+  if (!isRecord(update) || !Array.isArray(update.components)) return false;
+  const named = update.components.every(
+    (c) => isRecord(c) && typeof c.component === "string" && allowed.has(c.component),
+  );
+  return named && !hasInteractiveKey(update);
 }
 
 /**
@@ -38,8 +80,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * - `version: "v0.9"` is normalised to `v0.9.1`; any other version is rejected.
  * - A `createSurface.catalogId` outside UAR's two ids is rejected, so a surface
  *   can never name a catalog this client did not register.
+ * - With `allowedComponents`, a component outside the set, or any `action` or
+ *   function `call` in a component update, rejects the whole surface.
  */
-export function parseA2uiArtifactContent(content: string): A2uiCarrierResult {
+export function parseA2uiArtifactContent(
+  content: string,
+  options: A2uiParseOptions = {},
+): A2uiCarrierResult {
   if (content.trim() === "") return { ok: false, reason: "empty" };
   if (new TextEncoder().encode(content).length > A2UI_MAX_CONTENT_BYTES) {
     return { ok: false, reason: "too_large" };
@@ -70,6 +117,9 @@ export function parseA2uiArtifactContent(content: string): A2uiCarrierResult {
       if (typeof catalogId !== "string" || !ACCEPTED_CATALOG_IDS.includes(catalogId)) {
         return { ok: false, reason: "catalog" };
       }
+    }
+    if (options.allowedComponents && !componentsAllowed(message, options.allowedComponents)) {
+      return { ok: false, reason: "component" };
     }
     messages.push(message);
   }

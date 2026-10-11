@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { A2uiSurfaceBlock } from "./a2ui-surface-block";
 
 /**
@@ -43,5 +43,40 @@ describe("A2uiSurfaceBlock", () => {
     render(<A2uiSurfaceBlock content={content} />);
     expect(screen.getByTestId("a2ui-surface-error")).toBeTruthy();
     expect(screen.queryByTestId("a2ui-surface")).toBeNull();
+  });
+});
+
+describe("A2uiSurfaceBlock on the public site", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("shows a plain notice and no control for a surface with a Button when passiveOnly is set", () => {
+    render(<A2uiSurfaceBlock content={CAPTURED_SURFACE} passiveOnly />);
+    expect(screen.getByTestId("a2ui-surface-error")).toBeTruthy();
+    expect(screen.queryByRole("button")).toBeNull();
+    expect(screen.queryByTestId("a2ui-surface")).toBeNull();
+  });
+
+  it("is passive by default in the site build and unrestricted otherwise", async () => {
+    vi.stubEnv("VITE_SITE_AGENT_ID", "knowme-site");
+    const site = render(<A2uiSurfaceBlock content={CAPTURED_SURFACE} />);
+    expect(screen.getByTestId("a2ui-surface-error")).toBeTruthy();
+    expect(screen.queryByRole("button")).toBeNull();
+    site.unmount();
+
+    vi.stubEnv("VITE_SITE_AGENT_ID", "");
+    render(<A2uiSurfaceBlock content={CAPTURED_SURFACE} />);
+    expect(await screen.findByRole("button", { name: "Continue" })).toBeTruthy();
+  });
+
+  it("still renders the answer card as components", async () => {
+    const card = [
+      '{"version":"v0.9.1","createSurface":{"surfaceId":"c","catalogId":"urn:uar:a2ui:catalog:1"}}',
+      '{"version":"v0.9.1","updateComponents":{"surfaceId":"c","components":[{"id":"root","component":"Card","child":"body"},{"id":"body","component":"Column","children":["title","rule","answer"]},{"id":"title","component":"Text","variant":"h3","text":{"path":"/title"}},{"id":"rule","component":"Divider"},{"id":"answer","component":"Text","variant":"body","text":{"path":"/answer"}}]}}',
+      '{"version":"v0.9.1","updateDataModel":{"surfaceId":"c","path":"/","value":{"title":"What is The Boss?","answer":"A desktop workspace."}}}',
+    ].join("\n");
+    render(<A2uiSurfaceBlock content={card} passiveOnly />);
+    expect(await screen.findByText("A desktop workspace.")).toBeTruthy();
+    expect(screen.getByText("What is The Boss?")).toBeTruthy();
+    expect(screen.queryByTestId("a2ui-surface-error")).toBeNull();
   });
 });
