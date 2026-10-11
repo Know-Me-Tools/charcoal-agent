@@ -1,16 +1,16 @@
 # UAR — no PVC: persistence is the remote SurrealDB, not the embedded store.
-# Image pinned by digest (ci-supply-chain-pins): the `main` image created on
-# 2026-10-04 21:37 UTC by the build of commit bb6ea8ba (merge of
-# Prometheus-AGS/universal-agent-runtime#344). That commit descends from #345
-# (a KB's chunk_strategy is honoured at ingest), #350 (version-safe sentence
-# chunkers), #353 (per-KB retrieval_min_score and retrieval_top_k) and #321
-# (ES256/JWKS verification). The digest is
-# ghcr.io/prometheus-ags/universal-agent-runtime@sha256:688a97e42a0be63247b95c3b1a3c5ebd9da9078c79d63c4f31d979d469b77888
-# and resolves a linux/amd64 + linux/arm64 index. Its attestation does not
-# expose a readable vcs revision, so the commit above comes from the build
-# timing; the KB's retrieval settings round-tripping through the API proves
-# #353 is in it. Renovate tracks this digest going forward (renovate.json);
-# bump deliberately.
+# Image pinned by digest (ci-supply-chain-pins): the `main` image built by
+# Prometheus-AGS/universal-agent-runtime's "Build and Publish Images" run for
+# commit 2cc9a182 (merge of #378), manifest published 2026-10-11 17:07 UTC. It
+# is the first main image since 2026-10-04: every build in between failed on
+# the .dockerignore and entity-graph-react gaps that #378 fixed. It descends
+# from #344/#345/#350/#353/#321 (the previous pin's features) and adds #358
+# (usage on non-streaming responses), #361 (usage on cancelled runs) and #360
+# (guardrails and usage). The digest is
+# ghcr.io/prometheus-ags/universal-agent-runtime@sha256:e955789aa6aea70853d4e19ce95b5c5774750d232472c048bd4763c96e5513f5
+# and resolves a linux/amd64 + linux/arm64 index. The image has no vcs revision
+# label; the commit above comes from the CI run that published it. Renovate
+# tracks this digest going forward (renovate.json); bump deliberately.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -40,7 +40,7 @@ spec:
         fsGroup: 65532
       containers:
         - name: uar
-          image: ghcr.io/prometheus-ags/universal-agent-runtime:main@sha256:688a97e42a0be63247b95c3b1a3c5ebd9da9078c79d63c4f31d979d469b77888
+          image: ghcr.io/prometheus-ags/universal-agent-runtime:main@sha256:e955789aa6aea70853d4e19ce95b5c5774750d232472c048bd4763c96e5513f5
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

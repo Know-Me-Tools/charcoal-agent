@@ -151,7 +151,10 @@ mint_jwt() {
   now="$(date +%s)"
   exp="$((now + JWT_TTL_SECS))"
   header_b64="$(printf '%s' '{"alg":"HS256","typ":"JWT"}' | b64url)"
-  payload_b64="$(printf '{"sub":"%s","iat":%s,"exp":%s}' "$JWT_SUBJECT" "$now" "$exp" | b64url)"
+  # `roles: ["user"]`: UAR images from 2026-10-11 (api-key authority) let a key
+  # carry only roles its minting caller holds, and `user` is the one delegable
+  # by default; without it the mint answers 403 "not delegable".
+  payload_b64="$(printf '{"sub":"%s","roles":["user"],"iat":%s,"exp":%s}' "$JWT_SUBJECT" "$now" "$exp" | b64url)"
   signing_input="${header_b64}.${payload_b64}"
   signature_b64="$(printf '%s' "$signing_input" | openssl dgst -sha256 -hmac "$UAR_JWT_SECRET" -binary | b64url)"
   printf '%s.%s' "$signing_input" "$signature_b64"

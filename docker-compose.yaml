@@ -30,7 +30,7 @@ services:
   # password comes from .env; in the cluster the operator does this out of
   # band (site-spend-ceiling 1.1). Reuses the pinned UAR image for curl.
   meter-init:
-    image: ghcr.io/prometheus-ags/universal-agent-runtime:main@sha256:688a97e42a0be63247b95c3b1a3c5ebd9da9078c79d63c4f31d979d469b77888
+    image: ghcr.io/prometheus-ags/universal-agent-runtime:main@sha256:e955789aa6aea70853d4e19ce95b5c5774750d232472c048bd4763c96e5513f5
     container_name: knowme-meter-init
     entrypoint: ["curl"]
     command:
@@ -55,7 +55,7 @@ services:
   uar:
     # Pinned by digest (ci-supply-chain-pins); see k8s/base/uar-deployment.yaml
     # for the verification evidence. Bump deliberately, in step with the k8s pin.
-    image: ghcr.io/prometheus-ags/universal-agent-runtime:main@sha256:688a97e42a0be63247b95c3b1a3c5ebd9da9078c79d63c4f31d979d469b77888
+    image: ghcr.io/prometheus-ags/universal-agent-runtime:main@sha256:e955789aa6aea70853d4e19ce95b5c5774750d232472c048bd4763c96e5513f5
     container_name: knowme-uar
     ports:
       - "${UAR_PORT:-6565}:6565"
