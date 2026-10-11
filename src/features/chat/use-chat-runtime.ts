@@ -11,6 +11,7 @@ import { useChatMessages } from "./use-chat-messages";
 import { useMessageStream } from "./use-message-stream";
 import { generateThreadTitle } from "./use-thread-naming";
 import type { RichMessage, ContentBlock } from "@/types/chat-content";
+import { CANCELLED_PART } from "./render-registry/pseudo-parts";
 
 /**
  * Convert our internal RichMessage to the ThreadMessageLike shape expected by
@@ -397,6 +398,15 @@ export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {
 
   const onCancel = useCallback(async () => {
     cancelStream();
+    // A client-side Stop sends no agui.cancelled, so record the same visible
+    // state here; without it a turn stopped before its first token vanishes.
+    useChatMessageStore.getState().addToolCall(threadId, {
+      type: "tool-call",
+      toolCallId: `cancelled-${Date.now()}`,
+      toolName: CANCELLED_PART,
+      args: {},
+      status: "complete",
+    });
     useChatMessageStore.getState().finishStream(threadId);
   }, [threadId, cancelStream]);
 

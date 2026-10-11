@@ -459,6 +459,26 @@ test("Tool states: a running call (no result yet) shows an icon-and-text Running
   expect(pillColor).toBe(await tokenColor(page, "--km-cyan-text", "color"));
 });
 
+test("Stop: a stopped run leaves a visible Run cancelled state and a usable composer", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await holdChatStreamOpen(page, toSseBody(PARTIAL_STREAM_EVENTS));
+  await page.goto(`/threads/${FIXTURE_THREAD_ID}`);
+
+  const composer = page.getByPlaceholder(/Ask your agent anything/i).filter({ visible: true });
+  await composer.fill("Plan my week around the rebrand launch.");
+  await composer.press("Enter");
+
+  const stop = page.getByRole("button", { name: "Stop generating" }).first();
+  await expect(stop).toBeVisible();
+  await stop.click();
+
+  await expect(page.getByRole("status").filter({ hasText: "Run cancelled" })).toBeVisible();
+  await expect(stop).toBeHidden();
+  await expect(composer).toBeEditable();
+});
+
 // ─── Code block (spec scenario 10) ─────────────────────────────────────────────
 
 test("Code block: shows its language label, and the copy button has an accessible name", async ({ page }) => {
