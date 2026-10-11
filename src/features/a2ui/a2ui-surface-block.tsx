@@ -6,7 +6,8 @@ import {
   createPrometheusA2uiRuntime,
   type PrometheusA2uiRuntime,
 } from "@prometheus-ags/a2ui-react";
-import { parseA2uiArtifactContent } from "./carrier-adapter";
+import { isSiteBuild } from "@/hooks/use-site-config";
+import { PASSIVE_A2UI_COMPONENTS, parseA2uiArtifactContent } from "./carrier-adapter";
 import { createKnowmeA2uiCatalogs } from "./catalog";
 
 const FAILURE_COPY = "This interface could not be displayed.";
@@ -18,8 +19,11 @@ type Prepared = { ok: true; runtime: PrometheusA2uiRuntime } | { ok: false };
  * the runtime keeps its deny-all action policy, and the catalog's Button is
  * disabled, so nothing reaches UAR from here.
  */
-function prepare(content: string): Prepared {
-  const parsed = parseA2uiArtifactContent(content);
+function prepare(content: string, passiveOnly: boolean): Prepared {
+  const parsed = parseA2uiArtifactContent(
+    content,
+    passiveOnly ? { allowedComponents: PASSIVE_A2UI_COMPONENTS } : {},
+  );
   if (!parsed.ok) return { ok: false };
   try {
     const runtime = createPrometheusA2uiRuntime({
@@ -37,10 +41,19 @@ export interface A2uiSurfaceBlockProps {
   /** NDJSON v0.9.1 from the `agui.artifact` `content` field. */
   content: string;
   title?: string;
+  /**
+   * Render only layout and text, never a field, checkbox, picker or button.
+   * Defaults to on for the public site build, where the visitor is anonymous.
+   */
+  passiveOnly?: boolean;
 }
 
-export const A2uiSurfaceBlock: FC<A2uiSurfaceBlockProps> = ({ content, title }) => {
-  const prepared = useMemo(() => prepare(content), [content]);
+export const A2uiSurfaceBlock: FC<A2uiSurfaceBlockProps> = ({
+  content,
+  title,
+  passiveOnly = isSiteBuild(),
+}) => {
+  const prepared = useMemo(() => prepare(content, passiveOnly), [content, passiveOnly]);
 
   if (!prepared.ok) {
     return (

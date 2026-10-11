@@ -48,8 +48,8 @@ test("a factual question renders an A2UI card as components and hides diagnostic
   }
   // Frame the finished card, not the middle of the stream.
   await expect(page.getByRole("button", { name: "Stop generating" })).toHaveCount(0);
-  await surface.scrollIntoViewIfNeeded();
-  await surface.screenshot({ path: "test-results/live-card.png" });
+  await surface.evaluate((el) => el.scrollIntoView({ block: "center" }));
+  await page.screenshot({ path: "test-results/live-card.png" });
 });
 
 test("stopping a run mid-stream leaves the thread usable and shows no diagnostics", async ({

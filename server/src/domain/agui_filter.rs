@@ -9,15 +9,19 @@
 //! public client renders or the meter needs, and drops everything else.
 //!
 //! The stream is split at SSE event boundaries (a blank line, with `\n`,
-//! `\r\n` or `\r` line endings). Kept events are returned as their original
-//! bytes, in order. A complete event is released as soon as its terminating
+//! `\r\n` or `\r` line endings). Kept events are returned in order, each as a
+//! rebuilt frame; no upstream bytes are forwarded as they arrived. A complete event is released as soon as its terminating
 //! blank line arrives; only an incomplete event is held.
 //!
 //! What is kept:
-//! - the events in [`ALLOWED_EVENTS`];
+//! - the events in [`ALLOWED_EVENTS`], each rebuilt from the fields the client
+//!   reads (`public_payload`), so provider and model names, cost, raw error
+//!   text, policy reasons and any field UAR adds later stay off the wire;
 //! - `agui.artifact` only when `artifact_type` is in [`ALLOWED_ARTIFACT_TYPES`]
-//!   and, for `a2ui`, `content` is a string of at most [`MAX_A2UI_CONTENT_BYTES`];
-//! - `agui.state.patch` only when every op's path is under `/a2ui/`;
+//!   and, for `a2ui`, `content` is a string of at most [`MAX_A2UI_CONTENT_BYTES`]
+//!   whose components are all in [`PASSIVE_A2UI_COMPONENTS`] (see
+//!   [`is_passive_surface`]);
+//! - `agui.state.patch` only when every op's `path` and `from` are under `/a2ui/`;
 //! - an event-less frame only when its data is `[DONE]`;
 //! - comment-only frames (keep-alives), which carry no data.
 //!
@@ -30,7 +34,7 @@
 //! usage, `agui.cancelled` and `agui.error`. Signals are read from the
 //! upstream event whether or not it is forwarded.
 
-use serde_json::Value;
+use serde_json::{Map, Value, json};
 
 use crate::domain::meter::{Usage, parse_done_usage};
 
@@ -49,6 +53,22 @@ pub const ALLOWED_EVENTS: [&str; 8] = [
     "agui.rag_citations",
     "agui.tool_call.denied",
 ];
+/// The only A2UI components a visitor may be sent: layout and text, nothing
+/// that takes input. The client enforces the same set on the public build.
+pub const PASSIVE_A2UI_COMPONENTS: [&str; 5] = ["Card", "Column", "Row", "Text", "Divider"];
+/// Keys an A2UI server-to-client message may carry.
+const A2UI_MESSAGE_KEYS: [&str; 6] = [
+    "version",
+    "profile",
+    "createSurface",
+    "updateComponents",
+    "updateDataModel",
+    "deleteSurface",
+];
+/// Replaces UAR's error text, which can name hosts, providers or tables.
+pub const PUBLIC_ERROR_MESSAGE: &str = "The reply stopped before it finished.";
+/// Replaces UAR's denial reason, which describes the run policy.
+pub const PUBLIC_DENIED_REASON: &str = "This action is not permitted.";
 /// Largest `a2ui` artifact `content` forwarded, in bytes. The site client
 /// refuses anything larger than this too.
 pub const MAX_A2UI_CONTENT_BYTES: usize = 256 * 1024;
@@ -93,10 +113,10 @@ impl Filtered {
         if let Some(signal) = parsed.signal() {
             self.signals.push(signal);
         }
-        match parsed.verdict() {
-            Verdict::Forward => self.forward.extend_from_slice(event),
-            Verdict::DropInternal => self.dropped_internal += 1,
-            Verdict::DropMalformed => self.dropped_malformed += 1,
+        match parsed.outcome() {
+            Outcome::Rewritten(frame) => self.forward.extend_from_slice(&frame),
+            Outcome::Drop(Verdict::DropMalformed) => self.dropped_malformed += 1,
+            Outcome::Drop(_) => self.dropped_internal += 1,
         }
     }
 }
@@ -200,67 +220,129 @@ impl ParsedEvent {
     }
 
     fn verdict(&self) -> Verdict {
-        match self.event_type.as_deref() {
-            None => {
-                let data = self.data.trim();
-                if data.is_empty() || data == DONE_SENTINEL {
-                    Verdict::Forward
-                } else {
-                    Verdict::DropInternal
-                }
-            }
-            Some(ARTIFACT_EVENT) => self.artifact_verdict(),
-            Some(STATE_PATCH_EVENT) => self.state_patch_verdict(),
-            Some(name) if ALLOWED_EVENTS.contains(&name) => Verdict::Forward,
-            Some(_) => Verdict::DropInternal,
+        match self.outcome() {
+            Outcome::Rewritten(_) => Verdict::Forward,
+            Outcome::Drop(verdict) => verdict,
         }
     }
 
-    fn artifact_verdict(&self) -> Verdict {
+    /// What to send for this event: a frame rebuilt from whitelisted fields,
+    /// or nothing.
+    fn outcome(&self) -> Outcome {
+        match self.event_type.as_deref() {
+            // Rebuilt too: a comment or an `id:`-only frame can carry UAR text.
+            None => match self.data.trim() {
+                "" => Outcome::Rewritten(b":\n\n".to_vec()),
+                DONE_SENTINEL => Outcome::Rewritten(b"data: [DONE]\n\n".to_vec()),
+                _ => Outcome::Drop(Verdict::DropInternal),
+            },
+            Some(ARTIFACT_EVENT) => self.artifact_outcome(),
+            Some(STATE_PATCH_EVENT) => self.state_patch_outcome(),
+            Some(name) if ALLOWED_EVENTS.contains(&name) => self.named_outcome(name),
+            Some(_) => Outcome::Drop(Verdict::DropInternal),
+        }
+    }
+
+    /// An allowed event, rebuilt from the fields the public client reads. A
+    /// field UAR adds later never reaches a visitor until it is named here.
+    fn named_outcome(&self, name: &str) -> Outcome {
+        let payload = if self.data.trim().is_empty() {
+            Value::Null
+        } else {
+            match serde_json::from_str::<Value>(&self.data) {
+                Ok(value) => value,
+                Err(_) => return Outcome::Drop(Verdict::DropMalformed),
+            }
+        };
+        match public_payload(name, &payload) {
+            Some(public) => Outcome::Rewritten(frame(name, &public)),
+            None => Outcome::Drop(Verdict::DropMalformed),
+        }
+    }
+
+    fn artifact_outcome(&self) -> Outcome {
         let payload: Option<Value> = serde_json::from_str(&self.data).ok();
         let Some(kind) = payload
             .as_ref()
             .and_then(|v| v.get("artifact_type"))
             .and_then(Value::as_str)
         else {
-            return Verdict::DropMalformed;
+            return Outcome::Drop(Verdict::DropMalformed);
         };
         if !ALLOWED_ARTIFACT_TYPES.contains(&kind) {
-            return Verdict::DropInternal;
+            return Outcome::Drop(Verdict::DropInternal);
         }
         // A public `a2ui` artifact is a string the client parses and caps, so
-        // anything else, or anything larger, never reaches a visitor.
-        match payload
+        // anything else, larger, or using a component that takes input never
+        // reaches a visitor.
+        let Some(content) = payload
             .as_ref()
             .and_then(|v| v.get("content"))
             .and_then(Value::as_str)
-        {
-            Some(content) if content.len() <= MAX_A2UI_CONTENT_BYTES => Verdict::Forward,
-            _ => Verdict::DropMalformed,
+        else {
+            return Outcome::Drop(Verdict::DropMalformed);
+        };
+        if content.len() > MAX_A2UI_CONTENT_BYTES || !is_passive_surface(content) {
+            return Outcome::Drop(Verdict::DropMalformed);
         }
+        let mut public = Map::new();
+        public.insert("artifact_type".into(), json!(kind));
+        public.insert("content".into(), json!(content));
+        for key in ["artifact_id", "title"] {
+            if let Some(text) = payload
+                .as_ref()
+                .and_then(|v| v.get(key))
+                .filter(|v| v.is_string())
+            {
+                public.insert(key.into(), text.clone());
+            }
+        }
+        Outcome::Rewritten(frame(ARTIFACT_EVENT, &Value::Object(public)))
     }
 
-    /// Fail closed: one op outside `/a2ui/` drops the whole patch.
-    fn state_patch_verdict(&self) -> Verdict {
+    /// Fail closed: one op outside `/a2ui/`, in `path` or `from`, drops the
+    /// whole patch. Only `op`, `path`, `from` and `value` survive.
+    fn state_patch_outcome(&self) -> Outcome {
         let payload: Option<Value> = serde_json::from_str(&self.data).ok();
         let Some(ops) = payload
             .as_ref()
             .and_then(|v| v.get("patch"))
             .and_then(Value::as_array)
         else {
-            return Verdict::DropMalformed;
+            return Outcome::Drop(Verdict::DropMalformed);
         };
-        let all_public = !ops.is_empty()
-            && ops.iter().all(|op| {
-                op.get("path")
-                    .and_then(Value::as_str)
-                    .is_some_and(|path| path.starts_with(A2UI_PATH_PREFIX))
-            });
-        if all_public {
-            Verdict::Forward
-        } else {
-            Verdict::DropInternal
+        let public_ops: Option<Vec<Value>> = ops
+            .iter()
+            .map(|op| {
+                let path = op.get("path").and_then(Value::as_str)?;
+                if !path.starts_with(A2UI_PATH_PREFIX) {
+                    return None;
+                }
+                if let Some(from) = op.get("from") {
+                    if !from
+                        .as_str()
+                        .is_some_and(|f| f.starts_with(A2UI_PATH_PREFIX))
+                    {
+                        return None;
+                    }
+                }
+                let mut public = Map::new();
+                for key in ["op", "path", "from", "value"] {
+                    if let Some(v) = op.get(key) {
+                        public.insert(key.into(), v.clone());
+                    }
+                }
+                Some(Value::Object(public))
+            })
+            .collect();
+        let Some(public_ops) = public_ops.filter(|ops| !ops.is_empty()) else {
+            return Outcome::Drop(Verdict::DropInternal);
+        };
+        let body = json!({ "kind": "state", "patch": public_ops });
+        if body.to_string().len() > MAX_A2UI_CONTENT_BYTES {
+            return Outcome::Drop(Verdict::DropMalformed);
         }
+        Outcome::Rewritten(frame(STATE_PATCH_EVENT, &body))
     }
 
     fn signal(&self) -> Option<Signal> {
@@ -271,6 +353,146 @@ impl ParsedEvent {
             "agui.error" => Some(Signal::Error),
             _ => None,
         }
+    }
+}
+
+/// What the filter does with one event.
+enum Outcome {
+    /// Forward this rebuilt frame.
+    Rewritten(Vec<u8>),
+    Drop(Verdict),
+}
+
+/// One SSE frame. `serde_json` escapes newlines, so `data` is a single line.
+fn frame(name: &str, payload: &Value) -> Vec<u8> {
+    format!("event: {name}\ndata: {payload}\n\n").into_bytes()
+}
+
+/// A string field, only if it is a string.
+fn text_field(obj: &Value, key: &str) -> Option<Value> {
+    obj.get(key).filter(|v| v.is_string()).cloned()
+}
+
+/// A numeric field, only if it is a number.
+fn number_field(obj: &Value, key: &str) -> Option<Value> {
+    obj.get(key).filter(|v| v.is_number()).cloned()
+}
+
+/// Copies the named fields that are present and of the right kind.
+fn pick(obj: &Value, texts: &[&str], numbers: &[&str]) -> Map<String, Value> {
+    let mut out = Map::new();
+    for key in texts {
+        if let Some(v) = text_field(obj, key) {
+            out.insert((*key).into(), v);
+        }
+    }
+    for key in numbers {
+        if let Some(v) = number_field(obj, key) {
+            out.insert((*key).into(), v);
+        }
+    }
+    out
+}
+
+/// The public form of an allowed event, or `None` when a field the client
+/// needs is missing.
+fn public_payload(name: &str, v: &Value) -> Option<Value> {
+    match name {
+        "agui.stream.start" => Some(json!({})),
+        "agui.message.delta" => Some(match v.pointer("/delta/text").and_then(Value::as_str) {
+            Some(text) => json!({ "delta": { "text": text } }),
+            None => json!({ "delta": {} }),
+        }),
+        // The meter reads usage from the upstream event; a visitor needs none,
+        // and `usage.model` and cost name the provider.
+        "agui.done" => Some(json!({ "kind": "done" })),
+        "agui.error" => Some(json!({ "kind": "error", "message": PUBLIC_ERROR_MESSAGE })),
+        "agui.cancelled" => {
+            let mut out = json!({ "kind": "cancelled" });
+            if let Some(usage) = v.get("usage") {
+                let tokens = pick(
+                    usage,
+                    &[],
+                    &["input_tokens", "output_tokens", "total_tokens"],
+                );
+                if !tokens.is_empty() {
+                    out["usage"] = Value::Object(tokens);
+                }
+            }
+            Some(out)
+        }
+        "agui.citation.added" => {
+            let citation = v.get("citation").filter(|c| c.is_object())?;
+            Some(json!({
+                "kind": "citation",
+                "phase": "added",
+                "citation": pick(citation, &["url", "title", "snippet"], &["index"]),
+            }))
+        }
+        "agui.rag_citations" => {
+            let citations: Vec<Value> = v
+                .get("citations")
+                .and_then(Value::as_array)?
+                .iter()
+                .filter(|c| c.is_object())
+                .map(|c| Value::Object(pick(c, &["document_name", "snippet"], &["marker"])))
+                .collect();
+            Some(json!({ "kind": "rag_citations", "phase": "added", "citations": citations }))
+        }
+        "agui.tool_call.denied" => {
+            let mut out = pick(v, &["id", "name"], &["call_index"]);
+            out.get("id")?;
+            out.get("name")?;
+            out.insert("kind".into(), json!("tool_call"));
+            out.insert("phase".into(), json!("denied"));
+            out.insert("reason".into(), json!(PUBLIC_DENIED_REASON));
+            Some(Value::Object(out))
+        }
+        _ => None,
+    }
+}
+
+/// True when every line is an A2UI message whose components are all in
+/// [`PASSIVE_A2UI_COMPONENTS`] and none carries an `action` or a function
+/// `call`. An empty surface is not passive: there is nothing to show.
+pub fn is_passive_surface(content: &str) -> bool {
+    let mut messages = 0;
+    for line in content.lines().filter(|l| !l.trim().is_empty()) {
+        let Ok(Value::Object(message)) = serde_json::from_str::<Value>(line) else {
+            return false;
+        };
+        if !message
+            .keys()
+            .all(|k| A2UI_MESSAGE_KEYS.contains(&k.as_str()))
+        {
+            return false;
+        }
+        if let Some(update) = message.get("updateComponents") {
+            let Some(components) = update.get("components").and_then(Value::as_array) else {
+                return false;
+            };
+            let all_passive = components.iter().all(|c| {
+                c.get("component")
+                    .and_then(Value::as_str)
+                    .is_some_and(|name| PASSIVE_A2UI_COMPONENTS.contains(&name))
+            });
+            if !all_passive || has_interactive_key(update) {
+                return false;
+            }
+        }
+        messages += 1;
+    }
+    messages > 0
+}
+
+/// An `action` (event or function) or a function `call` anywhere inside.
+fn has_interactive_key(value: &Value) -> bool {
+    match value {
+        Value::Object(map) => map
+            .iter()
+            .any(|(k, v)| k == "action" || k == "call" || has_interactive_key(v)),
+        Value::Array(items) => items.iter().any(has_interactive_key),
+        _ => false,
     }
 }
 
@@ -288,6 +510,10 @@ mod tests {
     const OPENAI: &str = "data: {\"choices\":[{\"delta\":{\"content\":\"hi\"}}]}\n\n";
     const KEEPALIVE: &str = ":\n\n";
     const DONE: &str = "event: agui.done\nid: 6\ndata: {\"usage\":{\"input_tokens\":1}}\n\n";
+    // What a visitor receives for the frames above.
+    const PUB_START: &str = "event: agui.stream.start\ndata: {}\n\n";
+    const PUB_DELTA: &str = "event: agui.message.delta\ndata: {\"delta\":{\"text\":\"hi\"}}\n\n";
+    const PUB_DONE: &str = "event: agui.done\ndata: {\"kind\":\"done\"}\n\n";
 
     fn run(chunks: &[&[u8]]) -> Filtered {
         let mut filter = InternalArtifactFilter::new();
@@ -340,10 +566,12 @@ mod tests {
         "event: agui.artifact\nid: 8\ndata: {\"artifact_type\":\"attempt_manifest\"}\n\n";
     const A2UI: &str =
         "event: agui.artifact\nid: 9\ndata: {\"artifact_type\":\"a2ui\",\"content\":\"{}\"}\n\n";
+    const PUB_A2UI: &str =
+        "event: agui.artifact\ndata: {\"artifact_type\":\"a2ui\",\"content\":\"{}\"}\n\n";
     const DONE_SENTINEL_FRAME: &str = "data: [DONE]\n\n";
 
     #[test]
-    fn should_forward_only_allowlisted_frames_and_keep_order_and_bytes() {
+    fn should_forward_only_allowlisted_frames_in_order_rebuilt_from_public_fields() {
         let stream = [
             START,
             POLICY,
@@ -362,7 +590,15 @@ mod tests {
         let out = run(&[stream.as_bytes()]);
         assert_eq!(
             String::from_utf8(out.forward).unwrap(),
-            [START, DELTA, A2UI, KEEPALIVE, DONE_SENTINEL_FRAME, DONE].concat()
+            [
+                PUB_START,
+                PUB_DELTA,
+                PUB_A2UI,
+                KEEPALIVE,
+                DONE_SENTINEL_FRAME,
+                PUB_DONE
+            ]
+            .concat()
         );
         assert_eq!((out.dropped_internal, out.dropped_malformed), (6, 0));
     }
@@ -370,7 +606,13 @@ mod tests {
     #[test]
     fn every_allowed_event_name_should_be_forwarded() {
         for name in ALLOWED_EVENTS {
-            let frame = format!("event: {name}\ndata: {{}}\n\n");
+            let data = match name {
+                "agui.tool_call.denied" => r#"{"id":"c1","name":"t"}"#,
+                "agui.citation.added" => r#"{"citation":{"index":1}}"#,
+                "agui.rag_citations" => r#"{"citations":[]}"#,
+                _ => "{}",
+            };
+            let frame = format!("event: {name}\ndata: {data}\n\n");
             assert_eq!(classify(frame.as_bytes()), Verdict::Forward, "{name}");
         }
     }
@@ -401,11 +643,7 @@ mod tests {
             "agui.some.future.event",
         ] {
             let frame = format!("event: {name}\ndata: {{}}\n\n");
-            assert_eq!(
-                classify(frame.as_bytes()),
-                Verdict::DropInternal,
-                "{name}"
-            );
+            assert_eq!(classify(frame.as_bytes()), Verdict::DropInternal, "{name}");
         }
     }
 
@@ -421,11 +659,7 @@ mod tests {
             "",
         ] {
             let frame = format!("event: agui.artifact\ndata: {{\"artifact_type\":\"{kind}\"}}\n\n");
-            assert_eq!(
-                classify(frame.as_bytes()),
-                Verdict::DropInternal,
-                "{kind}"
-            );
+            assert_eq!(classify(frame.as_bytes()), Verdict::DropInternal, "{kind}");
         }
         assert_eq!(classify(A2UI.as_bytes()), Verdict::Forward);
     }
@@ -434,17 +668,33 @@ mod tests {
         format!("event: agui.artifact\ndata: {{\"artifact_type\":\"a2ui\"{content}}}\n\n")
     }
 
+    /// A valid, passive A2UI message line padded to exactly `len` bytes.
+    fn surface_of_len(len: usize) -> String {
+        let head =
+            r#"{"version":"v0.9.1","updateDataModel":{"surfaceId":"s","path":"/a","value":""#;
+        let tail = r#""}}"#;
+        let pad = len - head.len() - tail.len();
+        format!("{head}{}{tail}", "a".repeat(pad))
+    }
+
+    fn a2ui_frame(content: &str) -> String {
+        let data = json!({ "artifact_type": "a2ui", "content": content });
+        format!("event: agui.artifact\ndata: {data}\n\n")
+    }
+
     #[test]
     fn an_a2ui_artifact_should_be_kept_only_with_string_content_within_the_cap() {
-        let at_cap = format!(r#","content":"{}""#, "a".repeat(MAX_A2UI_CONTENT_BYTES));
-        assert_eq!(
-            classify(a2ui_with(&at_cap).as_bytes()),
-            Verdict::Forward
-        );
+        let at_cap = surface_of_len(MAX_A2UI_CONTENT_BYTES);
+        assert_eq!(at_cap.len(), MAX_A2UI_CONTENT_BYTES);
+        assert_eq!(classify(a2ui_frame(&at_cap).as_bytes()), Verdict::Forward);
 
-        let over = format!(r#","content":"{}""#, "a".repeat(MAX_A2UI_CONTENT_BYTES + 1));
+        let over = surface_of_len(MAX_A2UI_CONTENT_BYTES + 1);
+        assert_eq!(
+            classify(a2ui_frame(&over).as_bytes()),
+            Verdict::DropMalformed,
+            "oversized"
+        );
         for (name, content) in [
-            ("oversized", over.as_str()),
             ("missing content", ""),
             ("object content", r#","content":{"x":1}"#),
             ("null content", r#","content":null"#),
@@ -498,10 +748,25 @@ mod tests {
             "event: agui.state.patch\ndata: {\"kind\":\"state\"}\n\n",
             "event: agui.state.patch\ndata: {\"patch\":\"x\"}\n\n",
         ] {
-            assert_eq!(
-                classify(bad.as_bytes()),
-                Verdict::DropMalformed,
-                "{bad}"
+            assert_eq!(classify(bad.as_bytes()), Verdict::DropMalformed, "{bad}");
+        }
+    }
+
+    #[test]
+    fn event_less_frames_should_be_rebuilt_so_ids_and_comment_text_stay_internal() {
+        let tail = "data: [DONE]\nid: 59:3:2\n\nid: 59:3:3";
+        let out = run(&[tail.as_bytes()]);
+        let text = String::from_utf8(out.forward).unwrap();
+        assert_eq!(text, "data: [DONE]\n\n:\n\n");
+        for frame in [
+            ": run 8dab8434 on host surreal-0\n\n",
+            "id: 7\nretry: 5000\n\n",
+            "data: [DONE]\nid: 9\nretry: 1\n\n",
+        ] {
+            let text = String::from_utf8(run(&[frame.as_bytes()]).forward).unwrap();
+            assert!(
+                text == ":\n\n" || text == "data: [DONE]\n\n",
+                "{frame:?} -> {text:?}"
             );
         }
     }
@@ -512,10 +777,7 @@ mod tests {
         assert_eq!(classify(b"data:[DONE]\r\n\r\n"), Verdict::Forward);
         assert_eq!(classify(b": keep-alive\n\n"), Verdict::Forward);
         assert_eq!(classify(OPENAI.as_bytes()), Verdict::DropInternal);
-        assert_eq!(
-            classify(b"data: {not json\n\n"),
-            Verdict::DropInternal
-        );
+        assert_eq!(classify(b"data: {not json\n\n"), Verdict::DropInternal);
         assert_eq!(
             classify(b"id: 4\ndata: [DONE] x\n\n"),
             Verdict::DropInternal
@@ -525,7 +787,7 @@ mod tests {
     #[test]
     fn events_split_across_chunks_should_be_handled_at_every_split_point() {
         let stream = [START, POLICY, DELTA, MANIFEST, DONE].concat();
-        let expected = [START, DELTA, DONE].concat();
+        let expected = [PUB_START, PUB_DELTA, PUB_DONE].concat();
         let bytes = stream.as_bytes();
         for split in 0..=bytes.len() {
             let out = run(&[&bytes[..split], &bytes[split..]]);
@@ -547,7 +809,7 @@ mod tests {
         // Split between the `\r` and `\n` of the policy's blank line.
         let split = crlf.len() - 1;
         let out = run(&[&bytes[..split], &bytes[split..]]);
-        assert_eq!(String::from_utf8(out.forward).unwrap(), cr);
+        assert_eq!(String::from_utf8(out.forward).unwrap(), PUB_DELTA);
         assert_eq!(out.dropped_internal, 1);
     }
 
@@ -555,7 +817,7 @@ mod tests {
     fn a_complete_event_should_be_released_without_waiting_for_the_next() {
         let mut filter = InternalArtifactFilter::new();
         let out = filter.push(format!("{DELTA}event: agui.mes").as_bytes());
-        assert_eq!(String::from_utf8(out.forward).unwrap(), DELTA);
+        assert_eq!(String::from_utf8(out.forward).unwrap(), PUB_DELTA);
     }
 
     #[test]
@@ -565,14 +827,10 @@ mod tests {
             "event: agui.artifact\ndata: {\"title\":\"no type\"}\n\n",
             "event: agui.artifact\ndata: {\"artifact_type\":7}\n\n",
         ] {
-            assert_eq!(
-                classify(bad.as_bytes()),
-                Verdict::DropMalformed,
-                "{bad}"
-            );
+            assert_eq!(classify(bad.as_bytes()), Verdict::DropMalformed, "{bad}");
             let out = run(&[bad.as_bytes(), DELTA.as_bytes()]);
             assert_eq!((out.dropped_internal, out.dropped_malformed), (0, 1));
-            assert_eq!(String::from_utf8(out.forward).unwrap(), DELTA);
+            assert_eq!(String::from_utf8(out.forward).unwrap(), PUB_DELTA);
         }
     }
 
@@ -586,11 +844,276 @@ mod tests {
     fn unterminated_tail_should_be_filtered_at_end_of_stream() {
         let tail = POLICY.trim_end();
         let out = run(&[DELTA.as_bytes(), tail.as_bytes()]);
-        assert_eq!(String::from_utf8(out.forward).unwrap(), DELTA);
+        assert_eq!(String::from_utf8(out.forward).unwrap(), PUB_DELTA);
         assert_eq!(out.dropped_internal, 1);
 
         let tail = DELTA.trim_end();
         let out = run(&[tail.as_bytes()]);
-        assert_eq!(String::from_utf8(out.forward).unwrap(), tail);
+        assert_eq!(String::from_utf8(out.forward).unwrap(), PUB_DELTA);
+    }
+
+    /// What a visitor receives for one upstream frame: the event name and the
+    /// parsed `data`, or `None` when it is dropped.
+    fn public(frame: &str) -> Option<(String, Value)> {
+        let out = run(&[frame.as_bytes()]);
+        if out.forward.is_empty() {
+            return None;
+        }
+        let text = String::from_utf8(out.forward).unwrap();
+        let mut lines = text.lines();
+        let name = lines.next()?.strip_prefix("event: ")?.to_owned();
+        let data = lines.next()?.strip_prefix("data: ")?;
+        assert_eq!(lines.next(), Some(""), "one frame, one blank line: {text}");
+        assert_eq!(lines.next(), None, "{text}");
+        Some((name, serde_json::from_str(data).unwrap()))
+    }
+
+    fn named(name: &str, data: &str) -> String {
+        format!("event: {name}\nid: 42\nretry: 1000\ndata: {data}\n\n")
+    }
+
+    #[test]
+    fn done_should_not_carry_usage_model_or_cost_to_a_visitor() {
+        let upstream = r#"{"kind":"done","request_id":"r1","usage":{"input_tokens":1430,"output_tokens":210,"total_tokens":1640,"model":"qwen3.8-max","cost_usd_estimate":0.0123},"provider":"openai"}"#;
+        let (name, data) = public(&named("agui.done", upstream)).unwrap();
+        assert_eq!(name, "agui.done");
+        assert_eq!(data, json!({ "kind": "done" }));
+        // The meter still sees the usage on the unfiltered event.
+        let out = run(&[named("agui.done", upstream).as_bytes()]);
+        assert!(matches!(out.signals[..], [Signal::Done(Some(_))]));
+    }
+
+    #[test]
+    fn error_text_should_be_replaced_so_hosts_and_providers_stay_internal() {
+        let upstream = r#"{"kind":"error","request_id":"r","message":"surreal at 10.0.0.3:8000 refused: table sessions (provider openai)","code":"surreal_unavailable"}"#;
+        let (_, data) = public(&named("agui.error", upstream)).unwrap();
+        assert_eq!(
+            data,
+            json!({ "kind": "error", "message": PUBLIC_ERROR_MESSAGE })
+        );
+        let text = data.to_string();
+        for leak in ["surreal", "10.0.0.3", "openai", "unavailable"] {
+            assert!(!text.contains(leak), "{leak}");
+        }
+    }
+
+    #[test]
+    fn cancelled_should_keep_token_counts_and_drop_the_model_and_cost() {
+        let upstream = r#"{"kind":"cancelled","request_id":"r","usage":{"input_tokens":10,"output_tokens":2,"total_tokens":12,"cost_usd_estimate":0.5,"model":"qwen3.8-max"}}"#;
+        let (_, data) = public(&named("agui.cancelled", upstream)).unwrap();
+        assert_eq!(
+            data,
+            json!({ "kind": "cancelled", "usage": { "input_tokens": 10, "output_tokens": 2, "total_tokens": 12 } })
+        );
+        let (_, bare) = public(&named("agui.cancelled", "{}")).unwrap();
+        assert_eq!(bare, json!({ "kind": "cancelled" }));
+        let (_, junk) = public(&named(
+            "agui.cancelled",
+            r#"{"usage":{"input_tokens":"many","model":"m"}}"#,
+        ))
+        .unwrap();
+        assert_eq!(junk, json!({ "kind": "cancelled" }));
+    }
+
+    #[test]
+    fn a_denied_tool_call_should_be_public_with_a_fixed_reason() {
+        let upstream = r#"{"kind":"tool_call","phase":"denied","request_id":"run-9","call_index":0,"id":"call_1","name":"activate_skill","reason":"tools.mode=selected excludes activate_skill (effective_run_policy)","arguments_json":"{\"x\":1}"}"#;
+        let (name, data) = public(&named("agui.tool_call.denied", upstream)).unwrap();
+        assert_eq!(name, "agui.tool_call.denied");
+        assert_eq!(
+            data,
+            json!({
+                "kind": "tool_call", "phase": "denied", "id": "call_1",
+                "name": "activate_skill", "call_index": 0, "reason": PUBLIC_DENIED_REASON
+            })
+        );
+        for missing in [r#"{"name":"t"}"#, r#"{"id":"c"}"#, r#"{"id":1,"name":"t"}"#] {
+            assert_eq!(
+                classify(named("agui.tool_call.denied", missing).as_bytes()),
+                Verdict::DropMalformed,
+                "{missing}"
+            );
+        }
+    }
+
+    #[test]
+    fn deltas_and_citations_should_keep_only_the_fields_the_client_reads() {
+        let (_, delta) = public(&named(
+            "agui.message.delta",
+            r#"{"kind":"message","delta":{"text":"hi","model":"m"},"model":"m","request_id":"r"}"#,
+        ))
+        .unwrap();
+        assert_eq!(delta, json!({ "delta": { "text": "hi" } }));
+
+        let (_, cite) = public(&named(
+            "agui.citation.added",
+            r#"{"request_id":"r","citation":{"index":2,"url":"https://a.example","title":"T","snippet":"S","score":0.9,"internal_id":"x"}}"#,
+        ))
+        .unwrap();
+        assert_eq!(
+            cite,
+            json!({"kind":"citation","phase":"added","citation":{"index":2,"url":"https://a.example","title":"T","snippet":"S"}})
+        );
+
+        let (_, rag) = public(&named(
+            "agui.rag_citations",
+            r#"{"request_id":"r","citations":[{"marker":1,"document_name":"faq.md","snippet":"s","document_id":"d","kb_id":"k","score":0.8},"junk"]}"#,
+        ))
+        .unwrap();
+        assert_eq!(
+            rag,
+            json!({"kind":"rag_citations","phase":"added","citations":[{"marker":1,"document_name":"faq.md","snippet":"s"}]})
+        );
+    }
+
+    #[test]
+    fn an_allowed_event_with_unreadable_json_should_be_dropped_as_malformed() {
+        for name in ALLOWED_EVENTS {
+            assert_eq!(
+                classify(named(name, "{not json").as_bytes()),
+                Verdict::DropMalformed,
+                "{name}"
+            );
+        }
+    }
+
+    #[test]
+    fn id_and_retry_lines_should_not_reach_a_visitor() {
+        let out = run(&[named("agui.message.delta", r#"{"delta":{"text":"hi"}}"#).as_bytes()]);
+        let text = String::from_utf8(out.forward).unwrap();
+        assert!(!text.contains("id:") && !text.contains("retry:"), "{text}");
+    }
+
+    #[test]
+    fn an_a2ui_artifact_should_keep_only_id_title_type_and_content() {
+        let data = json!({
+            "artifact_type": "a2ui", "artifact_id": "a1", "title": "Card",
+            "content": r#"{"version":"v0.9.1","deleteSurface":{"surfaceId":"s"}}"#,
+            "language": "json", "sourceTool": "presentation_render",
+            "metadata": { "template": "Answer card", "owner": "knowme-site" }
+        });
+        let frame = format!("event: agui.artifact\nid: 5\ndata: {data}\n\n");
+        let (_, out) = public(&frame).unwrap();
+        assert_eq!(
+            out,
+            json!({
+                "artifact_type": "a2ui", "artifact_id": "a1", "title": "Card",
+                "content": r#"{"version":"v0.9.1","deleteSurface":{"surfaceId":"s"}}"#
+            })
+        );
+    }
+
+    #[test]
+    fn a_state_patch_should_keep_only_op_path_from_and_value_and_check_from() {
+        let ok = patch(r#"[{"op":"copy","from":"/a2ui/a","path":"/a2ui/b","value":1,"meta":"x"}]"#);
+        let (_, out) = public(&ok).unwrap();
+        assert_eq!(
+            out,
+            json!({"kind":"state","patch":[{"op":"copy","from":"/a2ui/a","path":"/a2ui/b","value":1}]})
+        );
+        for hostile in [
+            patch(r#"[{"op":"copy","from":"/presentation/secret","path":"/a2ui/b"}]"#),
+            patch(r#"[{"op":"move","from":"/a2ui/a","path":"/internal"}]"#),
+            patch(r#"[{"op":"copy","from":7,"path":"/a2ui/b"}]"#),
+        ] {
+            assert_eq!(
+                classify(hostile.as_bytes()),
+                Verdict::DropInternal,
+                "{hostile}"
+            );
+        }
+    }
+
+    // ── passive surfaces ────────────────────────────────────────────────────
+
+    const CREATE: &str = r#"{"version":"v0.9.1","createSurface":{"surfaceId":"s","catalogId":"urn:uar:a2ui:catalog:1"}}"#;
+
+    fn surface(components: &str) -> String {
+        format!(
+            "{CREATE}\n{{\"version\":\"v0.9.1\",\"updateComponents\":{{\"surfaceId\":\"s\",\"components\":{components}}}}}"
+        )
+    }
+
+    #[test]
+    fn the_answer_card_and_inferred_row_surfaces_should_pass() {
+        let card = surface(
+            r#"[{"id":"root","component":"Card","child":"body"},{"id":"body","component":"Column","children":["title","rule","answer","source"]},{"id":"title","component":"Text","variant":"h3","text":{"path":"/title"}},{"id":"rule","component":"Divider"},{"id":"answer","component":"Text","variant":"body","text":{"path":"/answer"}},{"id":"source","component":"Text","variant":"caption","text":{"path":"/source"}}]"#,
+        );
+        let card = format!(
+            "{card}\n{}",
+            r#"{"version":"v0.9.1","updateDataModel":{"surfaceId":"s","path":"/","value":{"title":"T","answer":"A","source":"S","action":"data keys are inert"}}}"#
+        );
+        assert!(is_passive_surface(&card));
+        let row = surface(
+            r#"[{"id":"r","component":"Row","children":["a"],"justify":"spaceBetween"},{"id":"a","component":"Text","text":"x"},{"id":"root","component":"Card","child":"r"}]"#,
+        );
+        assert!(is_passive_surface(&row));
+    }
+
+    #[test]
+    fn components_that_take_input_or_load_media_should_make_a_surface_non_passive() {
+        for component in [
+            "Button",
+            "TextField",
+            "CheckBox",
+            "ChoicePicker",
+            "DateTimeInput",
+            "Slider",
+            "Image",
+            "Video",
+            "AudioPlayer",
+            "Icon",
+            "List",
+            "Modal",
+            "Tabs",
+            "card",
+            "Unknown",
+        ] {
+            let content = surface(&format!(
+                r#"[{{"id":"root","component":"Card","child":"x"}},{{"id":"x","component":"{component}"}}]"#
+            ));
+            assert!(!is_passive_surface(&content), "{component}");
+            let frame = a2ui_frame(&content);
+            assert_eq!(
+                classify(frame.as_bytes()),
+                Verdict::DropMalformed,
+                "{component}"
+            );
+        }
+    }
+
+    #[test]
+    fn an_action_or_function_call_should_make_a_surface_non_passive() {
+        for components in [
+            r#"[{"id":"root","component":"Text","text":"x","action":{"event":{"name":"go"}}}]"#,
+            r#"[{"id":"root","component":"Text","text":{"call":"openUrl","args":{"url":"https://evil.example"}}}]"#,
+            r#"[{"id":"root","component":"Card","child":"c","x":[{"deep":{"action":1}}]},{"id":"c","component":"Text","text":"y"}]"#,
+            r#"[{"id":"root","component":"Text","text":"x","checks":[{"call":"required"}]}]"#,
+        ] {
+            assert!(!is_passive_surface(&surface(components)), "{components}");
+        }
+    }
+
+    #[test]
+    fn malformed_or_unknown_a2ui_messages_should_make_a_surface_non_passive() {
+        let ok = surface(r#"[{"id":"root","component":"Text","text":"x"}]"#);
+        assert!(is_passive_surface(&ok));
+        for bad in [
+            "",
+            "   \n  ",
+            "{not json",
+            "[1,2]",
+            "\"text\"",
+            r#"{"version":"v0.9.1","callFunction":{"name":"openUrl"}}"#,
+            r#"{"version":"v0.9.1","updateComponents":{"surfaceId":"s"}}"#,
+            r#"{"version":"v0.9.1","updateComponents":{"surfaceId":"s","components":[{"id":"r"}]}}"#,
+            r#"{"version":"v0.9.1","updateComponents":{"surfaceId":"s","components":[{"id":"r","component":7}]}}"#,
+        ] {
+            assert!(!is_passive_surface(bad), "{bad}");
+            assert!(
+                !is_passive_surface(&format!("{ok}\n{bad}")) || bad.trim().is_empty(),
+                "second line {bad}"
+            );
+        }
     }
 }
