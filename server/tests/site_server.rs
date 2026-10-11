@@ -340,6 +340,54 @@ async fn public_stream_should_drop_internal_artifacts_while_the_harness_sees_the
 }
 
 #[tokio::test]
+async fn forced_tool_call_should_reach_the_visitor_only_as_a_denial() {
+    let h = start_with(Options::default()).await;
+    let public = h
+        .chat(r#"{"message":"toolcalls"}"#)
+        .send()
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
+
+    assert!(public.contains("agui.tool_call.denied"), "{public}");
+    for dropped in [
+        "agui.tool_call.delta",
+        "agui.tool_call.approval_required",
+        "agui.tool_call.complete",
+        "agui.tool_result",
+    ] {
+        assert!(!public.contains(dropped), "{dropped} leaked: {public}");
+    }
+    assert!(public.contains("agui.done"), "{public}");
+}
+
+/// FR-11: the committed agent offers the public visitor `presentation_render`
+/// and nothing else. A drift in any of these keys fails the build.
+#[test]
+fn committed_site_agent_should_expose_only_presentation_render() {
+    let path = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../uar/agents/knowme-site.json"
+    );
+    let agent: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(path).expect("agent file")).unwrap();
+    let only = serde_json::json!(["presentation_render"]);
+    let policy = &agent["extensions"]["uar.run_policy"];
+
+    assert_eq!(agent["policy"]["tools"]["allow"], only);
+    assert_eq!(policy["tools"]["mode"], "selected");
+    assert_eq!(policy["tools"]["ids"], only);
+    assert_eq!(policy["tools"]["denied_ids"], serde_json::json!([]));
+    assert_eq!(policy["skills"]["mode"], "none");
+    assert_eq!(policy["mcp_servers"]["mode"], "none");
+    assert_eq!(policy["tool_approval"], "auto");
+    assert_eq!(agent["policy"]["skills"]["max_active"], 0);
+    assert_eq!(agent["tools"], serde_json::json!({}));
+}
+
+#[tokio::test]
 async fn disallowed_api_paths_and_methods_should_never_reach_upstream() {
     let h = start(None).await;
     for path in [
