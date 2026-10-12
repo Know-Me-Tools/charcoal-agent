@@ -15,6 +15,11 @@
 //!   element at runtime. Styles only; scripts stay hash-only.
 //! - `img-src`/`font-src` `data:`: Vite inlines assets under 4 KiB as data
 //!   URIs; `blob:` covers attachment previews.
+//!   Rechecked for the enforcing switch (site-reply-content-hardening 3.4),
+//!   both stay: `blob:` is the object URL `use-attachment-src.ts` makes for
+//!   image attachments; `data:` is the only image source the HTML preview
+//!   frame's own meta CSP allows (`preview-document.ts`), and a `srcdoc`
+//!   frame's meta can only tighten this inherited policy, never widen it.
 //! - `connect-src 'self'`: the client calls its own origin only.
 
 use std::fmt::Write as _;

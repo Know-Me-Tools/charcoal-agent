@@ -6,10 +6,11 @@
 //! 404 fallback; add a `rate_limit` route layer to anything reachable by the
 //! public.
 //!
-//! `POST /api/csp-report` receives CSP violation reports (report-only phase,
-//! site-security-headers 1.3). Each report becomes one WARN log line with the
-//! directive, the blocked resource reduced to its origin or keyword, and the
-//! disposition: what the operator reads to decide the clean week. No page
+//! `POST /api/csp-report` receives CSP violation reports (site-security-headers
+//! 1.3; the policy is enforced since site-reply-content-hardening 3.4). Each
+//! report becomes one WARN log line with the directive, the blocked resource
+//! reduced to its origin or keyword, and the disposition: what the operator
+//! reads against the acceptance rule on `CSP_HEADER` in `routes/mod.rs`. No page
 //! URL, query string or sample is logged.
 
 use axum::Router;

@@ -41,9 +41,20 @@ const SECURITY_HEADERS: &[(&str, &str)] = &[
     ),
 ];
 
-/// Report-only until a clean week (site-security-headers 1.6 switches it to
-/// `content-security-policy`).
-const CSP_HEADER: HeaderName = HeaderName::from_static("content-security-policy-report-only");
+/// The policy is enforced (site-reply-content-hardening 3.4). This replaces
+/// the earlier "report-only until a clean week" plan with a numeric
+/// acceptance rule, measured on the local run and over the first 48 hours
+/// after deploy: zero CSP reports other than (a) inline script, eval or
+/// connect violations whose document is a preview frame and (b)
+/// browser-extension origins. Any other report: revert by renaming this
+/// header back to `content-security-policy-report-only` (a one-line change).
+/// There is no report-only twin; `report-uri`/`report-to` and
+/// `Reporting-Endpoints` stay, so violations are still collected.
+///
+/// A `srcdoc` preview frame inherits this policy (a meta CSP inside it can
+/// only tighten it), so inline scripts in model-written HTML previews are
+/// blocked once this is enforced: risk R3, proved in a browser by task 3.5.
+const CSP_HEADER: HeaderName = HeaderName::from_static("content-security-policy");
 const REPORTING_ENDPOINTS: HeaderName = HeaderName::from_static("reporting-endpoints");
 
 pub fn router(state: AppState) -> Router {
