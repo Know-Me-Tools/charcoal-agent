@@ -160,6 +160,25 @@ async fn upstream_errors_should_reach_the_visitor_as_generic_bodies() {
 }
 
 #[tokio::test]
+async fn a_successful_reply_that_is_not_an_event_stream_should_never_reach_the_visitor() {
+    let h = start(None).await;
+    let res = h
+        .chat(r#"{"message":"upstream-json"}"#)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(res.status(), StatusCode::BAD_GATEWAY);
+    let text = res.text().await.unwrap();
+    assert_eq!(
+        json(text.as_bytes()),
+        serde_json::json!({"error":"upstream_error","message":"upstream error"})
+    );
+    for leak in ["qwen", "cost_usd", "effective_run_policy", "internal_tool"] {
+        assert!(!text.contains(leak), "{leak} leaked: {text}");
+    }
+}
+
+#[tokio::test]
 async fn guardrail_block_should_map_to_the_visitor_message_without_uar_text() {
     let h = start(None).await;
     let res = h.chat(r#"{"message":"guardrail"}"#).send().await.unwrap();

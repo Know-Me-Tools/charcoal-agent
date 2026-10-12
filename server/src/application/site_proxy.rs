@@ -141,7 +141,7 @@ impl SiteProxy {
             )
             .await;
         match sent {
-            Ok(response) => Ok(self.public_stream(response, tracker)),
+            Ok(response) => self.public_stream(response, tracker),
             Err(err) => {
                 tracker.finish(Outcome::UpstreamError);
                 Err(err)
@@ -153,12 +153,25 @@ impl SiteProxy {
         self.uar.is_ready().await
     }
 
-    /// Runs an SSE body through the internal-artifact filter and the turn
-    /// tracker. Any other body passes unchanged and keeps its reservation.
-    fn public_stream(&self, response: Response, mut tracker: TurnTracker) -> Response {
+    /// Runs an SSE body through the public filter and the turn tracker. The
+    /// request always asks for a stream, so a 2xx that is not one is not
+    /// something the filter can vouch for: it never reaches the visitor.
+    fn public_stream(
+        &self,
+        response: Response,
+        mut tracker: TurnTracker,
+    ) -> Result<Response, AppError> {
         if !is_event_stream(response.headers()) {
+            tracing::warn!(
+                status = response.status().as_u16(),
+                "upstream 2xx was not an event stream; refusing to forward it"
+            );
+            // The run happened, so the reservation stays charged in full.
             tracker.finish(Outcome::Incomplete);
-            return response;
+            return Err(AppError::UpstreamStatus {
+                status: response.status().as_u16(),
+                route: CHAT_PATH,
+            });
         }
         let (parts, body) = response.into_parts();
         let filtered = filter_internal_artifacts(
@@ -166,7 +179,7 @@ impl SiteProxy {
             self.tap.clone(),
             Some(tracker),
         );
-        Response::from_parts(parts, Body::from_stream(filtered))
+        Ok(Response::from_parts(parts, Body::from_stream(filtered)))
     }
 }
 
