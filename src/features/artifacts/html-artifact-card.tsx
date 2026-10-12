@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type FC } from "react";
+import { useId, useMemo, useRef, useState, type FC } from "react";
 import {
   CheckIcon,
   Code2Icon,
@@ -10,6 +10,7 @@ import {
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { toPreviewDocument } from "./preview-document";
 import { ShikiCodeBlock } from "./shiki-code-block";
 
 interface HtmlArtifactCardProps {
@@ -32,6 +33,8 @@ export const HtmlArtifactCard: FC<HtmlArtifactCardProps> = ({
   const [isFullScreen, setIsFullScreen] = useState(false);
   const fullScreenButtonRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
+  // The isolating CSP meta goes into the document both frames load.
+  const previewDocument = useMemo(() => toPreviewDocument(code), [code]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code).then(() => {
@@ -111,7 +114,7 @@ export const HtmlArtifactCard: FC<HtmlArtifactCardProps> = ({
               model-authored page would keep running in two frames at once. */}
           {!isFullScreen && (
             <iframe
-              srcDoc={code}
+              srcDoc={previewDocument}
               sandbox="allow-scripts"
               className="block h-full w-full border-0 scheme-light"
               title={displayTitle}
@@ -143,7 +146,7 @@ export const HtmlArtifactCard: FC<HtmlArtifactCardProps> = ({
           {view === "preview" ? (
             <div className="min-h-0 flex-1 bg-artifact-canvas">
               <iframe
-                srcDoc={code}
+                srcDoc={previewDocument}
                 sandbox="allow-scripts"
                 className="block h-full w-full border-0 scheme-light"
                 title={displayTitle}

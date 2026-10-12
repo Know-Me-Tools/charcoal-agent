@@ -1,0 +1,102 @@
+import type { Element, ElementContent, Root, RootContent, Text } from "hast";
+import {
+  isAllowedReplyImage,
+  isAllowedReplyLink,
+  isSameOriginRelative,
+} from "@/lib/link-policy/reply-content-policy";
+
+/**
+ * Link and image policy for chat messages (site-reply-content-hardening 3.2),
+ * run after the sanitizer so it sees the cleaned tree from both markdown and
+ * raw HTML. The sanitizer only checks schemes; this checks destinations:
+ *
+ *   - `<img>` loads only from the site's own hosts or a same-origin path.
+ *     A blocked image is replaced by its alt text, because a remote image
+ *     fires a request the moment it renders.
+ *   - `<source srcset>` (inside `<picture>`, allowed by the default schema)
+ *     is dropped unless every candidate passes the same image rule.
+ *   - `<a href>` stays a link only for the explicit reviewed destinations
+ *     (and same-page anchors such as footnotes); an allowed external link
+ *     opens in a new tab with `noopener noreferrer`. Any other link becomes
+ *     its own text followed by the destination in parentheses, the way
+ *     citation cards show a non-allowlisted URL, and is shown once when the
+ *     text already is the destination (autolinked URLs and emails).
+ */
+export function rehypeReplyContentPolicy() {
+  return (tree: Root) => {
+    tree.children = tree.children.flatMap<RootContent>((node) =>
+      node.type === "element" ? applyPolicy(node) : [node],
+    );
+  };
+}
+
+function applyPolicy(node: Element): ElementContent[] {
+  const children = node.children.flatMap((child) =>
+    child.type === "element" ? applyPolicy(child) : [child],
+  );
+
+  switch (node.tagName) {
+    case "img":
+      return policyForImage(node);
+    case "source":
+      return isAllowedSrcSet(node.properties.srcSet) ? [{ ...node, children }] : [];
+    case "a":
+      return policyForLink(node, children);
+    default:
+      return [{ ...node, children }];
+  }
+}
+
+function policyForImage(node: Element): ElementContent[] {
+  const src = node.properties.src;
+  if (typeof src === "string" && isAllowedReplyImage(src)) return [node];
+  const alt = node.properties.alt;
+  return typeof alt === "string" && alt.trim() !== "" ? [text(alt)] : [];
+}
+
+/** hast keeps `srcSet` as a list of "url descriptor" candidates. */
+function isAllowedSrcSet(srcSet: unknown): boolean {
+  if (srcSet === undefined || srcSet === null) return true;
+  const candidates = Array.isArray(srcSet) ? srcSet.map(String) : String(srcSet).split(",");
+  return candidates.every((candidate) => {
+    const url = candidate.trim().split(/\s+/)[0] ?? "";
+    return url === "" || isAllowedReplyImage(url);
+  });
+}
+
+function policyForLink(node: Element, children: ElementContent[]): ElementContent[] {
+  const href = node.properties.href;
+  if (typeof href !== "string") return [{ ...node, children }];
+
+  if (isAllowedReplyLink(href)) {
+    if (isSameOriginRelative(href)) return [{ ...node, children }];
+    return [
+      {
+        ...node,
+        properties: { ...node.properties, target: "_blank", rel: ["noopener", "noreferrer"] },
+        children,
+      },
+    ];
+  }
+
+  const label = textOf(children).trim();
+  const destination = href.trim();
+  if (destination === "" || label === destination || label === destination.replace(/^mailto:/i, "")) {
+    return children;
+  }
+  return [...children, text(` (${destination})`)];
+}
+
+function textOf(nodes: ElementContent[]): string {
+  return nodes
+    .map((node) => {
+      if (node.type === "text") return node.value;
+      if (node.type === "element") return textOf(node.children);
+      return "";
+    })
+    .join("");
+}
+
+function text(value: string): Text {
+  return { type: "text", value };
+}

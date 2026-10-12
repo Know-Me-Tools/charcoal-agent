@@ -46,4 +46,18 @@ describe("MermaidBlock", () => {
     expect(screen.getByTestId("mermaid-source")).toHaveTextContent("not a valid diagram");
     expect(screen.queryByText(/unexpected token/i)).not.toBeInTheDocument();
   });
+
+  // site-reply-content-hardening 3.3: Mermaid's SVG is injected with
+  // dangerouslySetInnerHTML, so its label and click handling must stay in
+  // strict mode even if a future Mermaid release changes its default.
+  it("initializes Mermaid with securityLevel strict", async () => {
+    mermaidRender.mockResolvedValue({ svg: "<svg></svg>" });
+
+    render(<MermaidBlock source="graph LR\n  A-->B" />);
+
+    await waitFor(() => expect(mermaidInitialize).toHaveBeenCalled());
+    for (const [config] of mermaidInitialize.mock.calls) {
+      expect(config).toMatchObject({ securityLevel: "strict" });
+    }
+  });
 });

@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { HtmlArtifactCard } from "./html-artifact-card";
+import { PREVIEW_CSP } from "./preview-document";
 
 const CODE = "<p>hello</p>";
 
@@ -54,5 +55,34 @@ describe("HtmlArtifactCard — iframe sandboxing", () => {
     fireEvent.click(screen.getByRole("button", { name: "Full screen" }));
 
     expect(screen.getAllByRole("button", { name: /exit full screen|^close$/i })).toHaveLength(1);
+  });
+});
+
+/**
+ * site-reply-content-hardening 3.3: both preview frames load the model's code
+ * through `toPreviewDocument`, so the isolating CSP meta is in the srcdoc.
+ */
+describe("HtmlArtifactCard — isolating CSP in the preview document", () => {
+  function expectIsolated(iframe: Element | null) {
+    const srcdoc = iframe?.getAttribute("srcdoc") ?? "";
+    const doc = new DOMParser().parseFromString(srcdoc, "text/html");
+    const meta = doc.head.firstElementChild;
+    expect(meta?.getAttribute("http-equiv")).toBe("Content-Security-Policy");
+    expect(meta?.getAttribute("content")).toBe(PREVIEW_CSP);
+    expect(doc.body.innerHTML).toBe(CODE);
+  }
+
+  it("the inline preview's srcdoc carries the policy", () => {
+    render(<HtmlArtifactCard code={CODE} language="html" />);
+
+    expectIsolated(document.querySelector("iframe"));
+  });
+
+  it("the full-screen preview's srcdoc carries the policy", () => {
+    render(<HtmlArtifactCard code={CODE} language="html" />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Full screen" }));
+
+    expectIsolated(document.querySelector("iframe"));
   });
 });
