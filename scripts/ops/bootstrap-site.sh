@@ -35,7 +35,7 @@ GATE_NS="flint-core"
 GATE_CLIENT_ID="knowme-site"
 GATE_AUDIENCE="uar"
 KILL_SWITCH_CM="site-chat-kill-switch"
-UAR_IMAGE="ghcr.io/prometheus-ags/universal-agent-runtime@sha256:688a97e42a0be63247b95c3b1a3c5ebd9da9078c79d63c4f31d979d469b77888"
+UAR_IMAGE="ghcr.io/prometheus-ags/universal-agent-runtime@sha256:e955789aa6aea70853d4e19ce95b5c5774750d232472c048bd4763c96e5513f5"
 
 log() { printf '[bootstrap-site] %s\n' "$*" >&2; }
 die() { printf '[bootstrap-site] ERROR: %s\n' "$*" >&2; exit 1; }
