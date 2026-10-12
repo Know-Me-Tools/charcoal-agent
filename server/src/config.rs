@@ -25,8 +25,10 @@
 //! - `SITE_METER_DAILY_TOKENS`, `SITE_METER_MONTHLY_TOKENS`: D-3 budgets,
 //!   default 1,000,000 and 20,000,000.
 //! - `SITE_METER_RESERVATION_TOKENS`: the per-turn reservation `n`, default
-//!   5,000 = 2 x the agent's `extensions.budgets.max_tokens_per_turn` (2,500
-//!   in `uar/agents/knowme-site.json`). Not sized from the model's context
+//!   16,000 = the agent's `extensions.budgets.max_tokens_per_turn` (16,000
+//!   in `uar/agents/knowme-site.json`), the most one turn may use. A run
+//!   stopped before usage is reported keeps the whole reservation, so 2x the
+//!   cap would overcharge every Stop. Not sized from the model's context
 //!   window, which could make one reservation exceed the daily budget. A run
 //!   that uses more is charged in full at settlement and alerts
 //!   (`meter_excess`), so overshoot stays bounded and measured. UAR's
@@ -55,7 +57,7 @@ use crate::infrastructure::meter_store::MeterStoreConfig;
 
 const DEFAULT_DAILY_TOKENS: u64 = 1_000_000;
 const DEFAULT_MONTHLY_TOKENS: u64 = 20_000_000;
-const DEFAULT_RESERVATION_TOKENS: u64 = 5_000;
+const DEFAULT_RESERVATION_TOKENS: u64 = 16_000;
 
 const DEFAULT_PORT: u16 = 8080;
 const DEFAULT_AGENT_ID: &str = "knowme-site";
@@ -471,7 +473,7 @@ mod tests {
     }
 
     #[test]
-    fn meter_defaults_should_be_the_d3_budgets_and_n_of_5000() {
+    fn meter_defaults_should_be_the_d3_budgets_and_n_of_16000() {
         let cfg = config(&[("UAR_UPSTREAM", "http://uar")]).unwrap();
         assert_eq!(
             (
@@ -479,7 +481,7 @@ mod tests {
                 cfg.meter.budgets.monthly,
                 cfg.meter.reservation_tokens
             ),
-            (1_000_000, 20_000_000, 5_000)
+            (1_000_000, 20_000_000, 16_000)
         );
         assert_eq!(
             (
