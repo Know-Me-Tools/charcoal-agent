@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-10-12T16:13:02Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "Assessed 6 goals plus one new trust-boundary finding (model-authored HTML previews run scripts on the public site). Root cause of the duplicated answer is our own agent prompt ('the card replaces nothing'); W2 is a live image-exfiltration channel with the CSP still report-only; bundle baseline is 668.7 kB gzip vs 300 kB. Seven operator decisions are needed before Plan (duplication policy, remote images, links, HTML previews, disclosure copy, context panel, extra items); no Impeccable design context exists yet. Adversarial review (same-family artifact-critic): no CRITICAL, 7 WARNING all folded in.",
+  "skipped": false,
+  "skipReason": null
+}
