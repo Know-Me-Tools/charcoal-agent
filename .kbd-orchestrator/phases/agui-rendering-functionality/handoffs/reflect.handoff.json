@@ -1,0 +1,11 @@
+{
+  "stage": "reflect",
+  "completedAt": "2026-10-12T12:24:19Z",
+  "outputs": [
+    "reflection.md"
+  ],
+  "nextStage": null,
+  "summaryForNext": "Plan and delivery diverged: the A2UI switch was built then removed, the real model broke the 2,500-token cap and the stream filter after every mocked gate passed, and the ledger lagged eight changes. All 10 changes shipped; goals met except the wider UAR integration (partial by D-25). Open: security W2 and W3, the duplicated card and prose, an over-budget bundle, PRs #38 to #40 merged but not deployed (only #38 changes production behaviour). Recommended next phase: site-chat-hardening-and-polish, then the rest of uar-integration.",
+  "skipped": false,
+  "skipReason": null
+}
