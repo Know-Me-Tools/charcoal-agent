@@ -35,6 +35,9 @@ function token(name: string): string {
 function applyMermaidTheme(mermaid: typeof import("mermaid").default, isDark: boolean): void {
 	mermaid.initialize({
 		startOnLoad: false,
+		// The SVG is injected with dangerouslySetInnerHTML: keep labels
+		// sanitized and click handlers off regardless of Mermaid's default.
+		securityLevel: "strict",
 		// Built-in themes keep Mermaid's layout metrics; token colors override them.
 		theme: isDark ? "dark" : "default",
 		fontFamily: "'JetBrains Mono Variable', 'JetBrains Mono', monospace",
