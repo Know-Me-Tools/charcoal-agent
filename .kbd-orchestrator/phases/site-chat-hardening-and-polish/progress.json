@@ -2,27 +2,27 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 1827,
-  "derivedRevision": 1827,
+  "sourceRevision": 1879,
+  "derivedRevision": 1879,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 1827
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 1879
   },
   "conflictCount": 0,
   "phase": "site-chat-hardening-and-polish",
   "phaseId": "site-chat-hardening-and-polish",
   "parentPhase": null,
-  "last_updated": "2026-10-12T18:51:53.579530Z",
+  "last_updated": "2026-10-12T23:05:33.141006Z",
   "last_updated_by": "kbd-runtime",
   "changes_total": 15,
-  "changes_completed": 0,
+  "changes_completed": 1,
   "implementation_total": 15,
-  "implementation_completed": 0,
+  "implementation_completed": 1,
   "completion": {
     "primaryCounter": "implementation",
     "implementation": {
-      "completed": 0,
+      "completed": 1,
       "total": 15,
-      "status": "PENDING"
+      "status": "IN_PROGRESS"
     },
     "evidence": {
       "status": "NOT_TRACKED",
@@ -49,7 +49,7 @@
     "runId": "complete-rebranding-20260923T223312Z",
     "primaryCounter": "implementation",
     "implementation": {
-      "completed": 39,
+      "completed": 40,
       "total": 80,
       "status": "IN_PROGRESS"
     },
@@ -84,12 +84,12 @@
     {
       "id": "site-kb-content-pipeline",
       "title": "site-kb-content-pipeline",
-      "status": "PENDING",
-      "implementation_status": "PENDING",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
       "tasks_total": 5,
-      "tasks_done": 0,
-      "last_task_completed": null,
-      "next_task_pending": "First commit: add `.prometheus/knowledge-evidence/` to `.gitignore` (done in the working tree during Plan; it must be in the first Round 1 commit). Then create `docs/knowledge-sour",
+      "tasks_done": 5,
+      "last_task_completed": "Retrieval-eval harness: question set with expected source file; reports top-5; includes the two FR-8 questions. Also move the 10-prompt live validator (currently a scratch script) ",
+      "next_task_pending": null,
       "blockers": []
     },
     {
@@ -98,9 +98,9 @@
       "status": "PENDING",
       "implementation_status": "PENDING",
       "tasks_total": 6,
-      "tasks_done": 0,
-      "last_task_completed": null,
-      "next_task_pending": "Failing tests first: remote image blocked, non-allowlisted link shown as text with destination, `javascript:`/`data:` still blocked; mutation-check each.",
+      "tasks_done": 4,
+      "last_task_completed": "Rust: CSP enforcing header (own commit), tests updated (`meter_and_headers.rs`; `img-src` is already `'self' data: blob:` so this pins existing values and removes `data:`/`blob:` o",
+      "next_task_pending": "Browser proof **under the enforcing header, run locally**, recording each of: a remote `fetch` from the preview frame (blocked by `connect-src`); a same-origin `fetch` (the request",
       "blockers": []
     },
     {
@@ -109,9 +109,9 @@
       "status": "PENDING",
       "implementation_status": "PENDING",
       "tasks_total": 5,
-      "tasks_done": 0,
-      "last_task_completed": null,
-      "next_task_pending": "Capture a real stream with a tool-using prompt and record actual UAR event names and fields for tool steps and reasoning.",
+      "tasks_done": 3,
+      "last_task_completed": "Client renderers and registry entries; `aria-live` politeness, keyboard, reduced motion, 320 px.",
+      "next_task_pending": "Real-model run on a **local UAR stack** with the agent seeded locally (the operator supplies model credentials in their own environment; I do not read them); repeated on production",
       "blockers": []
     },
     {
