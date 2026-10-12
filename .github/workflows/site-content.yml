@@ -1,0 +1,108 @@
+name: Site content sync
+
+# site-kb-content-pipeline 2.4: pushes knowledge-base content and/or the site
+# agent (agent + presentation templates) to UAR without an image build.
+# Dispatch only; it reads the dispatched ref's checkout, so merge a content
+# PR before dispatching. The first dispatch after this file lands should be
+# a dry run.
+on:
+  workflow_dispatch:
+    inputs:
+      sync:
+        description: "What to sync: kb (corpus + FR-8 checks), agent (agent + presentation templates), or all"
+        type: choice
+        required: true
+        default: kb
+        options:
+          - kb
+          - agent
+          - all
+      dry_run:
+        description: "Build, validate and test only; do not seed UAR"
+        type: boolean
+        required: true
+        default: true
+
+# Its own group: a content sync never cancels or displaces a queued deploy
+# (Deploy site uses knowme-site-deploy).
+concurrency:
+  group: knowme-site-content
+  cancel-in-progress: false
+
+env:
+  NAMESPACE: knowme
+
+jobs:
+  content:
+    name: Build, validate and sync content
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    environment:
+      name: production
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci --ignore-scripts
+
+      # Fail closed: every gate runs before any seed step.
+      - name: Knowledge build is up to date
+        run: node scripts/kb/build-kb.mjs --check
+
+      - name: Validate the knowledge bundle and corpus
+        run: node scripts/kb/validate-kb.mjs
+
+      - name: Brand naming test
+        run: npx vitest run src/test/brand-naming.test.ts
+
+      - name: Install kubectl
+        if: ${{ !inputs.dry_run }}
+        uses: azure/setup-kubectl@829323503d1be3d00ca8346e5391ca0b07a9ab0d # v5
+        with:
+          version: "1.36.0"
+
+      - name: Write kubeconfig
+        if: ${{ !inputs.dry_run }}
+        # The secret is passed as an environment value, not interpolated into
+        # the script text.
+        env:
+          KUBECONFIG_DATA: ${{ secrets.KNOWME_KUBECONFIG }}
+        run: |
+          set -euo pipefail
+          umask 077
+          printf '%s' "$KUBECONFIG_DATA" > "$RUNNER_TEMP/knowme.kubeconfig"
+          echo "KUBECONFIG=$RUNNER_TEMP/knowme.kubeconfig" >> "$GITHUB_ENV"
+
+      - name: Seed the site agent (SEED_MODE from the sync input)
+        if: ${{ !inputs.dry_run }}
+        # Same credentials and token URL as the deploy job's seed step in
+        # site.yml: a gate-minted client-credentials token (sub=knowme-site,
+        # aud=uar). No other secret is read.
+        env:
+          SEED_MODE: ${{ inputs.sync }}
+          SITE_GATE_TOKEN_URL: https://gate.know-me.tools/oauth/token
+          SITE_GATE_CLIENT_ID: ${{ secrets.SITE_GATE_CLIENT_ID }}
+          SITE_GATE_CLIENT_SECRET: ${{ secrets.SITE_GATE_CLIENT_SECRET }}
+        run: |
+          set -euo pipefail
+          chmod +x scripts/seed-site-agent.sh
+
+          kubectl -n "$NAMESPACE" port-forward svc/uar 6565:6565 >/tmp/port-forward.log 2>&1 &
+          PF_PID=$!
+          trap 'kill "$PF_PID" 2>/dev/null || true' EXIT
+
+          for _ in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:6565/readyz >/dev/null 2>&1 && break
+            sleep 1
+          done
+
+          UAR_URL=http://127.0.0.1:6565 \
+            ./scripts/seed-site-agent.sh
+
+          kill "$PF_PID" 2>/dev/null || true
+          trap - EXIT

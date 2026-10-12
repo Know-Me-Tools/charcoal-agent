@@ -1,0 +1,4 @@
+# Email addresses the knowledge validator (scripts/kb/validate-kb.mjs) allows
+# in docs/knowledge-source/ and content/knowledge/. One address per line,
+# lowercase. Only public role addresses belong here, never a person's address.
+# Lines starting with # are comments. Empty means no address is allowed.
