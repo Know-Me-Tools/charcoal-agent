@@ -3,6 +3,12 @@ name: Deploy site
 on:
   push:
     branches: [main]
+    # site-kb-content-pipeline 2.4: knowledge-only pushes reach UAR through
+    # site-content.yml, not an image build. content/site/** is NOT ignored:
+    # it ships in the web bundle.
+    paths-ignore:
+      - "content/knowledge/**"
+      - "docs/knowledge-source/**"
   workflow_dispatch: {}
 
 concurrency:

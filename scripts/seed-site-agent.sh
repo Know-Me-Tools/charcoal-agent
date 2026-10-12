@@ -13,8 +13,13 @@
 #   UAR_JWT_SECRET=... ./scripts/seed-site-agent.sh --mint-key-to-file /path/to/key
 #   UAR_JWT_SECRET=... ./scripts/seed-site-agent.sh --mint-key-to-k8s-secret knowme/site-proxy
 #   UAR_JWT_SECRET=... ./scripts/seed-site-agent.sh --recreate-kb
+#   SEED_MODE=kb UAR_JWT_SECRET=... ./scripts/seed-site-agent.sh
 #
 # Env:
+#   SEED_MODE        What to seed (default: all; also --mode <value>):
+#                      all   = agent, presentation templates, KB sync and FR-8 checks
+#                      agent = agent PUT and presentation templates only
+#                      kb    = KB create/sync and FR-8 checks only
 #   UAR_URL          Base URL of the UAR API (default: http://localhost:6565)
 #   UAR_JWT_SECRET    HS256 secret UAR verifies JWTs with (required)
 #   AGENT_FILE        Path to the AgentArtifact JSON (default: uar/agents/knowme-site.json)
@@ -76,6 +81,7 @@ KB_RETRIEVAL_TOP_K="${KB_RETRIEVAL_TOP_K:-5}"
 JWT_SUBJECT="knowme-site"
 JWT_TTL_SECS=600
 
+SEED_MODE="${SEED_MODE:-all}"
 MINT_KEY_TO_FILE=""
 MINT_KEY_TO_K8S_SECRET=""
 RECREATE_KB=0
@@ -103,6 +109,11 @@ while [[ $# -gt 0 ]]; do
       RECREATE_KB=1
       shift
       ;;
+    --mode)
+      [[ $# -ge 2 ]] || die "--mode requires kb, agent or all"
+      SEED_MODE="$2"
+      shift 2
+      ;;
     -h|--help)
       sed -n '2,40p' "$0"
       exit 0
@@ -114,6 +125,14 @@ while [[ $# -gt 0 ]]; do
 done
 
 # ── Preflight ────────────────────────────────────────────────────────────────
+case "$SEED_MODE" in
+  all | agent | kb) ;;
+  *) die "SEED_MODE must be kb, agent or all (got '$SEED_MODE')" ;;
+esac
+SEED_AGENT=0
+SEED_KB=0
+[[ "$SEED_MODE" != kb ]] && SEED_AGENT=1
+[[ "$SEED_MODE" != agent ]] && SEED_KB=1
 for cmd in curl jq openssl; do
   command -v "$cmd" >/dev/null 2>&1 || die "required command not found: $cmd"
 done
@@ -128,15 +147,20 @@ if [[ -n "${SITE_GATE_TOKEN_URL:-}" || -n "${SITE_GATE_CLIENT_ID:-}" || -n "${SI
 else
   [[ -n "${UAR_JWT_SECRET:-}" ]] || die "UAR_JWT_SECRET must be set (or the SITE_GATE_* client credentials)"
 fi
-[[ -f "$AGENT_FILE" ]] || die "agent artifact not found: $AGENT_FILE (owned by km-conversational-designer)"
+if [[ "$SEED_AGENT" == 1 ]]; then
+  [[ -f "$AGENT_FILE" ]] || die "agent artifact not found: $AGENT_FILE (owned by km-conversational-designer)"
+fi
 
 if [[ -n "$MINT_KEY_TO_K8S_SECRET" ]]; then
   command -v kubectl >/dev/null 2>&1 || die "kubectl not found (required for --mint-key-to-k8s-secret)"
   [[ "$MINT_KEY_TO_K8S_SECRET" == */* ]] || die "--mint-key-to-k8s-secret must be <namespace>/<name>"
 fi
 
-AGENT_ID="$(jq -r '.id // empty' "$AGENT_FILE")"
-[[ -n "$AGENT_ID" ]] || die "$AGENT_FILE has no top-level .id"
+if [[ "$SEED_AGENT" == 1 ]]; then
+  AGENT_ID="$(jq -r '.id // empty' "$AGENT_FILE")"
+  [[ -n "$AGENT_ID" ]] || die "$AGENT_FILE has no top-level .id"
+fi
+log "SEED_MODE=$SEED_MODE"
 
 # ── Mint a short-lived HS256 JWT (sub=knowme-site) ──────────────────────────
 # Never echoed. UAR verifies the signature whenever an Authorization header is
@@ -208,6 +232,9 @@ require_2xx() {
 }
 
 # ── 1. Agent: PUT, falling back to POST on 404 ──────────────────────────────
+# Sections 1 and 1b run in SEED_MODE all and agent (the block is not
+# re-indented, to keep this change reviewable).
+if [[ "$SEED_AGENT" == 1 ]]; then
 log "seeding agent '$AGENT_ID' from $AGENT_FILE"
 api PUT "/api/agents/${AGENT_ID}" -H 'Content-Type: application/json' --data-binary @"$AGENT_FILE"
 status="$API_STATUS"
@@ -249,8 +276,13 @@ for tpl in "$PRESENTATIONS_DIR"/*.json; do
   fi
 done
 shopt -u nullglob
+else
+  log "SEED_MODE=$SEED_MODE: skipping the agent and presentation templates"
+fi # end of SEED_AGENT sections 1 and 1b
 
 # ── 2. Knowledge base: create if missing, looked up by name ────────────────
+# Sections 2 to 4 run in SEED_MODE all and kb (not re-indented, as above).
+if [[ "$SEED_KB" == 1 ]]; then
 log "looking up knowledge base '$KB_NAME'"
 api GET "/api/uar/knowledge-bases"
 status="$API_STATUS"
@@ -525,6 +557,9 @@ if [[ -f "$CORPUS_DIR/ipfs-sync-for-obsidian.md" ]]; then
       health_fail=1
     fi
   fi
+else
+  log "FR-8 version-number check: $CORPUS_DIR/ipfs-sync-for-obsidian.md is missing; the check cannot run"
+  health_fail=1
 fi
 
 # A question about The Boss's platforms retrieves a chunk from the-boss.md that
@@ -545,12 +580,18 @@ if [[ -f "$CORPUS_DIR/the-boss.md" ]]; then
     log "FR-8 platforms check: no top-$FR8_TOP_N chunk from the-boss.md ($boss_doc_id) states both Windows and macOS"
     health_fail=1
   fi
+else
+  log "FR-8 platforms check: $CORPUS_DIR/the-boss.md is missing; the check cannot run"
+  health_fail=1
 fi
 
 if [[ "$health_fail" -ne 0 ]]; then
   die "FR-8 KB health check failed: see entries above"
 fi
 log "FR-8 KB health check passed"
+else
+  log "SEED_MODE=$SEED_MODE: skipping the knowledge base sync and FR-8 checks"
+fi # end of SEED_KB sections 2 to 4
 
 # ── 5. Optional: mint the site API key ──────────────────────────────────────
 if [[ -n "$MINT_KEY_TO_FILE" || -n "$MINT_KEY_TO_K8S_SECRET" ]]; then

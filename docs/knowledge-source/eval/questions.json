@@ -1,0 +1,14 @@
+[
+  {
+    "question": "What version of IPFS Sync for Obsidian is available, and what version of Obsidian does it need?",
+    "expect_file": "ipfs-sync-for-obsidian.md",
+    "expect_contains": ["v0.2.0", "Obsidian 1.12.3"],
+    "critical": true
+  },
+  {
+    "question": "What platforms does The Boss support?",
+    "expect_file": "the-boss.md",
+    "expect_contains": ["Windows", "macOS"],
+    "critical": true
+  }
+]
