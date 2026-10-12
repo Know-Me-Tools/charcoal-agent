@@ -80,3 +80,6 @@ Thumbs.db
 
 # nested git worktrees created by Claude Code agents
 .claude/worktrees/
+
+# private evidence for knowledge-base work (repository is public)
+.prometheus/knowledge-evidence/

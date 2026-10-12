@@ -1,0 +1,241 @@
+{
+  "schemaVersion": "2",
+  "generatedBy": "kbd-runtime",
+  "projectionContractVersion": 2,
+  "sourceRevision": 1827,
+  "derivedRevision": 1827,
+  "frontier": {
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 1827
+  },
+  "conflictCount": 0,
+  "phase": "site-chat-hardening-and-polish",
+  "phaseId": "site-chat-hardening-and-polish",
+  "parentPhase": null,
+  "last_updated": "2026-10-12T18:51:53.579530Z",
+  "last_updated_by": "kbd-runtime",
+  "changes_total": 15,
+  "changes_completed": 0,
+  "implementation_total": 15,
+  "implementation_completed": 0,
+  "completion": {
+    "primaryCounter": "implementation",
+    "implementation": {
+      "completed": 0,
+      "total": 15,
+      "status": "PENDING"
+    },
+    "evidence": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    },
+    "certification": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    },
+    "publication": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    }
+  },
+  "completionScopes": {
+    "completion": "phase",
+    "runCompletion": "run"
+  },
+  "runCompletion": {
+    "scope": "run",
+    "runId": "complete-rebranding-20260923T223312Z",
+    "primaryCounter": "implementation",
+    "implementation": {
+      "completed": 39,
+      "total": 80,
+      "status": "IN_PROGRESS"
+    },
+    "evidence": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    },
+    "certification": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    },
+    "publication": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    }
+  },
+  "changes": [
+    {
+      "id": "site-impeccable-design-context",
+      "title": "site-impeccable-design-context",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 4,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "Run `teach-impeccable` from `src/styles/tokens.css`, `content/brand`, the brand guide and `content/site/*`; commit the design context.",
+      "blockers": []
+    },
+    {
+      "id": "site-kb-content-pipeline",
+      "title": "site-kb-content-pipeline",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 5,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "First commit: add `.prometheus/knowledge-evidence/` to `.gitignore` (done in the working tree during Plan; it must be in the first Round 1 commit). Then create `docs/knowledge-sour",
+      "blockers": []
+    },
+    {
+      "id": "site-reply-content-hardening",
+      "title": "site-reply-content-hardening",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 6,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "Failing tests first: remote image blocked, non-allowlisted link shown as text with destination, `javascript:`/`data:` still blocked; mutation-check each.",
+      "blockers": []
+    },
+    {
+      "id": "site-stream-step-visibility",
+      "title": "site-stream-step-visibility",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 5,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "Capture a real stream with a tool-using prompt and record actual UAR event names and fields for tool steps and reasoning.",
+      "blockers": []
+    },
+    {
+      "id": "site-answer-card-and-sources",
+      "title": "site-answer-card-and-sources",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 5,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "Change `uar/agents/knowme-site.json` and `uar/presentations/answer-card.json` (title, summary, source). Verified locally first. It is published with `sync: agent` **in the same win",
+      "blockers": []
+    },
+    {
+      "id": "site-shell-about-panel-and-empty-state",
+      "title": "site-shell-about-panel-and-empty-state",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 5,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "Hide `UarStatus` and \"localhost\" on the site build at both mounts.",
+      "blockers": []
+    },
+    {
+      "id": "site-starter-prompts",
+      "title": "site-starter-prompts",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 5,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "**Privacy design gate (first):** nothing about a visitor reaches the server or model; decide shared-device behaviour before anything is built. Default: an unranked pool, or ranking",
+      "blockers": []
+    },
+    {
+      "id": "site-bundle-attribution",
+      "title": "site-bundle-attribution",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 5,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "CWV baseline (Lighthouse mobile) on the live site: LCP, TBT, JS bytes.",
+      "blockers": []
+    },
+    {
+      "id": "kb-knowme-flagship",
+      "title": "kb-knowme-flagship",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 8,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "Claims-versus-evidence table (untracked, D-P10): status, platforms, privacy and sovereignty claims, each with its source file; unsupported claims dropped or phrased as design inten",
+      "blockers": []
+    },
+    {
+      "id": "kb-prometheus-stack",
+      "title": "kb-prometheus-stack",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 8,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "Operator-approved `git pull` in the local BossFang checkout (path recorded in the untracked evidence file); record HEAD in that file.",
+      "blockers": []
+    },
+    {
+      "id": "kb-patientgpt-prior-auth",
+      "title": "kb-patientgpt-prior-auth",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 4,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "**Gate:** operator confirms the client's consent and the public description before any file is written.",
+      "blockers": []
+    },
+    {
+      "id": "kb-landscape-and-competition",
+      "title": "kb-landscape-and-competition",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 5,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "Research plan: categories (always-on cloud agents including OpenAI dots; local-first and sovereign assistants; agent runtimes; agent memory systems; desktop agent clients; prior-au",
+      "blockers": []
+    },
+    {
+      "id": "kb-live-corrections-publish",
+      "title": "kb-live-corrections-publish",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 4,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "Build and validate the corrected KB files from 9.2 (including `the-boss.md`); zero validator failures; the two FR-8 files are present.",
+      "blockers": []
+    },
+    {
+      "id": "kb-publish-and-retrieval-eval",
+      "title": "kb-publish-and-retrieval-eval",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 5,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "Build and validate the full KB; zero validator failures.",
+      "blockers": []
+    },
+    {
+      "id": "site-live-observation",
+      "title": "site-live-observation",
+      "status": "PENDING",
+      "implementation_status": "PENDING",
+      "tasks_total": 5,
+      "tasks_done": 0,
+      "last_task_completed": null,
+      "next_task_pending": "Forced non-allowlisted tool call observed denied (a UAR-side harness or a crafted run); evidence recorded.",
+      "blockers": []
+    }
+  ],
+  "children": {},
+  "migrationStatus": null
+}

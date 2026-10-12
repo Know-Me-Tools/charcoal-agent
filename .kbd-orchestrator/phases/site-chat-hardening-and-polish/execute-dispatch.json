@@ -1,0 +1,34 @@
+{
+  "phase": "site-chat-hardening-and-polish",
+  "kind": "dispatch-receipt",
+  "dispatchedAt": "2026-10-12T19:20:00Z",
+  "backend": "openspec",
+  "driver": "kbd-apply",
+  "plan": "plan.md (revision 3)",
+  "assignedChanges": [
+    "site-impeccable-design-context",
+    "site-kb-content-pipeline",
+    "site-reply-content-hardening",
+    "site-stream-step-visibility",
+    "site-answer-card-and-sources",
+    "site-shell-about-panel-and-empty-state",
+    "site-starter-prompts",
+    "site-bundle-attribution",
+    "kb-knowme-flagship",
+    "kb-prometheus-stack",
+    "kb-patientgpt-prior-auth",
+    "kb-landscape-and-competition",
+    "kb-live-corrections-publish",
+    "kb-publish-and-retrieval-eval",
+    "site-live-observation"
+  ],
+  "pendingWork": "all 79 tasks pending at dispatch",
+  "round1": [
+    "site-kb-content-pipeline",
+    "site-impeccable-design-context",
+    "site-reply-content-hardening",
+    "site-stream-step-visibility",
+    "site-bundle-attribution"
+  ],
+  "note": "Dispatch receipt only. Execute stays active; this is not a stage handoff."
+}
