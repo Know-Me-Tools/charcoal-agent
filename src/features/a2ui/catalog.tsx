@@ -155,7 +155,7 @@ const Button_ = createPrometheusA2uiComponent(
 );
 
 const FIELD_CLASSES =
-  "border-0 bg-muted-surface text-fg placeholder:text-faint focus-visible:ring-0 focus-cue";
+  "border-0 bg-surface dark:bg-surface text-fg placeholder:text-faint focus-visible:ring-0 focus-cue";
 
 interface FieldProps {
   label?: string;
