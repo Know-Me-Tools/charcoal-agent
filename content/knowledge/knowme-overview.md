@@ -1,30 +1,30 @@
 # KnowMe
 
-KnowMe is KnowMe AI, LLC's personal AI platform. KnowMe runs models on the user's own device by default, and the working app today is the desktop app. KnowMe's tagline is "AI that understands you."
+KnowMe is a personal AI platform from KnowMe AI, LLC. Its tagline is "AI that understands you." KnowMe is still in development: it has not been publicly released, and no download or release date has been announced. The desktop app from KnowMe AI, LLC that you can download today is The Boss.
 
 ## What KnowMe is
 
-KnowMe's own documentation describes KnowMe as personal intelligence that runs on the user's device. KnowMe's long-term design is a single app with the same workflow on phone, tablet and desktop, but today the working KnowMe app is the desktop app only. (Source: KnowMe README, implementation roadmap)
+KnowMe is designed as one application for phone, tablet and desktop in which the person helps build their own product by using it: the assistants and agents in KnowMe are meant to adapt to the person over time, drawing on a knowledge graph that lives on the person's own devices. Models can run on the person's own hardware, and KnowMe is designed to depend on no single LLM vendor. KnowMe AI, LLC states all of this as design intent, not as a guarantee, because KnowMe is not yet released.
 
 ## Who KnowMe is for
 
-KnowMe is designed for people who want AI to work for them without handing over their data: knowledge workers, privacy-conscious professionals such as attorneys, therapists, physicians and journalists, builders, and people who use more than one device. (Source: KnowMe product documentation)
+KnowMe is being designed for people who want an AI assistant that adapts to them while their data stays under their own control: people who work with their own documents and messages all day, professionals whose material is confidential, builders who want a personal AI they can extend, and people who move between several devices. KnowMe AI, LLC has not yet confirmed a primary audience among these.
 
-## What makes KnowMe different
+## What makes KnowMe different, as designed
 
-KnowMe's stated design commitments are:
+KnowMe's stated design commitments:
 
-- Keeping data on the user's own device is structural to KnowMe, not a setting to turn on or off.
-- KnowMe builds a personal knowledge graph that belongs to the user.
-- KnowMe favors decisions made when the software is built over decisions made by querying a server, for speed and auditability.
-- Anything a KnowMe user creates can be exported out of KnowMe.
+- Data sovereignty is structural: where the code runs is what keeps data local, rather than a privacy setting that can be switched off.
+- Data management is decentralised: a person's devices are designed to sync with each other and with servers the person runs, not through a cloud run by KnowMe AI, LLC.
+- No dependence on one LLM vendor: local models and any of several providers can serve the same workflows.
+- What a person creates in KnowMe is meant to be exportable in open formats.
 
-KnowMe AI, LLC does not plan a hosted "KnowMe Cloud" tier for KnowMe. (Source: KnowMe product documentation)
+These describe how KnowMe is being built. Until KnowMe ships, treat them as design intent.
 
-## KnowMe's tagline
+## KnowMe release status
 
-KnowMe AI, LLC's tagline for KnowMe is "AI that understands you." (Source: KnowMe Brand Guide v1.0; this site's own copy)
+KnowMe has not been publicly released. There is no public KnowMe download, and KnowMe AI, LLC has not announced a release date. For something you can install today, see The Boss, KnowMe AI, LLC's free, open-source desktop workspace for macOS and Windows.
 
-## Where to learn more
+## Where to learn more about KnowMe
 
-See KnowMe features for what's available in KnowMe today versus what's still planned, and KnowMe platforms and status for platform-by-platform detail.
+See KnowMe features for what the eight tiles of KnowMe are designed to do, KnowMe platforms and status for status platform by platform, and KnowMe privacy for the data model.

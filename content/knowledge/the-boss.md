@@ -1,35 +1,70 @@
 # The Boss
 
-The Boss is a KnowMe AI, LLC product: an AI desktop workspace for developers and technical operators. The Boss brings multi-provider AI conversations, agent sessions, workspace tools, and knowledge and document workflows together with Prometheus integration. The Boss's tagline is "an agent studio for people who ship."
+The Boss is a free, open-source AI desktop workspace from KnowMe AI, LLC for macOS and Windows: conversations with cloud or local models, agent sessions, tools and project work in one application. You can download The Boss today from https://the-boss.know-me.tools; no account is required. The Boss is built on Cherry Studio and released under the GNU Affero General Public License v3.0.
+
+Source: The Boss README, retrieved 2026-10-12.
+Source: The Boss download page, retrieved 2026-10-12.
+Source: The Boss LICENSE, retrieved 2026-10-12.
 
 ## What The Boss is
 
-The Boss is the Know Me Tools desktop workspace, an Electron application with a shared React renderer. The Boss is the operator-facing administration surface for the Universal Agent Runtime and its integrations. (Source: The Boss README, PRODUCT.md)
+The Boss is an Electron desktop application with a React interface, built on the open-source Cherry Studio client and extended by KnowMe AI, LLC. The Boss describes itself as an agent studio for builders: it adds artifact authoring, context management, skills selection, agent protocols (A2A, AG-UI and A2UI) and memory-aware agents to the Cherry Studio foundation. The Boss is also the operator-facing administration surface for the Universal Agent Runtime and its integrations.
+
+Source: The Boss download page, retrieved 2026-10-12.
+Source: The Boss product context, retrieved 2026-10-12.
 
 ## Who The Boss is for
 
-The Boss is built for developers and technical operators who use The Boss as their daily AI workspace, to administer local agent runtimes, project tools, models, memory and supporting services without leaving the application. (Source: The Boss PRODUCT.md)
+The Boss is built for developers and technical operators who want one daily AI workspace in which they can also administer local agent runtimes, project tools, models, memory and supporting services without leaving the application.
 
-## What The Boss can do — available now
+Source: The Boss product context, retrieved 2026-10-12.
 
-The Boss's workspace capabilities, as described in its own documentation:
+## What you can do with The Boss today
 
-- Conversations and assistants across cloud and local model providers.
-- Agent sessions with workspace context, MCP tools, skills, and approval boundaries.
-- Knowledge, document, code and Markdown workflows.
-- Prometheus settings for packaged skills, workspace indexing, tools, and optional services.
-- Shared renderer components, semantic design tokens, and light and dark themes.
+- Hold conversations and run assistants across cloud and local model providers.
+- Run agent sessions with workspace context, MCP tools, skills and approval boundaries.
+- Work with knowledge, documents, code and Markdown.
+- Manage packaged skills, workspace indexing, tools and optional services in the Prometheus settings.
 
-Provider access and optional integrations each need their own configuration in The Boss. The Boss ships with the Universal Agent Runtime bundled as a sidecar. (Source: The Boss README, release notes)
+Provider access and optional integrations each need their own configuration, for example your own credentials for a cloud model provider.
 
-## Platforms — available now
+Source: The Boss README, retrieved 2026-10-12.
 
-The Boss is available for Windows (x64 and ARM64) and macOS (Apple Silicon and Intel). The Boss's macOS builds are notarized; The Boss's Windows installers are not code-signed, so Windows may show a warning during install. Linux is not currently available for The Boss. The Boss's installers are large, roughly 410–625 MB depending on platform. (Source: The Boss release notes)
+## What The Boss packages: Universal Agent Runtime, BossFang and Surreal Memory
+
+The Boss release installers (the "uar-enabled" profile) package the Universal Agent Runtime as a sidecar program, and the same build manifest packages BossFang, with its dashboard, as a second sidecar, for macOS on Apple Silicon and for Windows x64. The Boss works with the Surreal Memory Server over MCP: the memory server runs as a separate service that The Boss can manage or connect to, and it is not inside the installer.
+
+Source: The Boss integration artifacts manifest, retrieved 2026-10-12.
+Source: The Boss UAR model source adapter, retrieved 2026-10-12.
+
+## Platforms The Boss supports
+
+The Boss runs on macOS and Windows. Today the download page offers The Boss v2.2.36 for macOS on Apple Silicon and for Windows x64. The Intel Mac and Windows ARM64 downloads are the older v2.2.30 builds; the v2.2.36 update for those two platforms is pending. The Boss needs macOS 12 or later or Windows 10 or later. Linux is not offered.
+
+Source: The Boss download page, retrieved 2026-10-12.
+
+## Signing and installer sizes for The Boss
+
+The macOS builds of The Boss are signed with a Developer ID and notarized. The Windows installers are unsigned, so Windows may show a warning during installation; the download page publishes a SHA-256 checksum for every installer so you can verify what you downloaded. Installer sizes recorded in The Boss release records: v2.2.36 macOS Apple Silicon 685.0 MB and Windows x64 509.6 MB; v2.2.30 macOS Intel 713.2 MB and Windows ARM64 472.0 MB.
+
+Source: The Boss release records, retrieved 2026-10-12.
 
 ## Getting The Boss
 
-Download the installer for your platform and architecture from The Boss's GitHub releases: https://github.com/Prometheus-AGS/the-boss/releases (Source: The Boss README)
+Download The Boss from https://the-boss.know-me.tools, which is free, open source and needs no account, or from the GitHub releases page at https://github.com/Prometheus-AGS/the-boss/releases. Each release entry records its source commit, checksum, size and signing status.
 
-## License
+Source: The Boss download page, retrieved 2026-10-12.
+Source: The Boss release records, retrieved 2026-10-12.
 
-The Boss's source is licensed under the GNU Affero General Public License v3.0, derived from Cherry Studio. (Source: The Boss README, LICENSE)
+## The Boss licence and attribution
+
+The Boss is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). It is derived from Cherry Studio; upstream contributors, copyright notices and licence obligations remain applicable, and The Boss name and logo identify this fork.
+
+Source: The Boss LICENSE, retrieved 2026-10-12.
+Source: The Boss README, retrieved 2026-10-12.
+
+## The Boss privacy policy
+
+The Boss repository carries the privacy policy of its upstream project, Cherry Studio, in PRIVACY.md. Read it before installing: it describes what the application may collect and the model services it can connect to.
+
+Source: The Boss privacy policy, retrieved 2026-10-12.

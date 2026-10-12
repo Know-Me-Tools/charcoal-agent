@@ -1,12 +1,64 @@
 {
   "entries": [
-    { "source": "landscape/always-on-personal-agents-compared.md", "output": "always-on-personal-agents-compared.md" },
-    { "source": "landscape/openai-dots-and-knowme.md", "output": "openai-dots-and-knowme.md" },
-    { "source": "landscape/local-first-assistants-compared.md", "output": "local-first-assistants-compared.md" },
-    { "source": "landscape/agent-runtimes-compared.md", "output": "agent-runtimes-compared.md" },
-    { "source": "landscape/agent-memory-systems-compared.md", "output": "agent-memory-systems-compared.md" },
-    { "source": "landscape/desktop-ai-clients-compared.md", "output": "desktop-ai-clients-compared.md" },
-    { "source": "landscape/how-to-choose-between-these-tools.md", "output": "how-to-choose-between-these-tools.md" },
-    { "source": "landscape/landscape-faq.md", "output": "landscape-faq.md" }
+    {
+      "source": "landscape/always-on-personal-agents-compared.md",
+      "output": "always-on-personal-agents-compared.md"
+    },
+    {
+      "source": "landscape/openai-dots-and-knowme.md",
+      "output": "openai-dots-and-knowme.md"
+    },
+    {
+      "source": "landscape/local-first-assistants-compared.md",
+      "output": "local-first-assistants-compared.md"
+    },
+    {
+      "source": "landscape/agent-runtimes-compared.md",
+      "output": "agent-runtimes-compared.md"
+    },
+    {
+      "source": "landscape/agent-memory-systems-compared.md",
+      "output": "agent-memory-systems-compared.md"
+    },
+    {
+      "source": "landscape/desktop-ai-clients-compared.md",
+      "output": "desktop-ai-clients-compared.md"
+    },
+    {
+      "source": "landscape/how-to-choose-between-these-tools.md",
+      "output": "how-to-choose-between-these-tools.md"
+    },
+    {
+      "source": "landscape/landscape-faq.md",
+      "output": "landscape-faq.md"
+    },
+    {
+      "source": "knowme/knowme-ai-llc-company-overview.md",
+      "output": "company.md"
+    },
+    {
+      "source": "knowme/knowme-overview.md",
+      "output": "knowme-overview.md"
+    },
+    {
+      "source": "knowme/knowme-features.md",
+      "output": "knowme-features.md"
+    },
+    {
+      "source": "knowme/knowme-platforms-and-status.md",
+      "output": "knowme-platforms-and-status.md"
+    },
+    {
+      "source": "knowme/knowme-privacy.md",
+      "output": "knowme-privacy.md"
+    },
+    {
+      "source": "knowme/knowme-frequently-asked-questions.md",
+      "output": "faq.md"
+    },
+    {
+      "source": "the-boss/the-boss.md",
+      "output": "the-boss.md"
+    }
   ]
 }
