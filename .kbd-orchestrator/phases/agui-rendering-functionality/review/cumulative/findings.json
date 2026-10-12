@@ -1,0 +1,82 @@
+{
+  "mode": "diff",
+  "verdict": "PASS",
+  "judge_model": "artifact-critic subagent (claude family; model id not recorded)",
+  "producer_model": "claude-sonnet-5-5",
+  "isolation_mode": "harness-native",
+  "cross_model_check": "unverified-producer-unknown",
+  "checked_classes": [
+    "public stream leaks",
+    "passive component allowlist",
+    "token and spend accounting",
+    "registry hiding",
+    "scope"
+  ],
+  "what_would_change_this": "The original reviewer output is not preserved, so this file is rebuilt from session notes (see evidence/22-cumulative-review.md). A fresh cross-model review of the cumulative diff would replace it. PRs #36, #37 and the TextField fix came after the review; the km-security-officer review (evidence/20) covered the public path afterwards.",
+  "findings": [
+    {
+      "severity": "WARNING",
+      "file": "server/src/config.rs",
+      "line": 58,
+      "claim": "Meter reservation (5,000) not raised with the 16,000 turn cap",
+      "evidence": "DEFAULT_RESERVATION_TOKENS predates the cap; a turn can exceed it and a Stop before usage under-charges.",
+      "suggested_fix": "Set the default to the cap. Fixed by PR #37 (16,000)."
+    },
+    {
+      "severity": "WARNING",
+      "file": "uar/agents/knowme-site.json",
+      "claim": "tool_approval auto never exercised live with a forced non-allowlisted tool",
+      "evidence": "The public filter maps a denial to a fixed public event (tested with UAR's real payload), but the model refuses before calling, so no live denial exists.",
+      "suggested_fix": "Exercise a forced denied call in a live run, or accept the tested path. Open."
+    },
+    {
+      "severity": "WARNING",
+      "file": "server/src/domain/agui_filter.rs",
+      "claim": "Public stream forwarding passed upstream fields and framing",
+      "evidence": "A live `id:` line leaked through event-less frames and per-event payloads were not whitelisted.",
+      "suggested_fix": "Rebuild every frame from a per-event field whitelist. Fixed by PR #35."
+    },
+    {
+      "severity": "WARNING",
+      "file": "server/src/domain/agui_filter.rs",
+      "claim": "Public A2UI component set was wider than the passive five",
+      "evidence": "Surfaces could carry interactive components or action and function-call keys.",
+      "suggested_fix": "Passive five only, in Rust and in the client. Fixed by PR #35."
+    },
+    {
+      "severity": "WARNING",
+      "file": "src/features/chat/render-registry/default-entries.ts",
+      "claim": "The registry hides artifact types the non-site app used to show",
+      "evidence": "ui, logo, image, content and meta-prompt artifacts no longer render in the app.",
+      "suggested_fix": "Add render entries, or confirm they are intentionally hidden. Open, not requested."
+    },
+    {
+      "severity": "WARNING",
+      "file": "(phase scope)",
+      "claim": "Scope creep: PEM bump to 4.2.0, unreachable event handling, formatting churn",
+      "evidence": "Several changes go beyond the minimum for the phase goals.",
+      "suggested_fix": "Mention only. Open, not requested."
+    },
+    {
+      "severity": "SUGGESTION",
+      "file": "src/features/chat/render-registry/default-entries.ts",
+      "claim": "agui.state.patch is adapted but the client does nothing with it",
+      "evidence": "The event is forwarded and ignored.",
+      "suggested_fix": "Drop it from the public stream. Open."
+    },
+    {
+      "severity": "SUGGESTION",
+      "file": "src/features/chat/use-chat-runtime.ts",
+      "claim": "Possible duplicate Run cancelled block",
+      "evidence": "A server agui.cancelled and the client's onCancel pseudo-part could both render.",
+      "suggested_fix": "Deduplicate. Open."
+    },
+    {
+      "severity": "SUGGESTION",
+      "file": "src/features/a2ui/catalog.tsx",
+      "claim": "`variant in HEADING_CLASS` is a prototype-chain check",
+      "evidence": "`in` matches inherited keys such as `constructor`.",
+      "suggested_fix": "Use Object.hasOwn. Open."
+    }
+  ]
+}
