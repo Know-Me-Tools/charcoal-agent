@@ -36,6 +36,9 @@ pub const OTHER_THREAD: &str = "6f1d2e3c-4b5a-4c6d-8e7f-9a0b1c2d3e4f";
 /// UAR's guardrail body (`src/server.rs`), with text that must not leak.
 pub const GUARDRAIL_BODY: &str = r#"{"error":{"message":"Input rejected by guardrail policy","type":"guardrail_blocked","code":"guardrail_injection_blocked"}}"#;
 pub const LEAKY_500: &str = r#"{"error":"surreal at 10.0.0.3:8000 refused: table sessions"}"#;
+/// A 2xx that is not an event stream: UAR's non-streaming shape, with run internals in it.
+pub const LEAKY_JSON_200: &str =
+    r#"{"model":"qwen3.8-max","cost_usd":0.42,"effective_run_policy":{"tools":["internal_tool"]}}"#;
 pub const LEAKY_400: &str =
     r#"{"error":{"message":"unknown agent knowme-internal","type":"invalid_request_error"}}"#;
 pub const ARTIFACT_STREAM: &str = concat!(
@@ -129,6 +132,9 @@ pub async fn stub_handler(
         }
         "/api/chat/completion" if body_has(&stub.last(), "upstream-500") => {
             json_response(StatusCode::INTERNAL_SERVER_ERROR, LEAKY_500)
+        }
+        "/api/chat/completion" if body_has(&stub.last(), "upstream-json") => {
+            json_response(StatusCode::OK, LEAKY_JSON_200)
         }
         "/api/chat/completion" if body_has(&stub.last(), "upstream-400") => {
             json_response(StatusCode::BAD_REQUEST, LEAKY_400)
