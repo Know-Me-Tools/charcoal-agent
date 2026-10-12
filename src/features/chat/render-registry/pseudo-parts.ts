@@ -7,6 +7,7 @@
 export const CANCELLED_PART = "__cancelled__";
 export const SUBAGENT_PART = "__subagent__";
 export const APPROVAL_PART = "__approval__";
+export const STEP_PART = "__step__";
 
 /** Same shape as UAR's `agui.done` usage (UAR PR #361). */
 export interface CancelledUsage {

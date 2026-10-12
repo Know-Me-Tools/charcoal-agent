@@ -1,5 +1,10 @@
 import { useChatMessageStore } from "@/stores/chat-message-store";
-import type { ArtifactContentBlock, ToolCallContentBlock } from "@/types/chat-content";
+import {
+  STEP_PHASES,
+  type ArtifactContentBlock,
+  type StepPhase,
+  type ToolCallContentBlock,
+} from "@/types/chat-content";
 import { defaultRenderRegistry } from "@/features/chat/render-registry/default-entries";
 import type { RenderRegistry } from "@/features/chat/render-registry/registry";
 import {
@@ -68,6 +73,13 @@ interface AguiToolResult {
   name: string;
   content: string;
   success: boolean;
+}
+/** Public step (server filter, task 4.2): fixed label, no upstream names. */
+interface AguiStep {
+  kind: "step";
+  phase: StepPhase;
+  index: number;
+  label: string;
 }
 /** The launch run policy denies every tool call (site-chat-offline-states, FR-11 client case). */
 interface AguiToolCallDenied {
@@ -325,6 +337,20 @@ export const AGUI_EVENT_HANDLERS: Readonly<Record<string, Handler>> = {
     return "continue";
   },
 
+  "agui.step": (p, ctx) => {
+    const e = p as Partial<AguiStep> | null;
+    const phase = e?.phase;
+    const index = e?.index;
+    const label = e?.label;
+    if (!phase || !STEP_PHASES.includes(phase)) return "continue";
+    if (typeof index !== "number" || !Number.isInteger(index) || index < 0) return "continue";
+    if (typeof label !== "string" || label.trim() === "") return "continue";
+    store().upsertStep(ctx.threadId, { index, phase, label });
+    return "continue";
+  },
+
+  // Kept for stored history and older tests: the server no longer sends this
+  // event, and a denial now arrives as a `denied` step.
   "agui.tool_call.denied": (p, ctx) => {
     // The launch run policy denies the call before it ever runs, so there is
     // usually no existing tool-call block to update — only

@@ -25,6 +25,7 @@ export const DEFAULT_RENDER_ENTRIES: readonly RenderEntryDef[] = [
     disposition: "render",
     reason: "Read-only approval indicator; interactive approval is deferred (D-26).",
   },
+  { kind: "event", name: "agui.step", disposition: "render", reason: "Public tool/thinking step, upserted by index." },
   { kind: "event", name: "agui.skill.activated", disposition: "render", reason: "Skill block." },
   { kind: "event", name: "agui.context.update", disposition: "render", reason: "Context block when applied." },
   { kind: "event", name: "agui.memory.recall", disposition: "render", reason: "Memory recall block." },
