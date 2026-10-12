@@ -370,21 +370,42 @@ async fn forced_tool_call_should_reach_the_visitor_only_as_a_denial() {
         .await
         .unwrap();
 
-    assert!(public.contains("agui.tool_call.denied"), "{public}");
-    // The denial names the tool, not the policy that denied it.
-    assert!(public.contains("activate_skill"), "{public}");
-    assert!(public.contains("This action is not permitted."), "{public}");
-    for leak in ["effective_run_policy", "tools.mode", "run-9", "qwen3.8-max"] {
+    // The denial is a content-free step: no tool id, name or policy reason.
+    let steps: Vec<serde_json::Value> = public
+        .split("\n\n")
+        .filter_map(|block| block.strip_prefix("event: agui.step\ndata: "))
+        .map(|data| serde_json::from_str(data).unwrap())
+        .collect();
+    assert_eq!(
+        steps,
+        vec![
+            serde_json::json!({"kind":"step","phase":"started","index":0,"label":"Thinking"}),
+            serde_json::json!({"kind":"step","phase":"denied","index":1,"label":"Working"}),
+            serde_json::json!({"kind":"step","phase":"finished","index":0,"label":"Thinking"}),
+        ],
+        "{public}"
+    );
+    for leak in [
+        "activate_skill",
+        "call_1",
+        "call_index",
+        "effective_run_policy",
+        "tools.mode",
+        "run-9",
+        "qwen3.8-max",
+        "sentinel",
+    ] {
         assert!(!public.contains(leak), "{leak} leaked: {public}");
     }
     for dropped in [
-        "agui.tool_call.delta",
-        "agui.tool_call.approval_required",
-        "agui.tool_call.complete",
+        "agui.tool_call",
         "agui.tool_result",
+        "agui.reasoning",
+        "agui.memory",
     ] {
         assert!(!public.contains(dropped), "{dropped} leaked: {public}");
     }
+    assert!(public.contains("agui.message.delta"), "{public}");
     assert!(public.contains("agui.done"), "{public}");
 }
 

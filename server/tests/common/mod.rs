@@ -53,19 +53,24 @@ pub const ARTIFACT_STREAM: &str = concat!(
     "data: {\"choices\":[{\"delta\":{\"content\":\"hi\"}}]}\n\n",
     "event: agui.done\nid: 6\ndata: {\"usage\":{\"input_tokens\":1}}\n\n",
 );
-/// A forced `activate_skill` call: UAR denies it, and the tool lifecycle events
-/// around it are diagnostic.
+/// A forced `activate_skill` call: UAR denies it, and the tool lifecycle and
+/// reasoning events around it are diagnostic. The public stream carries the
+/// denial and the thinking indicator only as `agui.step` frames.
 pub const TOOL_STREAM: &str = concat!(
     "event: agui.stream.start\nid: 1\ndata: {\"request_id\":\"r3\"}\n\n",
-    "event: agui.tool_call.delta\nid: 2\ndata: {\"id\":\"call_1\",\"delta\":{\"arguments\":\"{}\"}}\n\n",
-    "event: agui.tool_call.approval_required\nid: 3\ndata: {\"id\":\"call_1\",\"name\":\"activate_skill\"}\n\n",
-    "event: agui.tool_call.denied\nid: 4\ndata: {\"kind\":\"tool_call\",\"phase\":\"denied\",",
+    "event: agui.reasoning.delta\nid: 2\ndata: {\"delta\":{\"text\":\"reasoning-sentinel-41\"}}\n\n",
+    "event: agui.tool_call.delta\nid: 3\ndata: {\"id\":\"call_1\",\"delta\":{\"arguments\":\"{\\\"q\\\":\\\"args-sentinel-17\\\"}\"}}\n\n",
+    "event: agui.tool_call.approval_required\nid: 4\ndata: {\"id\":\"call_1\",\"name\":\"activate_skill\"}\n\n",
+    "event: agui.tool_call.denied\nid: 5\ndata: {\"kind\":\"tool_call\",\"phase\":\"denied\",",
     "\"request_id\":\"run-9\",\"call_index\":0,\"id\":\"call_1\",\"name\":\"activate_skill\",",
     "\"reason\":\"tools.mode=selected excludes activate_skill (effective_run_policy)\"}\n\n",
-    "event: agui.tool_call.complete\nid: 5\ndata: {\"id\":\"call_1\"}\n\n",
-    "event: agui.tool_result\nid: 6\ndata: {\"id\":\"call_1\",\"name\":\"activate_skill\"}\n\n",
-    "event: agui.message.delta\nid: 7\ndata: {\"delta\":{\"text\":\"no\"}}\n\n",
-    "event: agui.done\nid: 8\ndata: {\"usage\":{\"input_tokens\":1,\"model\":\"qwen3.8-max\"}}\n\n",
+    "event: agui.tool_call.complete\nid: 6\ndata: {\"id\":\"call_1\",\"name\":\"activate_skill\",",
+    "\"arguments_json\":\"{\\\"q\\\":\\\"args-sentinel-17\\\"}\"}\n\n",
+    "event: agui.tool_result\nid: 7\ndata: {\"id\":\"call_1\",\"name\":\"activate_skill\",",
+    "\"content\":\"result-sentinel-23\",\"success\":false}\n\n",
+    "event: agui.memory.recall\nid: 8\ndata: {\"items\":[{\"value\":\"memory-sentinel-59\"}]}\n\n",
+    "event: agui.message.delta\nid: 9\ndata: {\"delta\":{\"text\":\"no\"}}\n\n",
+    "event: agui.done\nid: 10\ndata: {\"usage\":{\"input_tokens\":1,\"model\":\"qwen3.8-max\"}}\n\n",
 );
 /// A completed run: one delta, then `agui.done` with usage.
 pub const USAGE_STREAM: &str = concat!(
