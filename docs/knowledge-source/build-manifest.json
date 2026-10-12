@@ -59,6 +59,106 @@
     {
       "source": "the-boss/the-boss.md",
       "output": "the-boss.md"
+    },
+    {
+      "source": "universal-agent-runtime/universal-agent-runtime-overview.md",
+      "output": "universal-agent-runtime-overview.md"
+    },
+    {
+      "source": "universal-agent-runtime/universal-agent-runtime-use-cases-and-who-it-is-for.md",
+      "output": "universal-agent-runtime-use-cases-and-who-it-is-for.md"
+    },
+    {
+      "source": "universal-agent-runtime/universal-agent-runtime-how-it-works.md",
+      "output": "universal-agent-runtime-how-it-works.md"
+    },
+    {
+      "source": "universal-agent-runtime/universal-agent-runtime-protocols.md",
+      "output": "universal-agent-runtime-protocols.md"
+    },
+    {
+      "source": "universal-agent-runtime/universal-agent-runtime-deployment.md",
+      "output": "universal-agent-runtime-deployment.md"
+    },
+    {
+      "source": "universal-agent-runtime/universal-agent-runtime-status-and-licence.md",
+      "output": "universal-agent-runtime-status-and-licence.md"
+    },
+    {
+      "source": "universal-agent-runtime/universal-agent-runtime-faq.md",
+      "output": "universal-agent-runtime-faq.md"
+    },
+    {
+      "source": "surreal-memory-server/surreal-memory-server-overview.md",
+      "output": "surreal-memory-server-overview.md"
+    },
+    {
+      "source": "surreal-memory-server/surreal-memory-server-use-cases-and-who-it-is-for.md",
+      "output": "surreal-memory-server-use-cases-and-who-it-is-for.md"
+    },
+    {
+      "source": "surreal-memory-server/surreal-memory-server-how-it-works.md",
+      "output": "surreal-memory-server-how-it-works.md"
+    },
+    {
+      "source": "surreal-memory-server/surreal-memory-server-status-and-licence.md",
+      "output": "surreal-memory-server-status-and-licence.md"
+    },
+    {
+      "source": "surreal-memory-server/surreal-memory-server-faq.md",
+      "output": "surreal-memory-server-faq.md"
+    },
+    {
+      "source": "bossfang/bossfang-overview.md",
+      "output": "bossfang-overview.md"
+    },
+    {
+      "source": "bossfang/bossfang-and-upstream-librefang.md",
+      "output": "bossfang-and-upstream-librefang.md"
+    },
+    {
+      "source": "bossfang/bossfang-use-cases-and-who-it-is-for.md",
+      "output": "bossfang-use-cases-and-who-it-is-for.md"
+    },
+    {
+      "source": "bossfang/bossfang-how-it-works.md",
+      "output": "bossfang-how-it-works.md"
+    },
+    {
+      "source": "bossfang/bossfang-status-and-licence.md",
+      "output": "bossfang-status-and-licence.md"
+    },
+    {
+      "source": "bossfang/bossfang-faq.md",
+      "output": "bossfang-faq.md"
+    },
+    {
+      "source": "skill-packages/prometheus-skill-packages-overview.md",
+      "output": "prometheus-skill-packages-overview.md"
+    },
+    {
+      "source": "skill-packages/prometheus-skill-packages-choosing-full-or-mini.md",
+      "output": "prometheus-skill-packages-choosing-full-or-mini.md"
+    },
+    {
+      "source": "skill-packages/prometheus-skill-packages-use-cases-and-who-it-is-for.md",
+      "output": "prometheus-skill-packages-use-cases-and-who-it-is-for.md"
+    },
+    {
+      "source": "skill-packages/prometheus-skill-packages-how-it-works.md",
+      "output": "prometheus-skill-packages-how-it-works.md"
+    },
+    {
+      "source": "skill-packages/prometheus-skill-packages-install.md",
+      "output": "prometheus-skill-packages-install.md"
+    },
+    {
+      "source": "skill-packages/prometheus-skill-packages-status-and-licence.md",
+      "output": "prometheus-skill-packages-status-and-licence.md"
+    },
+    {
+      "source": "skill-packages/prometheus-skill-packages-faq.md",
+      "output": "prometheus-skill-packages-faq.md"
     }
   ]
 }
