@@ -1,15 +1,19 @@
 # KnowMe platforms and status
 
-KnowMe's working app today is the desktop app. KnowMe on mobile is planned but not yet available. This page lists KnowMe's status platform by platform.
+KnowMe is being built for macOS, Windows, Linux, iOS and Android from one codebase. KnowMe has not been publicly released on any of them: there is no public KnowMe download and no announced release date. The desktop app from KnowMe AI, LLC that you can download today is The Boss, for macOS and Windows.
 
-## Desktop — available now
+## KnowMe on desktop (macOS, Windows and Linux)
 
-KnowMe's desktop app runs on macOS, Windows and Linux, built with Tauri and React. This is the working KnowMe app today. (Source: KnowMe README)
+KnowMe's desktop app is built with Tauri and React. It runs in KnowMe AI, LLC's development builds but is not yet available for download on macOS, Windows or Linux. The downloadable desktop app from KnowMe AI, LLC today is The Boss.
 
-## Mobile — planned
+## KnowMe on mobile (iOS and Android)
 
-KnowMe is specified to run on iOS and Android, built with Flutter. KnowMe's mobile agent runtime compiles today, but it has not been certified on a physical device, so KnowMe is not yet available on phones or tablets. There's no published date for KnowMe's mobile availability. (Source: KnowMe README; KnowMe platform support notes)
+KnowMe's mobile app is built with Flutter. KnowMe AI, LLC has installed and run development builds on a current Android phone, but there is no public release for iOS or Android, and no date has been announced.
 
-## One app, one workflow — KnowMe's long-term design
+## One KnowMe app, one workflow
 
-KnowMe's long-term design is one app with the same workflow on phone, tablet and desktop. Today, only KnowMe's desktop app is working — say "desktop" when asking what's available in KnowMe now. (Source: KnowMe implementation roadmap)
+KnowMe's long-term design is one application with the same workflow on phone, tablet and desktop, so what a person starts on one device continues on another. That is what KnowMe AI, LLC is building towards; it is not yet released.
+
+## How KnowMe relates to The Boss
+
+The Boss is KnowMe AI, LLC's free, open-source desktop workspace for macOS and Windows, available now. It packages the Universal Agent Runtime, the same agent runtime KnowMe is built on. If you want something to install today, start with The Boss.

@@ -1,19 +1,23 @@
-# KnowMe's privacy and data model
+# KnowMe privacy and data model
 
-KnowMe is designed so that models run on the user's own device by default. This page describes KnowMe's stated privacy commitments and what's confirmed available in KnowMe today.
+KnowMe is designed so that a person's data stays under their own control. KnowMe is not yet released, so everything on this page is KnowMe AI, LLC's design intent for KnowMe, not a guarantee about shipped software.
 
-## On-device inference — available now
+## KnowMe runs models on your own device by design
 
-KnowMe's Rust core runs models on the user's own device. This is confirmed working in KnowMe's desktop app today. (Source: KnowMe README)
+KnowMe is designed to run language models on the person's own hardware, so prompts and model weights need not leave the device. Cloud models are designed to be optional: sending anything to a cloud provider is meant to require the person's explicit approval through KnowMe's policy system, provider by provider.
 
-## Device-first by design
+## KnowMe keeps data local and decentralised by design
 
-KnowMe's product documentation describes keeping data on the user's own device as structural to KnowMe, not a setting to toggle, and states that sending anything to a cloud model requires explicit approval through KnowMe's policy system. This is KnowMe AI, LLC's stated design commitment for KnowMe. (Source: KnowMe product documentation)
+KnowMe is designed to store conversations, memory and settings in an encrypted database on the person's device, and to sync between the person's own devices and servers the person runs (BossFang), peer to peer, rather than through a cloud run by KnowMe AI, LLC. KnowMe is designed without a central account and without any training on a person's data.
 
-## What's still being built in KnowMe
+## KnowMe is designed to depend on no single LLM vendor
 
-Some of the systems that would extend KnowMe's data controls across devices — multi-device sync through BossFang, and the Hands system's scheduling and policy execution — are still in early development. Until those ship, treat KnowMe's privacy commitments as KnowMe's design intent rather than a guarantee that already covers every feature. (Source: KnowMe implementation roadmap)
+KnowMe routes work through the Universal Agent Runtime, which can use local models or any of several model providers for the same tasks. The design goal is that a person is never locked to one vendor's models.
 
-## No hosted cloud tier
+## What KnowMe's privacy design does not yet guarantee
 
-KnowMe AI, LLC does not plan a hosted "KnowMe Cloud" tier for KnowMe. (Source: KnowMe product documentation)
+KnowMe has not shipped. Several of the systems that would enforce these commitments across every device and feature, including multi-device sync, the policy system for Hands and the plugin host, are still being built. Until KnowMe is released and documented, treat these statements as design intent rather than as a promise about software you can run today.
+
+## Privacy when you use the KnowMe agent on this site
+
+Your conversations with the KnowMe agent on this site are stored as threads in your own browser, on your device. To answer you, the site sends your message to KnowMe AI, LLC's Universal Agent Runtime, where a language model composes the reply from the site's knowledge base. Nothing is sold on this site.

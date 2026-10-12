@@ -1,3 +1,11 @@
 {
-  "entries": []
+  "entries": [
+    { "source": "knowme/knowme-ai-llc-company-overview.md", "output": "company.md" },
+    { "source": "knowme/knowme-overview.md", "output": "knowme-overview.md" },
+    { "source": "knowme/knowme-features.md", "output": "knowme-features.md" },
+    { "source": "knowme/knowme-platforms-and-status.md", "output": "knowme-platforms-and-status.md" },
+    { "source": "knowme/knowme-privacy.md", "output": "knowme-privacy.md" },
+    { "source": "knowme/knowme-frequently-asked-questions.md", "output": "faq.md" },
+    { "source": "the-boss/the-boss.md", "output": "the-boss.md" }
+  ]
 }

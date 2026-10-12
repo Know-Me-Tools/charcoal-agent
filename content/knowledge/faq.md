@@ -1,47 +1,73 @@
-# Frequently asked questions
+# Frequently asked questions about KnowMe AI, LLC and its products
 
-Answers to common questions about KnowMe AI, LLC and its products, KnowMe, The Boss and IPFS Sync for Obsidian.
+Answers to common questions about KnowMe AI, LLC and its products: KnowMe, The Boss and IPFS Sync for Obsidian.
 
 ## What is KnowMe?
 
-KnowMe is KnowMe AI, LLC's personal AI platform. KnowMe runs models on the user's own device by default, and the working KnowMe app today is the desktop app. See the KnowMe overview for more. (Source: KnowMe README)
+KnowMe is KnowMe AI, LLC's personal AI platform, designed so that its assistants and agents adapt to the person while the person's data stays under their own control. KnowMe is still in development and has not been publicly released. See the KnowMe overview for what it is designed to do.
 
-## What can I do with KnowMe today?
+## Can I download KnowMe today?
 
-Today you can chat with the KnowMe agent, attach skills to it, and use KnowMe's desktop app on macOS, Windows or Linux. KnowMe's Hands (scheduled agents), multi-device sync, plugin marketplace and mobile app are all still planned. See KnowMe features for the full list. (Source: KnowMe README, implementation roadmap; this site's own copy)
+No. KnowMe has not been publicly released, and KnowMe AI, LLC has not announced a download or a release date. The app from KnowMe AI, LLC that you can download today is The Boss, a free, open-source desktop workspace for macOS and Windows.
 
 ## Is KnowMe available on my phone?
 
-Not yet. KnowMe's mobile app is planned for iOS and Android, built with Flutter, but it hasn't been certified on a physical device yet, and there's no published date. (Source: KnowMe README, platform support notes)
+Not yet. KnowMe's mobile app is being built with Flutter for iOS and Android, and KnowMe AI, LLC has run development builds on an Android phone, but there is no public release for either platform and no published date.
 
 ## Does KnowMe send my data to the cloud?
 
-KnowMe's on-device inference runs models locally, and KnowMe's stated design requires explicit approval before any cloud call. Some of the systems that would extend that control across every device and feature are still being built, so treat this as KnowMe's design commitment rather than a guarantee that already covers everything. See KnowMe's privacy page for more. (Source: KnowMe product documentation)
+KnowMe is designed to run models on your own device and to require your explicit approval before anything is sent to a cloud model provider. KnowMe has not shipped, and some of the systems that would enforce that everywhere are still being built, so treat this as KnowMe AI, LLC's design intent rather than a guarantee. See KnowMe privacy for more.
 
-## What is The Boss?
+## How much does KnowMe cost?
 
-The Boss is a KnowMe AI, LLC product: an AI desktop workspace built for developers and technical operators, for conversations, agents, tools and project work. See The Boss page for more. (Source: The Boss README)
+Pricing has not been announced for KnowMe. Nothing is sold on know-me.tools, and The Boss is free. Any paid offering from KnowMe AI, LLC will have its own site.
 
-## What platforms does The Boss run on?
+## What is The Boss from KnowMe AI, LLC?
 
-The Boss is available for Windows (x64 and ARM64) and macOS (Apple Silicon and Intel). Linux isn't currently available for The Boss. The Boss's Windows installers aren't code-signed, so Windows may show a warning during install. (Source: The Boss release notes)
+The Boss is a free, open-source AI desktop workspace from KnowMe AI, LLC for conversations, agents, tools and project work. It is built on Cherry Studio and extended with artifact authoring, context management, skills selection and agent protocols. See The Boss page for more.
 
-## Where do I download The Boss?
+Source: The Boss download page, retrieved 2026-10-12.
 
-From The Boss's GitHub releases page: https://github.com/Prometheus-AGS/the-boss/releases (Source: The Boss README)
+## What platforms does The Boss from KnowMe AI, LLC run on?
 
-## What is IPFS Sync for Obsidian?
+The Boss runs on macOS and Windows. The download page currently offers The Boss v2.2.36 for macOS on Apple Silicon and for Windows x64; the Intel Mac and Windows ARM64 downloads are the older v2.2.30 builds, with the v2.2.36 update for those two pending. The macOS builds are notarized; the Windows installers are unsigned, so Windows may show a warning. Linux is not offered.
 
-IPFS Sync for Obsidian is an early-preview Obsidian plugin and CLI from KnowMe AI, LLC that syncs a vault over IPFS through your own kubo node. IPFS Sync for Obsidian is a pre-release, tested on fixture vaults only. (Source: IPFS Sync for Obsidian README)
+Source: The Boss download page, retrieved 2026-10-12.
 
-## Can I use IPFS Sync for Obsidian on my real notes?
+## Where do I download The Boss from KnowMe AI, LLC?
 
-Not yet. IPFS Sync for Obsidian's own documentation says not to use it on real notes: IPFS Sync for Obsidian hasn't shipped encryption yet, so data on your IPFS node is readable by anyone with the file's address. Wait for an encrypted release. (Source: IPFS Sync for Obsidian README, changelog)
+From The Boss download page at https://the-boss.know-me.tools, which links to the installers on GitHub releases. It is free and needs no account.
+
+Source: The Boss download page, retrieved 2026-10-12.
+
+## Is The Boss from KnowMe AI, LLC free and open source?
+
+Yes. The Boss is free to download, and its source is published under the GNU Affero General Public License v3.0 (AGPL-3.0). It is derived from Cherry Studio, whose licence obligations continue to apply.
+
+Source: The Boss LICENSE, retrieved 2026-10-12.
+
+## Does The Boss from KnowMe AI, LLC include the Universal Agent Runtime, BossFang and the Surreal Memory Server?
+
+The Boss installers package the Universal Agent Runtime and BossFang as sidecar programs. The Surreal Memory Server is not inside the installer: The Boss works with it over MCP as a separate service that The Boss can manage or connect to.
+
+Source: The Boss integration artifacts manifest, retrieved 2026-10-12.
+
+## What is IPFS Sync for Obsidian from KnowMe AI, LLC?
+
+IPFS Sync for Obsidian is an early-preview Obsidian plugin and command-line tool from KnowMe AI, LLC that syncs a vault over IPFS through your own kubo node. It is a pre-release, tested on fixture vaults only.
+
+## Can I use KnowMe AI, LLC's IPFS Sync for Obsidian on my real notes?
+
+Not yet. IPFS Sync for Obsidian's own documentation says not to use it on real notes: it has not shipped encryption, so data on your IPFS node is readable by anyone with the file's address. Wait for an encrypted release.
 
 ## Who is KnowMe AI, LLC?
 
-KnowMe AI, LLC is the company behind this site and its products: KnowMe, The Boss, and IPFS Sync for Obsidian. (Source: KnowMe README; The Boss README; IPFS Sync for Obsidian LICENSE)
+KnowMe AI, LLC is the company behind this site and its products: KnowMe, The Boss and IPFS Sync for Obsidian. It also builds the parts those products run on, including the Universal Agent Runtime, BossFang and the Surreal Memory Server.
 
 ## How do I contact KnowMe AI, LLC?
 
-This site doesn't have a separate contact page published yet. The fastest way to ask a question is to talk with the KnowMe agent, right here in the chat. (Source: this site's own copy)
+This site does not have a separate contact page yet. The fastest way to ask a question is to ask the KnowMe agent, right here in the chat.
+
+## Is the KnowMe agent on this site a person or an AI?
+
+The KnowMe agent is an AI. It runs on the Universal Agent Runtime, answers from KnowMe AI, LLC's curated knowledge base and cites its sources. It cannot act on your behalf, and your conversation threads are stored in your own browser.
