@@ -44,13 +44,14 @@ function fixture(entries) {
 }
 
 test("an empty manifest leaves content/knowledge byte-identical", () => {
-  const before = hashDir(CORPUS);
-  const manifest = JSON.parse(readFileSync(join(BUNDLE, "build-manifest.json"), "utf8"));
-  assert.deepEqual(manifest, { entries: [] }, "the committed manifest starts empty");
-  const r = runNode(BUILD);
+  // Runs on a temp copy with an explicitly empty manifest, so the test keeps
+  // holding once the committed manifest lists real concepts.
+  const { corpus, args } = fixture([]);
+  const before = hashDir(corpus);
+  const r = runNode(BUILD, args);
   assert.equal(r.status, 0, r.output);
-  assert.deepEqual(hashDir(CORPUS), before);
-  assert.equal(runNode(BUILD, ["--check"]).status, 0);
+  assert.deepEqual(hashDir(corpus), before);
+  assert.equal(runNode(BUILD, ["--check", ...args]).status, 0);
 });
 
 test("a manifest build writes only the listed file and never touches the FR-8 files", () => {
