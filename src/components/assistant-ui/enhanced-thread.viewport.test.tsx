@@ -42,7 +42,8 @@ import {
   CHAT_ACTIVE_ATTRIBUTE,
   EnhancedComposer,
   StarterPromptSlot,
-  ThreadEndSpacer,
+  SiteWelcomeHeading,
+  isChatActive,
   ThreadWelcome,
   useFooterHeightVar,
 } from "./enhanced-thread";
@@ -59,13 +60,25 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("ThreadEndSpacer (P1-2)", () => {
-  it("is a hidden block as tall as the published footer height", () => {
-    const { container } = render(<ThreadEndSpacer />);
-    const spacer = container.querySelector("[data-thread-end-spacer]");
-    expect(spacer).not.toBeNull();
-    expect(spacer).toHaveAttribute("aria-hidden", "true");
-    expect(spacer?.className).toContain("h-(--thread-footer-h");
+describe("isChatActive (tab bar rule)", () => {
+  it("is active only while focused and (running or typing)", () => {
+    expect(isChatActive({ composerFocused: true, isRunning: true, hasText: false })).toBe(true);
+    expect(isChatActive({ composerFocused: true, isRunning: false, hasText: true })).toBe(true);
+  });
+  it("lets the bar return after a reply when the focused composer is empty", () => {
+    expect(isChatActive({ composerFocused: true, isRunning: false, hasText: false })).toBe(false);
+  });
+  it("is inactive without focus, even mid-run or with text", () => {
+    expect(isChatActive({ composerFocused: false, isRunning: true, hasText: true })).toBe(false);
+  });
+});
+
+describe("SiteWelcomeHeading", () => {
+  it("keeps the last two words together without changing the copy", () => {
+    const { container } = render(<SiteWelcomeHeading text="AI that understands you." />);
+    expect(container.textContent).toBe("AI that understands you.");
+    const tail = container.querySelector("span.whitespace-nowrap");
+    expect(tail?.textContent).toBe("understands you.");
   });
 });
 

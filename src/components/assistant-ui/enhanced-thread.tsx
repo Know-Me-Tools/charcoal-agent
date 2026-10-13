@@ -105,8 +105,6 @@ export const EnhancedThread: FC<EnhancedThreadProps> = ({
 					}
 				</ThreadPrimitive.Messages>
 
-				{siteBuild && <ThreadEndSpacer />}
-
 				<ThreadPrimitive.ViewportFooter
 					ref={footerRef}
 					className={cn(
@@ -116,7 +114,10 @@ export const EnhancedThread: FC<EnhancedThreadProps> = ({
 						siteBuild ? "gap-2 pt-2 pb-2 md:gap-3 md:pt-3 md:pb-4" : "gap-3 pt-3 pb-4",
 					)}
 				>
-					<ThreadScrollToBottom />
+					{/* Nothing to scroll in an empty thread (live QA: arrow shown at 320). */}
+					<AuiIf condition={(s) => !s.thread.isEmpty}>
+						<ThreadScrollToBottom />
+					</AuiIf>
 					<ChatConnectivityBanner />
 					<EnhancedComposer
 						promptCachingEnabled={promptCachingEnabled}
@@ -134,8 +135,11 @@ export const EnhancedThread: FC<EnhancedThreadProps> = ({
 
 /**
  * Publishes the sticky footer's height as `--thread-footer-h` on the viewport
- * (the footer's parent) so the end spacer and `scroll-padding-bottom` can
- * match it. A ResizeObserver keeps it current as the composer grows.
+ * (the footer's parent) so `scroll-padding-bottom` can match it. A
+ * ResizeObserver keeps it current as the composer grows. There is no end
+ * spacer: the sticky footer is itself in flow after the last message, so the
+ * thread already ends above it; a spacer of the footer's height stacked a
+ * permanent 190-243px blank band on top of that (live QA, 2026-10-13).
  */
 export function useFooterHeightVar(footerRef: RefObject<HTMLElement | null>, enabled: boolean): void {
 	useEffect(() => {
@@ -153,24 +157,30 @@ export function useFooterHeightVar(footerRef: RefObject<HTMLElement | null>, ena
 	}, [footerRef, enabled]);
 }
 
-/** Space after the last message equal to the footer, so the end is never under it. */
-export const ThreadEndSpacer: FC = () => (
-	<div aria-hidden="true" data-thread-end-spacer="" className="h-(--thread-footer-h,0px) shrink-0" />
-);
-
 /** Document attribute read by the phone tab bar (`mobile-nav.tsx`). */
 export const CHAT_ACTIVE_ATTRIBUTE = "data-chat-active";
 
 /**
  * Site build: (1) re-scroll to the true end once history has rendered, since
  * the library's first scroll can land before late content has laid out;
- * (2) flag the document while the composer has focus or a run is active so
- * the phone tab bar steps aside.
+ * (2) flag the document while the visitor is typing or a run is active so
+ * the phone tab bar steps aside (see `isChatActive`).
  */
+/**
+ * The phone tab bar steps aside only while the visitor is typing or a run is
+ * streaming: the composer has focus AND (a run is active or it holds text).
+ * A focused empty composer after a finished reply keeps the bar visible
+ * (live QA: it stayed hidden until the visitor tapped outside).
+ */
+export function isChatActive(state: { composerFocused: boolean; isRunning: boolean; hasText: boolean }): boolean {
+	return state.composerFocused && (state.isRunning || state.hasText);
+}
+
 const ThreadChromeEffects: FC<{ composerFocused: boolean }> = ({ composerFocused }) => {
 	const viewportStore = useThreadViewportStore();
 	const hasMessages = useAuiState((s) => s.thread.messages.length > 0);
 	const isRunning = useAuiState((s) => s.thread.isRunning);
+	const hasText = useAuiState((s) => s.composer.text.length > 0);
 	const settled = useRef(false);
 
 	useEffect(() => {
@@ -183,7 +193,7 @@ const ThreadChromeEffects: FC<{ composerFocused: boolean }> = ({ composerFocused
 		);
 	}, [hasMessages, isRunning, viewportStore]);
 
-	const chatActive = composerFocused || isRunning;
+	const chatActive = isChatActive({ composerFocused, isRunning, hasText });
 	useEffect(() => {
 		const root = document.documentElement;
 		if (chatActive) root.setAttribute(CHAT_ACTIVE_ATTRIBUTE, "true");
@@ -208,8 +218,8 @@ const SiteWelcome: FC = () => (
 			<div className="flex items-center justify-center rounded-2xl bg-surface p-4 text-fg">
 				<KnowMeMark size={32} />
 			</div>
-			<h1 className="font-display font-semibold text-2xl tracking-tight text-fg">
-				{EMPTY_STATE_CONTENT.heading}
+			<h1 className="text-balance font-display font-semibold text-2xl tracking-tight text-fg">
+				<SiteWelcomeHeading text={EMPTY_STATE_CONTENT.heading} />
 			</h1>
 			<p className="max-w-md font-body text-sm text-fg-secondary leading-relaxed">
 				{EMPTY_STATE_CONTENT.description}
@@ -218,6 +228,21 @@ const SiteWelcome: FC = () => (
 		</div>
 	</div>
 );
+
+/**
+ * Keeps the last two words together so a narrow screen breaks "AI that /
+ * understands you." instead of orphaning "you." (same fix as the landing
+ * heading). The copy is unchanged.
+ */
+export const SiteWelcomeHeading: FC<{ text: string }> = ({ text }) => {
+	const words = text.split(" ");
+	if (words.length < 3) return <>{text}</>;
+	return (
+		<>
+			{words.slice(0, -2).join(" ")} <span className="whitespace-nowrap">{words.slice(-2).join(" ")}</span>
+		</>
+	);
+};
 
 /**
  * Reserved row for the starter prompts of change 07 (critique P1-5). Empty on
