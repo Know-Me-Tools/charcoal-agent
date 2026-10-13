@@ -89,6 +89,18 @@ async function expandToScrollableContent(page: Page): Promise<void> {
   }
 }
 
+/**
+ * A route's `readyText` can be matched by app chrome while the page behind it
+ * is still booting (the sidebar says "agent" while PGlite applies migrations;
+ * that produced "no main found" and screenshots of the "Applying migration
+ * v2…" spinner). Ready means: no database boot or migration status is on
+ * screen and the app shell's main landmark is visible.
+ */
+export async function waitForAppReady(page: Page): Promise<void> {
+  await expect(page.getByText(/Bootstrapping schema migrations|Applying migration v\d+/)).toHaveCount(0);
+  await expect(page.locator("main#main")).toBeVisible();
+}
+
 export const APP_ROUTES: AppRoute[] = [
   { name: "landing", path: "/", readyText: /AI that/i },
   { name: "threads", path: "/threads", readyText: /threads/i },
@@ -99,7 +111,7 @@ export const APP_ROUTES: AppRoute[] = [
     prepare: streamFixtureConversation,
   },
   { name: "agents", path: "/agents", readyText: "Research Analyst" },
-  { name: "agent-new", path: "/agents/new", readyText: /agent/i },
+  { name: "agent-new", path: "/agents/new", readyText: "Create Agent" },
   { name: "agent-detail", path: `/agents/${FIXTURE_AGENT_ID}`, readyText: "KnowMe" },
   { name: "settings-providers", path: "/settings/providers", readyText: "Anthropic" },
   { name: "settings-skills", path: "/settings/skills", readyText: "Web Search" },

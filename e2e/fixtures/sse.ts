@@ -25,14 +25,24 @@ export const HTML_ARTIFACT_LABEL = "html artifact";
 
 /**
  * Alt text of the markdown image in `ASSISTANT_MARKDOWN` (chat-surfaces spec
- * scenarios 2, 13, 19 — "every block type" includes image and divider). A
- * 1x1 transparent PNG data URI avoids a real network fetch in headless runs;
- * `enhanced-markdown-text.tsx`'s `img` component map entry renders it the
- * same way it would render any markdown image.
+ * scenarios 2, 13, 19 — "every block type" includes image and divider).
+ *
+ * The reply image policy (`src/lib/link-policy/reply-content-policy.ts`) lets
+ * an image load only from the site's own hosts or a same-origin path, and
+ * blocks `data:` URIs by design. So the fixture image is a same-origin path;
+ * `installUarMock` (`uar-mock.ts`) answers it with a 1x1 transparent PNG, which
+ * keeps the committed goldens identical and needs no file under `public/`.
  */
 export const FIXTURE_IMAGE_ALT = "Rebrand palette swatch";
-const FIXTURE_IMAGE_DATA_URI =
-  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
+export const FIXTURE_IMAGE_PATH = "/e2e-fixtures/rebrand-swatch.png";
+/** 1x1 transparent PNG served for `FIXTURE_IMAGE_PATH`. */
+export const FIXTURE_IMAGE_PNG_BASE64 =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
+
+/** A remote image the reply policy must refuse: not the site's host, not same-origin. */
+export const REMOTE_IMAGE_ALT = "Remote tracking pixel";
+export const REMOTE_IMAGE_HOST = "tracker.example.test";
+export const REMOTE_IMAGE_URL = `https://${REMOTE_IMAGE_HOST}/pixel.png`;
 
 export type SseEvent = { event: string; data: Record<string, unknown> };
 
@@ -49,7 +59,7 @@ const ASSISTANT_MARKDOWN = [
   "```mermaid\ngraph LR\n  Plan --> Build --> Review\n```\n\n",
   "A long identifier that must wrap: https://know-me.tools/very/long/path/that/keeps/going/without/any/spaces/at/all/to/check/wrapping/behaviour/in/narrow/viewports\n\n",
   "```html\n<!doctype html>\n<html>\n  <head>\n    <title>Rebrand quick look</title>\n  </head>\n  <body>\n    <h1>Rebrand quick look</h1>\n    <p>A tiny preview page for the new brand tokens.</p>\n  </body>\n</html>\n```\n\n",
-  `![${FIXTURE_IMAGE_ALT}](${FIXTURE_IMAGE_DATA_URI})\n\n`,
+  `![${FIXTURE_IMAGE_ALT}](${FIXTURE_IMAGE_PATH})\n\n`,
   "---\n\n",
   FIXTURE_FINAL_TEXT,
 ];
@@ -286,6 +296,22 @@ export const REGENERATED_REPLY_TEXT = "Here is the regenerated plan instead.";
 export const REGENERATE_STREAM_EVENTS: SseEvent[] = [
   { event: "agui.stream.start", data: { kind: "stream", phase: "start", request_id: rid } },
   { event: "agui.message.delta", data: { kind: "message", phase: "delta", request_id: rid, delta: { text: REGENERATED_REPLY_TEXT } } },
+  { event: "agui.done", data: { kind: "done", request_id: rid } },
+];
+
+/** A short reply whose only block of note is a markdown image from `REMOTE_IMAGE_URL`. */
+export const REMOTE_IMAGE_REPLY_TEXT = "Here is the picture you asked for.";
+export const REMOTE_IMAGE_STREAM_EVENTS: SseEvent[] = [
+  { event: "agui.stream.start", data: { kind: "stream", phase: "start", request_id: rid } },
+  {
+    event: "agui.message.delta",
+    data: {
+      kind: "message",
+      phase: "delta",
+      request_id: rid,
+      delta: { text: `${REMOTE_IMAGE_REPLY_TEXT}\n\n![${REMOTE_IMAGE_ALT}](${REMOTE_IMAGE_URL})` },
+    },
+  },
   { event: "agui.done", data: { kind: "done", request_id: rid } },
 ];
 

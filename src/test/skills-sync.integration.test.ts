@@ -5,8 +5,13 @@
  * pushed to the UAR through the Skills management API and confirmed active.
  *
  * Requirements:
- *   - A running UAR instance reachable at INTEGRATION_UAR_URL (default: http://127.0.0.1:6565)
- *   - Tests are skipped automatically when no UAR is reachable
+ *   - Opt-in: the whole suite is skipped unless INTEGRATION_UAR_URL is set
+ *     explicitly. A runtime that merely happens to listen on :6565 (with
+ *     leftover skill state) is not used, because it made the default
+ *     `npm test` fail with 503s on toggles.
+ *   - A running UAR instance reachable at INTEGRATION_UAR_URL
+ *   - When the variable is set but the UAR is not reachable, the tests
+ *     still skip themselves (see checkUarAvailability)
  *
  * Run with:
  *   INTEGRATION_UAR_URL=http://127.0.0.1:6565 pnpm vitest run src/test/skills-sync.integration.test.ts
@@ -18,6 +23,9 @@ import { KNOWME_SKILLS, type KnowMeSkillDefinition } from "@/lib/skills/knowme-s
 // ---------------------------------------------------------------------------
 // Configuration
 // ---------------------------------------------------------------------------
+
+/** Explicit opt-in: the suite does nothing unless this is set. */
+const INTEGRATION_ENABLED = Boolean(process.env.INTEGRATION_UAR_URL);
 
 const UAR_URL =
   process.env.INTEGRATION_UAR_URL ??
@@ -168,6 +176,7 @@ async function checkUarAvailability(): Promise<boolean> {
 // ---------------------------------------------------------------------------
 
 beforeAll(async () => {
+  if (!INTEGRATION_ENABLED) return;
   uarAvailable = await checkUarAvailability();
   if (!uarAvailable) {
     console.warn(
@@ -186,7 +195,7 @@ async function cleanupKnowMeSkills(): Promise<void> {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe("Skills Sync Integration", () => {
+describe.skipIf(!INTEGRATION_ENABLED)("Skills Sync Integration", () => {
   describe("1. Push missing built-ins", () => {
     beforeEach(async () => {
       if (!uarAvailable) return;

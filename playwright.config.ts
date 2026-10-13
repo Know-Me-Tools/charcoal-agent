@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { browserChannel } from "./e2e/support/browser-channel";
 
 const PORT = Number(process.env.E2E_PORT ?? 4174);
 
@@ -25,7 +26,7 @@ export default defineConfig({
     trace: "retain-on-failure",
     contextOptions: { reducedMotion: "reduce" },
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"], channel: browserChannel() } }],
   webServer: {
     command: `npx vite --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}`,

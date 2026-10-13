@@ -1,5 +1,5 @@
 import { expect, type Page } from "@playwright/test";
-import type { AppRoute, Theme } from "./routes";
+import { waitForAppReady, type AppRoute, type Theme } from "./routes";
 import { FIXED_TIME } from "../fixtures/uar-data";
 
 /**
@@ -32,6 +32,7 @@ export async function openRoute(page: Page, route: AppRoute): Promise<void> {
   await page.clock.setFixedTime(new Date(FIXED_TIME));
   await page.goto(route.path);
   await expect(page.getByText(route.readyText).filter({ visible: true }).first()).toBeVisible();
+  await waitForAppReady(page);
   if (route.prepare) await route.prepare(page);
   await page.waitForLoadState("networkidle");
   await page.evaluate(() => document.fonts.ready);
