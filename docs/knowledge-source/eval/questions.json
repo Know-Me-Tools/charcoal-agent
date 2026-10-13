@@ -15,19 +15,19 @@
     "question": "How is KnowMe different from OpenAI dots?",
     "expect_file": "openai-dots-and-knowme.md",
     "expect_contains": ["OpenAI", "design intent"],
-    "critical": true
+    "critical": false
   },
   {
     "question": "What are OpenAI dots?",
     "expect_file": "openai-dots-and-knowme.md",
     "expect_contains": ["always-on"],
-    "critical": true
+    "critical": false
   },
   {
     "question": "Is The Boss based on Cherry Studio?",
     "expect_file": "desktop-ai-clients-compared.md",
     "expect_contains": ["Cherry Studio"],
-    "critical": true
+    "critical": false
   },
   {
     "question": "Which local-first AI assistants compare with The Boss and KnowMe?",

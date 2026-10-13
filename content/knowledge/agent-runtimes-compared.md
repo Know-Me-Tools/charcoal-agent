@@ -2,20 +2,25 @@
 
 This page compares five agent frameworks and runtimes with the Universal Agent Runtime (UAR), the server made by Prometheus AGS that KnowMe is built on and The Boss bundles. The facts about the other five come from one official documentation page each, read on 2026-10-12; where a page did not say something, this page says "not stated" rather than guessing. UAR's facts come from its public repository. The comparison is by capability and trade-off, not a ranking.
 
-## What an agent runtime or framework is (Landscape)
+## What an agent framework is: the five libraries (Landscape)
 
-An agent framework is a library a developer uses to build agents: it provides the loop that calls a model, runs tools and keeps state. An agent runtime is a running service that does the same for applications that connect to it. LangGraph, CrewAI, the OpenAI Agents SDK and Mastra present themselves mainly as libraries in Python or TypeScript; the Microsoft Agent Framework is a library in C#, Python and Go; the Universal Agent Runtime is a server process written in Rust that clients reach over HTTP and server-sent events. That shape difference drives most of what follows.
+An agent framework is a library a developer uses to build agents: it provides the loop that calls a model, runs tools and keeps state. LangGraph, CrewAI, the OpenAI Agents SDK and Mastra present themselves mainly as libraries in Python or TypeScript; the Microsoft Agent Framework is a library in C#, Python and Go.
 
 Source: LangChain documentation, LangGraph overview, retrieved 2026-10-12.
 Source: CrewAI documentation, Introduction, retrieved 2026-10-12.
 Source: OpenAI Agents SDK documentation (Python), retrieved 2026-10-12.
 Source: Mastra documentation, retrieved 2026-10-12.
-Source: Microsoft Learn, Agent Framework overview (page updated 2026-08-25), retrieved 2026-10-12.
+Source: Microsoft Learn, Agent Framework overview, retrieved 2026-10-12.
+
+## What an agent runtime is: the Universal Agent Runtime (Landscape)
+
+An agent runtime is a running service that does the same work for applications that connect to it. The Universal Agent Runtime is a server process written in Rust that clients reach over HTTP and server-sent events; the browser never talks to model providers, tools or storage directly. That shape difference, library versus server, drives most of what follows.
+
 Source: Universal Agent Runtime README, retrieved 2026-10-12.
 
 ## LangGraph, according to its documentation (Landscape)
 
-According to LangChain's documentation, LangGraph is a low-level orchestration framework and runtime for long-running, stateful agents that mixes deterministic and model-driven steps in one graph; it is built by LangChain Inc but usable without LangChain. Listed capabilities: persistence and durable execution (resume after failure), streaming, human-in-the-loop inspection and modification of state, and short-term and long-term memory. LangSmith, a separate product, covers tracing, evaluation and deployment. Not stated on the page: licence, support for MCP, A2A or AG-UI, permission or policy features beyond human-in-the-loop, limits.
+According to LangChain's documentation, LangGraph is a low-level orchestration framework and runtime for long-running, stateful agents that mixes deterministic and model-driven steps in one graph; it is built by LangChain Inc but usable without LangChain. Listed capabilities: persistence and durable execution (resume after failure), streaming, human-in-the-loop inspection and modification of state, and short-term and long-term memory. LangSmith, a separate product, covers tracing, evaluation and deployment. Not stated on the page: licence, MCP, A2A, AG-UI, permission features beyond human-in-the-loop, limits.
 
 Source: LangChain documentation, LangGraph overview, retrieved 2026-10-12.
 
@@ -33,7 +38,7 @@ Source: OpenAI Agents SDK documentation (Python), retrieved 2026-10-12.
 
 ## Mastra, according to its documentation (Landscape)
 
-According to its documentation, Mastra is a TypeScript framework for AI agents and applications that needs Node.js 22.18.0 or later for direct TypeScript execution, provides a local Studio interface for agents, workflows and tools, a model router addressed by provider and model strings, and integrations with common web frameworks. Memory appears in the quickstart harness. The maker is not named on the page. Not stated: licence, protocols, governance, hosting detail, limits.
+According to its documentation, Mastra is a TypeScript framework for AI agents and applications; Node.js 22.18.0+ can run its TypeScript examples directly. It provides a local Studio interface for agents, workflows and tools, a model router addressed by provider and model strings, and integrations with common web frameworks. Memory appears in the quickstart harness. The maker is not named on the page. Not stated: licence, protocols, governance, hosting detail, limits.
 
 Source: Mastra documentation, retrieved 2026-10-12.
 
@@ -41,7 +46,7 @@ Source: Mastra documentation, retrieved 2026-10-12.
 
 According to Microsoft Learn, the Microsoft Agent Framework provides agents, a harness agent for long multi-step tasks (planning, context compaction, file access, memory, tool approval), graph and functional workflows, and integrations, in C#, Python and Go, with Go in public preview with listed gaps. It is presented as the successor to Semantic Kernel and AutoGen. Named providers include Foundry, Anthropic, Azure OpenAI, OpenAI and Ollama. MCP clients and hosted MCP tools are mentioned; middleware and filters are listed under safety, and the page says users are responsible for third-party systems, data flows and their own content filters. Not stated: licence, hosting model, A2A, AG-UI.
 
-Source: Microsoft Learn, Agent Framework overview (page updated 2026-08-25), retrieved 2026-10-12.
+Source: Microsoft Learn, Agent Framework overview, retrieved 2026-10-12.
 
 ## The Universal Agent Runtime, according to its repository (Landscape)
 
@@ -50,31 +55,40 @@ According to its README and architecture document, the Universal Agent Runtime i
 Source: Universal Agent Runtime README, retrieved 2026-10-12.
 Source: Universal Agent Runtime architecture overview, retrieved 2026-10-12.
 
-## Protocol support across agent runtimes and frameworks (Landscape)
+## Protocol support in the Universal Agent Runtime (Landscape)
 
-- Universal Agent Runtime: an OpenAI-compatible API under `/v1`, an AG-UI event stream, A2UI surfaces for declarative interfaces, an MCP client with a governed tool bridge, and an A2A endpoint for other agents, per its README.
+The Universal Agent Runtime's README lists an OpenAI-compatible API under `/v1`, an AG-UI event stream, A2UI surfaces for declarative interfaces, an MCP client with a governed tool bridge, and an A2A endpoint for other agents.
+
+Source: Universal Agent Runtime README, retrieved 2026-10-12.
+
+## Protocol support in the five frameworks, as stated (Landscape)
+
 - OpenAI Agents SDK: MCP built in; A2A and AG-UI not stated.
 - Microsoft Agent Framework: MCP clients and hosted MCP tools; A2A and AG-UI not stated.
 - LangGraph, CrewAI, Mastra: MCP, A2A and AG-UI not stated on the pages read.
 
-"Not stated" means the single page read did not mention it; the project may support the protocol elsewhere in its documentation.
+"Not stated" means the single page read did not mention it; the project may support the protocol elsewhere in its documentation. It is not a shortcoming.
 
-Source: Universal Agent Runtime README, retrieved 2026-10-12.
 Source: OpenAI Agents SDK documentation (Python), retrieved 2026-10-12.
-Source: Microsoft Learn, Agent Framework overview (page updated 2026-08-25), retrieved 2026-10-12.
+Source: Microsoft Learn, Agent Framework overview, retrieved 2026-10-12.
 Source: LangChain documentation, LangGraph overview, retrieved 2026-10-12.
 Source: CrewAI documentation, Introduction, retrieved 2026-10-12.
 Source: Mastra documentation, retrieved 2026-10-12.
 
-## Governance and permissions across agent runtimes and frameworks (Landscape)
+## Governance and permissions in the Universal Agent Runtime (Landscape)
 
-In the Universal Agent Runtime, every tool call, from an MCP server or built in, is checked against the tool's schema, then a policy written in the Cedar policy language returns Allow, RequireApproval or Deny, and the decision is written to an audit record; a user's approval cannot override a Deny. By default every API request needs a signed token. The OpenAI Agents SDK describes guardrails for input and output validation and human-in-the-loop interruptions. LangGraph describes human-in-the-loop inspection and modification of state. The Microsoft Agent Framework describes tool approval in its harness agent and middleware and filters under safety. CrewAI's and Mastra's pages do not describe concrete permission features.
+In the Universal Agent Runtime, every tool call, from an MCP server or built in, is checked against the tool's schema, then a policy written in the Cedar policy language returns Allow, RequireApproval or Deny, and the decision is written to an audit record; a user's approval cannot override a Deny. By default every API request needs a signed token.
 
 Source: Universal Agent Runtime architecture overview, retrieved 2026-10-12.
 Source: Universal Agent Runtime README, retrieved 2026-10-12.
+
+## Governance and permissions in the five frameworks, as stated (Landscape)
+
+The OpenAI Agents SDK describes guardrails for input and output validation and human-in-the-loop interruptions. LangGraph describes human-in-the-loop inspection and modification of state. The Microsoft Agent Framework describes tool approval in its harness agent and middleware and filters under safety. CrewAI's and Mastra's pages do not describe concrete permission features.
+
 Source: OpenAI Agents SDK documentation (Python), retrieved 2026-10-12.
 Source: LangChain documentation, LangGraph overview, retrieved 2026-10-12.
-Source: Microsoft Learn, Agent Framework overview (page updated 2026-08-25), retrieved 2026-10-12.
+Source: Microsoft Learn, Agent Framework overview, retrieved 2026-10-12.
 Source: CrewAI documentation, Introduction, retrieved 2026-10-12.
 Source: Mastra documentation, retrieved 2026-10-12.
 
@@ -85,23 +99,42 @@ The Universal Agent Runtime's code, including its Rust, Python and TypeScript SD
 Source: Universal Agent Runtime LICENSE, retrieved 2026-10-12.
 Source: Universal Agent Runtime README, retrieved 2026-10-12.
 
-## Where the Universal Agent Runtime is weaker (our minuses) (Landscape)
+## Where the Universal Agent Runtime is weaker: deployment and ecosystem (our minuses) (Landscape)
 
 - A server to deploy rather than a library to import: developers who want to add an agent loop to a Python or TypeScript program will find LangGraph, the OpenAI Agents SDK, Mastra or the Microsoft Agent Framework a shorter path.
 - A far smaller community and ecosystem than LangChain's, OpenAI's or Microsoft's, and no hosted service comparable to LangSmith.
+- Its adoption as of October 2026 is not independently verified by any source in this knowledge base.
+
+## Where the Universal Agent Runtime is weaker: maturity (our minuses) (Landscape)
+
 - Several areas are Preview or Experimental in its own support matrix: desktop and native WASM are Preview, mobile is Experimental, and the Windows native archive is Experimental.
 - Version 1.0.0 is recent; its compatibility promise covers only rows its matrix marks Stable.
-- Its notability and adoption as of October 2026 are not independently verified by any source in this knowledge base.
 
 Source: Universal Agent Runtime product support matrix, retrieved 2026-10-12.
 
-## Where the Universal Agent Runtime differs in its favour (their minuses, our pluses) (Landscape)
+## Differences: shape (Landscape)
 
-These are documented design differences, not benchmarks. UAR's documentation describes one governed path for every tool call with Cedar policy decisions and an audit record, which none of the five pages read describes in that form. UAR documents five protocols on one surface (OpenAI-compatible API, AG-UI, A2UI, MCP, A2A), where the pages read for the others state MCP at most. UAR states an MIT licence in a LICENSE file; the others' licences were not stated on the pages read. Because clients never talk to model providers, tools or storage directly, a browser or desktop client can be thin; that is a trade-off, since it also means running a server.
+The frameworks run inside the developer's own program, so there is no extra process to deploy and the developer's language is the integration surface; the Universal Agent Runtime runs as a separate server, so every client shares one policy and audit path but must reach it over the network.
+
+Source: LangChain documentation, LangGraph overview, retrieved 2026-10-12.
+Source: Universal Agent Runtime README, retrieved 2026-10-12.
+
+## Differences: governance (Landscape)
+
+UAR documents a Cedar policy decision and an audit record for every tool call, while the frameworks document in-process controls: guardrails and human-in-the-loop in the OpenAI Agents SDK, state inspection in LangGraph, tool approval and middleware in the Microsoft Agent Framework.
 
 Source: Universal Agent Runtime architecture overview, retrieved 2026-10-12.
+Source: OpenAI Agents SDK documentation (Python), retrieved 2026-10-12.
+Source: Microsoft Learn, Agent Framework overview, retrieved 2026-10-12.
+
+## Differences: tooling and ecosystem (Landscape)
+
+LangChain pairs LangGraph with LangSmith for tracing, evaluation and deployment, and OpenAI's SDK documents tracing, realtime and voice agents; UAR documents no hosted tooling and no voice agents. UAR documents hybrid document retrieval with streamed citations and an operator web interface inside the runtime, which the five framework pages do not describe in that form. The frameworks have larger communities; UAR's version 1.0.0 is recent and its support matrix marks several areas Preview or Experimental.
+
+Source: LangChain documentation, LangGraph overview, retrieved 2026-10-12.
+Source: OpenAI Agents SDK documentation (Python), retrieved 2026-10-12.
 Source: Universal Agent Runtime README, retrieved 2026-10-12.
-Source: Universal Agent Runtime LICENSE, retrieved 2026-10-12.
+Source: Universal Agent Runtime product support matrix, retrieved 2026-10-12.
 
 ## Choosing an agent runtime or framework (Landscape)
 
