@@ -2,7 +2,7 @@
 
 ## What BossFang inherits from LibreFang
 
-The agent operating system itself comes from LibreFang: the kernel that runs agents, their tools and memory, messaging channels, networking between agents, the web dashboard and the command line. LibreFang is written in Rust on tokio and axum. Package listings, partner announcements, install scripts and project statistics in the repository README describe upstream LibreFang. They are not BossFang claims, and this knowledge base does not repeat them.
+The agent operating system itself comes from LibreFang: the kernel that runs agents, their tools and memory, messaging channels, networking between agents, the web dashboard and the command line. LibreFang is written in Rust. Package listings, partner announcements, install scripts and project statistics in the repository README describe upstream LibreFang. They are not BossFang claims, and this knowledge base does not repeat them.
 
 Source: BossFang AGENTS.md, product identity and fork additions, retrieved 2026-10-13.
 
@@ -21,6 +21,6 @@ Source: BossFang feature ledger, retrieved 2026-10-13.
 
 ## Other BossFang-specific features
 
-BossFang adds a WASI component-model plugin host whose permissions are denied by default. It carries BossFang branding in the dashboard and desktop app, with its own desktop identity and update channel. Its `BOSSFANG_*` environment variables take priority over the `LIBREFANG_*` names, which still work. Internal crate and function names keep their LibreFang names on purpose.
+BossFang adds a plugin host (WASI components) that grants plugins no permissions unless the owner allows them. It carries BossFang branding in the dashboard and desktop app, with its own desktop identity and update channel. Its `BOSSFANG_*` environment variables take priority over the `LIBREFANG_*` names, which still work. Internal crate and function names keep their LibreFang names on purpose.
 
 Source: BossFang feature ledger, retrieved 2026-10-13.

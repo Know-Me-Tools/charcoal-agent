@@ -5,7 +5,7 @@ description: Plain-language description of a UAR run, governed tool execution, m
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-13T00:05:39+00:00"
+  at: "2026-10-13T00:25:33+00:00"
 tags:
   - universal-agent-runtime
   - architecture
@@ -14,23 +14,23 @@ sources:
   - id: uar-readme
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/README.md
     title: Universal Agent Runtime README
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: uar-arch
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/ARCHITECTURE.md
     title: Universal Agent Runtime architecture overview
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: uar-matrix
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/product-support-matrix.md
     title: Universal Agent Runtime product support matrix
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: uar-providers
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/PROVIDER_CONFIGURATION.md
     title: Universal Agent Runtime provider configuration guide
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: uar-memory
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/MEMORY_SYSTEM.md
     title: Universal Agent Runtime memory system
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
 ---
 
 # How the Universal Agent Runtime works
@@ -41,7 +41,7 @@ A client asks UAR to start a run and opens a stream. UAR's run manager checks ea
 
 ## What governed agent execution means in the Universal Agent Runtime
 
-Every tool call takes the same path, whether the tool came from an MCP server or is built in. UAR checks the inputs against the tool's schema, a Cedar policy returns Allow, RequireApproval or Deny, and the decision is written to an audit record. A user's approval cannot override a Deny.[^uar-arch] By default every API request needs a signed token (JWT), and production setups must configure authentication, their own secrets, trusted origins and an explicit tool policy.[^uar-readme]
+Every tool call takes the same path, whether the tool came from an MCP (Model Context Protocol, the open standard agents use to call tools) server or is built in. UAR checks the inputs against the tool's schema, a policy, written in the Cedar policy language, returns Allow, RequireApproval or Deny, and the decision is written to an audit record. A user's approval cannot override a Deny.[^uar-arch] By default every API request needs a signed token (JWT), and production setups must configure authentication, their own secrets, trusted origins and an explicit tool policy.[^uar-readme]
 
 ## How the Universal Agent Runtime chooses a model
 

@@ -5,7 +5,7 @@ description: Plain-language description of BossFang's daemon and dashboard, Surr
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-13T00:05:39+00:00"
+  at: "2026-10-13T00:25:33+00:00"
 tags:
   - bossfang
   - architecture
@@ -13,15 +13,15 @@ sources:
   - id: bf-agents
     resource: https://github.com/GQAdonis/librefang/blob/main/AGENTS.md
     title: BossFang AGENTS.md, product identity and fork additions
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: bf-ledger
     resource: https://github.com/GQAdonis/librefang/blob/main/docs/bossfang/feature-ledger.md
     title: BossFang feature ledger
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: bf-uar
     resource: https://github.com/GQAdonis/librefang/blob/main/docs/bossfang-uar-connections.md
     title: BossFang connects to UAR
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
 ---
 
 # How BossFang works
@@ -32,11 +32,7 @@ BossFang runs as a local daemon with an HTTP and WebSocket API, by default at `h
 
 ## Where BossFang keeps data
 
-By default BossFang stores its operational data in SurrealDB, either embedded on disk or on a remote SurrealDB server. Operational data and memory are kept in separate databases.[^bf-ledger] Changes to the database layout are applied as numbered migrations, and BossFang checks that applied migrations have not been altered, although the ledger notes that this drift check itself has no test yet.[^bf-ledger]
-
-## How BossFang remembers
-
-BossFang's memory layer is built on the Surreal Memory Server library with an embedded database, so memory works without a separate database service.[^bf-agents]
+By default BossFang stores its operational data in SurrealDB, either embedded on disk or on a remote SurrealDB server. Operational data and memory are kept in separate databases.[^bf-ledger] Memory uses the Surreal Memory Server library with an embedded database, so no separate database service is needed.[^bf-agents] Changes to the database layout are applied as numbered migrations, and BossFang checks that applied migrations have not been altered, although the ledger notes that this drift check itself has no test yet.[^bf-ledger]
 
 ## How BossFang reaches the Universal Agent Runtime
 

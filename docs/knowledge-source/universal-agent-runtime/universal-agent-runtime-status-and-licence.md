@@ -5,7 +5,7 @@ description: UAR's version, its Stable, Preview and Experimental support levels 
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-13T00:05:39+00:00"
+  at: "2026-10-13T00:25:33+00:00"
 tags:
   - universal-agent-runtime
   - status
@@ -14,19 +14,23 @@ sources:
   - id: uar-readme
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/README.md
     title: Universal Agent Runtime README
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: uar-matrix
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/product-support-matrix.md
     title: Universal Agent Runtime product support matrix
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: uar-changelog
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/CHANGELOG.md
     title: Universal Agent Runtime changelog
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
+  - id: uar-license
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/LICENSE
+    title: Universal Agent Runtime LICENSE
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: uar-licensing
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/licensing/LICENSING.md
     title: Universal Agent Runtime licensing model
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
 ---
 
 # Universal Agent Runtime status and licence
@@ -37,7 +41,7 @@ UAR is at version 1.0.0, dated 2026-07-12 in its changelog. It follows semantic 
 
 ## What the Universal Agent Runtime support levels mean
 
-The support matrix is UAR's public release contract. Stable rows have executable release gates. Preview and Experimental rows promise less. Being listed in a catalog is not a promise that something works.[^uar-matrix]
+The support matrix is UAR's public release contract. Stable rows are backed by automated release checks. Preview and Experimental rows are not. Being listed in a catalog is not a promise that something works.[^uar-matrix]
 
 ## Universal Agent Runtime release bundles
 
@@ -53,4 +57,4 @@ Tier 1 means named, capability-specific execution evidence: OpenAI-compatible ch
 
 ## Universal Agent Runtime licence
 
-UAR's code, including its Rust, Python and TypeScript SDKs, is MIT licensed. Its documentation is CC-BY-4.0. It was relicensed from AGPL-3.0-only to MIT on 2026-08-07, and there is no commercial licence to buy.[^uar-readme] The licence does not grant trademark rights.[^uar-licensing]
+UAR's code, including its Rust, Python and TypeScript SDKs, is MIT licensed, and the repository has a LICENSE file.[^uar-license] Its documentation is CC-BY-4.0. It was relicensed from AGPL-3.0-only to MIT on 2026-08-07, and there is no commercial licence to buy.[^uar-readme] The licence does not grant trademark rights.[^uar-licensing]

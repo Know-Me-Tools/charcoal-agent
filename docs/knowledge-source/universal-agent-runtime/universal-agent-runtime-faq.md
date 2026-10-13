@@ -5,7 +5,7 @@ description: Visitor questions about UAR, answered from its own documentation.
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-13T00:05:39+00:00"
+  at: "2026-10-13T00:25:33+00:00"
 tags:
   - universal-agent-runtime
   - faq
@@ -13,38 +13,54 @@ sources:
   - id: uar-readme
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/README.md
     title: Universal Agent Runtime README
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: uar-matrix
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/product-support-matrix.md
     title: Universal Agent Runtime product support matrix
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: uar-memory
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/MEMORY_SYSTEM.md
     title: Universal Agent Runtime memory system
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: knowme-readme
     resource: https://github.com/Know-Me-Tools/charcoal-agent/blob/main/README.md
     title: KnowMe client README
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: bossfang-uar
     resource: https://github.com/GQAdonis/librefang/blob/main/docs/bossfang-uar-connections.md
     title: BossFang connects to UAR
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
+  - id: uar-license
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/LICENSE
+    title: Universal Agent Runtime LICENSE
+    last_modified: "2026-10-13T00:25:33+00:00"
+  - id: uar-changelog
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/CHANGELOG.md
+    title: Universal Agent Runtime changelog
+    last_modified: "2026-10-13T00:25:33+00:00"
+  - id: uar-contributing
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/CONTRIBUTING.md
+    title: Universal Agent Runtime contribution guide
+    last_modified: "2026-10-13T00:25:33+00:00"
+  - id: boss-fabric
+    resource: https://github.com/Prometheus-AGS/the-boss/blob/main/docs/agent-fabric-convergence.md
+    title: The Boss agent fabric convergence notes
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: sms-intro
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/website/docs/intro.md
     title: Surreal Memory Server documentation introduction
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
 ---
 
 # Universal Agent Runtime questions
 
 ## What is the Universal Agent Runtime?
 
-A Rust server that runs AI agents. It routes requests to models, runs tools under a policy with an audit trail, searches documents, keeps memory, and streams results to interfaces over open protocols.[^uar-readme] The KnowMe agent runs on it.[^knowme-readme]
+A Rust server that runs AI agents. It routes requests to models, runs tools, including tools from MCP (Model Context Protocol, the open standard agents use to call tools) servers, under a policy with an audit trail, searches documents, keeps memory, and streams results to interfaces over open protocols.[^uar-readme] The KnowMe agent runs on it.[^knowme-readme]
 
 ## Is the Universal Agent Runtime free?
 
-The code is MIT licensed, including its SDKs, and its README says there is no commercial licence to buy.[^uar-readme] You supply your own model provider accounts and keys; UAR keeps provider credentials on the server.[^uar-readme]
+The code is MIT licensed, including its SDKs, and the repository has a LICENSE file.[^uar-license] Its README says there is no commercial licence to buy.[^uar-readme] You supply your own model provider accounts and keys; UAR keeps provider credentials on the server.[^uar-readme]
 
 ## Does the Universal Agent Runtime need a cloud account?
 
@@ -65,3 +81,15 @@ UAR owns inference, routing, agent execution and governance.[^uar-readme] BossFa
 ## How is the Universal Agent Runtime different from the Surreal Memory Server?
 
 UAR is the whole agent runtime. Its optional memory system is built on the Surreal Memory Server's library and SurrealDB.[^uar-memory] The Surreal Memory Server ships that library together with a standalone server that MCP clients can reach directly.[^sms-intro]
+
+## Where do I download the Universal Agent Runtime?
+
+The Universal Agent Runtime's source is public at https://github.com/Prometheus-AGS/universal-agent-runtime. You can build it from source or install it as a native service with the packages under `packaging/native/`, as its README describes.[^uar-readme] The Boss desktop app can also run a managed UAR instance as a sidecar program.[^boss-fabric] No tested end-user release of UAR is claimed here.
+
+## Does the Universal Agent Runtime need SurrealDB installed separately?
+
+No, not for the default setup. The default server bundle includes an embedded SurrealDB, which is its authoritative store.[^uar-changelog][^uar-matrix] Its memory guide also describes pointing memory at an external SurrealDB server for production instead of the embedded mode.[^uar-memory]
+
+## How do I report a bug in or contribute to the Universal Agent Runtime?
+
+Read CONTRIBUTING.md in https://github.com/Prometheus-AGS/universal-agent-runtime before contributing; contributions are accepted under MIT.[^uar-contributing] Report security vulnerabilities as the repository's SECURITY.md describes, which uses a 90-day coordinated-disclosure default.[^uar-readme]

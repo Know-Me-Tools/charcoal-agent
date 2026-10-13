@@ -5,7 +5,7 @@ description: The open protocols UAR speaks, as documented, OpenAI-compatible API
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-13T00:05:39+00:00"
+  at: "2026-10-13T00:25:33+00:00"
 tags:
   - universal-agent-runtime
   - protocols
@@ -13,26 +13,26 @@ sources:
   - id: uar-readme
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/README.md
     title: Universal Agent Runtime README
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: uar-arch
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/ARCHITECTURE.md
     title: Universal Agent Runtime architecture overview
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: uar-changelog
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/CHANGELOG.md
     title: Universal Agent Runtime changelog
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: uar-deploy
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/DEPLOYMENT.md
     title: Universal Agent Runtime production deployment guide
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
 ---
 
 # Universal Agent Runtime protocols
 
 ## Which protocols the Universal Agent Runtime speaks
 
-UAR exposes an OpenAI-compatible API under `/v1`, an AG-UI event stream, A2UI surfaces for declarative interfaces, an MCP client with a governed tool bridge, and an A2A endpoint for other agents.[^uar-readme] Version 1.0.0 published versioned contracts for the OpenAI-compatible API, AG-UI, A2UI and MCP.[^uar-changelog]
+UAR exposes an OpenAI-compatible API under `/v1`, an AG-UI event stream, A2UI surfaces for declarative interfaces, an MCP (Model Context Protocol, the open standard agents use to call tools) client with a governed tool bridge, and an A2A endpoint for other agents.[^uar-readme] Version 1.0.0 published versioned contracts for the OpenAI-compatible API, AG-UI, A2UI and MCP.[^uar-changelog]
 
 ## The OpenAI-compatible API in the Universal Agent Runtime
 

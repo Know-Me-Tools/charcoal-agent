@@ -25,7 +25,7 @@ Source: Universal Agent Runtime product support matrix, retrieved 2026-10-13.
 
 ## When the Universal Agent Runtime may not fit yet
 
-Some limits are documented plainly. Arbitrary WASM cannot run in the browser. The Windows native archive and mobile support are Experimental. The container image is about 3 GB. A production setup needs its own authentication, secrets, trusted origins and tool policy before it is exposed. If you need a hosted service with nothing to operate, UAR does not describe one.
+Arbitrary WASM cannot run in the browser. The Windows native archive and mobile support are Experimental. The container image is about 3 GB. A production setup needs its own authentication, secrets, trusted origins and tool policy before it is exposed. If you need a hosted service with nothing to operate, UAR does not describe one.
 
 Source: Universal Agent Runtime product support matrix, retrieved 2026-10-13.
 Source: Universal Agent Runtime production deployment guide, retrieved 2026-10-13.

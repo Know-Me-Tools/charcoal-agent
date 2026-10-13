@@ -5,7 +5,7 @@ description: Documented uses of UAR, its stated design intent, and where it does
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-13T00:05:39+00:00"
+  at: "2026-10-13T00:25:33+00:00"
 tags:
   - universal-agent-runtime
   - use-cases
@@ -13,27 +13,27 @@ sources:
   - id: uar-readme
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/README.md
     title: Universal Agent Runtime README
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: uar-matrix
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/product-support-matrix.md
     title: Universal Agent Runtime product support matrix
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: uar-memory
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/MEMORY_SYSTEM.md
     title: Universal Agent Runtime memory system
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: uar-licensing
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/licensing/LICENSING.md
     title: Universal Agent Runtime licensing model
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: uar-deploy
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/DEPLOYMENT.md
     title: Universal Agent Runtime production deployment guide
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: knowme-readme
     resource: https://github.com/Know-Me-Tools/charcoal-agent/blob/main/README.md
     title: KnowMe client README
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
 ---
 
 # Universal Agent Runtime use cases and who it is for
@@ -52,4 +52,4 @@ Design intent, not a shipped capability: UAR's licensing note says it is designe
 
 ## When the Universal Agent Runtime may not fit yet
 
-Some limits are documented plainly. Arbitrary WASM cannot run in the browser. The Windows native archive and mobile support are Experimental. The container image is about 3 GB.[^uar-matrix][^uar-deploy] A production setup needs its own authentication, secrets, trusted origins and tool policy before it is exposed.[^uar-readme] If you need a hosted service with nothing to operate, UAR does not describe one.
+Arbitrary WASM cannot run in the browser. The Windows native archive and mobile support are Experimental. The container image is about 3 GB.[^uar-matrix][^uar-deploy] A production setup needs its own authentication, secrets, trusted origins and tool policy before it is exposed.[^uar-readme] If you need a hosted service with nothing to operate, UAR does not describe one.

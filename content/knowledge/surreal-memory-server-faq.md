@@ -2,9 +2,10 @@
 
 ## What is the Surreal Memory Server?
 
-A Rust memory service for AI agents, built on SurrealDB. It keeps a knowledge graph, scoped memories, task streams and mind maps, offers hybrid search, and speaks both MCP and REST.
+A Rust memory service for AI agents, built on SurrealDB. It keeps a knowledge graph, scoped memories, task streams and mind maps, offers hybrid search, and speaks both MCP (Model Context Protocol, the open standard agents use to call tools) and REST. Its source was published for review on 2026-10-05; it is not a release.
 
 Source: Surreal Memory Server README, retrieved 2026-10-13.
+Source: Surreal Memory Server source publication note, 2026-10-05, retrieved 2026-10-13.
 
 ## Is the Surreal Memory Server free?
 

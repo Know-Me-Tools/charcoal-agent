@@ -15,7 +15,7 @@ Source: Surreal Memory Server operations reference, retrieved 2026-10-13.
 
 ## Surreal Memory Server REST and MCP
 
-The same operations are offered as REST endpoints and as MCP tools, and a published contract matrix lists each pair with its validation rules. Some graph tools exist only on MCP. MCP clients connect over stdio or HTTP. One documented limit: a memory added with user, agent or session IDs stores those IDs, which work as filters, but its scope field currently stays at the default, global.
+The same operations are offered as REST endpoints and as MCP (Model Context Protocol, the open standard agents use to call tools) tools, and a published contract matrix lists each pair with its validation rules. Some graph tools exist only on MCP. MCP clients connect over stdio or HTTP. One documented limit: a memory added with user, agent or session IDs stores those IDs, which work as filters, but its scope field currently stays at the default, global.
 
 Source: Surreal Memory Server MCP, REST and storage contract matrix, retrieved 2026-10-13.
 Source: Surreal Memory Server documentation introduction, retrieved 2026-10-13.

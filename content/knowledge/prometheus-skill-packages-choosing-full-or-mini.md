@@ -1,13 +1,13 @@
-# Choosing the full Prometheus Skill Pack or Prometheus Skills Mini (Skill Packages)
+# Choosing between the Prometheus skill packages
 
-## Choose the full Prometheus Skill Pack when (Skill Packages)
+## When to choose the full pack from the Prometheus skill packages
 
 You want broad guidance across languages and domains, the learning pipeline, and optional native services such as durable memory, a model gateway, native research and signed execution records. The full profile with native services runs on macOS and Linux and needs Bash 4 or later. On Windows, the skills-only profile works through Git Bash or WSL; full native service installation is refused.
 
 Source: Prometheus Skill Pack README, retrieved 2026-10-13.
 Source: Prometheus Skill Pack guide, platform and harness support, retrieved 2026-10-13.
 
-## Choose Prometheus Skills Mini when (Skill Packages)
+## When to choose Mini from the Prometheus skill packages
 
 You want the process, team, research and UI skills with as little setup as possible, or you work on Windows without Git Bash or WSL. Mini needs Node 22 or later and Git, uses plain files for its state, and can talk to optional HTTP services or a supplied container stack. It does not depend on the full pack's Python learning pipeline.
 
@@ -19,7 +19,7 @@ Mini and the full pack share skill names, so one can hide the other. Mini's READ
 
 Source: Prometheus Skills Mini README, retrieved 2026-10-13.
 
-## Prometheus skill packages side by side
+## The Prometheus skill packages side by side
 
 Full: categorized skill source, Git plus Node plus Bash, Windows through Git Bash or WSL, native memory, knowledge, gateway, research and execution components. Mini: flat skill source, Node 22+ plus Git, Node entry points on Windows, macOS and Linux, file state with optional HTTP services.
 

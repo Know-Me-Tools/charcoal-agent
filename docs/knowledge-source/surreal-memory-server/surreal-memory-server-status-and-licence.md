@@ -5,7 +5,7 @@ description: The Surreal Memory Server's publication status, how it is run, and 
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-13T00:05:39+00:00"
+  at: "2026-10-13T00:25:33+00:00"
 tags:
   - surreal-memory-server
   - status
@@ -14,19 +14,19 @@ sources:
   - id: sms-publication
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/docs/source-publication-20261005.md
     title: Surreal Memory Server source publication note, 2026-10-05
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: sms-cargo
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/Cargo.toml
     title: Surreal Memory Server workspace manifest
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: sms-crate
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/crates/surreal-memory/Cargo.toml
     title: surreal-memory library package manifest
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: sms-readme
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/README.md
     title: Surreal Memory Server README
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
 ---
 
 # Surreal Memory Server status and licence

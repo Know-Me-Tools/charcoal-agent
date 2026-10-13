@@ -20,9 +20,9 @@ No account with KnowMe AI, LLC is needed. The skills are files installed into yo
 
 Source: Prometheus Skill Pack README, retrieved 2026-10-13.
 
-## Which Prometheus skill package should I install? (Skill Packages)
+## Which of the Prometheus skill packages should I install?
 
-Mini if you work on Windows without Git Bash or WSL, or want the least setup. The full pack if you want broad language and domain guidance and optional native services on macOS or Linux. See [choosing full or mini](/skill-packages/prometheus-skill-packages-choosing-full-or-mini.md).
+Mini if you work on Windows without Git Bash or WSL, or want the least setup. The full pack if you want broad language and domain guidance and optional native services on macOS or Linux. Ask about choosing between the Prometheus skill packages for the full comparison.
 
 Source: Prometheus Skill Pack guide, platform and harness support, retrieved 2026-10-13.
 Source: Prometheus Skills Mini README, retrieved 2026-10-13.
@@ -33,8 +33,23 @@ Not in the same home directory. They share skill names and can hide each other. 
 
 Source: Prometheus Skills Mini README, retrieved 2026-10-13.
 
-## What is Compass, which comes with The Boss next to Prometheus Skills Mini? (Skill Packages)
+## What is Compass, which comes with The Boss next to Mini from the Prometheus skill packages?
 
-Compass turns source code into a graph of symbols, files and relationships that you and your agents can query: architecture maps, paths between symbols, change impact, and graphs pinned to past Git commits. It runs locally as one Rust binary on Windows, macOS and Linux, with no embeddings or model credentials. It is MIT or Apache-2.0 licensed and is a fork of crabbuild/compass with Windows support.
+Compass turns source code into a graph of symbols, files and relationships that you and your agents can query: architecture maps, paths between symbols, change impact, and graphs pinned to past Git commits. It runs locally as one Rust binary on Windows, macOS and Linux, with no embeddings or model credentials. The Boss website says it is MIT or Apache-2.0 licensed; no LICENSE file is cited here, so check Compass's repository before relying on that. It is a fork of crabbuild/compass with Windows support.
 
 Source: The Boss website, retrieved 2026-10-13.
+
+## Which coding assistants work with the Prometheus skill packages?
+
+The full pack's installer documents targets including Claude Code, Codex, OpenCode, Kimi Code and MiniMax; its `skill-system.json` holds the current list. Mini lists nine target IDs: claude, codex, opencode, agents, cursor, gemini, windsurf, zed and cline. A target is where skills are copied; it does not prove that a given assistant runs them.
+
+Source: Prometheus Skill Pack skill catalog, retrieved 2026-10-13.
+Source: Prometheus Skills Mini maintenance and platform limits, retrieved 2026-10-13.
+Source: Prometheus Skill Pack guide, platform and harness support, retrieved 2026-10-13.
+
+## How do I report a bug in or contribute to the Prometheus skill packages?
+
+The full pack's CONTRIBUTING.md asks contributors to open a scoped issue at https://github.com/Prometheus-AGS/prometheus-skill-system when a contract or ownership question needs clarifying, and sets out how changes are made. Mini's README links a contribution guide that is not yet in its repository, https://github.com/Prometheus-AGS/prometheus-skills-mini.
+
+Source: Prometheus Skill Pack contribution guide, retrieved 2026-10-13.
+Source: Prometheus Skills Mini README, retrieved 2026-10-13.

@@ -8,13 +8,13 @@ Source: BossFang feature ledger, retrieved 2026-10-13.
 
 ## Known gaps in BossFang
 
-The ledger records them openly. The command-line binary is still named `librefang`, although some documents say otherwise. Remote SurrealDB mode is tested through configuration only, not against a live server. The Surreal Memory semantic backend is not yet wired into the kernel's boot path. Several recent upstream schema changes have no SurrealDB counterpart yet.
+The command-line binary is still named `librefang`, although some documents say otherwise. Remote SurrealDB mode is tested through configuration only, not against a live server. BossFang does not yet start its Surreal Memory Server-based semantic memory when it boots, and the ledger notes that this backend's writes are currently rejected. Several recent upstream schema changes have no SurrealDB counterpart yet.
 
 Source: BossFang feature ledger, retrieved 2026-10-13.
 
 ## Status of the BossFang connection to the Universal Agent Runtime
 
-The current connection design, where BossFang connects to an existing runtime and never runs it, is described in its documentation as implemented in source without builds, tests or review. Desktop packaging and real desktop operation remain to be done.
+The current connection design, where BossFang connects to an existing runtime and never runs it, is described in its documentation as implemented in source, not yet built or tested. Desktop packaging and real desktop operation remain to be done.
 
 Source: BossFang connects to UAR, retrieved 2026-10-13.
 

@@ -14,7 +14,7 @@ Ask `kbd-process-orchestrator` to plan a small feature. It records the specifica
 Source: Prometheus Skill Pack README, retrieved 2026-10-13.
 Source: Prometheus Skills Mini README, retrieved 2026-10-13.
 
-## Other documented Prometheus skill workflows (Skill Packages)
+## Other documented workflows in the Prometheus skill packages
 
 `iterative-evolver` runs an improvement cycle. `deep-research` runs a sourced investigation. `prometheus-ui-ux` handles interface and product-copy work while keeping the project's own design rules in charge.
 
@@ -28,7 +28,7 @@ Source: Prometheus Skills Mini README, retrieved 2026-10-13.
 Source: Prometheus Skill Pack README, retrieved 2026-10-13.
 Source: Prometheus Skills Mini README, retrieved 2026-10-13.
 
-## Prometheus Skills Mini inside The Boss (Skill Packages)
+## Mini from the Prometheus skill packages inside The Boss
 
 On a machine that already has the full pack, Mini's README says to use Mini only inside The Boss application's own data directory.
 
