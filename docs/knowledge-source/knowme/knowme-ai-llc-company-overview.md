@@ -21,9 +21,9 @@ KnowMe AI, LLC makes the products described on this site:
 - **The Boss**, a free, open-source AI desktop workspace for macOS and Windows that you can download today from https://the-boss.know-me.tools.
 - **IPFS Sync for Obsidian**, an early-preview Obsidian plugin and command-line tool that syncs a vault over IPFS through your own node.
 
-## The parts KnowMe AI, LLC's products run on
+## The parts KnowMe and The Boss are built on
 
-KnowMe AI, LLC also builds the parts these products run on. The Universal Agent Runtime is a governed agent runtime, written in Rust, that routes models and runs agents and tools under policy; the KnowMe agent on this site runs on it, and The Boss bundles it. BossFang is an agent operating system forked from the open-source LibreFang project, with SurrealDB storage, for agents that run on schedules; The Boss bundles it too. The Surreal Memory Server is a memory service with a knowledge graph and search that The Boss works with as a separate service. Each will get its own page on this site.
+KnowMe and The Boss are built on parts made by Prometheus (Prometheus AGS); Prometheus is the name of that company's server-side AI platform work, which also includes the Prometheus skill packages. The Universal Agent Runtime is a governed agent runtime, written in Rust, that routes models and runs agents and tools under policy; the KnowMe agent on this site runs on it, and The Boss bundles it. BossFang is an agent operating system forked from the open-source LibreFang project, with SurrealDB storage, for agents that run on schedules; The Boss bundles it too, and its public home is https://bossfang.know-me.tools. The Surreal Memory Server is a memory service with a knowledge graph and search that The Boss works with as a separate service.
 
 ## How the know-me.tools site and the KnowMe agent work
 

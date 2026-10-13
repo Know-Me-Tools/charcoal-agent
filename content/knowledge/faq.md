@@ -12,7 +12,7 @@ No. KnowMe has not been publicly released, and KnowMe AI, LLC has not announced 
 
 ## When will KnowMe be released, and how do I follow it?
 
-KnowMe AI, LLC has not announced a release date for KnowMe, and this site has no waiting list or update channel yet. The KnowMe agent here is the way to check; this answer will change when there is news.
+KnowMe AI, LLC has not announced a release date for KnowMe. KnowMe AI, LLC plans to publish updates through a Bluesky-compatible server using the AT Protocol. That server has not been deployed yet, so there is no update channel to follow today. The KnowMe agent here is the way to check; this answer will change when there is news.
 
 ## Is KnowMe available on my phone?
 
@@ -20,7 +20,7 @@ Not yet. KnowMe's phone app is being built with Flutter for iOS and Android, and
 
 ## Is KnowMe open source?
 
-KnowMe has not published a licence yet. When KnowMe AI, LLC publishes one, this answer will say which. The Boss, by contrast, is open source under the GNU Affero General Public License v3.0.
+KnowMe is planned to be released under the MIT licence. KnowMe has not been publicly released yet, so nothing is available under that licence today. The Boss is open source now, under the GNU Affero General Public License v3.0, derived from Cherry Studio.
 
 Source: The Boss LICENSE, retrieved 2026-10-12.
 
@@ -30,7 +30,7 @@ KnowMe is designed to run models on your own device and to require your explicit
 
 ## Does the KnowMe agent on this site send my messages to a model provider?
 
-Yes. Your message leaves your device: the site's Universal Agent Runtime stores the conversation's session state in its database (SurrealDB) on KnowMe AI, LLC's server, a cloud language model (Qwen, qwen3.8-max, through Alibaba Cloud's model service) composes the reply, and Alibaba Cloud's embedding service is used to search the knowledge base. A copy of the thread is also kept in your browser. KnowMe AI, LLC has not published how long the site keeps conversation state. This website agent is not the KnowMe app, which is designed to run models on the person's own device.
+Yes. Your message leaves your device: the site's Universal Agent Runtime stores the conversation's session state in its database (SurrealDB) on KnowMe AI, LLC's server, a cloud language model (Qwen, qwen3.8-max, through Alibaba Cloud's model service) composes the reply, and Alibaba Cloud's embedding service is used to search the knowledge base. A copy of the thread is also kept in your browser. The conversations stored in your browser are yours: you decide how long they are kept, because they live on your own device. How long the site's server keeps the runtime's conversation state has not been published. This website agent is not the KnowMe app, which is designed to run models on the person's own device.
 
 ## How much does KnowMe cost?
 
@@ -84,9 +84,17 @@ All current The Boss installers include the Universal Agent Runtime and BossFang
 Source: The Boss integration artifacts manifest, retrieved 2026-10-12.
 Source: The Boss managed services manifest, retrieved 2026-10-12.
 
-## What are the Universal Agent Runtime, BossFang and the Surreal Memory Server from KnowMe AI, LLC?
+## What are the Universal Agent Runtime, BossFang and the Surreal Memory Server that KnowMe and The Boss are built on?
 
-The Universal Agent Runtime is a governed agent runtime, written in Rust, that routes models and runs agents and tools under policy. BossFang is an agent operating system forked from the open-source LibreFang project, with SurrealDB storage, for agents that run on schedules. The Surreal Memory Server is a memory service with a knowledge graph and search. Each will get its own page on this site.
+The Universal Agent Runtime is a governed agent runtime, written in Rust, that routes models and runs agents and tools under policy. BossFang is an agent operating system forked from the open-source LibreFang project, with SurrealDB storage, for agents that run on schedules; its public home is https://bossfang.know-me.tools. The Surreal Memory Server is a memory service with a knowledge graph and search. All three are made by Prometheus (Prometheus AGS); KnowMe and The Boss, from KnowMe AI, LLC, are built on them.
+
+## Who makes the Universal Agent Runtime, BossFang and the Surreal Memory Server that KnowMe uses?
+
+Prometheus (Prometheus AGS) makes the Universal Agent Runtime, the Surreal Memory Server, BossFang and the Prometheus skill packages. KnowMe AI, LLC makes KnowMe, The Boss and IPFS Sync for Obsidian, and KnowMe and The Boss are built on those Prometheus parts: the KnowMe agent on this site runs on the Universal Agent Runtime, and The Boss bundles the Universal Agent Runtime and BossFang. BossFang's public home is https://bossfang.know-me.tools.
+
+## What is Prometheus, and how does it relate to KnowMe?
+
+Prometheus is the name of Prometheus AGS's server-side AI platform work. It makes the Universal Agent Runtime, the Surreal Memory Server, BossFang and the Prometheus skill packages. KnowMe and The Boss, from KnowMe AI, LLC, are built on those parts; the KnowMe agent on this site runs on the Universal Agent Runtime.
 
 ## What is IPFS Sync for Obsidian from KnowMe AI, LLC?
 
@@ -98,7 +106,7 @@ Not yet. IPFS Sync for Obsidian's own documentation says not to use it on real n
 
 ## Who is KnowMe AI, LLC?
 
-KnowMe AI, LLC is the company behind this site and its products: KnowMe, The Boss and IPFS Sync for Obsidian. It also builds the parts those products run on: the Universal Agent Runtime, BossFang and the Surreal Memory Server.
+KnowMe AI, LLC is the company behind this site and its products: KnowMe, The Boss and IPFS Sync for Obsidian. KnowMe and The Boss are built on the Universal Agent Runtime, BossFang and the Surreal Memory Server, which are made by Prometheus (Prometheus AGS).
 
 ## How do I contact KnowMe AI, LLC?
 
