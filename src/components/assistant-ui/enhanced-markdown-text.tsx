@@ -3,7 +3,7 @@ import {
   unstable_memoizeMarkdownComponents as memoizeMarkdownComponents,
   useIsMarkdownCodeBlock,
 } from "@assistant-ui/react-markdown";
-import { useMessagePartText } from "@assistant-ui/react";
+import { useAuiState, useMessagePartText } from "@assistant-ui/react";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import { type FC, memo, useEffect, useMemo, useState } from "react";
@@ -16,6 +16,11 @@ import {
   MARKDOWN_REHYPE_PLUGINS_NO_MATH,
   type KatexRehypePlugin,
 } from "./markdown-rehype-plugins";
+import {
+  decodeWebCitationHosts,
+  encodeWebCitationHosts,
+  webCitationHostsFromParts,
+} from "./web-citation-markers";
 
 import "@assistant-ui/react-markdown/styles/dot.css";
 
@@ -293,12 +298,15 @@ function useKatexPlugin(text: string): KatexRehypePlugin | null {
 const EnhancedMarkdownTextImpl = () => {
   const { text } = useMessagePartText();
   const katex = useKatexPlugin(text);
-  // Raw HTML -> sanitizer -> reply link/image policy -> KaTeX; the order and
-  // the reasons for it are documented on `buildMarkdownRehypePlugins`.
-  const rehypePlugins = useMemo(
-    () => (katex ? buildMarkdownRehypePlugins(katex) : MARKDOWN_REHYPE_PLUGINS_NO_MATH),
-    [katex],
-  );
+  // The message's web citations, as a primitive so the selector is stable.
+  const webHostsKey = useAuiState((s) => encodeWebCitationHosts(webCitationHostsFromParts(s.message.content)));
+  // Raw HTML -> sanitizer -> reply link/image policy -> `[Wn]` markers ->
+  // KaTeX; the order and the reasons for it are documented on
+  // `buildMarkdownRehypePlugins`.
+  const rehypePlugins = useMemo(() => {
+    if (!katex && webHostsKey === "") return MARKDOWN_REHYPE_PLUGINS_NO_MATH;
+    return buildMarkdownRehypePlugins(katex ?? undefined, decodeWebCitationHosts(webHostsKey));
+  }, [katex, webHostsKey]);
   return (
     <MarkdownTextPrimitive
       remarkPlugins={[remarkGfm, remarkMath]}

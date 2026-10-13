@@ -142,6 +142,9 @@ export function richMessageToThreadMessageLike(msg: RichMessage): ThreadMessageL
           content: block.content,
           url: block.url,
           index: block.index,
+          // Only web sources carry these; KB items keep their old shape.
+          ...(block.origin !== undefined && { origin: block.origin }),
+          ...(block.host !== undefined && { host: block.host }),
         };
         const last = parts[parts.length - 1];
         if (last?.toolName === CITATIONS_PART) {

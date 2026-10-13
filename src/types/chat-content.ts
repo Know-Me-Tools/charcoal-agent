@@ -28,6 +28,14 @@ export interface CitationContentBlock {
   url?: string;
   /** The stream's citation marker (`[n]` in the reply), when it sent one. */
   index?: number;
+  /**
+   * "web" for a source from a web search (`agui.web_citations`); absent for a
+   * knowledge-base source. With `index` it forms the (origin, marker) pair:
+   * a web `W2` and a KB `[2]` are different sources.
+   */
+  origin?: "web";
+  /** The source's host as the server computed it; shown for web sources. */
+  host?: string;
 }
 
 export interface SkillActivationContentBlock {

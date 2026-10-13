@@ -9,6 +9,14 @@
 /** Characters a snippet keeps before it is cut at a word boundary. */
 export const SNIPPET_MAX_CHARS = 160;
 
+/**
+ * The marker as the reply writes it: `[n]` for a knowledge-base source and
+ * `[Wn]` for a web source. The two are separate namespaces (design OD-6).
+ */
+export function citationMarkerLabel(index: number, origin?: "web" | "kb"): string {
+  return origin === "web" ? `[W${index}]` : `[${index}]`;
+}
+
 const ELLIPSIS = "…";
 const FALLBACK_NAME = "Source";
 

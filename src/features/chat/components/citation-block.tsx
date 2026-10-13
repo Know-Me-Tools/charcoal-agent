@@ -1,14 +1,19 @@
 import { useId, useState, type FC } from "react";
-import { ChevronDownIcon, ExternalLinkIcon, BookOpenIcon } from "lucide-react";
+import { ChevronDownIcon, ExternalLinkIcon, BookOpenIcon, GlobeIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isAllowedLink } from "@/lib/link-policy/is-allowed-link";
-import { citationDisplayName, cleanCitationSnippet } from "@/features/chat/citation-text";
+import { citationDisplayName, cleanCitationSnippet, citationMarkerLabel } from "@/features/chat/citation-text";
+import { WEB_SEARCH_CONTENT } from "../../../../content/site/web-search";
 
 interface CitationBlockProps {
   source: string;
   content: string;
   url?: string;
   index?: number;
+  /** "web" for a source from a web search; absent for the knowledge base. */
+  origin?: "web";
+  /** The server-computed host of a web source; always shown, as text. */
+  host?: string;
   /** CitationList overrides the standalone spacing so cards use the list's own gap. */
   className?: string;
 }
@@ -23,8 +28,11 @@ export const CitationBlock: FC<CitationBlockProps> = ({
   content,
   url,
   index,
+  origin,
+  host,
   className,
 }) => {
+  const isWeb = origin === "web";
   const [expanded, setExpanded] = useState(false);
   const excerptId = useId();
   // The URL comes from the model's stream, so it is untrusted: only a
@@ -38,8 +46,13 @@ export const CitationBlock: FC<CitationBlockProps> = ({
 
   const title = (
     <span className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+      {isWeb && (
+        <span className="font-ui text-xs font-semibold text-cyan-text">{WEB_SEARCH_CONTENT.sourceLabel}</span>
+      )}
       {index !== undefined && (
-        <span className="font-mono text-xs font-semibold text-cyan-text">[{index}]</span>
+        <span className="font-mono text-xs font-semibold text-cyan-text">
+          {citationMarkerLabel(index, origin)}
+        </span>
       )}
       <span className="min-w-0 font-ui text-sm font-semibold text-fg wrap-anywhere">{name}</span>
       {isLinkAllowed && (
@@ -56,7 +69,11 @@ export const CitationBlock: FC<CitationBlockProps> = ({
       )}
     >
       <div className="flex min-w-0 items-start gap-2">
-        <BookOpenIcon className="mt-0.5 size-3.5 shrink-0 text-cyan-text" aria-hidden="true" />
+        {isWeb ? (
+          <GlobeIcon className="mt-0.5 size-3.5 shrink-0 text-cyan-text" aria-hidden="true" />
+        ) : (
+          <BookOpenIcon className="mt-0.5 size-3.5 shrink-0 text-cyan-text" aria-hidden="true" />
+        )}
         {isLinkAllowed ? (
           <a
             href={url}
@@ -88,6 +105,9 @@ export const CitationBlock: FC<CitationBlockProps> = ({
           {excerpt}
         </p>
       )}
+      {isWeb && host && (
+        <p className="mt-1 pl-[1.375rem] font-mono text-xs break-all text-fg-secondary wrap-anywhere">{host}</p>
+      )}
       {url && !isLinkAllowed && (
         <p className="mt-1 pl-[1.375rem] font-mono text-xs break-all text-fg-secondary wrap-anywhere">
           {url}
@@ -103,6 +123,8 @@ export interface CitationListItem {
   url?: string;
   /** The stream's citation marker, when the event carried one. */
   index?: number;
+  origin?: "web";
+  host?: string;
 }
 
 interface CitationListProps {
@@ -149,12 +171,18 @@ export const CitationList: FC<CitationListProps> = ({ citations, streaming = fal
         {citations.map((c, i) => {
           const number = c.index ?? i + 1;
           return (
-            <li key={`${c.source}-${i}`} value={number} className="min-w-0">
+            <li
+              key={`${c.origin ?? "kb"}-${c.source}-${i}`}
+              value={c.origin === "web" ? undefined : number}
+              className="min-w-0"
+            >
               <CitationBlock
                 source={c.source}
                 content={c.content}
                 url={c.url}
                 index={number}
+                origin={c.origin}
+                host={c.host}
                 className="my-0"
               />
             </li>

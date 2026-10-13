@@ -4,6 +4,7 @@ import { useChatConnectivityStore } from "@/stores/chat-connectivity-store";
 import { useThreadRegistryStore } from "@/stores/thread-registry-store";
 import { buildUrl, buildHeaders } from "@/lib/api-client";
 import { getSiteAgentId } from "@/hooks/use-site-config";
+import { webSearchRequestField } from "@/stores/web-search-preference-store";
 import { dispatchAguiEvent } from "./agui-event-handlers";
 
 const UAR_PATH = "/api/chat/completion";
@@ -193,6 +194,9 @@ export function useMessageStream() {
             ...(payload.prompt_caching_enabled !== undefined
               ? { prompt_caching_enabled: payload.prompt_caching_enabled }
               : {}),
+            // Site build only, and only while the visitor's toggle is on;
+            // read here, at send time, so earlier requests are never changed.
+            ...webSearchRequestField(),
           }),
           signal: controller.signal,
         });
