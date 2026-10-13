@@ -33,13 +33,12 @@ env:
   NAMESPACE: knowme
 
 jobs:
-  content:
-    name: Build, validate and sync content
+  # Gates run without the production environment, so a dry run needs no approval.
+  validate:
+    name: Build and validate content
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    environment:
-      name: production
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
@@ -60,14 +59,27 @@ jobs:
       - name: Brand naming test
         run: npx vitest run src/test/brand-naming.test.ts
 
+
+  # Only this job touches the cluster; it waits for the operator's approval on the
+  # production environment and is skipped entirely on a dry run.
+  sync:
+    name: Sync content to UAR
+    needs: validate
+    if: ${{ !inputs.dry_run }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    environment:
+      name: production
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
       - name: Install kubectl
-        if: ${{ !inputs.dry_run }}
         uses: azure/setup-kubectl@829323503d1be3d00ca8346e5391ca0b07a9ab0d # v5
         with:
           version: "1.36.0"
 
       - name: Write kubeconfig
-        if: ${{ !inputs.dry_run }}
         # The secret is passed as an environment value, not interpolated into
         # the script text.
         env:
@@ -79,7 +91,6 @@ jobs:
           echo "KUBECONFIG=$RUNNER_TEMP/knowme.kubeconfig" >> "$GITHUB_ENV"
 
       - name: Seed the site agent (SEED_MODE from the sync input)
-        if: ${{ !inputs.dry_run }}
         # Same credentials and token URL as the deploy job's seed step in
         # site.yml: a gate-minted client-credentials token (sub=knowme-site,
         # aud=uar). No other secret is read.
