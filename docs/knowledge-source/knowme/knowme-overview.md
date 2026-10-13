@@ -34,7 +34,7 @@ These describe how KnowMe is being built. Until KnowMe ships, treat them as desi
 
 ## KnowMe release status
 
-KnowMe has not been publicly released. There is no public KnowMe download, and KnowMe AI, LLC has not announced a release date. For something you can install today, see The Boss, KnowMe AI, LLC's free, open-source desktop workspace for macOS and Windows.
+KnowMe has not been publicly released. There is no public KnowMe download, and KnowMe AI, LLC has not announced a release date or published a licence for KnowMe. For something you can install today, see The Boss, KnowMe AI, LLC's free, open-source desktop workspace for macOS and Windows; The Boss is not an edition of KnowMe, though both use the Universal Agent Runtime. The KnowMe agent on this site is not the KnowMe app.
 
 ## Where to learn more about KnowMe
 

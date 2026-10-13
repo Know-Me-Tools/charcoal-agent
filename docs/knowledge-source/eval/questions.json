@@ -2,61 +2,132 @@
   {
     "question": "What version of IPFS Sync for Obsidian is available, and what version of Obsidian does it need?",
     "expect_file": "ipfs-sync-for-obsidian.md",
-    "expect_contains": ["v0.2.0", "Obsidian 1.12.3"],
+    "expect_contains": [
+      "v0.2.0",
+      "Obsidian 1.12.3"
+    ],
     "critical": true
   },
   {
     "question": "What platforms does The Boss support?",
     "expect_file": "the-boss.md",
-    "expect_contains": ["Windows", "macOS"],
+    "expect_contains": [
+      "Windows",
+      "macOS"
+    ],
     "critical": true
   },
   {
     "question": "How is KnowMe different from OpenAI dots?",
     "expect_file": "openai-dots-and-knowme.md",
-    "expect_contains": ["OpenAI", "design intent"],
+    "expect_contains": [
+      "OpenAI",
+      "design intent"
+    ],
     "critical": false
   },
   {
     "question": "What are OpenAI dots?",
     "expect_file": "openai-dots-and-knowme.md",
-    "expect_contains": ["always-on"],
+    "expect_contains": [
+      "always-on"
+    ],
     "critical": false
   },
   {
     "question": "Is The Boss based on Cherry Studio?",
     "expect_file": "desktop-ai-clients-compared.md",
-    "expect_contains": ["Cherry Studio"],
+    "expect_contains": [
+      "Cherry Studio"
+    ],
     "critical": false
   },
   {
     "question": "Which local-first AI assistants compare with The Boss and KnowMe?",
     "expect_file": "local-first-assistants-compared.md",
-    "expect_contains": ["Ollama"],
+    "expect_contains": [
+      "Ollama"
+    ],
     "critical": false
   },
   {
     "question": "How does the Universal Agent Runtime compare with LangGraph or the OpenAI Agents SDK?",
     "expect_file": "agent-runtimes-compared.md",
-    "expect_contains": ["Universal Agent Runtime"],
+    "expect_contains": [
+      "Universal Agent Runtime"
+    ],
     "critical": false
   },
   {
     "question": "How does the Surreal Memory Server compare with Mem0?",
     "expect_file": "agent-memory-systems-compared.md",
-    "expect_contains": ["Surreal Memory Server"],
+    "expect_contains": [
+      "Surreal Memory Server"
+    ],
     "critical": false
   },
   {
     "question": "Which AI tool should I choose if I want my data to stay on my own hardware?",
     "expect_file": "how-to-choose-between-these-tools.md",
-    "expect_contains": ["own hardware"],
+    "expect_contains": [
+      "own hardware"
+    ],
     "critical": false
   },
   {
     "question": "Why not just use ChatGPT instead of KnowMe?",
     "expect_file": "landscape-faq.md",
-    "expect_contains": ["ChatGPT"],
+    "expect_contains": [
+      "ChatGPT"
+    ],
     "critical": false
+  },
+  {
+    "question": "What is KnowMe?",
+    "expect_file": "knowme-overview.md",
+    "expect_contains": [
+      "personal AI platform"
+    ],
+    "critical": true
+  },
+  {
+    "question": "Is KnowMe available to download?",
+    "expect_file": "faq.md",
+    "expect_contains": [
+      "publicly released"
+    ],
+    "critical": true
+  },
+  {
+    "question": "Does the KnowMe agent on this site send my messages to a model provider?",
+    "expect_file": "faq.md",
+    "expect_contains": [
+      "Alibaba Cloud"
+    ],
+    "critical": true
+  },
+  {
+    "question": "What is The Boss?",
+    "expect_file": "the-boss.md",
+    "expect_contains": [
+      "desktop workspace"
+    ],
+    "critical": true
+  },
+  {
+    "question": "Is The Boss free?",
+    "expect_file": "faq.md",
+    "expect_contains": [
+      "free"
+    ],
+    "critical": true
+  },
+  {
+    "question": "Who is KnowMe AI, LLC?",
+    "expect_file": "company.md",
+    "expect_contains": [
+      "KnowMe AI, LLC"
+    ],
+    "critical": true
   }
 ]

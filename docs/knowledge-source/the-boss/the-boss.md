@@ -6,6 +6,7 @@ status: stable
 generated:
   by: km-cmo/fable
   at: "2026-10-12T19:00:00+00:00"
+stale_after: "2026-10-26T19:00:00+00:00"
 tags: [the-boss, desktop, download]
 sources:
   - id: boss-site
@@ -32,6 +33,10 @@ sources:
     resource: https://github.com/Prometheus-AGS/the-boss/blob/main/build/integration-artifacts.json
     title: The Boss integration artifacts manifest
     last_modified: "2026-10-12T00:00:00+00:00"
+  - id: boss-payload
+    resource: https://github.com/Prometheus-AGS/the-boss/blob/main/build/prometheus-payload/release-manifest.json
+    title: The Boss managed services manifest
+    last_modified: "2026-10-12T00:00:00+00:00"
   - id: boss-memory-adapter
     resource: https://github.com/Prometheus-AGS/the-boss/blob/main/src/main/ai/runtime/uar/UarModelSourceAdapter.ts
     title: The Boss UAR model source adapter
@@ -54,18 +59,22 @@ The Boss is an Electron desktop application with a React interface, built on the
 
 The Boss is built for developers and technical operators who want one daily AI workspace in which they can also administer local agent runtimes, project tools, models, memory and supporting services without leaving the application.[^boss-product]
 
+## The Boss is not an edition of KnowMe
+
+The Boss is not a KnowMe edition or tier and is not built on KnowMe. The two share the Universal Agent Runtime: The Boss packages it as a sidecar, and KnowMe, which is still in development, is built on it. The Boss is what KnowMe AI, LLC offers for download today.
+
 ## What you can do with The Boss today
 
 - Hold conversations and run assistants across cloud and local model providers.
 - Run agent sessions with workspace context, MCP tools, skills and approval boundaries.
 - Work with knowledge, documents, code and Markdown.
-- Manage packaged skills, workspace indexing, tools and optional services in the Prometheus settings.
+- Manage packaged skills, workspace indexing, tools and optional services from the settings.
 
 Provider access and optional integrations each need their own configuration, for example your own credentials for a cloud model provider.[^boss-readme]
 
 ## What The Boss packages: Universal Agent Runtime, BossFang and Surreal Memory
 
-The Boss release installers (the "uar-enabled" profile) package the Universal Agent Runtime as a sidecar program, and the same build manifest packages BossFang, with its dashboard, as a second sidecar, for macOS on Apple Silicon and for Windows x64.[^boss-build] The Boss works with the Surreal Memory Server over MCP: the memory server runs as a separate service that The Boss can manage or connect to, and it is not inside the installer.[^boss-memory-adapter]
+All current The Boss installers, the v2.2.36 builds for macOS on Apple Silicon and Windows x64 and the v2.2.30 builds for Intel Mac and Windows ARM64, package the Universal Agent Runtime and BossFang, with its dashboard, as sidecar programs.[^boss-build] The Surreal Memory Server is not inside the installer: The Boss works with it over MCP as a separate service that The Boss can manage or connect to.[^boss-memory-adapter] Running The Boss's managed Surreal Memory service needs a container runtime, because The Boss pins it as a container image.[^boss-payload]
 
 ## Platforms The Boss supports
 
@@ -81,8 +90,8 @@ Download The Boss from https://the-boss.know-me.tools, which is free, open sourc
 
 ## The Boss licence and attribution
 
-The Boss is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). It is derived from Cherry Studio; upstream contributors, copyright notices and licence obligations remain applicable, and The Boss name and logo identify this fork.[^boss-license][^boss-readme]
+The Boss is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). The LICENSE file in The Boss repository is the authoritative statement of its licence; the public download page uses different words. The Boss is derived from Cherry Studio; upstream contributors, copyright notices and licence obligations remain applicable, and The Boss name and logo identify this fork.[^boss-license][^boss-readme]
 
-## The Boss privacy policy
+## The Boss privacy policy and telemetry
 
-The Boss repository carries the privacy policy of its upstream project, Cherry Studio, in PRIVACY.md. Read it before installing: it describes what the application may collect and the model services it can connect to.[^boss-privacy]
+KnowMe AI, LLC has not yet published The Boss's own telemetry behaviour. The project it is built on, Cherry Studio, describes collecting basic operational data by default in its own privacy policy, which The Boss repository currently carries as its PRIVACY.md.[^boss-privacy]

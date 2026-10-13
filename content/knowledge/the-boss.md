@@ -19,12 +19,16 @@ The Boss is built for developers and technical operators who want one daily AI w
 
 Source: The Boss product context, retrieved 2026-10-12.
 
+## The Boss is not an edition of KnowMe
+
+The Boss is not a KnowMe edition or tier and is not built on KnowMe. The two share the Universal Agent Runtime: The Boss packages it as a sidecar, and KnowMe, which is still in development, is built on it. The Boss is what KnowMe AI, LLC offers for download today.
+
 ## What you can do with The Boss today
 
 - Hold conversations and run assistants across cloud and local model providers.
 - Run agent sessions with workspace context, MCP tools, skills and approval boundaries.
 - Work with knowledge, documents, code and Markdown.
-- Manage packaged skills, workspace indexing, tools and optional services in the Prometheus settings.
+- Manage packaged skills, workspace indexing, tools and optional services from the settings.
 
 Provider access and optional integrations each need their own configuration, for example your own credentials for a cloud model provider.
 
@@ -32,10 +36,11 @@ Source: The Boss README, retrieved 2026-10-12.
 
 ## What The Boss packages: Universal Agent Runtime, BossFang and Surreal Memory
 
-The Boss release installers (the "uar-enabled" profile) package the Universal Agent Runtime as a sidecar program, and the same build manifest packages BossFang, with its dashboard, as a second sidecar, for macOS on Apple Silicon and for Windows x64. The Boss works with the Surreal Memory Server over MCP: the memory server runs as a separate service that The Boss can manage or connect to, and it is not inside the installer.
+All current The Boss installers, the v2.2.36 builds for macOS on Apple Silicon and Windows x64 and the v2.2.30 builds for Intel Mac and Windows ARM64, package the Universal Agent Runtime and BossFang, with its dashboard, as sidecar programs. The Surreal Memory Server is not inside the installer: The Boss works with it over MCP as a separate service that The Boss can manage or connect to. Running The Boss's managed Surreal Memory service needs a container runtime, because The Boss pins it as a container image.
 
 Source: The Boss integration artifacts manifest, retrieved 2026-10-12.
 Source: The Boss UAR model source adapter, retrieved 2026-10-12.
+Source: The Boss managed services manifest, retrieved 2026-10-12.
 
 ## Platforms The Boss supports
 
@@ -58,13 +63,13 @@ Source: The Boss release records, retrieved 2026-10-12.
 
 ## The Boss licence and attribution
 
-The Boss is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). It is derived from Cherry Studio; upstream contributors, copyright notices and licence obligations remain applicable, and The Boss name and logo identify this fork.
+The Boss is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). The LICENSE file in The Boss repository is the authoritative statement of its licence; the public download page uses different words. The Boss is derived from Cherry Studio; upstream contributors, copyright notices and licence obligations remain applicable, and The Boss name and logo identify this fork.
 
 Source: The Boss LICENSE, retrieved 2026-10-12.
 Source: The Boss README, retrieved 2026-10-12.
 
-## The Boss privacy policy
+## The Boss privacy policy and telemetry
 
-The Boss repository carries the privacy policy of its upstream project, Cherry Studio, in PRIVACY.md. Read it before installing: it describes what the application may collect and the model services it can connect to.
+KnowMe AI, LLC has not yet published The Boss's own telemetry behaviour. The project it is built on, Cherry Studio, describes collecting basic operational data by default in its own privacy policy, which The Boss repository currently carries as its PRIVACY.md.
 
 Source: The Boss privacy policy, retrieved 2026-10-12.
