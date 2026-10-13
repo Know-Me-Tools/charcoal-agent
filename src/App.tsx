@@ -1,26 +1,22 @@
 import { Toaster } from "@/components/ui/sonner";
 import { PersistenceNotices } from "@/components/common/persistence-notices";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
-import type React from "react";
+import { lazy, Suspense, type ComponentType } from "react";
 import { DbProvider } from "@/lib/db/db-provider";
-import { GraphProvider } from "@/lib/entity-graph/graph-provider";
-import { AppLayout } from "@/components/layout/app-layout";
-import { useSkillsSyncOnMount } from "@/hooks/use-skills-sync";
 import { isSiteBuild } from "@/hooks/use-site-config";
 import LandingPage from "@/pages/landing-page";
-import ThreadsPage from "@/pages/threads-page";
-import ThreadDetailPage from "@/pages/thread-detail-page";
-import AgentsPage from "@/pages/agents-page";
-import AgentDetailPage from "@/pages/agent-detail-page";
-import SettingsPage from "@/pages/settings-page";
-import ProvidersPage from "@/pages/providers-page";
-import SkillsPage from "@/pages/skills-page";
-import AppearancePage from "@/pages/appearance-page";
-import AboutPage from "@/pages/about-page";
-import UserSettingsPage from "@/pages/user-settings-page";
 import NotFound from "@/pages/NotFound";
+import { loadAppShell, loadThreadDetailPage, loadThreadsPage } from "@/lib/route-chunks";
 import type { RouteObject } from "react-router-dom";
+
+/**
+ * Route-level code splitting (site-bundle-attribution). Router `lazy` keeps the
+ * current screen mounted until the chunk arrives, so there is no spinner or
+ * layout flash; the landing page stays in the entry chunk.
+ */
+const page = (load: () => Promise<{ default: ComponentType }>) => ({
+  lazy: async () => ({ Component: (await load()).default }),
+});
 
 /**
  * `/agents/*` and `/settings/*` all need UAR admin APIs (compiler, providers,
@@ -33,19 +29,19 @@ import type { RouteObject } from "react-router-dom";
 const adminRoutes: RouteObject[] = isSiteBuild()
   ? []
   : [
-      { path: "/agents", element: <AgentsPage /> },
-      { path: "/agents/new", element: <AgentDetailPage /> },
-      { path: "/agents/:id", element: <AgentDetailPage /> },
+      { path: "/agents", ...page(() => import("@/pages/agents-page")) },
+      { path: "/agents/new", ...page(() => import("@/pages/agent-detail-page")) },
+      { path: "/agents/:id", ...page(() => import("@/pages/agent-detail-page")) },
       {
         path: "/settings",
-        element: <SettingsPage />,
+        ...page(() => import("@/pages/settings-page")),
         children: [
           { index: true, element: <Navigate to="/settings/providers" replace /> },
-          { path: "providers", element: <ProvidersPage /> },
-          { path: "skills", element: <SkillsPage /> },
-          { path: "appearance", element: <AppearancePage /> },
-          { path: "about", element: <AboutPage /> },
-          { path: "account", element: <UserSettingsPage /> },
+          { path: "providers", ...page(() => import("@/pages/providers-page")) },
+          { path: "skills", ...page(() => import("@/pages/skills-page")) },
+          { path: "appearance", ...page(() => import("@/pages/appearance-page")) },
+          { path: "about", ...page(() => import("@/pages/about-page")) },
+          { path: "account", ...page(() => import("@/pages/user-settings-page")) },
         ],
       },
     ];
@@ -53,37 +49,30 @@ const adminRoutes: RouteObject[] = isSiteBuild()
 const router = createBrowserRouter([
   { path: "/", element: <LandingPage /> },
   {
-    element: <AppLayout />,
+    lazy: async () => ({ Component: (await loadAppShell()).default }),
+    hydrateFallbackElement: <div className="h-screen bg-background" />,
     children: [
-      { path: "/threads", element: <ThreadsPage /> },
-      { path: "/threads/:id", element: <ThreadDetailPage /> },
+      { path: "/threads", ...page(loadThreadsPage) },
+      { path: "/threads/:id", ...page(loadThreadDetailPage) },
       ...adminRoutes,
     ],
   },
   { path: "*", element: <NotFound /> },
 ]);
 
-/**
- * Runs app-wide one-time effects that need the entity graph + DB to be ready.
- * Rendered inside all providers so hooks have full context.
- */
-function AppBootstrap({ children }: { children: React.ReactNode }) {
-  useSkillsSyncOnMount();
-  return <>{children}</>;
-}
+const SkillsSyncBootstrap = lazy(() => import("@/hooks/skills-sync-bootstrap"));
 
 const App = () => (
-  <GraphProvider>
-    <DbProvider>
-      <TooltipProvider>
-        <Toaster />
-        <PersistenceNotices />
-        <AppBootstrap>
-          <RouterProvider router={router} />
-        </AppBootstrap>
-      </TooltipProvider>
-    </DbProvider>
-  </GraphProvider>
+  <DbProvider>
+    <Toaster />
+    <PersistenceNotices />
+    {!isSiteBuild() && (
+      <Suspense fallback={null}>
+        <SkillsSyncBootstrap />
+      </Suspense>
+    )}
+    <RouterProvider router={router} />
+  </DbProvider>
 );
 
 export default App;

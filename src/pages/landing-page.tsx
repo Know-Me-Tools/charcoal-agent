@@ -6,6 +6,7 @@ import { EMBER_CTA } from "@/components/site/ember-cta";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { isSiteBuild } from "@/hooks/use-site-config";
+import { prefetchThreadRoutes } from "@/lib/route-chunks";
 import { cn } from "@/lib/utils";
 import { useChatIntentStore } from "@/stores/chat-intent-store";
 import { useThreadRegistryStore } from "@/stores/thread-registry-store";
@@ -122,6 +123,7 @@ export default function LandingPage() {
 									value={message}
 									onChange={(event) => setMessage(event.target.value)}
 									onKeyDown={handleKeyDown}
+									onFocus={prefetchThreadRoutes}
 									placeholder={content.composer.placeholder}
 									aria-label={content.composer.placeholder}
 									className="block max-h-[7.5rem] min-h-14 w-full field-sizing-content resize-none bg-transparent px-3 py-2.5 font-body text-base leading-relaxed text-fg caret-ember outline-none placeholder:text-faint lg:min-h-24"

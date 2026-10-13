@@ -35,7 +35,11 @@ vi.mock("@/features/artifacts/shiki-code-block", () => ({
 }));
 
 import { EnhancedCodeBlock } from "./enhanced-markdown-text";
-import { MARKDOWN_REHYPE_PLUGINS } from "./markdown-rehype-plugins";
+import rehypeKatex from "rehype-katex";
+import { buildMarkdownRehypePlugins } from "./markdown-rehype-plugins";
+
+// The production chain once KaTeX has lazily loaded (see enhanced-markdown-text.tsx).
+const MARKDOWN_REHYPE_PLUGINS = buildMarkdownRehypePlugins(rehypeKatex);
 
 /**
  * Review round 3 BLOCK (both reviewers): `rehypeRaw` turned embedded raw

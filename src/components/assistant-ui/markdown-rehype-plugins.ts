@@ -1,6 +1,5 @@
 import type { ComponentProps } from "react";
 import type { MarkdownTextPrimitive } from "@assistant-ui/react-markdown";
-import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import { MARKDOWN_SANITIZE_SCHEMA } from "./markdown-sanitize-schema";
@@ -19,9 +18,22 @@ type RehypePlugins = NonNullable<ComponentProps<typeof MarkdownTextPrimitive>["r
  * does rehypeKatex generate its own trusted KaTeX markup — sanitizing after KaTeX
  * would strip the very markup it just built.
  */
-export const MARKDOWN_REHYPE_PLUGINS: RehypePlugins = [
-  rehypeRaw,
-  [rehypeSanitize, MARKDOWN_SANITIZE_SCHEMA],
-  rehypeReplyContentPolicy,
-  [rehypeKatex, { strict: false }],
-];
+export type KatexRehypePlugin = RehypePlugins[number];
+
+/**
+ * KaTeX (JS and stylesheet) is large and only matters when a message contains
+ * math, so it is not imported here: the caller passes the plugin once
+ * `markdown-katex.ts` has been loaded. Without it the chain is the same minus
+ * the final step (math renders as plain code until KaTeX arrives).
+ */
+export function buildMarkdownRehypePlugins(rehypeKatex?: KatexRehypePlugin): RehypePlugins {
+  return [
+    rehypeRaw,
+    [rehypeSanitize, MARKDOWN_SANITIZE_SCHEMA],
+    rehypeReplyContentPolicy,
+    ...(rehypeKatex ? [[rehypeKatex, { strict: false }] as RehypePlugins[number]] : []),
+  ];
+}
+
+/** The chain without KaTeX; a stable reference for messages with no math. */
+export const MARKDOWN_REHYPE_PLUGINS_NO_MATH: RehypePlugins = buildMarkdownRehypePlugins();
