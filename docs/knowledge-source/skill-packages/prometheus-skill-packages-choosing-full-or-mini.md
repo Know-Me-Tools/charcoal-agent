@@ -5,7 +5,7 @@ description: How to choose between the full Prometheus Skill Pack and Prometheus
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-12T00:00:00+00:00"
+  at: "2026-10-13T00:05:39+00:00"
 tags:
   - skill-packages
   - comparison
@@ -13,15 +13,15 @@ sources:
   - id: full-readme
     resource: https://github.com/Prometheus-AGS/prometheus-skill-system/blob/main/README.md
     title: Prometheus Skill Pack README
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: full-platforms
     resource: https://github.com/Prometheus-AGS/prometheus-skill-system/blob/main/docs/guide/17-platform-support.md
     title: Prometheus Skill Pack guide, platform and harness support
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: mini-readme
     resource: https://github.com/Prometheus-AGS/prometheus-skills-mini/blob/main/README.md
     title: Prometheus Skills Mini README
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
 ---
 
 # Choosing the full Prometheus Skill Pack or Prometheus Skills Mini

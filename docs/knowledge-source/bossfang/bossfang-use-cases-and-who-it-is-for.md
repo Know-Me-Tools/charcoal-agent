@@ -5,7 +5,7 @@ description: Who BossFang is for and its documented uses, with design intent lab
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-12T00:00:00+00:00"
+  at: "2026-10-13T00:05:39+00:00"
 tags:
   - bossfang
   - use-cases
@@ -13,15 +13,15 @@ sources:
   - id: bf-agents
     resource: https://github.com/GQAdonis/librefang/blob/main/AGENTS.md
     title: BossFang AGENTS.md, product identity and fork additions
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: bf-uar
     resource: https://github.com/GQAdonis/librefang/blob/main/docs/bossfang-uar-connections.md
     title: BossFang connects to UAR
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: bf-ledger
     resource: https://github.com/GQAdonis/librefang/blob/main/docs/bossfang/feature-ledger.md
     title: BossFang feature ledger
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
 ---
 
 # BossFang use cases and who it is for

@@ -5,7 +5,7 @@ description: Visitor questions about the Surreal Memory Server, answered from it
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-12T00:00:00+00:00"
+  at: "2026-10-13T00:05:39+00:00"
 tags:
   - surreal-memory-server
   - faq
@@ -13,27 +13,27 @@ sources:
   - id: sms-readme
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/README.md
     title: Surreal Memory Server README
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: sms-intro
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/website/docs/intro.md
     title: Surreal Memory Server documentation introduction
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: sms-publication
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/docs/source-publication-20261005.md
     title: Surreal Memory Server source publication note, 2026-10-05
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: sms-crate
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/crates/surreal-memory/Cargo.toml
     title: surreal-memory library package manifest
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: sms-palace
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/docs/PALACE.md
     title: Surreal Memory Server Memory Palace architecture
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: uar-memory
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/MEMORY_SYSTEM.md
     title: Universal Agent Runtime memory system
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
 ---
 
 # Surreal Memory Server questions
@@ -44,7 +44,7 @@ A Rust memory service for AI agents, built on SurrealDB. It keeps a knowledge gr
 
 ## Is the Surreal Memory Server free?
 
-Its authors state it is MIT licensed, and the library's package manifest declares MIT. The repository does not yet include a LICENSE file.[^sms-crate]
+The Surreal Memory Server's authors state that it is MIT licensed, and its library package manifest declares MIT.[^sms-crate] The repository does not yet contain a LICENSE file, so check the repository before relying on that.
 
 ## Does the Surreal Memory Server need a cloud account?
 

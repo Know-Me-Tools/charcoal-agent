@@ -5,7 +5,7 @@ description: The documented install steps for the full Prometheus Skill Pack and
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-12T00:00:00+00:00"
+  at: "2026-10-13T00:05:39+00:00"
 tags:
   - skill-packages
   - install
@@ -13,19 +13,19 @@ sources:
   - id: full-readme
     resource: https://github.com/Prometheus-AGS/prometheus-skill-system/blob/main/README.md
     title: Prometheus Skill Pack README
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: full-install
     resource: https://github.com/Prometheus-AGS/prometheus-skill-system/blob/main/docs/guide/19-installation.md
     title: Prometheus Skill Pack guide, installation
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: full-skills
     resource: https://github.com/Prometheus-AGS/prometheus-skill-system/blob/main/SKILLS.md
     title: Prometheus Skill Pack skill catalog
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: mini-readme
     resource: https://github.com/Prometheus-AGS/prometheus-skills-mini/blob/main/README.md
     title: Prometheus Skills Mini README
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
 ---
 
 # Installing the Prometheus skill packages

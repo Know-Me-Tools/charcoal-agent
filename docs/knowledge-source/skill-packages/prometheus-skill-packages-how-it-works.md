@@ -5,7 +5,7 @@ description: Plain-language description of how the Prometheus skill packages are
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-12T00:00:00+00:00"
+  at: "2026-10-13T00:05:39+00:00"
 tags:
   - skill-packages
   - workflow
@@ -13,19 +13,19 @@ sources:
   - id: full-readme
     resource: https://github.com/Prometheus-AGS/prometheus-skill-system/blob/main/README.md
     title: Prometheus Skill Pack README
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: full-intro
     resource: https://github.com/Prometheus-AGS/prometheus-skill-system/blob/main/docs/guide/01-introduction.md
     title: Prometheus Skill Pack guide, introduction
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: mini-readme
     resource: https://github.com/Prometheus-AGS/prometheus-skills-mini/blob/main/README.md
     title: Prometheus Skills Mini README
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: boss-site
     resource: https://the-boss.know-me.tools
     title: The Boss website
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
 ---
 
 # How the Prometheus skill packages work
