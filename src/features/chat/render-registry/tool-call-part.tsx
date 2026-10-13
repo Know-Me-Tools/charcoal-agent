@@ -4,7 +4,7 @@ import { ArtifactBlock } from "@/features/chat/components/artifact-block";
 import { inferA2uiFromJson, noteInferenceFallback } from "@/features/a2ui/infer";
 import { LazyA2uiSurfaceBlock } from "@/features/a2ui/lazy-a2ui-surface-block";
 import { A2uiDisplayBlock, A2uiInputBlock } from "@/features/chat/components/a2ui-artifact-block";
-import { CitationBlock } from "@/features/chat/components/citation-block";
+import { CitationList, type CitationListItem } from "@/features/chat/components/citation-block";
 import { ContextUpdateBlock } from "@/features/chat/components/context-update-block";
 import { MemoryMutationBlock, MemoryRecallBlock } from "@/features/chat/components/memory-block";
 import { RunCancelledBlock } from "@/features/chat/components/run-cancelled-block";
@@ -16,6 +16,7 @@ import { defaultRenderRegistry } from "./default-entries";
 import {
   APPROVAL_PART,
   CANCELLED_PART,
+  CITATIONS_PART,
   STEP_PART,
   SUBAGENT_PART,
   type CancelledUsage,
@@ -81,9 +82,9 @@ const ContextPart: PartRenderer = ({ args }) => {
   );
 };
 
-const CitationPart: PartRenderer = ({ args }) => {
-  const a = args as { source: string; content: string; url?: string };
-  return <CitationBlock source={a.source} content={a.content} url={a.url} />;
+const CitationsPart: PartRenderer = ({ args }) => {
+  const a = args as { citations?: CitationListItem[] };
+  return <CitationList citations={a.citations ?? []} />;
 };
 
 // agui.tool_call.denied (FR-11 client case, site-chat-offline-states): the
@@ -214,7 +215,7 @@ const GenericToolPart: PartRenderer = ({ toolName, args, result, status, isError
 const PART_RENDERERS: Readonly<Record<string, PartRenderer>> = {
   __skill__: SkillPart,
   __context__: ContextPart,
-  __citation__: CitationPart,
+  [CITATIONS_PART]: CitationsPart,
   __denied__: DeniedPart,
   __memory_recall__: MemoryRecallPart,
   __memory_mutation__: MemoryMutationPart,

@@ -290,6 +290,7 @@ export const AGUI_EVENT_HANDLERS: Readonly<Record<string, Handler>> = {
         source: c.title ?? c.url ?? "Source",
         content: c.snippet ?? "",
         url: c.url,
+        index: typeof c.index === "number" ? c.index : undefined,
       });
     }
     return "continue";
@@ -297,7 +298,12 @@ export const AGUI_EVENT_HANDLERS: Readonly<Record<string, Handler>> = {
 
   "agui.rag_citations": (p, ctx) => {
     for (const c of (p as AguiRagCitations).citations ?? []) {
-      store().addCitation(ctx.threadId, { source: c.document_name, content: c.snippet ?? "" });
+      store().addCitation(ctx.threadId, {
+        source: c.document_name,
+        content: c.snippet ?? "",
+        // The marker is the `[n]` the reply text uses; the list shows it.
+        index: typeof c.marker === "number" ? c.marker : undefined,
+      });
     }
     return "continue";
   },

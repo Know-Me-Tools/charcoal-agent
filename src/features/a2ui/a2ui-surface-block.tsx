@@ -1,4 +1,4 @@
-import { useMemo, type FC } from "react";
+import { useMemo, type FC, type ReactNode } from "react";
 import {
   PrometheusA2uiProvider,
   PrometheusA2uiSurfaces,
@@ -7,6 +7,7 @@ import {
   type PrometheusA2uiRuntime,
 } from "@prometheus-ags/a2ui-react";
 import { isSiteBuild } from "@/hooks/use-site-config";
+import { AI_SURFACE_CAPTION } from "../../../content/site/ai-disclosure";
 import { PASSIVE_A2UI_COMPONENTS, parseA2uiArtifactContent } from "./carrier-adapter";
 import { createKnowmeA2uiCatalogs } from "./catalog";
 
@@ -48,6 +49,26 @@ export interface A2uiSurfaceBlockProps {
   passiveOnly?: boolean;
 }
 
+/**
+ * W3 (site-answer-card-and-sources, task 5.3): every surface, including one
+ * that failed to parse, sits in this frame with a fixed caption rendered by
+ * the app, after and outside the model's content. Its text is a constant and
+ * it is the only element carrying `data-ai-caption`; the model's catalog has
+ * no way to set attributes, and its `Text` caption variant is a different,
+ * unmarked style, so model output can neither fill nor imitate this slot.
+ */
+const SurfaceFrame: FC<{ children: ReactNode }> = ({ children }) => (
+  <div data-testid="a2ui-surface-frame" className="my-2 flex min-w-0 max-w-full flex-col gap-1">
+    {children}
+    <p
+      data-ai-caption=""
+      className="rounded-md bg-cyan-soft px-3 py-1 font-mono text-xs uppercase tracking-[0.06em] text-cyan-text"
+    >
+      {AI_SURFACE_CAPTION}
+    </p>
+  </div>
+);
+
 export const A2uiSurfaceBlock: FC<A2uiSurfaceBlockProps> = ({
   content,
   title,
@@ -57,22 +78,26 @@ export const A2uiSurfaceBlock: FC<A2uiSurfaceBlockProps> = ({
 
   if (!prepared.ok) {
     return (
-      <p role="status" data-testid="a2ui-surface-error" className="text-sm text-faint">
-        {FAILURE_COPY}
-      </p>
+      <SurfaceFrame>
+        <p role="status" data-testid="a2ui-surface-error" className="text-sm text-faint">
+          {FAILURE_COPY}
+        </p>
+      </SurfaceFrame>
     );
   }
 
   return (
-    <section
-      aria-label={title || "Interactive content"}
-      data-testid="a2ui-surface"
-      className="my-2 max-w-full overflow-x-auto"
-    >
-      <PrometheusA2uiProvider runtime={prepared.runtime}>
-        <PrometheusA2uiSurfaces />
-      </PrometheusA2uiProvider>
-    </section>
+    <SurfaceFrame>
+      <section
+        aria-label={title || "Interactive content"}
+        data-testid="a2ui-surface"
+        className="max-w-full overflow-x-auto"
+      >
+        <PrometheusA2uiProvider runtime={prepared.runtime}>
+          <PrometheusA2uiSurfaces />
+        </PrometheusA2uiProvider>
+      </section>
+    </SurfaceFrame>
   );
 };
 

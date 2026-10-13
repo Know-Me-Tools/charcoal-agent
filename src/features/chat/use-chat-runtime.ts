@@ -11,7 +11,7 @@ import { useChatMessages } from "./use-chat-messages";
 import { useMessageStream } from "./use-message-stream";
 import { generateThreadTitle } from "./use-thread-naming";
 import type { RichMessage, ContentBlock } from "@/types/chat-content";
-import { CANCELLED_PART, STEP_PART } from "./render-registry/pseudo-parts";
+import { CANCELLED_PART, CITATIONS_PART, STEP_PART } from "./render-registry/pseudo-parts";
 
 /**
  * Convert our internal RichMessage to the ThreadMessageLike shape expected by
@@ -131,21 +131,33 @@ export function richMessageToThreadMessageLike(msg: RichMessage): ThreadMessageL
           isError: false,
         });
         break;
-      case "citation":
-        // Encode as a pseudo-tool-call so assistant-ui routes it to CitationBlock
+      case "citation": {
+        // assistant-ui renders parts flat, so a run of consecutive citations
+        // becomes ONE pseudo-tool-call that renders a single "Sources" list
+        // (D-1 (b)). Grouping here, not in the store, means persisted history
+        // stored as one block per citation renders the same way. The id is
+        // fixed by the run's position, so it stays stable while it streams.
+        const item = {
+          source: block.source,
+          content: block.content,
+          url: block.url,
+          index: block.index,
+        };
+        const last = parts[parts.length - 1];
+        if (last?.toolName === CITATIONS_PART) {
+          last.args.citations.push(item);
+          break;
+        }
         parts.push({
           type: "tool-call",
-          toolCallId: `citation-${block.source}-${parts.length}`,
-          toolName: "__citation__",
-          args: {
-            source: block.source,
-            content: block.content,
-            url: block.url,
-          },
+          toolCallId: `citations-${parts.length}`,
+          toolName: CITATIONS_PART,
+          args: { citations: [item] },
           result: undefined,
           isError: false,
         });
         break;
+      }
       case "memory-recall":
         parts.push({
           type: "tool-call",

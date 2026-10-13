@@ -19,3 +19,13 @@ export const AI_DISCLOSURE_CONTENT: AiDisclosureContent = {
 	label: "KnowMe Concierge — an AI assistant. Answers may be wrong.",
 	sensitiveDataHint: "Please don't share sensitive personal details in this chat.",
 };
+
+/**
+ * DRAFT copy — pending content-officer pre-review and operator approval
+ * (site-answer-card-and-sources, task 5.4); no review record exists yet.
+ *
+ * The fixed, app-rendered caption under every A2UI surface (task 5.3, W3).
+ * The app renders it outside the model's surface content, so no model output
+ * can fill, replace or imitate it.
+ */
+export const AI_SURFACE_CAPTION = "AI-generated · check important details";

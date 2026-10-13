@@ -26,6 +26,8 @@ export interface CitationContentBlock {
   source: string;
   content: string;
   url?: string;
+  /** The stream's citation marker (`[n]` in the reply), when it sent one. */
+  index?: number;
 }
 
 export interface SkillActivationContentBlock {
