@@ -15,6 +15,9 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ABOUT_PANEL_CONTENT } from "../../../content/site/about-panel";
 import { useUiStore } from "@/stores/ui-store";
+import { useThreadRegistryStore } from "@/stores/thread-registry-store";
+import type { LocalThread } from "@/types";
+import { THREAD_LIST_CONTENT } from "../../../content/site/thread-list";
 
 const viewport = vi.hoisted(() => ({ wide: true, mobile: false }));
 vi.mock("@/hooks/use-media-query", () => ({
@@ -145,5 +148,58 @@ describe("6.2 panel mounting", () => {
     const dialog = await screen.findByRole("dialog", { name: ABOUT_PANEL_CONTENT.title });
     expect(dialog).toHaveTextContent(ABOUT_PANEL_CONTENT.sources.heading);
     expect(document.body.textContent).not.toMatch(/choose an agent/i);
+  });
+});
+
+// Integration gate 08, S1: the site sidebar said "// No threads yet" beside
+// an open (ephemeral) thread, and kept saying it while the answer streamed.
+describe("site sidebar empty state", () => {
+  const THREAD_ID = THREAD_PATH.split("/").pop() as string;
+
+  function thread(isEphemeral: boolean): LocalThread {
+    const now = new Date(0).toISOString();
+    return { id: THREAD_ID, sessionId: THREAD_ID, title: "What is The Boss?", isEphemeral, createdAt: now, updatedAt: now };
+  }
+
+  beforeEach(() => {
+    useThreadRegistryStore.setState({ threads: {} });
+  });
+
+  it("shows the site copy, not the app copy, when the visitor has no conversation at all", () => {
+    vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+    renderAt(<LeftSidebar />, "/");
+    expect(screen.getByText(THREAD_LIST_CONTENT.emptyLabel)).toBeInTheDocument();
+    expect(screen.getByText(THREAD_LIST_CONTENT.emptyHint)).toBeInTheDocument();
+    expect(document.body.textContent).not.toMatch(/no threads yet|start a new thread to begin/i);
+  });
+
+  it("shows no empty copy while an ephemeral thread is open", () => {
+    vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+    useThreadRegistryStore.setState({ threads: { [THREAD_ID]: thread(true) } });
+    renderAt(<LeftSidebar />);
+    expect(screen.queryByText(THREAD_LIST_CONTENT.emptyLabel)).toBeNull();
+    expect(document.body.textContent).not.toMatch(/no threads yet/i);
+  });
+
+  it("shows no empty copy on a thread route before the registry has the thread", () => {
+    vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+    renderAt(<LeftSidebar />);
+    expect(screen.queryByText(THREAD_LIST_CONTENT.emptyLabel)).toBeNull();
+  });
+
+  it("lists a persisted thread and shows no empty copy", () => {
+    vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+    useThreadRegistryStore.setState({ threads: { [THREAD_ID]: thread(false) } });
+    renderAt(<LeftSidebar />);
+    expect(screen.getByText("What is The Boss?")).toBeInTheDocument();
+    expect(screen.queryByText(THREAD_LIST_CONTENT.emptyLabel)).toBeNull();
+  });
+
+  it("the app build is unchanged: its copy shows beside an ephemeral thread", () => {
+    vi.stubEnv("VITE_SITE_AGENT_ID", "");
+    useThreadRegistryStore.setState({ threads: { [THREAD_ID]: thread(true) } });
+    renderAt(<LeftSidebar />);
+    expect(screen.getByText("// No threads yet")).toBeInTheDocument();
+    expect(screen.getByText("Start a new thread to begin")).toBeInTheDocument();
   });
 });

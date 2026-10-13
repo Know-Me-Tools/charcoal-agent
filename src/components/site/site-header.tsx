@@ -1,6 +1,7 @@
 import { ArrowRight, Moon, Sun } from "lucide-react";
 import { Link } from "react-router-dom";
 import { KnowMeLockup } from "@/components/brand";
+import { isSiteBuild } from "@/hooks/use-site-config";
 import { useUi } from "@/hooks/use-ui";
 import { LANDING_CONTENT } from "../../../content/site/landing";
 
@@ -44,13 +45,18 @@ export function SiteHeader() {
 								<Moon className="size-[1.125rem]" aria-hidden="true" />
 							)}
 						</button>
-						<Link
-							to="/threads"
-							className="inline-flex h-11 items-center gap-1.5 rounded-lg px-3 font-ui text-sm font-semibold text-fg transition-hover hover:bg-hover focus-cue sm:px-4"
-						>
-							{LANDING_CONTENT.nav.openAppLabel}
-							<ArrowRight className="hidden size-4 sm:block" aria-hidden="true" />
-						</Link>
+						{/* No "Open app" on the public site build: there is no app to open
+						    there, and the front page composer starts the conversation
+						    (integration gate 08, B1). */}
+						{!isSiteBuild() && (
+							<Link
+								to="/threads"
+								className="inline-flex h-11 items-center gap-1.5 rounded-lg px-3 font-ui text-sm font-semibold text-fg transition-hover hover:bg-hover focus-cue sm:px-4"
+							>
+								{LANDING_CONTENT.nav.openAppLabel}
+								<ArrowRight className="hidden size-4 sm:block" aria-hidden="true" />
+							</Link>
+						)}
 					</div>
 				</div>
 			</header>

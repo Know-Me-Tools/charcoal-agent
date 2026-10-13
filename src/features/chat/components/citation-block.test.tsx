@@ -55,7 +55,7 @@ describe("CitationBlock display cleanup", () => {
     );
 
     expect(screen.getByText("KnowMe platforms and status")).toBeInTheDocument();
-    expect(screen.getByText("Platforms Desktop is available.")).toBeInTheDocument();
+    expect(screen.getByText("Platforms. Desktop is available.")).toBeInTheDocument();
     expect(screen.queryByText(/0123456789ab/)).not.toBeInTheDocument();
   });
 });

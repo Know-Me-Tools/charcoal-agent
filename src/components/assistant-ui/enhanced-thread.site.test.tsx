@@ -22,6 +22,10 @@ vi.mock("@assistant-ui/react", async (importOriginal) => {
   return {
     ...actual,
     AuiIf: passthrough,
+    ThreadPrimitive: {
+      ...actual.ThreadPrimitive,
+      ScrollToBottom: passthrough,
+    },
     ComposerPrimitive: {
       ...actual.ComposerPrimitive,
       Root: box,
@@ -38,7 +42,7 @@ vi.mock("@/components/assistant-ui/attachment", () => ({
   UserMessageAttachments: () => null,
 }));
 
-import { EnhancedComposer, ThreadWelcome } from "./enhanced-thread";
+import { ComposerDisclosure, EnhancedComposer, ThreadScrollToBottom, ThreadWelcome } from "./enhanced-thread";
 
 const SITE_AGENT = "knowme-site";
 const STALE_APP_COPY = /no threads yet|act on your behalf|start a new thread/i;
@@ -48,16 +52,30 @@ afterEach(() => {
 });
 
 describe("ThreadWelcome on the site build", () => {
-  it("shows the site heading, description and the shared AI disclosure, without stale app copy", () => {
+  it("shows the site heading and description, without stale app copy", () => {
     vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
     render(<ThreadWelcome />);
 
     expect(screen.getByRole("heading", { level: 1, name: EMPTY_STATE_CONTENT.heading })).toBeInTheDocument();
     expect(screen.getByText(EMPTY_STATE_CONTENT.description)).toBeInTheDocument();
-    expect(screen.getByText(AI_DISCLOSURE_CONTENT.label)).toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(STALE_APP_COPY);
     // Starter prompts are a later change (07): no chips yet.
     expect(screen.queryByRole("button")).toBeNull();
+  });
+
+  // Integration gate 08, C1: the empty state showed the AI label twice, once
+  // here and once in the composer disclosure right below. The composer copy
+  // stays (it is visible before the first token); the welcome copy goes.
+  it("does not repeat the AI label that the composer disclosure already shows", () => {
+    vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+    render(
+      <>
+        <ThreadWelcome />
+        <ComposerDisclosure />
+      </>,
+    );
+    expect(screen.getAllByText(AI_DISCLOSURE_CONTENT.label)).toHaveLength(1);
+    expect(screen.getByText(AI_DISCLOSURE_CONTENT.sensitiveDataHint)).toBeInTheDocument();
   });
 
   it("uses an approved tagline, verbatim, as its heading", () => {
@@ -94,5 +112,30 @@ describe("EnhancedComposer", () => {
       "Ask your agent anything…",
     );
     expect(screen.getByRole("button", { name: /prompt caching/i })).toBeInTheDocument();
+  });
+});
+
+// Integration gate 08, S3: the jump-to-bottom button floated over the thread
+// (`absolute -top-12`) and covered answer-card text at 320 and 1024. jsdom has
+// no layout, so these assert the layout contract; the overlap itself is only
+// observable in a browser capture.
+describe("ThreadScrollToBottom", () => {
+  it("on the site build: in the footer's flow while shown, removed from layout at the bottom", () => {
+    vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+    render(<ThreadScrollToBottom />);
+    const button = screen.getByRole("button", { name: "Scroll to bottom" });
+    expect(button.className).not.toMatch(/(^|\s)absolute(\s|$)/);
+    expect(button.className).not.toMatch(/-top-12/);
+    expect(button.className).toMatch(/(^|\s)disabled:hidden(\s|$)/);
+    expect(button.className).not.toMatch(/disabled:invisible/);
+  });
+
+  it("on the app build: unchanged, floating above the footer", () => {
+    vi.stubEnv("VITE_SITE_AGENT_ID", "");
+    render(<ThreadScrollToBottom />);
+    const button = screen.getByRole("button", { name: "Scroll to bottom" });
+    expect(button.className).toMatch(/(^|\s)absolute(\s|$)/);
+    expect(button.className).toMatch(/-top-12/);
+    expect(button.className).toMatch(/disabled:invisible/);
   });
 });

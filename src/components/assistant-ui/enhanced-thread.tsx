@@ -113,8 +113,10 @@ export const EnhancedThread: FC<EnhancedThreadProps> = ({
 /** Empty-thread welcome: site copy on the public site build, the app's otherwise. */
 export const ThreadWelcome: FC = () => (isSiteBuild() ? <SiteWelcome /> : <KnowMeWelcome />);
 
-// Site copy is DRAFT (content/site/empty-state.ts). The AI note reuses the
-// disclosure label rather than restating it. Starter prompts come in change 07.
+// Site copy is DRAFT (content/site/empty-state.ts). No AI label here: the
+// composer disclosure directly below already shows it before the first
+// token, so a second copy on the empty state only repeated it (integration
+// gate 08, C1). Starter prompts come in change 07.
 const SiteWelcome: FC = () => (
 	<div className="mx-auto my-auto flex w-full max-w-(--thread-max-width) grow flex-col">
 		<div className="flex w-full grow flex-col items-center justify-center gap-4 px-4 text-center">
@@ -126,9 +128,7 @@ const SiteWelcome: FC = () => (
 			</h1>
 			<p className="max-w-md font-body text-sm text-fg-secondary leading-relaxed">
 				{EMPTY_STATE_CONTENT.description}
-			</p>
-			<p className="max-w-md font-mono text-xs text-faint">{AI_DISCLOSURE_CONTENT.label}</p>
-		</div>
+			</p>		</div>
 	</div>
 );
 
@@ -167,12 +167,26 @@ const KnowMeWelcome: FC = () => {
 
 // ─── Scroll to bottom ─────────────────────────────────────────────────────────
 
-const ThreadScrollToBottom: FC = () => (
+// The viewport anchors each turn at the top (`turnAnchor="top"`), so it does
+// not follow a reply to the bottom and this button appears whenever the
+// reply runs past the fold. App build: the button floats 3rem above the
+// footer, over the thread. Site build: that float sat on top of answer-card
+// text at 320 and 1024 (integration gate 08, S3), so the button takes its
+// own row at the top of the sticky footer while it is shown and is removed
+// from the layout (`disabled:hidden`) at the bottom. Content scrolls under
+// the footer's canvas fill instead of under the button.
+const SCROLL_TO_BOTTOM_BASE =
+	"z-10 size-9 self-center rounded-full bg-raised text-fg-secondary hover:bg-hover hover:text-fg";
+
+export const ThreadScrollToBottom: FC = () => (
 	<ThreadPrimitive.ScrollToBottom asChild>
 		<TooltipIconButton
 			tooltip="Scroll to bottom"
 			variant="ghost"
-			className="absolute -top-12 z-10 size-9 self-center rounded-full bg-raised text-fg-secondary hover:bg-hover hover:text-fg disabled:invisible"
+			className={cn(
+				SCROLL_TO_BOTTOM_BASE,
+				isSiteBuild() ? "shrink-0 disabled:hidden" : "absolute -top-12 disabled:invisible",
+			)}
 		>
 			<ArrowDownIcon />
 		</TooltipIconButton>

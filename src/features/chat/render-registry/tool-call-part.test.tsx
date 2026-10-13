@@ -228,7 +228,7 @@ describe("ToolCallPart: registry-driven rendering (tasks 1.7, 1.8)", () => {
       "FAQ",
       "Company",
     ]);
-    expect(screen.getByText("The Boss A desktop workspace.")).toBeInTheDocument();
+    expect(screen.getByText("The Boss. A desktop workspace.")).toBeInTheDocument();
     expect(screen.getByText("[3]")).toBeInTheDocument();
   });
 
