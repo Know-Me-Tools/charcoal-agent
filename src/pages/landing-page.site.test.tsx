@@ -7,6 +7,7 @@
 import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { AI_DISCLOSURE_CONTENT } from "../../content/site/ai-disclosure";
 import { APPROVED_TAGLINES } from "../../content/brand/taglines";
 import { LANDING_CONTENT } from "../../content/site/landing";
 import { SITE_LANDING_CONTENT } from "../../content/site/landing-site";
@@ -83,6 +84,50 @@ describe("landing page on the site build", () => {
 		expect(link).toHaveAttribute("rel", "noopener noreferrer");
 		expect(region).toHaveTextContent(/KnowMe itself is not yet released/);
 	});
+
+	it("shows the approved AI disclosure and sensitive-data hint beside the composer (P0-2)", () => {
+		vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+		renderLanding();
+		const form = screen.getByRole("textbox", { name: SITE_LANDING_CONTENT.composer.placeholder }).closest("form");
+		const label = screen.getByText(AI_DISCLOSURE_CONTENT.label);
+		const hint = screen.getByText(AI_DISCLOSURE_CONTENT.sensitiveDataHint);
+		expect(label).toHaveClass("font-mono", "text-xs", "text-faint");
+		expect(hint).toHaveClass("font-mono", "text-xs", "text-faint");
+		// Under the form, not inside it, and in the same column as the form.
+		expect(form?.contains(label)).toBe(false);
+		expect(form?.parentElement?.contains(label)).toBe(true);
+		expect(form?.compareDocumentPosition(label)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+	});
+
+	it("does not repeat the lockup in the hero (P2-4)", () => {
+		vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+		renderLanding();
+		const hero = screen.getByRole("region", { name: SITE_LANDING_CONTENT.headline });
+		expect(within(hero).queryByRole("img", { name: "KnowMe" })).toBeNull();
+	});
+
+	it("keeps the eyebrow on the hero only (P2-5)", () => {
+		vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+		renderLanding();
+		expect(screen.getByText(SITE_LANDING_CONTENT.eyebrow)).toBeInTheDocument();
+		for (const section of SITE_LANDING_CONTENT.sections) {
+			expect(screen.queryByText(section.label)).toBeNull();
+		}
+	});
+
+	it("never breaks the domain link at its hyphen (P2-3)", () => {
+		vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+		renderLanding();
+		const link = screen.getByRole("link", { name: /the-boss\.know-me\.tools/ });
+		expect(link).toHaveClass("whitespace-nowrap");
+	});
+
+	it("lets the composer take the full column at tablet width (P2-8)", () => {
+		vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+		renderLanding();
+		const form = screen.getByRole("textbox", { name: SITE_LANDING_CONTENT.composer.placeholder }).closest("form");
+		expect(form?.parentElement).not.toHaveClass("md:max-w-xl");
+	});
 });
 
 describe("site landing content module", () => {
@@ -111,5 +156,10 @@ describe("landing page on the app build", () => {
 		}
 		expect(screen.getByRole("link", { name: LANDING_CONTENT.nav.openAppLabel })).toHaveAttribute("href", "/threads");
 		expect(screen.queryByText(SITE_LANDING_CONTENT.valueLine)).toBeNull();
+		// The disclosure is a site-build addition; the app build is unchanged.
+		expect(screen.queryByText(AI_DISCLOSURE_CONTENT.label)).toBeNull();
+		for (const section of LANDING_CONTENT.sections) {
+			expect(screen.getByText(section.label)).toBeInTheDocument();
+		}
 	});
 });
