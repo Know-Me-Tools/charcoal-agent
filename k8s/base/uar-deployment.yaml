@@ -54,26 +54,6 @@ spec:
                 name: uar-config
             - secretRef:
                 name: uar-secrets
-          # site-web-search 16.5.2: MCP servers come from a mounted mcp.json
-          # (uar-mcp-configmap.yaml); the image ships none.
-          env:
-            - name: MCP_CONFIG_PATH
-              value: /etc/uar/mcp/mcp.json
-            # `Bearer <token>` that mcp.json's `secret_ref:
-            # env:WEBSEARCH_MCP_AUTH` resolves for the websearch server. The
-            # envFrom above would also carry it; named here so the dependency
-            # is visible. optional: until the operator adds the key to
-            # uar-secrets, UAR starts without it, fails to connect the
-            # websearch server and skips it ("MCP server failed to connect;
-            # skipping it, registry continues without it", UAR
-            # src/mcp/registry.rs), so a rollout before the Secret exists
-            # cannot take UAR down.
-            - name: WEBSEARCH_MCP_AUTH
-              valueFrom:
-                secretKeyRef:
-                  name: uar-secrets
-                  key: WEBSEARCH_MCP_AUTH
-                  optional: true
           # UAR takes 50 to 95 seconds to start (it connects to SurrealDB, runs
           # governance preflight and starts its listeners). The liveness probe
           # alone gives up after about 75 seconds (30s delay + 3 failures at
@@ -113,12 +93,6 @@ spec:
           volumeMounts:
             - name: uar-data
               mountPath: /var/lib/uar
-            - name: uar-mcp
-              mountPath: /etc/uar/mcp
-              readOnly: true
       volumes:
         - name: uar-data
           emptyDir: {}
-        - name: uar-mcp
-          configMap:
-            name: uar-mcp

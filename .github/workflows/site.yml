@@ -84,6 +84,9 @@ jobs:
   websearch-image:
     name: Build and push websearch image
     needs: verify
+    # The wrapper's Dockerfile has never been built in CI. Until it has, a failure
+    # here must not turn a site deploy red; remove this line once it has passed.
+    continue-on-error: true
     runs-on: ubuntu-latest
     permissions:
       contents: read
