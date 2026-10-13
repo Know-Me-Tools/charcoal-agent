@@ -134,7 +134,7 @@ describe("EnhancedMarkdownText — sanitized content still renders correctly", (
 /**
  * site-reply-content-hardening 3.1. A remote image fires a request the
  * moment it renders, so its URL is a channel out of the chat to a third
- * party; only the site's own hosts (know-me.tools and its subdomains) and
+ * party; only the site's own hosts (exactly know-me.tools) and
  * same-origin relative paths may load. A link to a host that is not on the
  * explicit reviewed list renders as text that shows its destination, the
  * way citation cards do (operator decisions 2 and 3).
@@ -181,9 +181,9 @@ describe("EnhancedMarkdownText — remote images", () => {
 		expect(html).toContain('<img src="https://know-me.tools/p.png"');
 	});
 
-	it("still renders an image on a subdomain of the own host", () => {
+	it("does not render an image on a subdomain of the own host (CSP img-src 'self')", () => {
 		const html = renderMarkdown("![x](https://cdn.know-me.tools/p.png)");
-		expect(html).toContain('<img src="https://cdn.know-me.tools/p.png"');
+		expect(html).not.toContain("<img");
 	});
 
 	it("still renders a same-origin relative image path", () => {
@@ -202,6 +202,12 @@ describe("EnhancedMarkdownText — reply links", () => {
 		const html = renderMarkdown("[label](https://evil.example/x)");
 		expect(html).not.toMatch(/<a[^>]*href=/);
 		expect(html).toContain("label (https://evil.example/x)");
+	});
+
+	it("shows a bare-word href as text, not a link whose text names another site", () => {
+		const html = renderMarkdown("[https://bank.example](evil.example)");
+		expect(html).not.toMatch(/<a[^>]*href=/);
+		expect(html).toContain("https://bank.example");
 	});
 
 	it("shows a raw <a> to a non-allowlisted host the same way", () => {

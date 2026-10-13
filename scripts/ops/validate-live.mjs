@@ -75,6 +75,9 @@ const ALLOWED_KEYS = {
   "agui.artifact": { top: ["artifact_type", "content", "artifact_id", "title"] },
   "agui.state.patch": { top: ["kind", "patch"], items: { patch: ["op", "path", "from", "value"] } },
 };
+// Fixed values of server/src/domain/agui_steps.rs (Phase::as_str and the four LABEL_ constants).
+const STEP_PHASES = new Set(["started", "finished", "failed", "denied"]);
+const STEP_LABELS = new Set(["Searching the knowledge base", "Preparing an answer card", "Working", "Thinking"]);
 const PASSIVE_COMPONENTS = new Set(["Card", "Column", "Row", "Text", "Divider"]);
 const BANNED_WORDS = /provider_event|attempt_manifest|effective_run_policy|turn_manifest|runtime\./;
 
@@ -196,7 +199,11 @@ export function analyse(status, body) {
         }
       }
     }
-    if (event === "agui.tool_call.denied") counts.denied++;
+    if (event === "agui.step") {
+      if (!STEP_PHASES.has(payload.phase)) problems.push(`agui.step: phase '${payload.phase}' is not one of started|finished|failed|denied`);
+      if (!STEP_LABELS.has(payload.label)) problems.push(`agui.step: label '${payload.label}' is not one of the fixed labels`);
+      if (payload.phase === "denied") counts.denied++;
+    }
     if (event === "agui.error") counts.error++;
     if (event === "agui.done") counts.done++;
   }

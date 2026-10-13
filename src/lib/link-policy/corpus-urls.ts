@@ -21,14 +21,15 @@ const knowledgeFiles = import.meta.glob("../../../content/knowledge/*.md", {
 
 // Matches an absolute http(s) URL up to the first character that cannot be
 // part of one in plain prose or a markdown link: whitespace, the markdown
-// link/image delimiters, quotes, and angle brackets.
-const URL_PATTERN = /https?:\/\/[^\s)\]"'<>]+/g;
+// link/image delimiters, quotes, angle brackets, and the backtick that closes
+// an inline code span (`https://example.com/x`).
+const URL_PATTERN = /https?:\/\/[^\s)\]"'`<>]+/g;
 
 // Trailing sentence punctuation is almost never part of the URL itself
 // (e.g. "see https://example.com/x." at the end of a sentence).
 const TRAILING_PUNCTUATION = /[.,;:!?]+$/;
 
-function extractUrls(text: string): string[] {
+export function extractUrls(text: string): string[] {
   const matches = text.match(URL_PATTERN) ?? [];
   return matches.map((url) => url.replace(TRAILING_PUNCTUATION, ""));
 }
