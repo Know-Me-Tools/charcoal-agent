@@ -20,7 +20,7 @@ interface CitationBlockProps {
 
 /**
  * One source: title and `[n]` on a single row, the excerpt behind an expand
- * control (P1-1). The title row is the link when the destination is allowed;
+ * control (P1-1). A web source has no excerpt: label, `[Wn]`, title and host. The title row is the link when the destination is allowed;
  * the expand control is a sibling button, never nested in the link.
  */
 export const CitationBlock: FC<CitationBlockProps> = ({
@@ -42,7 +42,10 @@ export const CitationBlock: FC<CitationBlockProps> = ({
   const isLinkAllowed = !!url && isAllowedLink(url);
   // Cleaned at render so persisted citations read the same as new ones.
   const name = citationDisplayName(source);
-  const excerpt = cleanCitationSnippet(content);
+  // A web source never shows an excerpt: its snippet is text the page's
+  // author wrote (operator decision 2026-10-13). This also hides one stored
+  // by an older server, which kept it in `content`.
+  const excerpt = isWeb ? "" : cleanCitationSnippet(content);
 
   const title = (
     <span className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-1.5 gap-y-0.5">

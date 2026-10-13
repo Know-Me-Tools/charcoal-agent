@@ -1005,20 +1005,40 @@ async fn a_web_turn_should_stream_steps_and_web_citations_and_settle_the_meter()
         ]})
     );
     // Minted from the fixture: marker 3 (plain http) is dropped and not
-    // renumbered, and the upstream spoof is gone.
+    // renumbered, and the upstream spoof is gone. No item carries a snippet
+    // (operator decision 2026-10-13): the fixture's snippets, one of them
+    // carrying an injected instruction, stay upstream.
     assert_eq!(
         frames[4].1,
         serde_json::json!({ "kind": "web_citations", "phase": "added", "citations": [
             { "origin": "web", "marker": 1, "title": "Announcing Rust 1.97.0",
               "host": "blog.rust-lang.org",
-              "url": "https://blog.rust-lang.org/2026/09/18/Rust-1.97.0/",
-              "snippet": "The Rust team is happy to announce a new version of Rust, 1.97.0." },
+              "url": "https://blog.rust-lang.org/2026/09/18/Rust-1.97.0/" },
             { "origin": "web", "marker": 2, "title": "Rust 1.97.0 release notes",
               "host": "doc.rust-lang.org",
-              "url": "https://doc.rust-lang.org/releases.html",
-              "snippet": "Language changes, compiler changes and stabilized APIs." }
+              "url": "https://doc.rust-lang.org/releases.html" }
         ]})
     );
+    for item in frames[4].1["citations"].as_array().unwrap() {
+        assert!(item.get("snippet").is_none(), "{item}");
+    }
+    assert!(
+        WEB_SEARCH_RESULT_FIXTURE.contains(WEB_INJECTED_SENTENCE),
+        "the fixture must carry the injected sentence upstream"
+    );
+    // KB citations keep their snippets, so the word is checked in the web
+    // frame only; the web snippets' text is checked in the whole stream.
+    let citation_frame = frames[4].1.to_string();
+    assert!(!citation_frame.contains("snippet"), "{citation_frame}");
+    for leak in [
+        WEB_INJECTED_SENTENCE,
+        "SYSTEM NOTICE",
+        "happy to announce",
+        "stabilized APIs",
+    ] {
+        assert!(!citation_frame.contains(leak), "{leak} in {citation_frame}");
+        assert!(!public.contains(leak), "{leak} leaked: {public}");
+    }
     assert_eq!(frames[9].1, serde_json::json!({ "kind": "done" }));
     for leak in [
         WEB_QUERY_SENTINEL,
