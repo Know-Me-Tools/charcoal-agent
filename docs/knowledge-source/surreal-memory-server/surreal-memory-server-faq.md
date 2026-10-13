@@ -34,6 +34,10 @@ sources:
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/MEMORY_SYSTEM.md
     title: Universal Agent Runtime memory system
     last_modified: "2026-10-13T01:28:18+00:00"
+  - id: sms-license
+    resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/LICENSE
+    title: Surreal Memory Server LICENSE
+    last_modified: "2026-10-13T08:21:34+00:00"
 ---
 
 # Surreal Memory Server questions
@@ -44,7 +48,7 @@ A Rust memory service for AI agents, built on SurrealDB. It keeps a knowledge gr
 
 ## Is the Surreal Memory Server free?
 
-The Surreal Memory Server is free to use under the MIT licence. The owners state it is MIT licensed; a LICENSE file has been proposed in the repository. Its library package manifest already declares MIT.[^sms-crate]
+The Surreal Memory Server is free to use under the MIT licence: it is MIT licensed (LICENSE file in the repository).[^sms-license] Its library package manifest also declares MIT.[^sms-crate]
 
 ## Does the Surreal Memory Server need a cloud account?
 

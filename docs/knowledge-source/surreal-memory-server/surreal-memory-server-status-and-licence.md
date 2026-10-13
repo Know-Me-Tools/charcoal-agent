@@ -1,7 +1,7 @@
 ---
 type: Concept
 title: Surreal Memory Server status and licence
-description: The Surreal Memory Server's publication status, how it is run, and its MIT licence (a LICENSE file has been proposed in the repository).
+description: The Surreal Memory Server's publication status, how it is run, and its MIT licence (LICENSE file in the repository).
 status: draft
 generated:
   by: km-content-creator/opus
@@ -27,6 +27,10 @@ sources:
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/README.md
     title: Surreal Memory Server README
     last_modified: "2026-10-13T01:28:18+00:00"
+  - id: sms-license
+    resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/LICENSE
+    title: Surreal Memory Server LICENSE
+    last_modified: "2026-10-13T08:21:34+00:00"
 ---
 
 # Surreal Memory Server status and licence
@@ -45,4 +49,4 @@ Its README names the native service as the standard local deployment. You point 
 
 ## Surreal Memory Server licence
 
-The Surreal Memory Server is MIT licensed. The owners state it is MIT licensed; a LICENSE file has been proposed in the repository. Its library package manifest already declares MIT.[^sms-crate]
+The Surreal Memory Server is MIT licensed (LICENSE file in the repository), with Prometheus AGS as copyright holder.[^sms-license] Its library package manifest also declares MIT.[^sms-crate]

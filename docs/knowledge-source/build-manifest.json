@@ -159,6 +159,10 @@
     {
       "source": "skill-packages/prometheus-skill-packages-faq.md",
       "output": "prometheus-skill-packages-faq.md"
+    },
+    {
+      "source": "prometheus/prometheus-and-its-products.md",
+      "output": "prometheus-and-its-products.md"
     }
   ]
 }

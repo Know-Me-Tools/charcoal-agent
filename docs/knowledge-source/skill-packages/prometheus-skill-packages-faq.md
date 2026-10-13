@@ -42,6 +42,10 @@ sources:
     resource: https://the-boss.know-me.tools
     title: The Boss website
     last_modified: "2026-10-13T01:28:18+00:00"
+  - id: mini-license
+    resource: https://github.com/Prometheus-AGS/prometheus-skills-mini/blob/main/LICENSE
+    title: Prometheus Skills Mini LICENSE
+    last_modified: "2026-10-13T08:21:34+00:00"
 ---
 
 # Prometheus skill packages questions
@@ -52,7 +56,7 @@ Two packages of skills for AI coding assistants: the broad full Prometheus Skill
 
 ## Are the Prometheus skill packages free?
 
-The full Prometheus Skill Pack is MIT licensed and has a LICENSE file.[^full-license] Prometheus Skills Mini is also MIT licensed. The owners state it is MIT licensed; a LICENSE file has been proposed in the repository.
+The full Prometheus Skill Pack is MIT licensed and has a LICENSE file.[^full-license] Prometheus Skills Mini is also MIT licensed (LICENSE file in the repository).[^mini-license]
 
 ## Do the Prometheus skill packages need a cloud account?
 

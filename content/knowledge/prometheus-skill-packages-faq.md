@@ -9,9 +9,10 @@ Source: Prometheus Skills Mini README, retrieved 2026-10-13.
 
 ## Are the Prometheus skill packages free?
 
-The full Prometheus Skill Pack is MIT licensed and has a LICENSE file. Prometheus Skills Mini is also MIT licensed. The owners state it is MIT licensed; a LICENSE file has been proposed in the repository.
+The full Prometheus Skill Pack is MIT licensed and has a LICENSE file. Prometheus Skills Mini is also MIT licensed (LICENSE file in the repository).
 
 Source: Prometheus Skill Pack LICENSE, retrieved 2026-10-13.
+Source: Prometheus Skills Mini LICENSE, retrieved 2026-10-13.
 
 ## Do the Prometheus skill packages need a cloud account?
 

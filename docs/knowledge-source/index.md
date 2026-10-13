@@ -14,6 +14,7 @@ Source documents for the KnowMe site knowledge base. Each product directory hold
 * [BossFang](bossfang/) - The BossFang product.
 * [The Boss](the-boss/) - The Boss product.
 * [Skill Packages](skill-packages/) - Installable skill packages for agents.
+* [Prometheus](prometheus/) - Who makes each product, its licence and where to get it, as short direct answers.
 
 ## Context
 
