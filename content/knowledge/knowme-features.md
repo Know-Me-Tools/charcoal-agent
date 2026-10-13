@@ -1,18 +1,23 @@
 # KnowMe features
 
-KnowMe is designed around eight tiles: Chat, Hands, Image, Audio, Prompt Lab, Skills, Models and Settings. Only some of KnowMe's capabilities are available today; the rest are planned. This page lists what's available now in KnowMe and what's still planned.
+KnowMe is designed around eight tiles: Chat, Hands, Ask Image, Audio Scribe, Prompt Lab, Skills, Models and Settings. KnowMe has not been publicly released, so none of these is available to the public today. This page describes what each tile is designed to do and where KnowMe AI, LLC's development stands.
 
-## Available now in KnowMe
+## The eight tiles KnowMe is designed around (not yet released)
 
-- **Chat with the KnowMe agent, right on this site.** This site's chat runs on the Universal Agent Runtime. Conversations with the KnowMe agent become threads, saved on your own device. (Source: this site's own copy)
-- **Skills that attach to the KnowMe agent, on this site.** Skills extend what the KnowMe agent can do here. (Source: this site's own copy)
-- **KnowMe's downloadable desktop app.** Separately, KnowMe's desktop app runs on macOS, Windows and Linux, built with Tauri and React. (Source: KnowMe README)
-- **On-device model inference, in KnowMe's desktop app.** KnowMe's Rust core runs models on the user's own device. (Source: KnowMe README)
+- **Chat**: conversation with streaming replies, optional visible reasoning, and tools and skills turned on per message.
+- **Hands**: autonomous agents that run on a schedule, each limited by a policy that says which skills it may use.
+- **Ask Image**: questions about images, scans, screenshots and PDFs, designed to run vision models locally.
+- **Audio Scribe**: transcription designed to run on the device.
+- **Prompt Lab**: a place to try and refine prompts.
+- **Skills** and **Models**: manage what the assistants can do and which models they use, local or remote.
+- **Settings**: policies, devices and sync.
 
-## Planned for KnowMe
+None of these tiles is publicly released. In KnowMe AI, LLC's development builds, Chat and the local memory graph work, the Models and Settings tiles are partially present on desktop, and the rest is designed but not yet built.
 
-- **Hands (scheduled agents).** KnowMe's Hands tile is designed for unsupervised, scheduled agents, with six templates: Researcher, Inbox Triage, Code Watcher, Market Pulse, Daily Journal and Reading List. The Hands interface exists in KnowMe today, but the scheduler and policy execution that would run it are not yet wired up, so Hands is not available yet. (Source: KnowMe implementation roadmap)
-- **Multi-device sync.** KnowMe is designed to sync a user's devices peer-to-peer through the user's own BossFang server. This part of KnowMe is still in early development. (Source: KnowMe implementation roadmap)
-- **Plugin system and marketplace.** KnowMe is designed to let plugins extend the app without touching KnowMe's core. KnowMe's plugin marketplace is still in early development. (Source: KnowMe implementation roadmap)
-- **Mobile (iOS and Android).** A mobile version of KnowMe, built with Flutter, is planned. KnowMe's mobile agent runtime compiles today but has not been certified on a physical device, so KnowMe is not yet available on phones or tablets. (Source: KnowMe README; KnowMe platform support notes)
-- **Image, Audio, Prompt Lab, Models and Settings tiles.** These are part of KnowMe's eight-tile design. This page will list them as available once KnowMe's release notes confirm they've shipped. (Source: KnowMe product documentation)
+## What exists in KnowMe today
+
+In KnowMe AI, LLC's development builds of KnowMe, chat and the local memory graph work on macOS and in an Android development build. The Models and Settings tiles are partially present on desktop. Hands, multi-device sync and the plugin system are still being built, and Ask Image, Audio Scribe, Prompt Lab and Skills are designed but not yet built. None of this is publicly available, and KnowMe AI, LLC has not announced a release date.
+
+## What you can use today instead of waiting for KnowMe
+
+You can talk with the KnowMe agent on this site; the site runs on the Universal Agent Runtime, the same agent runtime KnowMe is built on. The KnowMe agent on this site is not the KnowMe app. You can also download The Boss, KnowMe AI, LLC's free, open-source desktop workspace for macOS and Windows, which bundles the Universal Agent Runtime and BossFang.
