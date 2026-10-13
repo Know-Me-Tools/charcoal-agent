@@ -51,6 +51,10 @@ sources:
 
 # Prometheus skill packages status and licence
 
+## Who makes the Prometheus skill packages and what licence they use
+
+Prometheus AGS makes both the full Prometheus Skill Pack and Prometheus Skills Mini.[^full-readme][^mini-readme] Both are MIT licensed, and each repository has a LICENSE file.[^full-license][^mini-license]
+
 ## How many skills the Prometheus skill packages have
 
 Counted by listing the skill folders in the repository on 2026-10-13. The full pack, version 1.12.2 in its `skill-system.json`, has 120 skills in its `skills/<category>/<skill>/` folders, each with a SKILL.md; two of them are imported from other repositories. With nested helper skills it has 404 SKILL.md files in total, not counting installed dependencies.[^full-system] Mini, version 1.12.1 in its `package.json`, has 100 skills in its `skills/<name>/` folders.[^mini-package]
