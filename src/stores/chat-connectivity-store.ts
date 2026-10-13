@@ -11,6 +11,8 @@ import { create } from "zustand";
 export type ChatConnectivityState =
   | { kind: "online" }
   | { kind: "offline" }
+  /** The site spend ceiling was reached (503 `budget_exhausted`); the agent is up. */
+  | { kind: "budget-exhausted" }
   | { kind: "rate-limited"; retryAfterSeconds?: number };
 
 const ONLINE: ChatConnectivityState = { kind: "online" };
@@ -18,6 +20,7 @@ const ONLINE: ChatConnectivityState = { kind: "online" };
 interface ChatConnectivityStore {
   byThread: Record<string, ChatConnectivityState>;
   setOffline(threadId: string): void;
+  setBudgetExhausted(threadId: string): void;
   setRateLimited(threadId: string, retryAfterSeconds?: number): void;
   clear(threadId: string): void;
 }
@@ -28,6 +31,11 @@ export const useChatConnectivityStore = create<ChatConnectivityStore>((set) => (
   setOffline: (threadId) =>
     set((state) => ({
       byThread: { ...state.byThread, [threadId]: { kind: "offline" } },
+    })),
+
+  setBudgetExhausted: (threadId) =>
+    set((state) => ({
+      byThread: { ...state.byThread, [threadId]: { kind: "budget-exhausted" } },
     })),
 
   setRateLimited: (threadId, retryAfterSeconds) =>

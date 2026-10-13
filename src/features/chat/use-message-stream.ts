@@ -82,22 +82,23 @@ interface ErrorResponseBody {
  * `error` codes that mean "the agent itself is unreachable right now" rather
  * than a request-specific failure: UAR down (`upstream_unavailable` 502,
  * `upstream_timeout` 504, `upstream_error` 502 — any other UAR non-2xx), the
- * token budget spent (`budget_exhausted`), the spend meter's own store down
- * — it fails closed (`meter_unavailable`), or the operator's kill switch
- * (`kill_switch_on`). All four show the same static offline notice (FR-27);
- * none of them should ever reach the thread as a per-message error.
+ * spend meter's own store down — it fails closed (`meter_unavailable`), or
+ * the operator's kill switch (`kill_switch_on`). All show the same static
+ * offline notice (FR-27); none of them should ever reach the thread as a
+ * per-message error. `budget_exhausted` is deliberately absent: the agent is
+ * up, a spend limit was hit, and it has its own notice.
  */
 const OFFLINE_ERROR_CODES: ReadonlySet<string> = new Set([
   "upstream_unavailable",
   "upstream_timeout",
   "upstream_error",
-  "budget_exhausted",
   "meter_unavailable",
   "kill_switch_on",
 ]);
 
 type ChatRequestFailure =
   | { kind: "offline" }
+  | { kind: "budget-exhausted" }
   | { kind: "rate-limited"; retryAfterSeconds?: number }
   /** Anything else — a generic, per-message failure (existing behaviour). */
   | { kind: "generic" };
@@ -116,7 +117,15 @@ function classifyResponseFailure(
   if (status === 429) {
     return { kind: "rate-limited", retryAfterSeconds: parseRetryAfterSeconds(retryAfterHeader) };
   }
+  if (body?.error === "budget_exhausted") {
+    return { kind: "budget-exhausted" };
+  }
   if (body?.error && OFFLINE_ERROR_CODES.has(body.error)) {
+    return { kind: "offline" };
+  }
+  // A gateway or proxy answer with no usable code (empty or non-JSON body,
+  // an nginx error page) still means the agent cannot be reached.
+  if (status === 502 || status === 503 || status === 504) {
     return { kind: "offline" };
   }
   return { kind: "generic" };
@@ -218,6 +227,12 @@ export function useMessageStream() {
             useChatConnectivityStore.getState().setOffline(threadId);
             useChatMessageStore.getState().clearStreaming(threadId);
             callbacks?.onError?.(new Error("offline"));
+            return;
+          }
+          if (failure.kind === "budget-exhausted") {
+            useChatConnectivityStore.getState().setBudgetExhausted(threadId);
+            useChatMessageStore.getState().clearStreaming(threadId);
+            callbacks?.onError?.(new Error("budget_exhausted"));
             return;
           }
           if (failure.kind === "rate-limited") {

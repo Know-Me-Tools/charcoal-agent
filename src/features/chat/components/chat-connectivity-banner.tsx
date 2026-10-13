@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import { ClockIcon, WifiOffIcon } from "lucide-react";
+import { ClockIcon, GaugeIcon, WifiOffIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,29 @@ export const ChatConnectivityBanner: FC = () => {
     return (
       <Alert className="mx-auto w-full max-w-(--thread-max-width) rounded-lg border-0 bg-warning-soft px-3 py-2.5 text-warning-text">
         <WifiOffIcon className="size-4" aria-hidden="true" />
+        <AlertTitle className="font-ui text-sm font-semibold text-warning-text">
+          {heading}
+        </AlertTitle>
+        <AlertDescription className="font-body text-sm text-warning-text">
+          {body}
+        </AlertDescription>
+        <Button
+          render={<Link to="/" />}
+          variant="link"
+          size="sm"
+          className="col-start-2 h-auto w-fit justify-self-start p-0 text-sm font-medium text-warning-text underline-offset-2 hover:text-fg focus-cue"
+        >
+          {ctaLabel}
+        </Button>
+      </Alert>
+    );
+  }
+
+  if (connectivity.kind === "budget-exhausted") {
+    const { heading, body, ctaLabel } = CHAT_OFFLINE_STATES_CONTENT.budgetExhaustedNotice;
+    return (
+      <Alert className="mx-auto w-full max-w-(--thread-max-width) rounded-lg border-0 bg-warning-soft px-3 py-2.5 text-warning-text">
+        <GaugeIcon className="size-4" aria-hidden="true" />
         <AlertTitle className="font-ui text-sm font-semibold text-warning-text">
           {heading}
         </AlertTitle>
