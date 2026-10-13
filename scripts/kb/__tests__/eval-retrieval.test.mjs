@@ -40,6 +40,10 @@ async function stub(mode) {
         return;
       }
       res.setHeader("Content-Type", "application/json");
+      if (req.method === "GET" && req.url === "/api/uar/knowledge-bases") {
+        res.end(JSON.stringify([{ id: "other", name: "other" }, { id: KB, name: "knowme-site" }]));
+        return;
+      }
       if (req.method === "GET" && req.url === `/api/uar/knowledge-bases/${KB}/documents`) {
         res.end(JSON.stringify(DOCS));
         return;
@@ -108,4 +112,25 @@ test("fails when the expected file is not in the top 5", async () => {
   const sixth = await evaluate("sixth");
   assert.equal(sixth.code, 1, sixth.text);
   assert.match(sixth.text, /FAIL \[critical\]: What platforms does The Boss support\?/);
+});
+
+test("resolves the knowledge base by name and --verbose prints each returned chunk", async () => {
+  const s = await stub("pass");
+  const lines = [];
+  try {
+    const env = { UAR_BASE_URL: s.env.UAR_BASE_URL, UAR_TOKEN: s.env.UAR_TOKEN, KB_NAME: "knowme-site" };
+    const code = await run(["--questions", QUESTIONS_FILE, "--retry-delay-ms", "0", "--verbose"], env, {
+      log: (l) => lines.push(l),
+    });
+    const text = lines.join("\n");
+    assert.equal(code, 0, text);
+    assert.match(text, /#1 faq\.md \(0\.40\): Questions people ask\./);
+    assert.match(text, /#2 ipfs-sync-for-obsidian\.md \(0\.60\): IPFS Sync for Obsidian is at v0\.2\.0\./);
+    assert.ok(s.requests.some((r) => r.url === "/api/uar/knowledge-bases"), "the knowledge bases were listed");
+    assert.ok(!text.includes(TOKEN), "the token is never printed");
+  } finally {
+    s.server.close();
+  }
+  const missing = await run(["--questions", QUESTIONS_FILE], { UAR_BASE_URL: "http://127.0.0.1:1", UAR_TOKEN: TOKEN }, { log() {} }).catch((e) => e);
+  assert.match(String(missing.message), /KB_ID \(or KB_NAME\)/);
 });
