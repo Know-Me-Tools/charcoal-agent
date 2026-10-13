@@ -1,4 +1,4 @@
-import { PGlite } from "@electric-sql/pglite";
+import type { PGlite } from "@electric-sql/pglite";
 import type { ContentBlock, RichMessage } from "@/types/chat-content";
 import type { LocalThread } from "@/types";
 
@@ -172,7 +172,10 @@ export class CharcoalDb {
     // completed. Do not add `relaxedDurability: true` without re-deriving
     // the write queue's completion guarantees in
     // openspec/changes/chat-persistence-durability/design.md.
-    const db = new PGlite("idb://charcoal-db");
+    // Loaded here, not at module scope, so the PGlite runtime stays out of the
+    // entry chunk. Open already awaits the wasm, so the wait is unchanged.
+    const { PGlite: PGliteCtor } = await import("@electric-sql/pglite");
+    const db = new PGliteCtor("idb://charcoal-db");
     const instance = new CharcoalDb(db);
     await instance.runMigrations(onStatus);
     await instance.migrateFromLocalStorage(onStatus);

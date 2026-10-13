@@ -3,16 +3,20 @@ import {
   unstable_memoizeMarkdownComponents as memoizeMarkdownComponents,
   useIsMarkdownCodeBlock,
 } from "@assistant-ui/react-markdown";
+import { useMessagePartText } from "@assistant-ui/react";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
-import { type FC, memo } from "react";
+import { type FC, memo, useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { MermaidBlock } from "@/features/artifacts/mermaid-block";
 import { HtmlArtifactCard } from "@/features/artifacts/html-artifact-card";
 import { ShikiCodeBlock } from "@/features/artifacts/shiki-code-block";
-import { MARKDOWN_REHYPE_PLUGINS } from "./markdown-rehype-plugins";
+import {
+  buildMarkdownRehypePlugins,
+  MARKDOWN_REHYPE_PLUGINS_NO_MATH,
+  type KatexRehypePlugin,
+} from "./markdown-rehype-plugins";
 
-import "katex/dist/katex.min.css";
 import "@assistant-ui/react-markdown/styles/dot.css";
 
 // Inline code
@@ -256,15 +260,53 @@ const enhancedComponents = memoizeMarkdownComponents({
   code: EnhancedCodeBlock as typeof InlineCode,
 });
 
-const EnhancedMarkdownTextImpl = () => (
-  <MarkdownTextPrimitive
-    remarkPlugins={[remarkGfm, remarkMath]}
-    // Raw HTML -> sanitizer -> reply link/image policy -> KaTeX; the order
-    // and the reasons for it are documented on MARKDOWN_REHYPE_PLUGINS.
-    rehypePlugins={MARKDOWN_REHYPE_PLUGINS}
-    className="aui-md max-w-none wrap-break-word text-fg data-[status=running]:**:after:text-cyan"
-    components={enhancedComponents}
-  />
-);
+let katexPlugin: KatexRehypePlugin | null = null;
+let katexLoad: Promise<KatexRehypePlugin> | null = null;
+
+function loadKatexPlugin(): Promise<KatexRehypePlugin> {
+  katexLoad ??= import("./markdown-katex").then((m) => (katexPlugin = m.rehypeKatex));
+  return katexLoad;
+}
+
+/**
+ * The KaTeX rehype plugin once it has loaded, fetched only the first time a
+ * message contains `$` (remark-math's only trigger). Until then math renders as
+ * plain code, then re-renders typeset when the chunk arrives.
+ */
+function useKatexPlugin(text: string): KatexRehypePlugin | null {
+  const needed = text.includes("$");
+  const [plugin, setPlugin] = useState<KatexRehypePlugin | null>(katexPlugin);
+  useEffect(() => {
+    if (!needed || plugin) return;
+    let live = true;
+    loadKatexPlugin().then(
+      (p) => live && setPlugin(() => p),
+      (err) => console.error("[markdown] KaTeX failed to load", err),
+    );
+    return () => {
+      live = false;
+    };
+  }, [needed, plugin]);
+  return needed ? plugin : null;
+}
+
+const EnhancedMarkdownTextImpl = () => {
+  const { text } = useMessagePartText();
+  const katex = useKatexPlugin(text);
+  // Raw HTML -> sanitizer -> reply link/image policy -> KaTeX; the order and
+  // the reasons for it are documented on `buildMarkdownRehypePlugins`.
+  const rehypePlugins = useMemo(
+    () => (katex ? buildMarkdownRehypePlugins(katex) : MARKDOWN_REHYPE_PLUGINS_NO_MATH),
+    [katex],
+  );
+  return (
+    <MarkdownTextPrimitive
+      remarkPlugins={[remarkGfm, remarkMath]}
+      rehypePlugins={rehypePlugins}
+      className="aui-md max-w-none wrap-break-word text-fg data-[status=running]:**:after:text-cyan"
+      components={enhancedComponents}
+    />
+  );
+};
 
 export const EnhancedMarkdownText = memo(EnhancedMarkdownTextImpl);
