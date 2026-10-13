@@ -1,7 +1,10 @@
 # 13 Local web-search proof (site-web-search tasks 16.6.1 to 16.6.6)
 
-Status: harness written and statically checked; NOT yet run. This directory is
-where the operator's run writes its evidence. Until then it holds only this file.
+Status: first real run 2026-10-13: only the first UAR instance's results are valid
+(16.6.1, 16.6.2-A, 16.6.3, the 16.6.4 prompts other than P3, 16.6.6 meter rows);
+16.6.2-B and P3 failed on lost authentication after the UAR restart (see "Authentication
+after a UAR restart"). The harness is fixed and statically and stub-tested, not yet
+rerun against a real UAR. This directory is where the operator's run writes its evidence.
 
 The tasks need a real model and the real Firecrawl API, so the operator runs
 the harness with their own keys. No agent reads, receives or prints a key.
@@ -53,7 +56,30 @@ do not send them).
 4. Starts the site server with `SITE_AGENT_ID=knowme-site`, `SITE_WEB_AGENT_ID=knowme-site-web`, the meter on the local SurrealDB, and a kill-switch file it creates containing `off`. It uses the documented local path (a minted API key as `SITE_PROXY_API_KEY`), not a gate bypass. It touches no cluster, no `kubectl`, no kill-switch ConfigMap.
 5. Runs the capture steps and prints a PASS/FAIL/UNKNOWN table, then tears everything down.
 
-UAR is restarted twice with other `mcp.json` files (the fixture stub for P3, then no pre-approval for 16.6.2 part B). The database is shared, so agents and the key survive the restarts.
+UAR is restarted twice with other `mcp.json` files (the fixture stub for P3, then no pre-approval for 16.6.2 part B). The database is shared, so the agents and the models' verification receipts survive the restarts. **The site API key does not.**
+
+### Authentication after a UAR restart (first run, 2026-10-13)
+
+The first real run showed the symptom: the first UAR instance worked (16.6.1, 16.6.2-A, 16.6.3 PASS), then 16.6.2-B got HTTP 401 and P3 through the site proxy got 502 (`upstream rejected the request ... status 401 ... route /api/chat/completion`), both seconds after each restart, with the model never reached.
+
+Root cause: UAR stores API keys in process memory only. `src/server.rs` line 1356 to 1357 builds `ApiKeyService` on `InMemoryApiKeyStorage::new()`, a `RwLock<HashMap>` (`src/uar/security/api_keys.rs` lines 145 to 147), and the `x-api-key` path in `middleware.rs` (about line 212) validates only against that store. The key that `seed-site-agent.sh --mint-key-to-file` minted at start therefore died with the first UAR process, while the harness kept handing the same key to the capture steps and, in its environment, to the site server. The agents, the settings and the model receipts live in SurrealDB and did survive; the harness secrets (`jwt`, `admin`) are generated once, not per start, so they were not the cause.
+
+What the harness now does after EVERY UAR restart (`reauth_after_restart`), before the step runs:
+
+1. Re-runs the seed through the same code path as the first seed (`seed_agents_and_key`: `scripts/seed-site-agent.sh` in `SEED_MODE=agent`), which mints a new site key into a side file and re-verifies the models (one tiny real LLM call each time, so a receipt problem could never be mistaken for an auth problem).
+2. Swaps the new key into the file the capture steps read (the previous key is kept in the temp directory only so the final secret scan also searches for it).
+3. Restarts the site server, because it holds the key in its environment.
+4. Makes one authenticated request that needs the key and no model call, `GET /api/agents/knowme-site` with `x-api-key`, which must return 2xx. The same check runs once at start, before any capture.
+
+If any of this fails the step is recorded as `FAIL` with the reason (`auth lost after UAR restart: the authenticated check ... returned HTTP <status>`), not as a rejected request or a model result. A capture step that still receives HTTP 401 or 403 reports `auth lost after UAR restart: HTTP 401 ...; this is a harness state, not a product result`.
+
+## Rerunning only some steps (`--only`)
+
+```sh
+bash scripts/ops/local-web-search-proof.sh --only fixture,approval-off   # P3 and 16.6.2-B; scan runs last
+```
+
+Steps, in run order: `direct` (16.6.1, 16.6.2-A), `budget`, `prompts` (P1, P2, P4 to P8), `skill`, `meter` on the first UAR instance; `fixture` (P3) on the second; `approval-off` (16.6.2-B) on the third; `scan`. `scan` always runs, last, and cannot be selected alone. The setup always runs (SurrealDB, wrapper, UAR, seed, model verification, site server, the authenticated check); the budget variants are seeded only with `budget`, the knowledge base only with `prompts`. Only the selected steps' `result-<step>.json` are replaced; evidence files of steps not selected stay as they were, so a partial rerun adds to the directory. `SUMMARY.json` and the printed table list only the rows of the steps that ran (`run-info.json` records `steps_run`). The wrapper restarts on every run, so its daily cap of 20 starts again; P3 uses the fixture stub, not the wrapper, and 16.6.2-B waits at the approval gate, so a rerun of `fixture,approval-off,scan` makes few or no Firecrawl calls. It still makes real model calls: three tiny model verifications (start and the two restarts) plus the two turns.
 
 ## Task to output mapping
 
@@ -108,7 +134,7 @@ UAR builds that include commit `a42f23bb` answer every chat run with HTTP 422 `m
 
 A request the server rejects is never reported as a model behaviour. When a capture request returns a non-2xx status (or no response), the step is FAIL and the row says `request rejected: HTTP <status>, error.code <code>`; only the `error.code` field is read from the body, nothing else. `http_status` and `rejected` also appear in the per-step JSON files. Before this change such a run showed UNKNOWN "the model made no tool call".
 
-Unverified by the author: the harness has not been run against a real UAR with the gate (no UAR was reachable from the change's environment). If the receipt does not survive the UAR restarts in steps 7 and 8 (its digest covers the provider configuration), the later steps will show `request rejected: HTTP 422, error.code model_not_verified`; that is the signal to add a re-verify after those restarts.
+Unverified by the author: the harness has not been run against a real UAR with the gate (no UAR was reachable from the change's environment). The harness now re-verifies the models after every UAR restart (see "Authentication after a UAR restart"), so a receipt that does not survive a restart cannot surface as a later 422; whether the receipt survives on its own was not tested.
 
 ### Production: the operator verifies the live models
 
