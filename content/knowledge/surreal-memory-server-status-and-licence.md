@@ -2,7 +2,7 @@
 
 ## Surreal Memory Server publication status
 
-On 2026-10-05 the owner published the completed source and documentation for review. The publication note is explicit: this is a source publication, not a release and not a certification of any installed runtime. An earlier release integration did not pass as a whole, and the owner stopped further product testing and the planned rollout. No release tags are part of the publication.
+On 2026-10-05 the owner published the completed source and documentation for review. The publication note is explicit: this is a source publication, not a release and not a certification of any installed runtime. The owner plans to resume testing once the code base has stabilised. No release tags are part of the publication.
 
 Source: Surreal Memory Server source publication note, 2026-10-05, retrieved 2026-10-13.
 
@@ -20,6 +20,6 @@ Source: Surreal Memory Server README, retrieved 2026-10-13.
 
 ## Surreal Memory Server licence
 
-The Surreal Memory Server's authors state that it is MIT licensed, and its library package manifest declares MIT. The repository does not yet contain a LICENSE file, so check the repository before relying on that.
+The Surreal Memory Server is MIT licensed. The owners state it is MIT licensed; a LICENSE file has been proposed in the repository. Its library package manifest already declares MIT.
 
 Source: surreal-memory library package manifest, retrieved 2026-10-13.

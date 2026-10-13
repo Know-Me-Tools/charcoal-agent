@@ -5,7 +5,7 @@ description: What BossFang is, where it comes from, and how it relates to the Un
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-13T00:25:33+00:00"
+  at: "2026-10-13T01:28:18+00:00"
 tags:
   - bossfang
   - overview
@@ -13,26 +13,26 @@ sources:
   - id: bf-agents
     resource: https://github.com/GQAdonis/librefang/blob/main/AGENTS.md
     title: BossFang AGENTS.md, product identity and fork additions
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
   - id: bf-uar
     resource: https://github.com/GQAdonis/librefang/blob/main/docs/bossfang-uar-connections.md
     title: BossFang connects to UAR
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
   - id: bf-releases
     resource: https://github.com/GQAdonis/librefang/releases
     title: BossFang fork releases page
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
   - id: bf-license
     resource: https://github.com/GQAdonis/librefang/blob/main/LICENSE
     title: BossFang repository LICENSE
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
 ---
 
 # BossFang overview
 
 ## What BossFang is
 
-BossFang is a fork of LibreFang, an open-source agent operating system written in Rust. LibreFang manages AI agents backed by language models, along with their tools, memory, messaging channels and networking between agents.[^bf-agents] BossFang keeps that core and changes three things: where data is stored, how memory works, and how it reaches models through the Universal Agent Runtime. It also carries its own name and look.[^bf-agents]
+BossFang is a fork of LibreFang, an open-source agent operating system written in Rust. LibreFang manages AI agents backed by language models, along with their tools, memory, messaging channels and networking between agents.[^bf-agents] BossFang keeps that core and changes three things: where data is stored, how memory works, and how it reaches models through the Universal Agent Runtime. It also carries its own name and look.[^bf-agents] BossFang is made by Prometheus AGS.
 
 ## Where BossFang comes from
 
@@ -48,7 +48,7 @@ BossFang's memory uses the Surreal Memory Server library with an embedded databa
 
 ## Where to get BossFang
 
-BossFang's source is public at https://github.com/GQAdonis/librefang, the BossFang fork of LibreFang.[^bf-agents] Its releases page carries native payloads built for The Boss, several marked pre-release, whose notes say release acceptance is tracked separately.[^bf-releases] No end-user BossFang release or tested install path is established here.
+BossFang's home page is https://bossfang.know-me.tools. Its source code is at https://github.com/GQAdonis/librefang, the BossFang fork of LibreFang.[^bf-agents] Its releases page carries native payloads built for The Boss, several marked pre-release, whose notes say release acceptance is tracked separately.[^bf-releases] No end-user BossFang release or tested install path is established here.
 
 ## More about BossFang
 

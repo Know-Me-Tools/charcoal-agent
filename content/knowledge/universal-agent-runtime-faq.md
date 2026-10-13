@@ -16,7 +16,7 @@ Source: Universal Agent Runtime README, retrieved 2026-10-13.
 
 ## Does the Universal Agent Runtime need a cloud account?
 
-No account with KnowMe AI, LLC is needed. You run UAR yourself, and by default it listens only on your own machine. Hosted models need that provider's credentials. The distributed server bundle includes local model support, and local FastEmbed embeddings are in the top provider tier.
+No account is needed. You run UAR yourself, and by default it listens only on your own machine. Hosted models need that provider's credentials. The distributed server bundle includes local model support, and local FastEmbed embeddings are in the top provider tier.
 
 Source: Universal Agent Runtime README, retrieved 2026-10-13.
 Source: Universal Agent Runtime product support matrix, retrieved 2026-10-13.
@@ -49,10 +49,10 @@ Source: Surreal Memory Server documentation introduction, retrieved 2026-10-13.
 
 ## Where do I download the Universal Agent Runtime?
 
-The Universal Agent Runtime's source is public at https://github.com/Prometheus-AGS/universal-agent-runtime. You can build it from source or install it as a native service with the packages under `packaging/native/`, as its README describes. The Boss desktop app can also run a managed UAR instance as a sidecar program. No tested end-user release of UAR is claimed here.
+The Universal Agent Runtime's source is public at https://github.com/Prometheus-AGS/universal-agent-runtime. You can build it from source or install it as a native service with the packages under `packaging/native/`, as its README describes. The Boss installers also include the Universal Agent Runtime as a bundled program that runs beside The Boss. No tested end-user release of UAR is claimed here.
 
 Source: Universal Agent Runtime README, retrieved 2026-10-13.
-Source: The Boss agent fabric convergence notes, retrieved 2026-10-13.
+Source: The Boss releases page, retrieved 2026-10-13.
 
 ## Does the Universal Agent Runtime need SurrealDB installed separately?
 
@@ -68,3 +68,13 @@ Read CONTRIBUTING.md in https://github.com/Prometheus-AGS/universal-agent-runtim
 
 Source: Universal Agent Runtime contribution guide, retrieved 2026-10-13.
 Source: Universal Agent Runtime README, retrieved 2026-10-13.
+
+## Who makes the Universal Agent Runtime?
+
+Prometheus AGS makes the Universal Agent Runtime; the copyright line in its LICENSE file names Prometheus AGS.
+
+Source: Universal Agent Runtime LICENSE, retrieved 2026-10-13.
+
+## What is Prometheus, behind the Universal Agent Runtime?
+
+Prometheus AGS makes the Universal Agent Runtime, the Surreal Memory Server, BossFang and the Prometheus skill packages. Prometheus is the name of its server-side AI platform work.

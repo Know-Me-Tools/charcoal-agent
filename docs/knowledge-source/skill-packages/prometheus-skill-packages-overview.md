@@ -5,7 +5,7 @@ description: What the Prometheus Skill Pack (full) and Prometheus Skills Mini ar
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-13T00:25:33+00:00"
+  at: "2026-10-13T01:28:18+00:00"
 tags:
   - skill-packages
   - overview
@@ -13,26 +13,26 @@ sources:
   - id: full-readme
     resource: https://github.com/Prometheus-AGS/prometheus-skill-system/blob/main/README.md
     title: Prometheus Skill Pack README
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
   - id: full-intro
     resource: https://github.com/Prometheus-AGS/prometheus-skill-system/blob/main/docs/guide/01-introduction.md
     title: Prometheus Skill Pack guide, introduction
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
   - id: mini-readme
     resource: https://github.com/Prometheus-AGS/prometheus-skills-mini/blob/main/README.md
     title: Prometheus Skills Mini README
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
   - id: boss-site
     resource: https://the-boss.know-me.tools
     title: The Boss website
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
 ---
 
 # Prometheus skill packages overview
 
 ## What the Prometheus skill packages are
 
-A skill is a packaged set of instructions an AI coding assistant can load for a kind of task. The Prometheus skill packages give a coding assistant a repeatable way to plan work, assign ownership, implement a specification and keep useful lessons for later sessions.[^full-readme] There are two packages: the full Prometheus Skill Pack and Prometheus Skills Mini.[^full-readme]
+A skill is a packaged set of instructions an AI coding assistant can load for a kind of task. The Prometheus skill packages give a coding assistant a repeatable way to plan work, assign ownership, implement a specification and keep useful lessons for later sessions.[^full-readme] There are two packages: the full Prometheus Skill Pack and Prometheus Skills Mini.[^full-readme] The Prometheus skill packages are made by Prometheus AGS.
 
 ## The full Prometheus Skill Pack among the Prometheus skill packages
 

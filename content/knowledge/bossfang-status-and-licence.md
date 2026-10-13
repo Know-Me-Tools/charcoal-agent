@@ -8,7 +8,7 @@ Source: BossFang feature ledger, retrieved 2026-10-13.
 
 ## Known gaps in BossFang
 
-The command-line binary is still named `librefang`, although some documents say otherwise. Remote SurrealDB mode is tested through configuration only, not against a live server. BossFang does not yet start its Surreal Memory Server-based semantic memory when it boots, and the ledger notes that this backend's writes are currently rejected. Several recent upstream schema changes have no SurrealDB counterpart yet.
+Remote SurrealDB mode is tested through configuration only, not against a live server. BossFang does not yet start its Surreal Memory Server-based semantic memory when it boots, and the ledger notes that this backend's writes are currently rejected. Several recent upstream schema changes have no SurrealDB counterpart yet.
 
 Source: BossFang feature ledger, retrieved 2026-10-13.
 
@@ -26,10 +26,9 @@ Source: BossFang fork releases page, retrieved 2026-10-13.
 
 ## Installing BossFang
 
-The README mixes upstream LibreFang package channels with fork-specific steps, such as an install script and a Cargo install from the fork. The ledger records that the BossFang binary name is not settled. This knowledge base therefore gives no install command.
+The README mixes upstream LibreFang package channels with fork-specific steps, such as an install script and a Cargo install from the fork. No tested end-user install path is established, so this knowledge base gives no install command.
 
 Source: BossFang repository README, retrieved 2026-10-13.
-Source: BossFang feature ledger, retrieved 2026-10-13.
 
 ## BossFang licence
 

@@ -5,7 +5,7 @@ description: The Surreal Memory Server's memory kinds, search, REST and MCP surf
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-13T00:25:33+00:00"
+  at: "2026-10-13T01:28:18+00:00"
 tags:
   - surreal-memory-server
   - architecture
@@ -13,27 +13,27 @@ sources:
   - id: sms-readme
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/README.md
     title: Surreal Memory Server README
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
   - id: sms-intro
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/website/docs/intro.md
     title: Surreal Memory Server documentation introduction
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
   - id: sms-contract
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/docs/MCP_REST_CONTRACT_MATRIX.md
     title: Surreal Memory Server MCP, REST and storage contract matrix
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
   - id: sms-ops
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/docs/operations.md
     title: Surreal Memory Server operations reference
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
   - id: sms-taskstreams
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/TASKSTREAMS-API.md
     title: Surreal Memory Server TaskStreams REST API
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
   - id: sms-palace
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/docs/PALACE.md
     title: Surreal Memory Server Memory Palace architecture
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
 ---
 
 # How the Surreal Memory Server works
