@@ -76,6 +76,7 @@ PORT_STUB=$((BASE + 2))
 PORT_UAR=$((BASE + 3))
 PORT_SITE=$((BASE + 4))
 PORT_SURREAL=$((BASE + 5))
+PORT_GRPC=$((BASE + 6)) # UAR's A2A gRPC listener; its default 50051 collides with a UAR already running on the machine
 EVIDENCE="${LWS_EVIDENCE_DIR:-$REPO_ROOT/.kbd-orchestrator/phases/site-chat-hardening-and-polish/evidence/13-local-web-search-proof}"
 FIXTURE_WEB="$REPO_ROOT/server/tests/fixtures/web"
 OPS="$REPO_ROOT/scripts/ops"
@@ -171,7 +172,7 @@ preflight() {
 
   echo "ports (loopback, away from 6565 and 8080):"
   local p
-  for p in "$PORT_WRAP:wrapper" "$PORT_STUB:fixture stub" "$PORT_UAR:UAR" "$PORT_SITE:site server" "$PORT_SURREAL:SurrealDB"; do
+  for p in "$PORT_WRAP:wrapper" "$PORT_STUB:fixture stub" "$PORT_UAR:UAR" "$PORT_SITE:site server" "$PORT_SURREAL:SurrealDB" "$PORT_GRPC:UAR gRPC"; do
     port_busy "${p%%:*}" && pf_bad "port ${p%%:*} (${p#*:}) is already in use; set LWS_PORT_BASE to move them" || pf_ok "port ${p%%:*} (${p#*:}) is free"
   done
 
@@ -220,6 +221,9 @@ SECRETS="$WORK/secrets"
 LOGS="$WORK/logs"
 AGENTS="$WORK/agents"
 mkdir -p "$SECRETS" "$LOGS" "$AGENTS" "$WORK/uar-cwd"
+# UAR reads ./config.yaml first and ~/.uar/config.yaml only if it is absent, so an empty
+# one keeps the operator's real config out of the proof.
+printf '{}\n' >"$WORK/uar-cwd/config.yaml"
 chmod 700 "$SECRETS"
 PIDS=()
 
@@ -320,7 +324,7 @@ start_uar() { # mcp.json path
   local cwd="$WORK/uar-cwd"
   [[ "${LWS_UAR_CWD:-}" == repo ]] && cwd="$UAR_REPO_DIR"
   (
-    export PORT="$PORT_UAR" UAR_SERVER__PORT="$PORT_UAR" UAR_SERVER__HOST=127.0.0.1
+    export PORT="$PORT_UAR" UAR_SERVER__PORT="$PORT_UAR" UAR_SERVER__HOST=127.0.0.1 UAR_SERVER__GRPC_PORT="$PORT_GRPC"
     export UAR_SECURITY__JWT_REQUIRED=false UAR_SECURITY__JWT_SECRET UAR_SECURITY__SETTINGS_ADMIN_KEY
     UAR_SECURITY__JWT_SECRET="$(<"$SECRETS/jwt")"
     UAR_SECURITY__SETTINGS_ADMIN_KEY="$(<"$SECRETS/admin")"

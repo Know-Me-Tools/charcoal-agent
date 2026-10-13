@@ -39,7 +39,7 @@ else `../../prometheus/universal-agent-runtime` relative to the main checkout (t
 The preflight greps the binary for the string `preapproved_tools` and stops if it is absent,
 so a stale binary is caught before anything starts.
 
-Ports: wrapper 18101, fixture stub 18102, UAR 18103, site server 18104, SurrealDB 18105
+Ports: wrapper 18101, fixture stub 18102, UAR 18103, site server 18104, SurrealDB 18105, UAR gRPC 18106
 (move them with `LWS_PORT_BASE`). Nothing uses 6565 or 8080. All state is under a
 `mktemp -d` directory that the exit trap removes, bearer file included.
 Set `LWS_KEEP_LOGS=1` to keep the process logs after a failed start (they may contain prompts;
