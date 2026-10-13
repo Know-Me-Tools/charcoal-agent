@@ -49,6 +49,8 @@ import { cn } from "@/lib/utils";
 import { KnowMeMark } from "@/components/brand";
 import { usePersistenceStatus } from "@/hooks/use-persistence-status";
 import { AI_DISCLOSURE_CONTENT } from "../../../content/site/ai-disclosure";
+import { EMPTY_STATE_CONTENT } from "../../../content/site/empty-state";
+import { isSiteBuild } from "@/hooks/use-site-config";
 import { isFirstAssistantMessageIndex } from "@/features/chat/first-assistant-message";
 
 // ─── Root Thread ─────────────────────────────────────────────────────────────
@@ -77,7 +79,7 @@ export const EnhancedThread: FC<EnhancedThreadProps> = ({
 				className="aui-thread-viewport relative flex flex-1 flex-col overflow-x-hidden overflow-y-scroll scroll-smooth px-4 pt-6"
 			>
 				<AuiIf condition={(s) => s.thread.isEmpty}>
-					<KnowMeWelcome />
+					<ThreadWelcome />
 				</AuiIf>
 
 				<ThreadPrimitive.Messages>
@@ -107,6 +109,28 @@ export const EnhancedThread: FC<EnhancedThreadProps> = ({
 };
 
 // ─── Welcome Screen ───────────────────────────────────────────────────────────
+
+/** Empty-thread welcome: site copy on the public site build, the app's otherwise. */
+export const ThreadWelcome: FC = () => (isSiteBuild() ? <SiteWelcome /> : <KnowMeWelcome />);
+
+// Site copy is DRAFT (content/site/empty-state.ts). The AI note reuses the
+// disclosure label rather than restating it. Starter prompts come in change 07.
+const SiteWelcome: FC = () => (
+	<div className="mx-auto my-auto flex w-full max-w-(--thread-max-width) grow flex-col">
+		<div className="flex w-full grow flex-col items-center justify-center gap-4 px-4 text-center">
+			<div className="flex items-center justify-center rounded-2xl bg-surface p-4 text-fg">
+				<KnowMeMark size={32} />
+			</div>
+			<h1 className="font-display font-semibold text-2xl tracking-tight text-fg">
+				{EMPTY_STATE_CONTENT.heading}
+			</h1>
+			<p className="max-w-md font-body text-sm text-fg-secondary leading-relaxed">
+				{EMPTY_STATE_CONTENT.description}
+			</p>
+			<p className="max-w-md font-mono text-xs text-faint">{AI_DISCLOSURE_CONTENT.label}</p>
+		</div>
+	</div>
+);
 
 const KnowMeWelcome: FC = () => {
 	return (
@@ -179,12 +203,16 @@ interface ComposerProps {
 	onTogglePromptCaching?: () => void;
 }
 
-const EnhancedComposer: FC<ComposerProps> = ({ promptCachingEnabled, onTogglePromptCaching }) => (
+export const EnhancedComposer: FC<ComposerProps> = ({ promptCachingEnabled, onTogglePromptCaching }) => {
+	// The public site has no prompt-caching control (a runtime setting, not a
+	// visitor's choice) and its own placeholder.
+	const siteBuild = isSiteBuild();
+	return (
 	<ComposerPrimitive.Root className="relative flex w-full flex-col">
 		<ComposerPrimitive.AttachmentDropzone className="group relative flex w-full flex-col rounded-xl bg-composer px-1 pt-2 transition-hover focus-within:bg-raised has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring data-[dragging=true]:bg-hover">
 			<ComposerAttachments />
 			<ComposerPrimitive.Input
-				placeholder="Ask your agent anything…"
+				placeholder={siteBuild ? EMPTY_STATE_CONTENT.composerPlaceholder : "Ask your agent anything…"}
 				className="mb-1 max-h-48 min-h-14 w-full resize-none bg-transparent px-4 py-3 font-body text-[0.9375rem] text-fg leading-relaxed caret-ember outline-none placeholder:text-faint focus-visible:outline-none"
 				rows={1}
 				autoFocus
@@ -192,7 +220,7 @@ const EnhancedComposer: FC<ComposerProps> = ({ promptCachingEnabled, onTogglePro
 			/>
 			<ComposerActionBar
 				promptCachingEnabled={promptCachingEnabled}
-				onTogglePromptCaching={onTogglePromptCaching}
+				onTogglePromptCaching={siteBuild ? undefined : onTogglePromptCaching}
 			/>
 			<div className="pointer-events-none absolute inset-0 hidden items-center justify-center gap-2 rounded-xl bg-hover font-ui text-sm font-semibold text-fg group-data-[dragging=true]:flex">
 				<PaperclipIcon className="size-4" aria-hidden="true" />
@@ -200,7 +228,8 @@ const EnhancedComposer: FC<ComposerProps> = ({ promptCachingEnabled, onTogglePro
 			</div>
 		</ComposerPrimitive.AttachmentDropzone>
 	</ComposerPrimitive.Root>
-);
+	);
+};
 
 const ComposerActionBar: FC<ComposerProps> = ({ promptCachingEnabled, onTogglePromptCaching }) => {
 	const isCachingOn = promptCachingEnabled === true;

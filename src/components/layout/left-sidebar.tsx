@@ -268,9 +268,10 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
         )}
       </div>
 
-      {/* Footer: UAR status + account link (JWT only, never on the site build — /settings is hidden there) */}
+      {/* Footer: UAR status + account link (JWT only). Neither on the site build: the status is
+          infra detail (it showed visitors "localhost") and /settings is hidden there. */}
       <div className="px-1.5 pt-2 pb-1.5">
-        <UarStatus />
+        {!siteBuild && <UarStatus />}
         {!siteBuild && isJwtConfigured() && (
           <button
             type="button"
