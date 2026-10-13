@@ -4,6 +4,13 @@
 #
 #   bash scripts/ops/local-web-search-proof.sh --dry-run   # preflight and plan only
 #   bash scripts/ops/local-web-search-proof.sh             # the real run
+#   bash scripts/ops/local-web-search-proof.sh --only fixture,approval-off   # rerun just those capture steps
+#
+# Flags: --dry-run, --skip-build, --only <step,step,...>. Steps, in run order: direct, budget,
+# prompts, skill, meter (first UAR instance), fixture (P3, second instance), approval-off
+# (16.6.2-B, third instance), scan. 'scan' always runs, last. The setup (SurrealDB, wrapper, UAR,
+# seed, model verification, site server) always runs. With --only, only the steps named have
+# their result files replaced, and SUMMARY.json lists only the steps that ran.
 #
 # What it does, in order (see the README in the evidence directory):
 #   1. Preflight: env var NAMES (printed as set/MISSING, never the value), the
@@ -15,7 +22,10 @@
 #      spend meter), the wrapper, UAR (twice more with other mcp.json files), a
 #      stub wrapper for the injection fixture (P3), and the site server.
 #   4. Seeds both agents with scripts/seed-site-agent.sh against that local UAR.
-#   5. Runs web-proof-capture.mjs for each task and prints PASS/FAIL/UNKNOWN.
+#   5. Runs web-proof-capture.mjs for each task and prints PASS/FAIL/UNKNOWN. UAR keeps its API keys
+#      in memory only (src/server.rs InMemoryApiKeyStorage), so after EVERY UAR restart the harness
+#      re-runs the seed (new site API key, models re-verified), restarts the site server with that key
+#      and makes one authenticated GET that must return 2xx before any capture step runs.
 #   6. Always, on exit: kills what it started and removes the temp directory,
 #      which holds the generated bearer token and the other generated secrets.
 #
@@ -55,20 +65,54 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 DRY_RUN=0
 SKIP_BUILD=0
 
-for arg in "$@"; do
-  case "$arg" in
+ALL_STEPS="direct budget prompts skill meter fixture approval-off"
+ONLY=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
     --dry-run) DRY_RUN=1 ;;
     --skip-build) SKIP_BUILD=1 ;;
+    --only)
+      [[ $# -ge 2 ]] || {
+        echo "--only needs a comma-separated list of steps" >&2
+        exit 2
+      }
+      ONLY="$2"
+      shift
+      ;;
+    --only=*) ONLY="${1#--only=}" ;;
     -h | --help)
       sed -n '2,/^# Optional knobs/p' "$0" | sed 's/^# \{0,1\}//'
       exit 0
       ;;
     *)
-      echo "unknown argument: $arg (use --dry-run, --skip-build or --help)" >&2
+      echo "unknown argument: $1 (use --dry-run, --skip-build, --only <steps> or --help)" >&2
       exit 2
       ;;
   esac
+  shift
 done
+if [[ -n "$ONLY" ]]; then
+  ONLY_CLEAN=""
+  IFS=',' read -r -a _only_list <<<"$ONLY"
+  for _s in "${_only_list[@]}"; do
+    [[ -n "$_s" ]] || continue
+    if [[ "$_s" == scan ]]; then continue; fi # scan always runs
+    case " $ALL_STEPS " in
+      *" $_s "*) ONLY_CLEAN="${ONLY_CLEAN:+$ONLY_CLEAN,}$_s" ;;
+      *)
+        echo "unknown step '$_s' in --only (steps: direct, approval-off, budget, prompts, fixture, skill, meter, scan)" >&2
+        exit 2
+        ;;
+    esac
+  done
+  [[ -n "$ONLY_CLEAN" ]] || {
+    echo "--only named no capture step (scan alone is not a run)" >&2
+    exit 2
+  }
+  ONLY="$ONLY_CLEAN"
+fi
+# want <step>: true when the step is selected (always, without --only).
+want() { [[ -z "$ONLY" || ",$ONLY," == *",$1,"* ]]; }
 
 BASE="${LWS_PORT_BASE:-18100}"
 PORT_WRAP=$((BASE + 1))
@@ -182,9 +226,12 @@ preflight() {
 }
 
 print_plan() {
+  local ONLY_PLAN
+  ONLY_PLAN="selects capture steps: direct, budget, prompts, skill, meter, fixture, approval-off (scan always runs last); setup always runs; SUMMARY.json shows only the steps that ran"
   cat <<EOF
 
 PLAN (nothing is started in --dry-run)
+  steps selected  ${ONLY:-all (direct budget prompts skill meter fixture approval-off)} + scan (always, last)
   temp dir        \${TMPDIR:-/tmp}/lws-proof.XXXXXX (mode 700; holds generated secrets; removed on exit)
   evidence dir    ${EVIDENCE#"$REPO_ROOT"/}
   ports           wrapper $PORT_WRAP, fixture stub $PORT_STUB, UAR $PORT_UAR, site server $PORT_SITE, SurrealDB $PORT_SURREAL
@@ -196,9 +243,15 @@ PLAN (nothing is started in --dry-run)
                   seed run, needed by UAR builds with the model_not_verified gate)
   5  start        site server (SITE_AGENT_ID=knowme-site, SITE_WEB_AGENT_ID=knowme-site-web, meter on the local SurrealDB)
   6  capture      16.6.1 direct + proxy, 16.6.2 (preapproved), 16.6.3 budget, 16.6.4 P1 P2 P4-P8, 16.6.5 activate_skill, 16.6.6 meter rows
+     auth check   one authenticated GET (agent 'knowme-site', x-api-key, no model call) must return 2xx before step 6
   7  restart UAR  with the fixture stub as 'websearch': 16.6.4 P3 (injection fixture)
   8  restart UAR  with mcp.json WITHOUT preapproved_tools: 16.6.2 (20 s cap, reported as 'would wait')
-  9  finish       secret scan of the evidence, PASS/FAIL/UNKNOWN table, teardown
+     after EVERY restart (7 and 8): UAR keeps API keys in memory only, so the harness re-runs the seed
+                  (mints a new site key into the file the capture steps read, re-verifies the models),
+                  restarts the site server with that key, and repeats the authenticated GET, which must
+                  return 2xx before the step runs; otherwise the step is FAIL 'auth lost after UAR restart'
+  9  finish       secret scan of the evidence (always last), PASS/FAIL/UNKNOWN table, teardown
+  --only <steps>  $ONLY_PLAN
 EOF
 }
 
@@ -459,18 +512,33 @@ seed() { # label, then env assignments via `env`-free exports in a subshell
   ) >"$LOGS/seed-$label.log" 2>&1
 }
 
+# seed_agents_and_key <label> <key-file>: the one code path that registers the site API key and
+# verifies the models. UAR holds API keys in memory only (src/server.rs InMemoryApiKeyStorage), so it
+# runs once at start and again after every UAR restart (reauth_after_restart).
+seed_agents_and_key() {
+  SEED_EXTRA_ARGS=(--mint-key-to-file "$2")
+  if seed "$1" SEED_MODE=agent SEED_WEB_AGENT=1 "AGENT_FILE=$AGENTS/knowme-site.json" "WEB_AGENT_FILE=$AGENTS/knowme-site-web.json"; then
+    SEED_EXTRA_ARGS=()
+    return 0
+  fi
+  SEED_EXTRA_ARGS=()
+  return 1
+}
+
 log "seeding agents knowme-site and knowme-site-web, and the site API key"
-SEED_EXTRA_ARGS=(--mint-key-to-file "$SECRETS/site-key")
-seed agents SEED_MODE=agent SEED_WEB_AGENT=1 "AGENT_FILE=$AGENTS/knowme-site.json" "WEB_AGENT_FILE=$AGENTS/knowme-site-web.json" || die "agent seed failed (rerun with LWS_KEEP_LOGS=1 to read $LOGS/seed-agents.log)"
-SEED_EXTRA_ARGS=()
+seed_agents_and_key agents "$SECRETS/site-key" || die "agent seed failed (rerun with LWS_KEEP_LOGS=1 to read $LOGS/seed-agents.log)"
 [[ -s "$SECRETS/site-key" ]] || die "the seed did not mint the site API key"
-for n in 1 4; do
-  seed "budget-$n" SEED_MODE=agent SEED_WEB_AGENT=0 "AGENT_FILE=$AGENTS/lws-budget-$n.json" || die "budget variant $n seed failed"
-done
+if want budget; then
+  for n in 1 4; do
+    seed "budget-$n" SEED_MODE=agent SEED_WEB_AGENT=0 "AGENT_FILE=$AGENTS/lws-budget-$n.json" || die "budget variant $n seed failed"
+  done
+fi
 log "agents seeded and their models verified (details: $LOGS/seed-agents.log, kept with LWS_KEEP_LOGS=1)"
 
 KB_SEEDED=0
-if [[ "$KB_ENABLED" == 1 ]]; then
+if [[ "$KB_ENABLED" == 1 ]] && ! want prompts; then
+  log "knowledge base seed skipped (--only without prompts: only P2 and P8 read it)"
+elif [[ "$KB_ENABLED" == 1 ]]; then
   log "seeding the knowledge base (best effort; a failure here is recorded, not fatal)"
   if seed kb SEED_MODE=kb "KB_EMBEDDING_PROVIDER=openai" "KB_EMBEDDING_MODEL=$KB_EMB_MODEL" "KB_VECTOR_DIMENSIONS=$KB_DIMS" "INGEST_WAIT_SECS=240"; then
     KB_SEEDED=1
@@ -483,23 +551,83 @@ else
 fi
 
 # ── 6. Site server ───────────────────────────────────────────────────────────
+SITE_PID=""
+start_site() {
+  (
+    export UAR_UPSTREAM="$UAR_URL" SITE_PROXY_API_KEY SITE_SESSION_SECRET SITE_METER_PASS
+    SITE_PROXY_API_KEY="$(<"$SECRETS/site-key")"
+    SITE_SESSION_SECRET="$(<"$SECRETS/session")"
+    SITE_METER_PASS="$(<"$SECRETS/meter-pass")"
+    export SITE_AGENT_ID=knowme-site SITE_WEB_AGENT_ID=knowme-site-web SITE_METER_URL="$SURREAL_URL" SITE_METER_USER="$METER_USER"
+    export SITE_KILL_SWITCH_FILE="$WORK/kill-switch" KNOWME_WEB_ROOT="$FIXTURE_WEB" PORT="$PORT_SITE"
+    export CHAT_RATE_PER_MIN=600 CHAT_BURST=100 RUST_LOG=info
+    exec "$SERVER_BIN"
+  ) >>"$LOGS/server.log" 2>&1 &
+  SITE_PID=$!
+  PIDS+=("$SITE_PID")
+}
+
+stop_site() {
+  if [[ -n "$SITE_PID" ]]; then
+    kill "$SITE_PID" 2>/dev/null || true
+    wait "$SITE_PID" 2>/dev/null || true
+    SITE_PID=""
+  fi
+}
+
+# auth_check: one authenticated request that needs the site API key and no model call
+# (GET /api/agents/knowme-site, x-api-key). Prints the HTTP status; returns 0 only on 2xx.
+auth_check() {
+  (umask 077 && printf 'x-api-key: %s\n' "$(<"$SECRETS/site-key")" >"$SECRETS/key-header")
+  local status
+  status="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 -H "@$SECRETS/key-header" "$UAR_URL/api/agents/knowme-site" 2>/dev/null)" || status=000
+  printf '%s' "$status"
+  [[ "$status" == 2?? ]]
+}
+
+# reauth_after_restart <label>: what a freshly started UAR needs again. Its API key store is in
+# memory, so the key the site server and the capture steps hold is unknown to it. Re-run the seed
+# (new key into a side file, models re-verified), swap the key file in, restart the site server
+# (it holds the key in its environment) and require the authenticated GET to return 2xx.
+# Returns non-zero with AUTH_FAIL_REASON set; never prints a key.
+AUTH_FAIL_REASON=""
+reauth_after_restart() {
+  log "re-establishing auth after UAR restart ($1): re-seeding, new site key, models re-verified"
+  rm -f "$SECRETS/site-key.new"
+  if ! seed_agents_and_key "reauth-$1" "$SECRETS/site-key.new" || [[ ! -s "$SECRETS/site-key.new" ]]; then
+    AUTH_FAIL_REASON="the re-seed after the UAR restart failed (see $LOGS/seed-reauth-$1.log with LWS_KEEP_LOGS=1)"
+    return 1
+  fi
+  cp "$SECRETS/site-key" "$SECRETS/site-key-prev-$1" # kept only so the final secret scan also looks for the earlier key
+  mv -f "$SECRETS/site-key.new" "$SECRETS/site-key"
+  stop_site
+  start_site
+  if ! wait_http "$SITE_URL/readyz" 60 "site server (new key)"; then
+    AUTH_FAIL_REASON="the site server did not become ready after the restart"
+    return 1
+  fi
+  local st
+  if ! st="$(auth_check)"; then
+    AUTH_FAIL_REASON="auth lost after UAR restart: the authenticated check GET /api/agents/knowme-site returned HTTP $st, not 2xx, even after re-minting the key"
+    return 1
+  fi
+  log "auth re-established after restart ($1): authenticated GET returned HTTP $st"
+}
+
 log "starting the site server on port $PORT_SITE"
-(
-  export UAR_UPSTREAM="$UAR_URL" SITE_PROXY_API_KEY SITE_SESSION_SECRET SITE_METER_PASS
-  SITE_PROXY_API_KEY="$(<"$SECRETS/site-key")"
-  SITE_SESSION_SECRET="$(<"$SECRETS/session")"
-  SITE_METER_PASS="$(<"$SECRETS/meter-pass")"
-  export SITE_AGENT_ID=knowme-site SITE_WEB_AGENT_ID=knowme-site-web SITE_METER_URL="$SURREAL_URL" SITE_METER_USER="$METER_USER"
-  export SITE_KILL_SWITCH_FILE="$WORK/kill-switch" KNOWME_WEB_ROOT="$FIXTURE_WEB" PORT="$PORT_SITE"
-  export CHAT_RATE_PER_MIN=600 CHAT_BURST=100 RUST_LOG=info
-  exec "$SERVER_BIN"
-) >"$LOGS/server.log" 2>&1 &
-PIDS+=($!)
+start_site
 wait_http "$SITE_URL/readyz" 60 "site server" || die "site server did not become ready"
+AUTH_STATUS="$(auth_check)" || die "auth check failed before any capture: GET /api/agents/knowme-site with the minted site key returned HTTP $AUTH_STATUS, not 2xx. The key is not valid on this UAR; nothing was captured."
+log "auth check passed: authenticated GET returned HTTP $AUTH_STATUS"
 
 # ── 7. Capture ───────────────────────────────────────────────────────────────
 mkdir -p "$EVIDENCE"
-rm -f "$EVIDENCE"/result-*.json "$EVIDENCE/SUMMARY.json" "$EVIDENCE/scan.json"
+rm -f "$EVIDENCE/SUMMARY.json" "$EVIDENCE/scan.json" "$EVIDENCE/result-scan.json"
+if [[ -z "$ONLY" ]]; then
+  rm -f "$EVIDENCE"/result-*.json
+else
+  for _s in $ALL_STEPS; do want "$_s" && rm -f "$EVIDENCE/result-$_s.json"; done
+fi
 capture() { # step [extra flags]
   local s="$1"
   shift
@@ -508,23 +636,49 @@ capture() { # step [extra flags]
     --site-key-file "$SECRETS/site-key" --wrapper-log "$LOGS/wrapper.log" "$@" || log "step '$s' failed (exit $?); it will show as not run"
 }
 
-capture direct
-capture budget
-capture prompts
-capture skill
-capture meter --surreal "$SURREAL_URL" --surreal-root-file "$SECRETS/surreal-root"
+# fail_step <step> <task> <detail>: a step that could not run is a FAIL row with the reason,
+# never an empty "not run" that reads like a product result.
+fail_step() {
+  jq -n --arg step "$1" --arg task "$2" --arg detail "$3" '{step: $step, results: [{task: $task, status: "FAIL", detail: $detail}]}' >"$EVIDENCE/result-$1.json"
+  log "step '$1' FAILED without running: $3"
+}
 
-log "restarting UAR with the injection fixture standing in for the wrapper (P3)"
-stop_uar
-start_stub
-wait_http "http://127.0.0.1:$PORT_STUB/healthz" 20 "fixture stub"
-start_uar "$MCP_FIXTURE"
-wait_http "$UAR_URL/readyz" 120 "UAR (fixture)" && capture fixture --stub-log "$LOGS/stub.log"
+want direct && capture direct
+want budget && capture budget
+want prompts && capture prompts
+want skill && capture skill
+want meter && capture meter --surreal "$SURREAL_URL" --surreal-root-file "$SECRETS/surreal-root"
 
-log "restarting UAR with an mcp.json WITHOUT preapproved_tools (16.6.2, 20 s cap)"
-stop_uar
-start_uar "$MCP_PLAIN"
-wait_http "$UAR_URL/readyz" 120 "UAR (no pre-approval)" && capture approval-off
+# restart_and_capture <label> <mcp.json> <step> <task> [capture flags]: restart UAR, re-establish
+# what the new instance needs (reauth_after_restart), and only then capture.
+restart_and_capture() {
+  local label="$1" mcp="$2" step="$3" task="$4"
+  shift 4
+  stop_uar
+  start_uar "$mcp"
+  if ! wait_http "$UAR_URL/readyz" 120 "UAR ($label)"; then
+    fail_step "$step" "$task" "UAR ($label) did not become ready after the restart"
+    return 0
+  fi
+  if ! reauth_after_restart "$label"; then
+    fail_step "$step" "$task" "$AUTH_FAIL_REASON"
+    return 0
+  fi
+  capture "$step" "$@"
+}
+
+if want fixture; then
+  log "restarting UAR with the injection fixture standing in for the wrapper (P3)"
+  stop_uar
+  start_stub
+  wait_http "http://127.0.0.1:$PORT_STUB/healthz" 20 "fixture stub" || log "fixture stub did not answer /healthz; P3 will report why"
+  restart_and_capture fixture "$MCP_FIXTURE" fixture 16.6.4-P3 --stub-log "$LOGS/stub.log"
+fi
+
+if want approval-off; then
+  log "restarting UAR with an mcp.json WITHOUT preapproved_tools (16.6.2, 20 s cap)"
+  restart_and_capture no-preapproval "$MCP_PLAIN" approval-off 16.6.2-B
+fi
 stop_uar
 
 # ── 8. Run info, sanitised wrapper log, scan, summary ───────────────────────
@@ -539,17 +693,22 @@ jq -n \
   --arg llm_group "$LLM_MODE" --arg model "$LLM_MODEL" \
   --argjson model_overridden "$MODEL_OVERRIDDEN" \
   --argjson kb_seeded "$KB_SEEDED" \
+  --arg only "${ONLY:-all}" \
   --arg node "$(node -p process.versions.node)" \
   --arg surreal "$(surreal version 2>/dev/null | head -n1 || echo unknown)" \
   --argjson ports "{\"wrapper\":$PORT_WRAP,\"stub\":$PORT_STUB,\"uar\":$PORT_UAR,\"site\":$PORT_SITE,\"surreal\":$PORT_SURREAL}" \
   '{date:$date, repo_commit:$repo_commit, uar_checkout_head_not_necessarily_the_binary:$uar_checkout_head, uar_binary_mtime:$uar_binary_mtime,
     llm_group:$llm_group, model:$model, agent_model_overridden_from_committed_file:$model_overridden, kb_seeded:($kb_seeded==1),
-    node:$node, surreal:$surreal, ports:$ports, wrapper_daily_cap:20}' >"$EVIDENCE/run-info.json"
+    node:$node, surreal:$surreal, ports:$ports, wrapper_daily_cap:20, steps_run:$only}' >"$EVIDENCE/run-info.json"
 
+SECRET_FILES="mcp-auth=$SECRETS/mcp-auth,site-key=$SECRETS/site-key"
+for f in "$SECRETS"/site-key-prev-*; do
+  [[ -f "$f" ]] && SECRET_FILES="$SECRET_FILES,site-key-prev-${f##*-prev-}=$f"
+done
 capture scan --env-names "FIRECRAWL_API_KEY,QWEN_TOKEN_PLAN_API_KEY,DASHSCOPE_API_KEY,OPENAI_API_KEY" \
-  --secret-files "mcp-auth=$SECRETS/mcp-auth,site-key=$SECRETS/site-key,jwt=$SECRETS/jwt,admin=$SECRETS/admin,session=$SECRETS/session,surreal-root=$SECRETS/surreal-root,meter-pass=$SECRETS/meter-pass"
+  --secret-files "$SECRET_FILES,jwt=$SECRETS/jwt,admin=$SECRETS/admin,session=$SECRETS/session,surreal-root=$SECRETS/surreal-root,meter-pass=$SECRETS/meter-pass"
 
 RC=0
-node "$OPS/web-proof-capture.mjs" summary --out "$EVIDENCE" || RC=$?
+node "$OPS/web-proof-capture.mjs" summary --out "$EVIDENCE" ${ONLY:+--ran "$ONLY,scan"} || RC=$?
 log "evidence written to ${EVIDENCE#"$REPO_ROOT"/}"
 exit "$RC"

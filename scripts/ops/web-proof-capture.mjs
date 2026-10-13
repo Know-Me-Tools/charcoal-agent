@@ -115,7 +115,10 @@ function rejection(status, error, capped, raw) {
   return { http_status: status, error_code: safe, transport_error: status === 0 ? String(error ?? "no response") : null };
 }
 
-const rejectedText = (r) => `request rejected: HTTP ${r.http_status}${r.error_code ? `, error.code ${r.error_code}` : ""}${r.transport_error ? `, ${r.transport_error}` : ""} (the model was never reached; not a "no tool call" result)`;
+const rejectedText = (r) =>
+  r.http_status === 401 || r.http_status === 403
+    ? `auth lost after UAR restart: HTTP ${r.http_status}${r.error_code ? `, error.code ${r.error_code}` : ""}; the site API key is not valid on this UAR instance (UAR keeps API keys in memory), so the model was never reached; this is a harness state, not a product result`
+    : `request rejected: HTTP ${r.http_status}${r.error_code ? `, error.code ${r.error_code}` : ""}${r.transport_error ? `, ${r.transport_error}` : ""} (the model was never reached; not a "no tool call" result)`;
 
 function tryJson(text) {
   try {
@@ -557,24 +560,33 @@ function stepScan() {
 function stepSummary() {
   const all = {};
   for (const f of readdirSync(out).filter((n) => /^result-.*\.json$/.test(n))) for (const r of JSON.parse(readFileSync(join(out, f), "utf8")).results) all[r.task] = r;
+  // --ran step,step: the harness ran only these steps (--only); rows for steps that did not run are left out.
+  const ran = flags.ran ? new Set(flags.ran.split(",").filter(Boolean)) : null;
+  const ranStep = (name) => !ran || ran.has(name);
   const worst = (parts) => {
     const have = parts.filter(Boolean);
     if (have.length < parts.length) return ["UNKNOWN", "a step did not run"];
     const status = have.some((r) => r.status === "FAIL") ? "FAIL" : have.some((r) => r.status === "UNKNOWN") ? "UNKNOWN" : "PASS";
     return [status, have.map((r) => `${r.task}: ${r.detail}`).join(" | ")];
   };
+  // [row, { step: task ids that step produces for the row }]
   const rows = [
-    ["16.6.1", ...worst([all["16.6.1"]])],
-    ["16.6.2", ...worst([all["16.6.2-A"], all["16.6.2-B"]])],
-    ["16.6.3", ...worst([all["16.6.3"]])],
-    ["16.6.4", ...worst(["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8"].map((p) => all[`16.6.4-${p}`]))],
-    ["16.6.5", ...worst([all["16.6.5"]])],
-    ["16.6.6 meter rows", ...worst([all["16.6.6"]])],
-    ["16.6.6 credits", ...worst([all["16.6.6-credits"]])],
-    ["secret scan", ...worst([all.scan])],
-  ].map(([task, status, detail]) => ({ task, status, detail }));
+    ["16.6.1", { direct: ["16.6.1"] }],
+    ["16.6.2", { direct: ["16.6.2-A"], "approval-off": ["16.6.2-B"] }],
+    ["16.6.3", { budget: ["16.6.3"] }],
+    ["16.6.4", { prompts: ["P1", "P2", "P4", "P5", "P6", "P7", "P8"].map((p) => `16.6.4-${p}`), fixture: ["16.6.4-P3"] }],
+    ["16.6.5", { skill: ["16.6.5"] }],
+    ["16.6.6 meter rows", { meter: ["16.6.6"] }],
+    ["16.6.6 credits", { meter: ["16.6.6-credits"] }],
+    ["secret scan", { scan: ["scan"] }],
+  ]
+    .map(([task, bySteps]) => [task, Object.entries(bySteps).filter(([step]) => ranStep(step)).flatMap(([, ids]) => ids)])
+    .filter(([, ids]) => ids.length)
+    .map(([task, ids]) => [task, ...worst(ids.map((id) => all[id]))])
+    .map(([task, status, detail]) => ({ task, status, detail }));
   write("SUMMARY.json", rows);
   console.log("");
+  if (ran) console.log(`Steps run: ${[...ran].join(", ")} (other rows omitted)`);
   console.log("| Task | Result |");
   console.log("|---|---|");
   for (const r of rows) console.log(`| ${r.task} | ${r.status} |`);
