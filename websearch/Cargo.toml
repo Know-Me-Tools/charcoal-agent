@@ -1,0 +1,67 @@
+# TJ-ARCH-MOB-001 compliant
+#
+# site-websearch: the one web-search tool of the public KnowMe site agent
+# (OpenSpec change `site-web-search`, design.md section 3, option A+). An MCP
+# server over streamable HTTP with exactly one tool, `search(query)`, that
+# calls Firecrawl `POST /v2/search` with fixed parameters and returns only a
+# title, an https URL and a short snippet per hit. It is the only holder of
+# the Firecrawl API key.
+#
+# A standalone crate (its own Cargo.lock), not a member of `server/`: the two
+# binaries ship as separate images and share no code.
+#
+# Pins are exact (`=x.y.z`). Every version below was the latest stable
+# release on crates.io on 2026-10-13 (checked against the crates.io API), a
+# free choice not forced by a conflict, so they may be raised together with a
+# Cargo.lock refresh. axum, reqwest, thiserror, tracing and
+# tracing-subscriber match the `server/` pins in versions.toml; tokio
+# (1.53.2) and serde_json (1.0.154) are one patch newer than `server/`.
+# versions.toml is authoritative and agent-read-only: these pins still need a
+# `websearch/` entry there, added by hand (see the change report).
+
+[package]
+name = "site-websearch"
+version = "0.1.0"
+description = "KnowMe site web-search MCP wrapper: one search tool over Firecrawl"
+authors = ["KnowMe AI, LLC"]
+license = "UNLICENSED"
+edition = "2024"
+# The hybrid-mobile-architecture tool matrix minimum, same as server/.
+rust-version = "1.97.1"
+publish = false
+
+[lib]
+name = "site_websearch"
+path = "src/lib.rs"
+
+[[bin]]
+name = "site-websearch"
+path = "src/main.rs"
+
+[dependencies]
+# http1 only: UAR's rmcp client talks HTTP/1.1 to the Service.
+axum = { version = "=0.8.9", default-features = false, features = ["http1", "json", "tokio", "tracing"] }
+tokio = { version = "=1.53.2", features = ["rt-multi-thread", "macros", "net", "signal", "time", "sync"] }
+# `rustls` (reqwest 0.13's default TLS: rustls + aws-lc-rs + the platform
+# verifier, which reads the distroless image's CA bundle). No http2, no
+# system proxy, no json helper: the request body is serialized by hand so its
+# exact shape is the struct below it.
+reqwest = { version = "=0.13.5", default-features = false, features = ["rustls"] }
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.154"
+thiserror = "=2.0.21"
+tracing = "=0.1.44"
+tracing-subscriber = { version = "=0.3.23", default-features = false, features = ["std", "fmt", "env-filter", "json"] }
+# Result URL validation (https only, no userinfo, no fragment).
+url = "=2.5.8"
+# Constant-time comparison of the UAR bearer.
+subtle = "=2.6.1"
+
+[dev-dependencies]
+# Fake Firecrawl upstream for the wrapper tests. Latest release (2025-08-24).
+wiremock = "=0.6.5"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "symbols"

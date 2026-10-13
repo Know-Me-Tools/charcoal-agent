@@ -1,0 +1,51 @@
+# UAR's MCP server list (task 16.5.1). UAR reads `mcp.json` from
+# MCP_CONFIG_PATH at start-up (UAR src/mcp/registry.rs resolve_mcp_config_path;
+# the image ships no mcp.json), mounted by uar-deployment.yaml at
+# /etc/uar/mcp/mcp.json.
+#
+# One server, `websearch`: the in-cluster wrapper (websearch-deployment.yaml).
+# UAR names its one tool `websearch__search` for the model (design.md 1.2),
+# which is the id the site agent's policy selects (task 16.3.2).
+#
+# Authorization: a `secret_ref`, never a literal. UAR resolves
+# `env:WEBSEARCH_MCP_AUTH` (from Secret uar-secrets, key WEBSEARCH_MCP_AUTH,
+# value `Bearer <token>`; UAR requires the Bearer scheme, src/mcp/runtime.rs).
+# `credential_revision` is an opaque, non-secret label: change it whenever
+# the operator rotates that Secret value.
+#
+# PLACEHOLDER — `preapproved_tools`: the per-server, administrator-set
+# declaration that the named tools need no human approval (OD-3, task
+# 16.1.3). The upstream UAR change that introduces it is NOT merged and its
+# field name is NOT final; `preapproved_tools` is a stand-in. Rename it to
+# whatever that PR settles on when the UAR image digest is bumped (16.5.3).
+# On the currently pinned UAR image the field is unknown; McpServerEntry is
+# an untagged serde enum without deny_unknown_fields, so it is ignored
+# (read from UAR src/mcp/config.rs, not run), and the tool stays
+# approval-gated (design.md 1.2).
+#
+# Credential-free: no key, token or URL with a credential appears here.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: uar-mcp
+  namespace: knowme
+  labels:
+    app.kubernetes.io/name: uar
+    app.kubernetes.io/component: app
+    app.kubernetes.io/part-of: knowme-site
+data:
+  mcp.json: |
+    {
+      "mcpServers": {
+        "websearch": {
+          "url": "http://site-websearch:8080/mcp",
+          "headers": {
+            "Authorization": {
+              "secret_ref": "env:WEBSEARCH_MCP_AUTH",
+              "credential_revision": "2026-10-13"
+            }
+          },
+          "preapproved_tools": ["search"]
+        }
+      }
+    }

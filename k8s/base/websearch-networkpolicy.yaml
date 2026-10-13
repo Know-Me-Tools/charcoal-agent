@@ -1,0 +1,87 @@
+# site-web-search 16.5.4: the network boundary of the web-search wrapper.
+#
+# Ingress: only the uar pods, only on the service port 8080. Selecting the
+# site-websearch pods with an Ingress rule denies every other source.
+#
+# Egress: DNS to the cluster resolver, and TCP 443 to public addresses only.
+#
+# FQDN finding (the 16.5.4 question): the policy SHOULD say "only
+# api.firecrawl.dev:443", but this cluster cannot express a hostname.
+#   - The cluster is LKE (Linode Kubernetes Engine): Prometheus-AGS
+#     flint-core-infra README, "LKE (Linode Kubernetes Engine) cluster".
+#   - LKE runs one CNI, Calico (Linode: "Currently, LKE only supports a single
+#     CNI (Calico)", linode.com/community/questions/20881).
+#   - Domain names in Calico policy ("DNS policy") are a Calico Enterprise /
+#     Calico Cloud feature, not open-source Calico
+#     (docs.tigera.io/calico-cloud/network-policy/domain-based-policy).
+#   - A plain Kubernetes NetworkPolicy has no hostname selector.
+# Neither was confirmed against the live cluster (no cluster access was
+# used); a `kubectl -n kube-system get ds` by the operator would settle it.
+# So egress is narrowed to port 443 on non-private addresses, plus DNS. The
+# residual gap: a compromised wrapper could reach any public HTTPS host. The
+# wrapper itself only ever calls one fixed origin (a compile-time constant,
+# not configuration). Recorded in openspec/changes/site-web-search/design.md
+# section 10. Firecrawl publishes no stable IP range to pin instead. "Any
+# public HTTPS host" includes this cluster's own public endpoints (the site
+# gateway and the LKE API server's public address); the pod has no
+# service-account token (automountServiceAccountToken: false), which limits
+# what it could do there.
+#
+# The `except` list keeps the pod off the cluster's own networks (LKE pod
+# and service CIDRs are inside 10.0.0.0/8) and off the link-local metadata
+# service (169.254.169.254).
+#
+# Before this policy no egress policy existed in the namespace (design.md
+# 1.3), so this is the first egress boundary; it selects only these pods.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: site-websearch-boundary
+  namespace: knowme
+  labels:
+    app.kubernetes.io/part-of: knowme-site
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: site-websearch
+      app.kubernetes.io/component: tool
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: uar
+              app.kubernetes.io/component: app
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    # Cluster DNS (CoreDNS in kube-system, label k8s-app=kube-dns).
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # HTTPS to public addresses (intended: api.firecrawl.dev only; see above).
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+              - 169.254.0.0/16
+              - 100.64.0.0/10
+              - 127.0.0.0/8
+      ports:
+        - protocol: TCP
+          port: 443

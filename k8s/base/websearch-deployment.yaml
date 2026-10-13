@@ -1,0 +1,138 @@
+# site-websearch — the web-search MCP wrapper (websearch/, OpenSpec change
+# site-web-search, tasks 16.2 and 16.5.1). One tool, `search(query)`, over
+# MCP streamable HTTP at :8080/mcp, reached only by UAR
+# (websearch-networkpolicy.yaml). It is the only holder of the Firecrawl API
+# key. Distroless image, non-root UID 65532, read-only root filesystem.
+#
+# IMAGE: the digest below is a PLACEHOLDER (all zeros), not a real image. No
+# site-websearch image has been built yet. The "Build and push websearch
+# image" job in .github/workflows/site.yml publishes
+# ghcr.io/know-me-tools/site-websearch on each main build; replace the zeros
+# with that run's digest (a deliberate bump, like the UAR pin) before the
+# Train C rollout (task 16.5.5). Until then a pod from this manifest sits in
+# ImagePullBackOff and touches nothing else: UAR skips an MCP server it
+# cannot reach and keeps serving, and the site agent does not select the
+# tool until uar/agents/knowme-site.json changes (task 16.3.2).
+#
+# Pull access: GHCR creates a new package private, and this namespace has no
+# imagePullSecrets. After the first push the operator must make the
+# site-websearch package public (as knowme-web is pulled without a secret)
+# or add a pull secret; otherwise the pinned image still fails with
+# ImagePullBackOff (401/403), which is easy to misread as "not pinned yet".
+#
+# Secrets (created by the operator, never in this repo; see
+# scripts/ops/bootstrap-site.sh, "web search"):
+#   - websearch-firecrawl / FIRECRAWL_API_KEY: the dedicated Firecrawl key.
+#     Mounted ONLY into this pod.
+#   - uar-secrets / WEBSEARCH_MCP_AUTH: `Bearer <token>`, the shared value
+#     UAR sends and this pod checks (design.md section 3.2 puts it in
+#     uar-secrets). This pod reads only that one key of uar-secrets, through
+#     secretKeyRef, not the whole Secret.
+# A missing Secret or key leaves the pod in CreateContainerConfigError; the
+# wrapper itself also refuses to start without either value and names only
+# the variable, never a value.
+#
+# One replica, Recreate: the daily cap (OD-8) is counted per process, so two
+# pods would double it. The count survives a container restart through the
+# emptyDir state file, not a new pod (rollout, eviction): the gap is
+# recorded in openspec/changes/site-web-search/design.md section 10.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: site-websearch
+  namespace: knowme
+  labels:
+    app.kubernetes.io/name: site-websearch
+    app.kubernetes.io/component: tool
+    app.kubernetes.io/part-of: knowme-site
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: site-websearch
+      app.kubernetes.io/component: tool
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: site-websearch
+        app.kubernetes.io/component: tool
+        app.kubernetes.io/part-of: knowme-site
+    spec:
+      # The wrapper never calls the Kubernetes API.
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: site-websearch
+          # PLACEHOLDER digest, see the comment at the top of this file.
+          image: ghcr.io/know-me-tools/site-websearch@sha256:0000000000000000000000000000000000000000000000000000000000000000
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "8080"
+            # OD-8: searches per UTC day; past it the tool returns the fixed
+            # "search unavailable" result and Firecrawl is not called.
+            - name: WEBSEARCH_DAILY_CAP
+              value: "300"
+            - name: WEBSEARCH_CAP_STATE_FILE
+              value: /var/lib/site-websearch/cap-state
+            - name: FIRECRAWL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: websearch-firecrawl
+                  key: FIRECRAWL_API_KEY
+            - name: WEBSEARCH_MCP_AUTH
+              valueFrom:
+                secretKeyRef:
+                  name: uar-secrets
+                  key: WEBSEARCH_MCP_AUTH
+          volumeMounts:
+            - name: cap-state
+              mountPath: /var/lib/site-websearch
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+      volumes:
+        # The daily-cap counter file: one short line. Lives as long as the
+        # pod, so it survives container restarts only.
+        - name: cap-state
+          emptyDir:
+            sizeLimit: 1Mi
