@@ -1,7 +1,8 @@
-import type { FC } from "react";
+import { useId, type FC } from "react";
 import { ExternalLinkIcon, BookOpenIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isAllowedLink } from "@/lib/link-policy/is-allowed-link";
+import { citationDisplayName, cleanCitationSnippet } from "@/features/chat/citation-text";
 
 interface CitationBlockProps {
   source: string;
@@ -24,6 +25,9 @@ export const CitationBlock: FC<CitationBlockProps> = ({
   // site-citation-link-allowlist). Anything else still shows the full
   // destination, as plain text, instead of hiding it behind the source name.
   const isLinkAllowed = !!url && isAllowedLink(url);
+  // Cleaned at render so persisted citations read the same as new ones.
+  const name = citationDisplayName(source);
+  const excerpt = cleanCitationSnippet(content);
 
   const card = (
     <div
@@ -40,15 +44,15 @@ export const CitationBlock: FC<CitationBlockProps> = ({
             <span className="font-mono text-xs font-semibold text-cyan-text">[{index}]</span>
           )}
           <span className="min-w-0 font-ui text-sm font-semibold text-fg wrap-anywhere">
-            {source}
+            {name}
           </span>
           {isLinkAllowed && (
             <ExternalLinkIcon className="size-3.5 shrink-0 text-cyan-text" aria-hidden="true" />
           )}
         </div>
-        {content && (
+        {excerpt && (
           <p className="mt-1 line-clamp-3 font-body text-sm leading-snug text-fg-secondary">
-            {content}
+            {excerpt}
           </p>
         )}
         {url && !isLinkAllowed && (
@@ -71,30 +75,51 @@ export const CitationBlock: FC<CitationBlockProps> = ({
   return card;
 };
 
-// Citation list — renders multiple citations below message content
-interface CitationListProps {
-  citations: Array<{ source: string; content: string; url?: string }>;
+export interface CitationListItem {
+  source: string;
+  content: string;
+  url?: string;
+  /** The stream's citation marker, when the event carried one. */
+  index?: number;
 }
 
+interface CitationListProps {
+  citations: ReadonlyArray<CitationListItem>;
+}
+
+/**
+ * One "Sources" block for a run of citations (operator decision D-1 (b)):
+ * a numbered list in arrival order. The number is the stream's marker when
+ * present, so it matches the `[n]` the reply text refers to, otherwise the
+ * position in the list.
+ */
 export const CitationList: FC<CitationListProps> = ({ citations }) => {
+  const headingId = useId();
   if (citations.length === 0) return null;
   return (
-    <div className="mt-4">
-      <p className="font-ui text-xs font-semibold uppercase tracking-[0.12em] text-fg-secondary">
+    <div data-testid="citation-sources" className="my-3 min-w-0 first:mt-0 last:mb-0">
+      <p
+        id={headingId}
+        className="font-ui text-xs font-semibold uppercase tracking-[0.12em] text-fg-secondary"
+      >
         Sources
       </p>
-      <div className="mt-4 flex flex-col gap-2">
-        {citations.map((c, i) => (
-          <CitationBlock
-            key={`${c.source}-${i}`}
-            source={c.source}
-            content={c.content}
-            url={c.url}
-            index={i + 1}
-            className="my-0"
-          />
-        ))}
-      </div>
+      <ol aria-labelledby={headingId} className="mt-4 flex min-w-0 flex-col gap-2">
+        {citations.map((c, i) => {
+          const number = c.index ?? i + 1;
+          return (
+            <li key={`${c.source}-${i}`} value={number} className="min-w-0">
+              <CitationBlock
+                source={c.source}
+                content={c.content}
+                url={c.url}
+                index={number}
+                className="my-0"
+              />
+            </li>
+          );
+        })}
+      </ol>
     </div>
   );
 };

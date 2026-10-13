@@ -57,10 +57,22 @@ describe("ToolCallPart dispatch (characterization)", () => {
     expect(screen.getByText("2 messages compacted")).toBeInTheDocument();
   });
 
-  it("__citation__ renders the citation block", () => {
-    render(<ToolCallPart {...part("__citation__", { source: "Guide", content: "Snip" })} />);
+  it("__citations__ renders one Sources list", () => {
+    render(
+      <ToolCallPart
+        {...part("__citations__", {
+          citations: [
+            { source: "Guide", content: "Snip" },
+            { source: "faq.0123456789ab.md", content: "Second", index: 4 },
+          ],
+        })}
+      />,
+    );
+    expect(screen.getByRole("list", { name: "Sources" })).toBeInTheDocument();
     expect(screen.getByText("Guide")).toBeInTheDocument();
     expect(screen.getByText("Snip")).toBeInTheDocument();
+    expect(screen.getByText("FAQ")).toBeInTheDocument();
+    expect(screen.getByText("[4]")).toBeInTheDocument();
   });
 
   it("__denied__ renders a blocked tool call", () => {
@@ -183,6 +195,41 @@ describe("ToolCallPart: registry-driven rendering (tasks 1.7, 1.8)", () => {
     expect(container.textContent).not.toContain("gpt-x");
     expect(screen.getAllByText("Artifact")).toHaveLength(1);
     expect(screen.getByText("checklist.md")).toBeInTheDocument();
+  });
+
+  it("persisted citations (one block each, no index) render as one Sources block", () => {
+    // Rows saved before task 5.2: one citation block per citation, no `index`.
+    const persisted: RichMessage = {
+      id: "a-cited",
+      role: "assistant",
+      createdAt: new Date("2026-10-12T10:00:00Z"),
+      status: "complete",
+      content: [
+        { type: "text", text: "The Boss is a desktop workspace." },
+        { type: "citation", source: "the-boss.0123456789ab.md", content: "## The Boss\nA **desktop** workspace." },
+        { type: "citation", source: "faq.0123456789ab.md", content: "- Q: What is it?" },
+        { type: "citation", source: "company.0123456789ab.md", content: "KnowMe AI, LLC." },
+      ],
+    };
+
+    const parts = convertedParts(persisted);
+    expect(parts).toHaveLength(1);
+    render(
+      <>
+        {parts.map((p) => (
+          <ToolCallPart key={p.toolCallId} {...p} />
+        ))}
+      </>,
+    );
+    expect(screen.getAllByText("Sources")).toHaveLength(1);
+    const items = screen.getByRole("list", { name: "Sources" }).querySelectorAll(":scope > li");
+    expect(Array.from(items, (li) => li.querySelector(".font-ui")?.textContent)).toEqual([
+      "The Boss",
+      "FAQ",
+      "Company",
+    ]);
+    expect(screen.getByText("The Boss A desktop workspace.")).toBeInTheDocument();
+    expect(screen.getByText("[3]")).toBeInTheDocument();
   });
 
   it.each(["attempt_manifest", "effective_run_policy", "turn_manifest", "some_new_type"])(

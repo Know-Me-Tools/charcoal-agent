@@ -44,7 +44,7 @@ interface ChatMessageActions {
   ): void;
   addCitation(
     threadId: string,
-    citation: { source: string; content: string; url?: string },
+    citation: { source: string; content: string; url?: string; index?: number },
   ): void;
   addSkillActivation(
     threadId: string,
@@ -412,6 +412,7 @@ export const useChatMessageStore = create<ChatMessageStore>()(
           source: citation.source,
           content: citation.content,
           url: citation.url,
+          ...(citation.index !== undefined && { index: citation.index }),
         });
       }),
 

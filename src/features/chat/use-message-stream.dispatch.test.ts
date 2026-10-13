@@ -85,7 +85,7 @@ describe("use-message-stream dispatch (characterization)", () => {
     },
   );
 
-  it("citation.added maps title, snippet and url to a citation block", async () => {
+  it("citation.added maps title, snippet, url and index to a citation block", async () => {
     const assistant = await replay("t-citation", [
       START,
       {
@@ -100,7 +100,7 @@ describe("use-message-stream dispatch (characterization)", () => {
       DONE,
     ]);
     expect(blocksOf(assistant?.content, "citation")).toEqual([
-      { type: "citation", source: "Guide", content: "Snip", url: "https://know-me.tools/a" },
+      { type: "citation", source: "Guide", content: "Snip", url: "https://know-me.tools/a", index: 1 },
     ]);
   });
 
@@ -331,7 +331,7 @@ describe("use-message-stream dispatch (registry)", () => {
     expect(JSON.stringify(block)).not.toContain("gpt-x");
   });
 
-  it("agui.rag_citations adds one citation block per citation", async () => {
+  it("agui.rag_citations adds one citation block per citation, keeping the marker as index", async () => {
     const assistant = await replay("t-rag", [
       START,
       TEXT,
@@ -344,15 +344,20 @@ describe("use-message-stream dispatch (registry)", () => {
           citations: [
             { marker: 1, chunk_id: "c1", document_name: "handbook.pdf", relevance_score: 0.9, snippet: "First" },
             { marker: 2, chunk_id: "c2", document_name: "faq.md", relevance_score: 0.8, snippet: "Second" },
+            { chunk_id: "c3", document_name: "company.md", relevance_score: 0.7, snippet: "Third" },
           ],
         },
       },
       DONE,
     ]);
-    expect(blocksOf(assistant?.content, "citation")).toEqual([
-      { type: "citation", source: "handbook.pdf", content: "First", url: undefined },
-      { type: "citation", source: "faq.md", content: "Second", url: undefined },
+    const blocks = blocksOf(assistant?.content, "citation");
+    expect(blocks).toEqual([
+      { type: "citation", source: "handbook.pdf", content: "First", url: undefined, index: 1 },
+      { type: "citation", source: "faq.md", content: "Second", url: undefined, index: 2 },
+      { type: "citation", source: "company.md", content: "Third", url: undefined },
     ]);
+    // A citation without a marker stores no index key at all.
+    expect(blocks[2]).not.toHaveProperty("index");
   });
 
   it("agui.subagent.* keeps one block per child thread and tracks its status", async () => {
