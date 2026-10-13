@@ -113,5 +113,53 @@
       "Node 22"
     ],
     "critical": true
+  },
+  {
+    "question": "How is KnowMe different from OpenAI dots?",
+    "expect_file": "openai-dots-and-knowme.md",
+    "expect_contains": ["OpenAI", "design intent"],
+    "critical": true
+  },
+  {
+    "question": "What are OpenAI dots?",
+    "expect_file": "openai-dots-and-knowme.md",
+    "expect_contains": ["always-on"],
+    "critical": true
+  },
+  {
+    "question": "Is The Boss based on Cherry Studio?",
+    "expect_file": "desktop-ai-clients-compared.md",
+    "expect_contains": ["Cherry Studio"],
+    "critical": true
+  },
+  {
+    "question": "Which local-first AI assistants compare with The Boss and KnowMe?",
+    "expect_file": "local-first-assistants-compared.md",
+    "expect_contains": ["Ollama"],
+    "critical": false
+  },
+  {
+    "question": "How does the Universal Agent Runtime compare with LangGraph or the OpenAI Agents SDK?",
+    "expect_file": "agent-runtimes-compared.md",
+    "expect_contains": ["Universal Agent Runtime"],
+    "critical": false
+  },
+  {
+    "question": "How does the Surreal Memory Server compare with Mem0?",
+    "expect_file": "agent-memory-systems-compared.md",
+    "expect_contains": ["Surreal Memory Server"],
+    "critical": false
+  },
+  {
+    "question": "Which AI tool should I choose if I want my data to stay on my own hardware?",
+    "expect_file": "how-to-choose-between-these-tools.md",
+    "expect_contains": ["own hardware"],
+    "critical": false
+  },
+  {
+    "question": "Why not just use ChatGPT instead of KnowMe?",
+    "expect_file": "landscape-faq.md",
+    "expect_contains": ["ChatGPT"],
+    "critical": false
   }
 ]
