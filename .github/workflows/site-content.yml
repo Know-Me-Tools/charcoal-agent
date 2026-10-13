@@ -117,3 +117,36 @@ jobs:
 
           kill "$PF_PID" 2>/dev/null || true
           trap - EXIT
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        if: ${{ inputs.sync != 'agent' }}
+        with:
+          node-version-file: .nvmrc
+
+      # Measures what the live knowledge base returns for the committed question set and
+      # prints the returned chunks, so retrieval problems are visible without guessing.
+      # It reports; it does not fail the sync (the seed's own FR-8 checks do that).
+      - name: Retrieval eval (report only)
+        if: ${{ inputs.sync != 'agent' }}
+        continue-on-error: true
+        env:
+          SITE_GATE_TOKEN_URL: https://gate.know-me.tools/oauth/token
+          SITE_GATE_CLIENT_ID: ${{ secrets.SITE_GATE_CLIENT_ID }}
+          SITE_GATE_CLIENT_SECRET: ${{ secrets.SITE_GATE_CLIENT_SECRET }}
+        run: |
+          set -euo pipefail
+          kubectl -n "$NAMESPACE" port-forward svc/uar 6565:6565 >/tmp/port-forward-eval.log 2>&1 &
+          PF_PID=$!
+          trap 'kill "$PF_PID" 2>/dev/null || true' EXIT
+          for _ in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:6565/readyz >/dev/null 2>&1 && break
+            sleep 1
+          done
+          UAR_TOKEN="$(curl -sS --max-time 10 -X POST "$SITE_GATE_TOKEN_URL" \
+            -d grant_type=client_credentials \
+            --data-urlencode "client_id=${SITE_GATE_CLIENT_ID}" \
+            --data-urlencode "client_secret=${SITE_GATE_CLIENT_SECRET}" | jq -er '.access_token')"
+          echo "::add-mask::${UAR_TOKEN}"
+          export UAR_TOKEN
+          UAR_BASE_URL=http://127.0.0.1:6565 KB_NAME=knowme-site \
+            node scripts/kb/eval-retrieval.mjs --verbose --min-recall 0.0

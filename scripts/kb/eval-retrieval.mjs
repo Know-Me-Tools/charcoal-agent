@@ -19,7 +19,8 @@
 // Usage:
 //   UAR_BASE_URL=http://127.0.0.1:6565 KB_ID=<id> UAR_TOKEN=<token> \
 //     node scripts/kb/eval-retrieval.mjs [--questions <file>] [--min-recall 0.9]
-//     [--top-k 5] [--min-score 0.3]
+//     [--top-k 5] [--min-score 0.3] [--verbose]
+// Set KB_NAME instead of KB_ID to resolve the knowledge base by name.
 
 import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -39,6 +40,7 @@ export function parseArgs(argv) {
     // Same as the seed's FR8_MIN_SCORE: tests retrieval routing, not UAR's chat threshold.
     minScore: 0.3,
     retryDelayMs: RETRY_DELAY_MS,
+    verbose: false,
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -56,6 +58,7 @@ export function parseArgs(argv) {
     else if (a === "--top-k") opts.topK = num(next());
     else if (a === "--min-score") opts.minScore = num(next());
     else if (a === "--retry-delay-ms") opts.retryDelayMs = num(next());
+    else if (a === "--verbose") opts.verbose = true;
     else throw new Error(`unknown argument: ${a}`);
   }
   return opts;
@@ -117,10 +120,24 @@ function client({ baseUrl, kbId, token, retryDelayMs }) {
 
 export async function run(argv, env = process.env, out = console) {
   const opts = parseArgs(argv);
-  const missing = ["UAR_BASE_URL", "KB_ID", "UAR_TOKEN"].filter((k) => !env[k]);
+  const missing = ["UAR_BASE_URL", "UAR_TOKEN"].filter((k) => !env[k]);
+  if (!env.KB_ID && !env.KB_NAME) missing.push("KB_ID (or KB_NAME)");
   if (missing.length) throw new Error(`set ${missing.join(", ")}`);
   const questions = loadQuestions(opts.questions);
-  const api = client({ baseUrl: env.UAR_BASE_URL, kbId: env.KB_ID, token: env.UAR_TOKEN, retryDelayMs: opts.retryDelayMs });
+  let kbId = env.KB_ID;
+  if (!kbId) {
+    // Resolve the knowledge base by name, the way the seed does.
+    const res = await fetch(`${env.UAR_BASE_URL.replace(/\/+$/, "")}/api/uar/knowledge-bases`, {
+      headers: { Authorization: `Bearer ${env.UAR_TOKEN}` },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+    if (!res.ok) throw new Error(`GET /api/uar/knowledge-bases: HTTP ${res.status}`);
+    const list = await res.json();
+    const found = (Array.isArray(list) ? list : list?.items ?? []).find((k) => k?.name === env.KB_NAME);
+    if (!found?.id) throw new Error(`knowledge base named ${JSON.stringify(env.KB_NAME)} not found`);
+    kbId = found.id;
+  }
+  const api = client({ baseUrl: env.UAR_BASE_URL, kbId, token: env.UAR_TOKEN, retryDelayMs: opts.retryDelayMs });
 
   const docs = await api.documents();
   const nameById = new Map((Array.isArray(docs) ? docs : []).map((d) => [d.id, sourceName(d.filename)]));
@@ -133,6 +150,7 @@ export async function run(argv, env = process.env, out = console) {
     const named = results.map((r) => ({
       name: nameById.get(r.document_id) ?? sourceName(r.metadata?.filename ?? r.metadata?.document_name),
       content: typeof r.content === "string" ? r.content : "",
+      score: typeof r.score === "number" ? r.score : null,
     }));
     const fromExpected = named.filter((r) => r.name === q.expectFile);
     const missingText = q.contains.filter((c) => !fromExpected.some((r) => r.content.includes(c)));
@@ -142,6 +160,12 @@ export async function run(argv, env = process.env, out = console) {
     out.log(`${ok ? "PASS" : "FAIL"}${q.critical ? " [critical]" : ""}: ${q.question}`);
     out.log(`  expected: ${q.expectFile}${q.contains.length ? ` containing ${q.contains.map((c) => JSON.stringify(c)).join(", ")}` : ""}`);
     out.log(`  top-${opts.topK}: ${named.length ? named.map((r) => r.name).join(", ") : "(no results)"}`);
+    if (opts.verbose) {
+      for (const [n, r] of named.entries()) {
+        const head = r.content.replace(/\s+/g, " ").slice(0, 130);
+        out.log(`    #${n + 1} ${r.name}${r.score === null ? "" : ` (${r.score.toFixed(2)})`}: ${head}`);
+      }
+    }
     if (fromExpected.length && missingText.length) out.log(`  missing text: ${missingText.map((c) => JSON.stringify(c)).join(", ")}`);
   }
   const recall = passed / questions.length;

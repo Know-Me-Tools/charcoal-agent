@@ -202,5 +202,40 @@
       "server-side AI platform"
     ],
     "critical": false
+  },
+  {
+    "question": "Who makes BossFang?",
+    "expect_file": "prometheus-and-its-products.md",
+    "critical": false,
+    "expect_contains": "Prometheus AGS"
+  },
+  {
+    "question": "Are the Prometheus skill packages MIT licensed?",
+    "expect_file": "prometheus-and-its-products.md",
+    "critical": false,
+    "expect_contains": "MIT"
+  },
+  {
+    "question": "Who makes The Boss and KnowMe?",
+    "expect_file": "prometheus-and-its-products.md",
+    "critical": false,
+    "expect_contains": "KnowMe AI, LLC"
+  },
+  {
+    "question": "Is BossFang open source and what licence does it use?",
+    "expect_file": "prometheus-and-its-products.md",
+    "critical": false,
+    "expect_contains": "MIT"
+  },
+  {
+    "question": "What are the Prometheus skill packages?",
+    "expect_file": "prometheus-skill-packages-overview.md",
+    "critical": false
+  },
+  {
+    "question": "How much does KnowMe cost?",
+    "expect_file": "faq.md",
+    "critical": false,
+    "expect_contains": "not been announced"
   }
 ]
