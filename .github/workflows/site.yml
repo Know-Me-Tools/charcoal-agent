@@ -31,6 +31,11 @@ jobs:
       # workflow `uses:` SHA or a manifest image digest.
       - name: Check supply-chain pins
         run: ./scripts/check-pins.sh
+      # Parse and render k8s/ so invalid YAML or an image-less container
+      # fails here, not at deploy time. Uses only kubectl and python3
+      # (PyYAML, or yq) already on ubuntu-latest; installs nothing.
+      - name: Check Kubernetes manifests
+        run: ./scripts/check-manifests.sh
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version-file: .nvmrc
