@@ -199,11 +199,13 @@ async fn forwarded_turns_should_carry_memory_disabled() {
 }
 
 #[tokio::test]
-async fn responses_should_carry_report_only_csp_with_the_theme_hash_and_permissions_policy() {
+async fn responses_should_carry_enforcing_csp_with_the_theme_hash_and_permissions_policy() {
     let h = start(None).await;
     let res = h.http.get(format!("{}/", h.base)).send().await.unwrap();
     let headers = res.headers();
-    let csp = headers["content-security-policy-report-only"]
+    let csp = headers
+        .get("content-security-policy")
+        .expect("the CSP is enforced, not report-only")
         .to_str()
         .unwrap();
     assert!(
@@ -213,9 +215,10 @@ async fn responses_should_carry_report_only_csp_with_the_theme_hash_and_permissi
         "{csp}"
     );
     assert!(csp.contains("report-uri /api/csp-report"), "{csp}");
+    assert!(csp.contains("report-to csp-endpoint"), "{csp}");
     assert!(
-        headers.get("content-security-policy").is_none(),
-        "not enforced yet"
+        headers.get("content-security-policy-report-only").is_none(),
+        "no report-only twin next to the enforcing header"
     );
     assert_eq!(
         headers["reporting-endpoints"],
@@ -225,6 +228,34 @@ async fn responses_should_carry_report_only_csp_with_the_theme_hash_and_permissi
     for feature in ["camera=()", "microphone=()", "geolocation=()"] {
         assert!(permissions.contains(feature), "{permissions}");
     }
+}
+
+/// Pins the enforced directives exactly, so a loosening shows up as a failure.
+#[tokio::test]
+async fn enforcing_csp_should_pin_each_directive() {
+    let h = start(None).await;
+    let res = h.http.get(format!("{}/", h.base)).send().await.unwrap();
+    let csp = res.headers()["content-security-policy"]
+        .to_str()
+        .unwrap()
+        .to_owned();
+    let directive = |name: &str| {
+        csp.split("; ")
+            .find(|d| d.split(' ').next() == Some(name))
+            .unwrap_or_else(|| panic!("{name} missing from {csp}"))
+            .to_owned()
+    };
+    assert_eq!(directive("img-src"), "img-src 'self' data: blob:");
+    assert_eq!(directive("connect-src"), "connect-src 'self'");
+    assert_eq!(directive("frame-ancestors"), "frame-ancestors 'self'");
+    assert_eq!(directive("object-src"), "object-src 'none'");
+    assert_eq!(directive("base-uri"), "base-uri 'self'");
+    assert_eq!(directive("form-action"), "form-action 'self'");
+    let script = directive("script-src");
+    assert!(
+        !script.contains("'unsafe-inline'") && !script.contains("'unsafe-eval'"),
+        "{script}"
+    );
 }
 
 #[tokio::test]

@@ -9,8 +9,11 @@ import {
 } from "lucide-react";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { isSiteBuild } from "@/hooks/use-site-config";
 import { cn } from "@/lib/utils";
+import { PREVIEW_NOTE_CONTENT } from "../../../content/site/preview-note";
 import { toPreviewDocument } from "./preview-document";
+import { hasPreviewScripts } from "./preview-scripts";
 import { ShikiCodeBlock } from "./shiki-code-block";
 
 interface HtmlArtifactCardProps {
@@ -35,6 +38,12 @@ export const HtmlArtifactCard: FC<HtmlArtifactCardProps> = ({
   const titleId = useId();
   // The isolating CSP meta goes into the document both frames load.
   const previewDocument = useMemo(() => toPreviewDocument(code), [code]);
+  // The site's CSP blocks scripts inside the preview frame (task 3.5); say so
+  // rather than show a page that silently does nothing. The app build sends
+  // no such header, so its previews run scripts and need no note.
+  const showScriptNote = useMemo(() => isSiteBuild() && hasPreviewScripts(code), [code]);
+  const noteId = useId();
+  const dialogNoteId = useId();
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code).then(() => {
@@ -72,6 +81,15 @@ export const HtmlArtifactCard: FC<HtmlArtifactCardProps> = ({
     </div>
   );
 
+  function scriptNote(id: string) {
+    if (!showScriptNote) return null;
+    return (
+      <p id={id} className="bg-muted-surface px-3 py-1.5 font-ui text-xs text-fg-secondary">
+        {PREVIEW_NOTE_CONTENT.scriptsBlocked}
+      </p>
+    );
+  }
+
   function toolbar(inDialog: boolean) {
     return (
       <div className="flex flex-wrap items-center gap-2 bg-raised px-3 py-1.5">
@@ -108,6 +126,7 @@ export const HtmlArtifactCard: FC<HtmlArtifactCardProps> = ({
     <div className={cn("min-w-0 overflow-hidden rounded-lg bg-surface", className)}>
       {toolbar(false)}
 
+      {view === "preview" && scriptNote(noteId)}
       {view === "preview" ? (
         <div className="h-80 bg-artifact-canvas">
           {/* Blanked while the full-screen dialog is open — otherwise the
@@ -118,6 +137,7 @@ export const HtmlArtifactCard: FC<HtmlArtifactCardProps> = ({
               sandbox="allow-scripts"
               className="block h-full w-full border-0 scheme-light"
               title={displayTitle}
+              aria-describedby={showScriptNote ? noteId : undefined}
             />
           )}
         </div>
@@ -143,6 +163,7 @@ export const HtmlArtifactCard: FC<HtmlArtifactCardProps> = ({
             {displayTitle}
           </DialogTitle>
           {toolbar(true)}
+          {view === "preview" && scriptNote(dialogNoteId)}
           {view === "preview" ? (
             <div className="min-h-0 flex-1 bg-artifact-canvas">
               <iframe
@@ -150,6 +171,7 @@ export const HtmlArtifactCard: FC<HtmlArtifactCardProps> = ({
                 sandbox="allow-scripts"
                 className="block h-full w-full border-0 scheme-light"
                 title={displayTitle}
+                aria-describedby={showScriptNote ? dialogNoteId : undefined}
               />
             </div>
           ) : (

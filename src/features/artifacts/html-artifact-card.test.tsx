@@ -1,9 +1,58 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { HtmlArtifactCard } from "./html-artifact-card";
 import { PREVIEW_CSP } from "./preview-document";
+import { PREVIEW_NOTE_CONTENT } from "../../../content/site/preview-note";
 
 const CODE = "<p>hello</p>";
+
+/**
+ * Task 3.5 decision (option 1): the site's enforcing CSP blocks scripts in
+ * the preview frame, so the site build tells the visitor; the app build (no
+ * such header) does not.
+ */
+describe("HtmlArtifactCard — scripts note", () => {
+  const NOTE = PREVIEW_NOTE_CONTENT.scriptsBlocked;
+  afterEach(() => vi.unstubAllEnvs());
+
+  it.each([
+    ["a script element", "<p>hi</p><SCRIPT>document.title = 'x'</SCRIPT>"],
+    ["an inline event handler", '<button onclick="go()">Go</button>'],
+    ["a javascript: URL", '<a href=" JavaScript:alert(1)">open</a>'],
+  ])("shows the note on the site build for %s", (_label, code) => {
+    vi.stubEnv("VITE_SITE_AGENT_ID", "knowme-site");
+    render(<HtmlArtifactCard code={code} language="html" />);
+
+    const note = screen.getByText(NOTE);
+    expect(note).toBeVisible();
+    expect(document.querySelector("iframe")?.getAttribute("aria-describedby")).toBe(note.id);
+  });
+
+  it("shows no note for static HTML on the site build", () => {
+    vi.stubEnv("VITE_SITE_AGENT_ID", "knowme-site");
+    render(<HtmlArtifactCard code={'<p style="color:red">hello</p><a href="/x">x</a>'} language="html" />);
+
+    expect(screen.queryByText(NOTE)).not.toBeInTheDocument();
+    expect(document.querySelector("iframe")?.hasAttribute("aria-describedby")).toBe(false);
+  });
+
+  it("shows no note on the app build, where previews run scripts", () => {
+    vi.stubEnv("VITE_SITE_AGENT_ID", "");
+    render(<HtmlArtifactCard code="<script>1</script><p>hi</p>" language="html" />);
+
+    expect(screen.queryByText(NOTE)).not.toBeInTheDocument();
+  });
+
+  it("keeps the note in the full-screen preview", () => {
+    vi.stubEnv("VITE_SITE_AGENT_ID", "knowme-site");
+    render(<HtmlArtifactCard code="<script>1</script><p>hi</p>" language="html" />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Full screen" }));
+
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText(NOTE)).toBeInTheDocument();
+  });
+});
 
 /**
  * CRITICAL 2 (adversarial review): `allow-same-origin` combined with
