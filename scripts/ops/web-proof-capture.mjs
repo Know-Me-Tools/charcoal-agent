@@ -98,8 +98,24 @@ async function turn({ url, headers, body, capMs, rawName }) {
   }
   if (rawName) write(rawName, raw);
   const events = parseSse(raw).events.map(({ event, data }) => ({ event, data: tryJson(data) }));
-  return { status, raw, ended, capped, error, elapsedMs: Date.now() - t0, marks, events };
+  return { status, raw, ended, capped, error, rejected: rejection(status, error, capped, raw), elapsedMs: Date.now() - t0, marks, events };
 }
+
+/**
+ * A request the server did not accept (non-2xx, or no response at all) is not a model behaviour. Returns
+ * { http_status, error_code } (the `error.code` field only, never the body) so every step can report it
+ * as FAIL instead of reading the empty stream as "the model made no tool call". Null when accepted.
+ */
+function rejection(status, error, capped, raw) {
+  if (status >= 200 && status < 300) return null;
+  if (capped && status === 0) return null; // aborted at the cap before any response: handled as would-wait
+  const body = tryJson(raw);
+  const code = body && typeof body === "object" ? body.error?.code ?? null : null;
+  const safe = typeof code === "string" && /^[A-Za-z0-9_.-]{1,64}$/.test(code) ? code : null;
+  return { http_status: status, error_code: safe, transport_error: status === 0 ? String(error ?? "no response") : null };
+}
+
+const rejectedText = (r) => `request rejected: HTTP ${r.http_status}${r.error_code ? `, error.code ${r.error_code}` : ""}${r.transport_error ? `, ${r.transport_error}` : ""} (the model was never reached; not a "no tool call" result)`;
 
 function tryJson(text) {
   try {
@@ -212,6 +228,7 @@ async function stepDirect() {
   const firstResult = f.results[0];
   write("16.6.1-direct-structure.json", {
     http_status: d.status,
+    rejected: d.rejected,
     tool_name_in_agui_tool_call_complete: f.startNames,
     expected_constant: WEB_TOOL,
     tool_call_complete_field_names: firstStart ? Object.keys(firstStart.data ?? {}) : null,
@@ -248,12 +265,15 @@ async function stepDirect() {
   const publicOk = a.problems.length === 0 && citeIdx.length === 1 && (firstDelta === -1 || citeIdx[0] < firstDelta) && queryLeak !== true;
   let s161 = "PASS";
   let d161 = `tool name ${JSON.stringify(f.startNames)}; result fields captured; public stream clean`;
-  if (!f.starts.length) [s161, d161] = ["UNKNOWN", "the model made no tool call on the direct run; nothing to capture"];
+  if (d.rejected) [s161, d161] = ["FAIL", `direct run ${rejectedText(d.rejected)}`];
+  else if (!f.starts.length) [s161, d161] = ["UNKNOWN", "the model made no tool call on the direct run; nothing to capture"];
   else if (!nameOk) [s161, d161] = ["FAIL", `tool name ${JSON.stringify(f.startNames)} differs from the constant ${WEB_TOOL} (agui_steps.rs WEB_SEARCH_TOOLS needs the observed name)`];
   else if (!publicOk) [s161, d161] = ["FAIL", `public stream: ${a.problems.length} validator problems, ${citeIdx.length} web_citations frames, query leak ${queryLeak}`];
   saveResult([
     result("16.6.1", s161, d161),
-    f.starts.length
+    d.rejected
+      ? result("16.6.2-A", "FAIL", `direct run ${rejectedText(d.rejected)}`)
+      : f.starts.length
       ? result("16.6.2-A", f.approval === 0 && f.done > 0 ? "PASS" : "FAIL", `patched image with preapproved_tools: approval_required events ${f.approval}, agui.done ${f.done}, finished in ${d.elapsedMs} ms, tool calls ${f.starts.length}`)
       : result("16.6.2-A", "UNKNOWN", "no tool call was made, so approval behaviour was not exercised"),
   ]);
@@ -267,6 +287,7 @@ async function stepApprovalOff() {
   write("16.6.2-B-observation.json", {
     config: "mcp.json without preapproved_tools (what the pinned image does, since it ignores the field)",
     cap_ms: CAP_MS,
+    rejected: d.rejected,
     finished_within_cap: d.ended,
     would_wait: !d.ended && d.capped,
     approval_required_events: f.approval,
@@ -278,7 +299,8 @@ async function stepApprovalOff() {
   });
   let status;
   let detail;
-  if (!f.starts.length) [status, detail] = ["UNKNOWN", "no tool call was made, so the approval gate was not reached"];
+  if (d.rejected) [status, detail] = ["FAIL", rejectedText(d.rejected)];
+  else if (!f.starts.length) [status, detail] = ["UNKNOWN", "no tool call was made, so the approval gate was not reached"];
   else if (f.approval > 0 && !(d.ended && f.done > 0)) [status, detail] = ["PASS", `approval_required at ${approvalMark?.ms ?? "?"} ms; turn did not finish within ${CAP_MS} ms: would wait (design 1.2 confirmed)`];
   else if (f.approval > 0) [status, detail] = ["PASS", `approval_required at ${approvalMark?.ms ?? "?"} ms, then the turn finished in ${d.elapsedMs} ms (no long wait; record the exact behaviour)`];
   else if (d.ended && f.done > 0) [status, detail] = ["FAIL", "FINDING CONTRADICTED: without preapproved_tools the call ran with no approval event and the turn finished; design 1.2 needs correcting and OD-3 re-asking"];
@@ -302,6 +324,7 @@ async function stepBudget() {
     seen[id] = {
       label,
       http_status: d.status,
+      rejected: d.rejected,
       tool_calls_started: f.starts.length,
       tool_results: f.results.length,
       denied_events: f.denied,
@@ -318,7 +341,9 @@ async function stepBudget() {
   const one = seen["lws-budget-1"];
   let status = "UNKNOWN";
   let detail = "";
-  if (ctl.wrapper_search_calls.ok < 2) detail = `control executed ${ctl.wrapper_search_calls.ok} search(es): the model did not try two, so the budget could not be tested`;
+  const rejectedAgents = Object.entries(seen).filter(([, v]) => v.rejected);
+  if (rejectedAgents.length) [status, detail] = ["FAIL", rejectedAgents.map(([id, v]) => `${id}: ${rejectedText(v.rejected)}`).join(" | ")];
+  else if (ctl.wrapper_search_calls.ok < 2) detail = `control executed ${ctl.wrapper_search_calls.ok} search(es): the model did not try two, so the budget could not be tested`;
   else if (one.wrapper_search_calls.ok === 1 && (one.tool_calls_started >= 2 || one.denied_events > 0 || one.error_events > 0)) [status, detail] = ["PASS", `control ran ${ctl.wrapper_search_calls.ok}; with budget 1 the wrapper executed 1, started ${one.tool_calls_started}, denied events ${one.denied_events}: max_tool_calls_per_turn is honoured from extensions.budgets`];
   else if (one.wrapper_search_calls.ok === 1) detail = "budget-1 variant executed one search but the model only tried once, so the cap was not shown to bite";
   else if (one.wrapper_search_calls.ok >= 2) [status, detail] = ["FAIL", `budget 1 still executed ${one.wrapper_search_calls.ok} searches: not honoured; fall back to wrapper-side enforcement (task 16.6.3)`];
@@ -335,6 +360,7 @@ function judge(label, ctx) {
   const problems = [...a.problems];
   if (f.errors > 0) problems.push("agui.error in the stream");
   if (f.done === 0 && f.errors === 0) problems.push("stream ended with neither agui.done nor agui.error");
+  if (ctx.rejected) return ["FAIL", rejectedText(ctx.rejected)];
   if (problems.length) return ["FAIL", problems.join("; ")];
   switch (label) {
     case "P1":
@@ -368,9 +394,10 @@ async function runPrompt(label, rawName) {
   const f = toolFacts(t.events);
   const reply = replyText(t.events);
   const kbCitations = t.events.filter((e) => e.event === "agui.rag_citations").reduce((n, e) => n + (e.data?.citations?.length ?? 0), 0);
-  let [status, detail] = judge(label, { a, f, reply, ran, kbCitations });
+  let [status, detail] = judge(label, { a, f, reply, ran, kbCitations, rejected: t.rejected });
   const extra = {
     http_status: t.status,
+    rejected: t.rejected,
     validator_problems: a.problems,
     validator_counts: a.counts,
     web_citation_items: t.events.filter((e) => e.event === "agui.web_citations").reduce((n, e) => n + (e.data?.citations?.length ?? 0), 0),
@@ -425,6 +452,7 @@ async function stepSkill() {
     rows.push({
       variant: i + 1,
       http_status: d.status,
+      rejected: d.rejected,
       activate_skill_calls: skillCalls.length,
       other_tools_started: f.startNames.filter((n) => !/activate_skill/.test(n)),
       approval_required_events: f.approval,
@@ -439,7 +467,9 @@ async function stepSkill() {
   const called = rows.filter((r) => r.activate_skill_calls > 0);
   let status = "UNKNOWN";
   let detail = "the model never called activate_skill in either wording; the hang case was not exercised (not a pass)";
-  if (called.some((r) => r.approval_required_events > 0 || r.would_wait)) [status, detail] = ["FAIL", "activate_skill call hit approval_required or did not finish in 20 s: blocker for tool_approval: auto (the existing T2 precondition)"];
+  const rejectedRows = rows.filter((r) => r.rejected);
+  if (rejectedRows.length) [status, detail] = ["FAIL", rejectedRows.map((r) => `variant ${r.variant}: ${rejectedText(r.rejected)}`).join(" | ")];
+  else if (called.some((r) => r.approval_required_events > 0 || r.would_wait)) [status, detail] = ["FAIL", "activate_skill call hit approval_required or did not finish in 20 s: blocker for tool_approval: auto (the existing T2 precondition)"];
   else if (called.length) [status, detail] = ["PASS", "activate_skill was called and the turn finished with no approval wait"];
   saveResult([result("16.6.5", status, detail)]);
 }

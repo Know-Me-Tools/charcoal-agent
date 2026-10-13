@@ -191,7 +191,9 @@ PLAN (nothing is started in --dry-run)
   1  build        cargo build --release for websearch/ and server/ (server with KNOWME_WEB_DIST_DIR=server/tests/fixtures/web)
   2  start        SurrealDB (rocksdb in the temp dir), meter user, wrapper (daily cap 20, local bearer token)
   3  start        UAR with mcp.json {websearch -> wrapper, preapproved_tools: ["search"]}
-  4  seed         knowme-site, knowme-site-web (+ two budget variants), presentations, site API key, KB (best effort)
+  4  seed         knowme-site, knowme-site-web (+ two budget variants), presentations, site API key, KB (best effort);
+                  then verifies their model on the local UAR (POST /api/providers/<id>/test, a real tiny LLM call per
+                  seed run, needed by UAR builds with the model_not_verified gate)
   5  start        site server (SITE_AGENT_ID=knowme-site, SITE_WEB_AGENT_ID=knowme-site-web, meter on the local SurrealDB)
   6  capture      16.6.1 direct + proxy, 16.6.2 (preapproved), 16.6.3 budget, 16.6.4 P1 P2 P4-P8, 16.6.5 activate_skill, 16.6.6 meter rows
   7  restart UAR  with the fixture stub as 'websearch': 16.6.4 P3 (injection fixture)
@@ -403,7 +405,28 @@ start_uar "$MCP_PRE"
 wait_http "$UAR_URL/readyz" 120 "UAR" || die "UAR did not start"
 
 # ── 5. Agents, API key, KB ───────────────────────────────────────────────────
-prep_agent() { jq --arg m "$LLM_MODEL" '.policy.provider.default.model = $m' "$1" >"$2"; }
+# UAR builds with the model_not_verified gate refuse chat until the seeded agents' models are
+# verified; scripts/seed-site-agent.sh does that (POST /api/providers/<id>/test, a real tiny
+# inference call) for exactly the provider/model the temp agents below reference. Find the local
+# provider id from GET /api/providers (ids only) instead of guessing it from the committed files.
+LLM_PROVIDER="$(jq -r '.policy.provider.default.provider' "$REPO_ROOT/uar/agents/knowme-site.json")"
+discover_provider_ids() {
+  printf 'header = "X-UAR-Admin-Key: %s"\n' "$(<"$SECRETS/admin")" |
+    curl -fsS --max-time 15 -K - "$UAR_URL/api/providers" | jq -r '.providers[]?.id'
+}
+if PROVIDER_IDS="$(discover_provider_ids 2>/dev/null)" && [[ -n "$PROVIDER_IDS" ]]; then
+  if ! grep -qxF -- "$LLM_PROVIDER" <<<"$PROVIDER_IDS"; then
+    if [[ "$(grep -c . <<<"$PROVIDER_IDS")" == 1 ]]; then
+      log "local UAR has no provider '$LLM_PROVIDER'; using its only provider '$PROVIDER_IDS' for the temp agents"
+      LLM_PROVIDER="$PROVIDER_IDS"
+    else
+      die "local UAR has no provider '$LLM_PROVIDER' and several others: $(tr '\n' ' ' <<<"$PROVIDER_IDS"); cannot choose one for the temp agents"
+    fi
+  fi
+else
+  log "could not list providers from the local UAR; keeping '$LLM_PROVIDER' from the committed agent files (the seed's model verification will say if it is wrong)"
+fi
+prep_agent() { jq --arg m "$LLM_MODEL" --arg p "$LLM_PROVIDER" '.policy.provider.default.model = $m | .policy.provider.default.provider = $p' "$1" >"$2"; }
 prep_agent "$REPO_ROOT/uar/agents/knowme-site.json" "$AGENTS/knowme-site.json"
 prep_agent "$REPO_ROOT/uar/agents/knowme-site-web.json" "$AGENTS/knowme-site-web.json"
 MODEL_OVERRIDDEN="$(jq -r --arg m "$LLM_MODEL" '.policy.provider.default.model != $m' "$REPO_ROOT/uar/agents/knowme-site-web.json")"
@@ -421,8 +444,9 @@ seed() { # label, then env assignments via `env`-free exports in a subshell
   shift
   (
     cd "$REPO_ROOT"
-    export UAR_URL UAR_JWT_SECRET
+    export UAR_URL UAR_JWT_SECRET UAR_ADMIN_KEY
     UAR_JWT_SECRET="$(<"$SECRETS/jwt")"
+    UAR_ADMIN_KEY="$(<"$SECRETS/admin")"
     # shellcheck disable=SC2163
     for kv in "$@"; do export "$kv"; done
     exec "$BASH" scripts/seed-site-agent.sh ${SEED_EXTRA_ARGS[@]+"${SEED_EXTRA_ARGS[@]}"}
@@ -437,7 +461,7 @@ SEED_EXTRA_ARGS=()
 for n in 1 4; do
   seed "budget-$n" SEED_MODE=agent SEED_WEB_AGENT=0 "AGENT_FILE=$AGENTS/lws-budget-$n.json" || die "budget variant $n seed failed"
 done
-log "agents seeded"
+log "agents seeded and their models verified (details: $LOGS/seed-agents.log, kept with LWS_KEEP_LOGS=1)"
 
 KB_SEEDED=0
 if [[ "$KB_ENABLED" == 1 ]]; then

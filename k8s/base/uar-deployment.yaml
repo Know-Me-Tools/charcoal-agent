@@ -40,7 +40,24 @@ spec:
         fsGroup: 65532
       containers:
         - name: uar
-          image: ghcr.io/prometheus-ags/universal-agent-runtime:main@sha256:e955789aa6aea70853d4e19ce95b5c5774750d232472c048bd4763c96e5513f5
+          # RUNBOOK, bumping this image to a build that includes UAR a42f23bb
+          # ("unify verified agent and model execution selection"): chat answers
+          # HTTP 422 `model_not_verified` until each model the agents use has been
+          # verified. Order: (1) roll this image; (2) the OPERATOR runs, from their
+          # own shell with kubectl access to the know-me cluster,
+          #   scripts/ops/verify-site-models.sh --context know-me [--web] [--smoke]
+          # (it port-forwards svc/uar, reads the admin key and gate client from
+          # the cluster Secrets inside its own process, verifies each agent
+          # model, and with --smoke proves one chat turn). CI cannot do this: it
+          # cannot read uar-secrets by design, so the site-content.yml sync=agent
+          # job only warns "NOT VERIFIED". Start the script before step (1)
+          # finishes: it waits up to 5 minutes for /readyz. Expect chat down for
+          # the minutes between (1) and (2).
+          # The verification is a real tiny LLM call. Its receipt is bound to the
+          # provider configuration and credential revision, so re-verify after any
+          # provider edit or API key rotation. Older builds (like the one pinned
+          # before that bump) have no gate, so the step is optional until then.
+          image:ghcr.io/prometheus-ags/universal-agent-runtime:main@sha256:e955789aa6aea70853d4e19ce95b5c5774750d232472c048bd4763c96e5513f5
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

@@ -20,6 +20,8 @@
 #                      all   = agent, presentation templates, KB sync and FR-8 checks
 #                      agent = agent PUT and presentation templates only
 #                      kb    = KB create/sync and FR-8 checks only
+#                      verify = ONLY the model verification below (no PUT, no KB). Used by
+#                              scripts/ops/verify-site-models.sh. Ignores SEED_VERIFY_MODELS=0 by dying.
 #   SEED_WEB_AGENT   Whether to also seed the web-search agent (default: 1).
 #                      1 = also PUT $WEB_AGENT_FILE (agent id knowme-site-web), after knowme-site.
 #                          Both agents share the knowme-site KB and the same presentation templates.
@@ -30,6 +32,32 @@
 #                          registered but unused: the site proxy only routes to it when the
 #                          visitor's web_search flag is on and the server is configured to map it.
 #                          Has no effect in SEED_MODE=kb.
+#   SEED_VERIFY_MODELS  Whether to verify the agents' models after seeding (default: 1; applies to
+#                      SEED_MODE=agent and all, never kb). UAR builds that include commit a42f23bb
+#                      ("unify verified agent and model execution selection") refuse every chat run
+#                      with HTTP 422 `model_not_verified` until the model has been explicitly verified.
+#                      For each distinct (provider, model) pair in the agent files being seeded (the
+#                      web agent only when SEED_WEB_AGENT=1) this script POSTs
+#                      /api/providers/<provider>/test with {"model":"<model>"} and requires HTTP 2xx
+#                      and `ok: true`, so a seeded agent that cannot run fails the seed instead of
+#                      looking healthy. Things to know:
+#                        - It is a REAL, tiny inference call against the provider (UAR allows 30 s
+#                          per phase; this script allows 60 s per attempt). It is retried once on a
+#                          5xx or timeout. Only provider and model ids and the result are printed.
+#                        - The receipt UAR stores is bound to the provider configuration and the
+#                          credential revision. Editing the provider or rotating its API key voids
+#                          it: re-run this script (SEED_MODE=agent is enough) after any provider
+#                          configuration change or key rotation, or chat answers 422 again.
+#                        - The route sits behind UAR's provider-administration check. When UAR runs
+#                          with settings_mutation_auth_required (the default, and the cluster's
+#                          setting), export UAR_ADMIN_KEY (UAR's settings admin key, sent as
+#                          X-UAR-Admin-Key; never printed). Without it a 401/403 is reported as
+#                          "NOT VERIFIED" and the script continues, because CI cannot read that key.
+#                        - Older UAR builds (no gate) either answer 200 without recording anything or,
+#                          if the route is absent (a 404 that is not "Provider ... not found"), the
+#                          step is reported as "not supported, skipped". Set SEED_VERIFY_MODELS=0 to
+#                          skip the step entirely.
+#   UAR_ADMIN_KEY   Optional. UAR settings admin key for the verification call (see above).
 #   UAR_URL         Base URL of the UAR API (default: http://localhost:6565)
 #   UAR_JWT_SECRET    HS256 secret UAR verifies JWTs with (required)
 #   AGENT_FILE        Path to the AgentArtifact JSON (default: uar/agents/knowme-site.json)
@@ -82,6 +110,9 @@ UAR_URL="${UAR_URL:-http://localhost:6565}"
 AGENT_FILE="${AGENT_FILE:-uar/agents/knowme-site.json}"
 WEB_AGENT_FILE="${WEB_AGENT_FILE:-uar/agents/knowme-site-web.json}"
 SEED_WEB_AGENT="${SEED_WEB_AGENT:-1}"
+SEED_VERIFY_MODELS="${SEED_VERIFY_MODELS:-1}"
+VERIFY_TIMEOUT_SECS="${VERIFY_TIMEOUT_SECS:-60}"
+VERIFY_RETRY_DELAY_SECS="${VERIFY_RETRY_DELAY_SECS:-2}"
 CORPUS_DIR="${CORPUS_DIR:-content/knowledge}"
 PRESENTATIONS_DIR="${PRESENTATIONS_DIR:-uar/presentations}"
 KB_NAME="${KB_NAME:-knowme-site}"
@@ -140,17 +171,27 @@ done
 
 # ── Preflight ────────────────────────────────────────────────────────────────
 case "$SEED_MODE" in
-  all | agent | kb) ;;
-  *) die "SEED_MODE must be kb, agent or all (got '$SEED_MODE')" ;;
+  all | agent | kb | verify) ;;
+  *) die "SEED_MODE must be kb, agent, verify or all (got '$SEED_MODE')" ;;
 esac
 case "$SEED_WEB_AGENT" in
   0 | 1) ;;
   *) die "SEED_WEB_AGENT must be 0 or 1 (got '$SEED_WEB_AGENT')" ;;
 esac
+case "$SEED_VERIFY_MODELS" in
+  0 | 1) ;;
+  *) die "SEED_VERIFY_MODELS must be 0 or 1 (got '$SEED_VERIFY_MODELS')" ;;
+esac
 SEED_AGENT=0
 SEED_KB=0
-[[ "$SEED_MODE" != kb ]] && SEED_AGENT=1
-[[ "$SEED_MODE" != agent ]] && SEED_KB=1
+[[ "$SEED_MODE" == all || "$SEED_MODE" == agent ]] && SEED_AGENT=1
+[[ "$SEED_MODE" == all || "$SEED_MODE" == kb ]] && SEED_KB=1
+SEED_VERIFY=0
+[[ "$SEED_AGENT" == 1 && "$SEED_VERIFY_MODELS" == 1 ]] && SEED_VERIFY=1
+if [[ "$SEED_MODE" == verify ]]; then
+  [[ "$SEED_VERIFY_MODELS" == 1 ]] || die "SEED_MODE=verify with SEED_VERIFY_MODELS=0 would do nothing"
+  SEED_VERIFY=1
+fi
 for cmd in curl jq openssl; do
   command -v "$cmd" >/dev/null 2>&1 || die "required command not found: $cmd"
 done
@@ -165,7 +206,7 @@ if [[ -n "${SITE_GATE_TOKEN_URL:-}" || -n "${SITE_GATE_CLIENT_ID:-}" || -n "${SI
 else
   [[ -n "${UAR_JWT_SECRET:-}" ]] || die "UAR_JWT_SECRET must be set (or the SITE_GATE_* client credentials)"
 fi
-if [[ "$SEED_AGENT" == 1 ]]; then
+if [[ "$SEED_AGENT" == 1 || "$SEED_MODE" == verify ]]; then
   [[ -f "$AGENT_FILE" ]] || die "agent artifact not found: $AGENT_FILE (owned by km-conversational-designer)"
   if [[ "$SEED_WEB_AGENT" == 1 ]]; then
     [[ -f "$WEB_AGENT_FILE" ]] || die "web agent artifact not found: $WEB_AGENT_FILE (set SEED_WEB_AGENT=0 to seed without it)"
@@ -209,10 +250,11 @@ mint_jwt() {
 # its aud is the client's audience (uar). Never echoed.
 gate_token() {
   local body
-  body="$(curl -sS --max-time 10 -X POST "$SITE_GATE_TOKEN_URL" \
-    --data-urlencode grant_type=client_credentials \
-    --data-urlencode "client_id=${SITE_GATE_CLIENT_ID}" \
-    --data-urlencode "client_secret=${SITE_GATE_CLIENT_SECRET}")" || die "gate token request failed"
+  # The client secret goes to curl on stdin (-K -), not on the command line, so it is not visible in ps.
+  body="$(printf 'data-urlencode = "client_secret=%s"\n' "$SITE_GATE_CLIENT_SECRET" |
+    curl -sS --max-time 10 -X POST "$SITE_GATE_TOKEN_URL" -K - \
+      --data-urlencode grant_type=client_credentials \
+      --data-urlencode "client_id=${SITE_GATE_CLIENT_ID}")" || die "gate token request failed"
   jq -er '.access_token' <<<"$body" 2>/dev/null || die "gate returned no access_token"
 }
 
@@ -227,6 +269,14 @@ fi
 # not in $(...): a subshell would drop REPLY_BODY. Never logs Authorization.
 REPLY_BODY=""
 API_STATUS=""
+# The bearer token and the admin key go to curl as header files (-H @file, 0600, removed on
+# exit), never as command-line arguments, so neither is visible in ps.
+HDR_DIR="$(umask 077 && mktemp -d)"
+trap 'rm -rf "$HDR_DIR"' EXIT
+(umask 077 && printf 'Authorization: Bearer %s\n' "$JWT" >"$HDR_DIR/auth")
+if [[ -n "${UAR_ADMIN_KEY:-}" ]]; then
+  (umask 077 && printf 'X-UAR-Admin-Key: %s\n' "$UAR_ADMIN_KEY" >"$HDR_DIR/admin")
+fi
 api() {
   local method="$1" path="$2"
   shift 2
@@ -234,7 +284,7 @@ api() {
   tmp="$(mktemp)"
   API_STATUS="$(curl -sS -o "$tmp" -w '%{http_code}' \
     -X "$method" "${UAR_URL}${path}" \
-    -H "Authorization: Bearer ${JWT}" \
+    -H "@${HDR_DIR}/auth" \
     "$@")" || API_STATUS="000"
   REPLY_BODY="$(cat "$tmp")"
   rm -f "$tmp"
@@ -250,6 +300,82 @@ require_2xx() {
       exit 1
       ;;
   esac
+}
+
+# ── Model verification (UAR a42f23bb "verified model" gate) ────────────────
+# Distinct provider<TAB>model pairs from the agent files being seeded: the
+# default route plus any fallbacks that name both fields.
+agent_model_pairs() {
+  local files=("$AGENT_FILE")
+  [[ "$SEED_WEB_AGENT" == 1 ]] && files+=("$WEB_AGENT_FILE")
+  jq -r '(.policy.provider // {}) | ([.default] + (.fallbacks // []))[]
+         | select(.provider != null and .model != null) | "\(.provider)\t\(.model)"' "${files[@]}" | sort -u
+}
+
+# POST /api/providers/<provider>/test {"model": ...} once; sets VERIFY_RESULT to
+# ok | retry | unsupported | unauthorized | fail and VERIFY_NOTE (never a secret).
+verify_attempt() {
+  local provider="$1" model="$2" body hdr=()
+  [[ -f "$HDR_DIR/admin" ]] && hdr=(-H "@${HDR_DIR}/admin")
+  body="$(jq -nc --arg m "$model" '{model: $m}')"
+  api POST "/api/providers/${provider}/test" --max-time "$VERIFY_TIMEOUT_SECS" \
+    -H 'Content-Type: application/json' ${hdr[@]+"${hdr[@]}"} --data-binary "$body"
+  local err
+  err="$(printf '%s' "$REPLY_BODY" | jq -r '.error // empty | tostring | .[0:160]' 2>/dev/null || true)"
+  VERIFY_NOTE="HTTP $API_STATUS${err:+ ($err)}"
+  case "$API_STATUS" in
+    2??)
+      if [[ "$(printf '%s' "$REPLY_BODY" | jq -r '.ok // false' 2>/dev/null || true)" == "true" ]]; then
+        VERIFY_NOTE="ok, latency_ms=$(printf '%s' "$REPLY_BODY" | jq -r '.latency_ms // "?"' 2>/dev/null || echo '?')"
+        VERIFY_RESULT=ok
+      else
+        VERIFY_NOTE="HTTP $API_STATUS but the response did not say ok:true"
+        VERIFY_RESULT=fail
+      fi
+      ;;
+    000 | 5??) VERIFY_RESULT=retry ;;
+    401 | 403) VERIFY_RESULT=unauthorized ;;
+    404)
+      # UAR answers 404 "Provider '<id>' not found" for an unknown provider (a real
+      # failure); a route that does not exist answers 404 without that message.
+      if [[ "$err" == Provider*not\ found* ]]; then VERIFY_RESULT=fail; else VERIFY_RESULT=unsupported; fi
+      ;;
+    *) VERIFY_RESULT=fail ;;
+  esac
+}
+
+verify_models() {
+  local pairs provider model attempt unverified=0
+  pairs="$(agent_model_pairs)"
+  [[ -n "$pairs" ]] || die "no provider/model pairs found in the agent files; cannot verify"
+  while IFS=$'\t' read -r provider model; do
+    [[ -n "$provider" && -n "$model" ]] || continue
+    log "verifying model '$model' on provider '$provider' (a real, tiny inference call)"
+    for attempt in 1 2; do
+      VERIFY_RESULT=fail VERIFY_NOTE=""
+      verify_attempt "$provider" "$model"
+      [[ "$VERIFY_RESULT" == retry && "$attempt" == 1 ]] || break
+      log "verification of '$provider/$model' got $VERIFY_NOTE; retrying once in ${VERIFY_RETRY_DELAY_SECS}s"
+      sleep "$VERIFY_RETRY_DELAY_SECS"
+    done
+    case "$VERIFY_RESULT" in
+      ok) log "verified '$provider/$model': $VERIFY_NOTE" ;;
+      unsupported)
+        log "WARNING: model verification not supported by this UAR (route not found), skipped for '$provider/$model'"
+        ;;
+      unauthorized)
+        if [[ -z "${UAR_ADMIN_KEY:-}" ]]; then
+          log "WARNING: '$provider/$model' is NOT VERIFIED: UAR requires provider-admin authority (HTTP $API_STATUS) and UAR_ADMIN_KEY is not set."
+          log "WARNING: a UAR build with the model_not_verified gate will answer chat with HTTP 422 until you run this step with UAR_ADMIN_KEY set."
+          unverified=1
+        else
+          die "model verification of '$provider/$model' was refused ($VERIFY_NOTE); check UAR_ADMIN_KEY. Agents are seeded but chat may answer model_not_verified."
+        fi
+        ;;
+      *) die "model verification of '$provider/$model' FAILED ($VERIFY_NOTE). Agents are seeded but cannot run on a UAR with the model_not_verified gate. Fix the provider (id, API key, base URL) and re-run." ;;
+    esac
+  done <<<"$pairs"
+  [[ "$unverified" == 0 ]] || log "WARNING: one or more models were NOT verified (see above); this seed does not prove chat works."
 }
 
 # ── 1. Agent: PUT, falling back to POST on 404 ──────────────────────────────
@@ -313,8 +439,16 @@ for tpl in "$PRESENTATIONS_DIR"/*.json; do
 done
 shopt -u nullglob
 else
-  log "SEED_MODE=$SEED_MODE: skipping the agent and presentation templates"
+  [[ "$SEED_MODE" == verify ]] || log "SEED_MODE=$SEED_MODE: skipping the agent and presentation templates"
 fi # end of SEED_AGENT sections 1 and 1b
+
+# ── 1c. Verify the agents' models ──────────────────────────────────────────
+# Runs in SEED_MODE agent and all (unless SEED_VERIFY_MODELS=0) and in verify.
+if [[ "$SEED_VERIFY" == 1 ]]; then
+  verify_models
+elif [[ "$SEED_AGENT" == 1 ]]; then
+  log "SEED_VERIFY_MODELS=0: skipping model verification (a UAR with the model_not_verified gate will refuse chat until the models are verified)"
+fi
 
 # ── 2. Knowledge base: create if missing, looked up by name ────────────────
 # Sections 2 to 4 run in SEED_MODE all and kb (not re-indented, as above).
