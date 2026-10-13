@@ -5,7 +5,7 @@ description: Plain-language description of a UAR run, governed tool execution, m
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-13T00:25:33+00:00"
+  at: "2026-10-13T01:28:18+00:00"
 tags:
   - universal-agent-runtime
   - architecture
@@ -14,23 +14,23 @@ sources:
   - id: uar-readme
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/README.md
     title: Universal Agent Runtime README
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
   - id: uar-arch
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/ARCHITECTURE.md
     title: Universal Agent Runtime architecture overview
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
   - id: uar-matrix
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/product-support-matrix.md
     title: Universal Agent Runtime product support matrix
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
   - id: uar-providers
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/PROVIDER_CONFIGURATION.md
     title: Universal Agent Runtime provider configuration guide
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
   - id: uar-memory
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/MEMORY_SYSTEM.md
     title: Universal Agent Runtime memory system
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
 ---
 
 # How the Universal Agent Runtime works

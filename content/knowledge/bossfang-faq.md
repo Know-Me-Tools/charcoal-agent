@@ -9,7 +9,7 @@ Source: BossFang connects to UAR, retrieved 2026-10-13.
 
 ## Is BossFang the same thing as The Boss?
 
-No. BossFang is an agent operating system forked from LibreFang. The Boss is a desktop workspace for AI conversations, agents, tools and project work, built on Cherry Studio. The Boss desktop app ships BossFang as a native sidecar program: the BossFang fork's releases are payloads built for The Boss.
+No. BossFang is an agent operating system forked from LibreFang. The Boss is a desktop workspace for AI conversations, agents, tools and project work, built on Cherry Studio. The Boss installers include the Universal Agent Runtime and BossFang as bundled programs that run beside The Boss; the BossFang fork's releases are payloads built for The Boss.
 
 Source: BossFang AGENTS.md, product identity and fork additions, retrieved 2026-10-13.
 Source: The Boss README, retrieved 2026-10-13.
@@ -23,7 +23,7 @@ Source: BossFang repository LICENSE, retrieved 2026-10-13.
 
 ## Does BossFang need a cloud account?
 
-No account with KnowMe AI, LLC is needed. BossFang runs locally, with its API and dashboard on your own machine by default, and its embedded database needs no separate service. Using a model provider needs that provider's own credentials.
+No account is needed. BossFang runs locally, with its API and dashboard on your own machine by default, and its embedded database needs no separate service. Using a model provider needs that provider's own credentials.
 
 Source: BossFang AGENTS.md, product identity and fork additions, retrieved 2026-10-13.
 
@@ -41,10 +41,9 @@ Source: BossFang connects to UAR, retrieved 2026-10-13.
 
 ## How do I install BossFang?
 
-Install steps exist in the fork's README, but they mix upstream LibreFang package channels with fork-specific scripts, and BossFang's feature ledger records that its binary name is not settled. The fork's releases are native payloads built for The Boss, and their notes say release acceptance is tracked separately. No tested end-user install path is established, so this knowledge base gives no command.
+Install steps exist in the fork's README, but they mix upstream LibreFang package channels with fork-specific scripts. The fork's releases are native payloads built for The Boss, and their notes say release acceptance is tracked separately. No tested end-user install path is established, so this knowledge base gives no command.
 
 Source: BossFang repository README, retrieved 2026-10-13.
-Source: BossFang feature ledger, retrieved 2026-10-13.
 Source: BossFang fork releases page, retrieved 2026-10-13.
 
 ## How do I report a bug in or contribute to BossFang?
@@ -52,3 +51,11 @@ Source: BossFang fork releases page, retrieved 2026-10-13.
 The fork's CONTRIBUTING.md asks for bug reports with reproduction steps through GitHub Issues on https://github.com/GQAdonis/librefang, and describes how to contribute code.
 
 Source: BossFang contribution guide, retrieved 2026-10-13.
+
+## Who makes BossFang?
+
+Prometheus AGS makes BossFang. BossFang's home page is https://bossfang.know-me.tools.
+
+## What is Prometheus, behind BossFang?
+
+Prometheus AGS makes the Universal Agent Runtime, the Surreal Memory Server, BossFang and the Prometheus skill packages. Prometheus is the name of its server-side AI platform work.

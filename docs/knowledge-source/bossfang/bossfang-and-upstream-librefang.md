@@ -5,7 +5,7 @@ description: Which parts of BossFang are BossFang-specific and which are inherit
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-13T00:25:33+00:00"
+  at: "2026-10-13T01:28:18+00:00"
 tags:
   - bossfang
   - librefang
@@ -14,11 +14,11 @@ sources:
   - id: bf-agents
     resource: https://github.com/GQAdonis/librefang/blob/main/AGENTS.md
     title: BossFang AGENTS.md, product identity and fork additions
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
   - id: bf-ledger
     resource: https://github.com/GQAdonis/librefang/blob/main/docs/bossfang/feature-ledger.md
     title: BossFang feature ledger
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
 ---
 
 # BossFang and upstream LibreFang

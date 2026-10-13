@@ -2,7 +2,7 @@
 
 ## What the Surreal Memory Server is
 
-The Surreal Memory Server is a memory service for AI agents, written in Rust on top of SurrealDB. It holds a knowledge graph, scoped memories, hybrid search, task streams and mind maps, and it reaches agents through MCP (Model Context Protocol, the open standard agents use to call tools) and a REST API. Writes go through a durable operation ledger, so a caller can confirm what was stored after a timeout or a restart.
+The Surreal Memory Server is a memory service for AI agents, written in Rust on top of SurrealDB. It holds a knowledge graph, scoped memories, hybrid search, task streams and mind maps, and it reaches agents through MCP (Model Context Protocol, the open standard agents use to call tools) and a REST API. Writes go through a durable operation ledger, so a caller can confirm what was stored after a timeout or a restart. The Surreal Memory Server is made by Prometheus AGS.
 
 Source: Surreal Memory Server README, retrieved 2026-10-13.
 

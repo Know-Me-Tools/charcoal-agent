@@ -5,7 +5,7 @@ description: Plain-language description of BossFang's daemon and dashboard, Surr
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-13T00:25:33+00:00"
+  at: "2026-10-13T01:28:18+00:00"
 tags:
   - bossfang
   - architecture
@@ -13,15 +13,15 @@ sources:
   - id: bf-agents
     resource: https://github.com/GQAdonis/librefang/blob/main/AGENTS.md
     title: BossFang AGENTS.md, product identity and fork additions
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
   - id: bf-ledger
     resource: https://github.com/GQAdonis/librefang/blob/main/docs/bossfang/feature-ledger.md
     title: BossFang feature ledger
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
   - id: bf-uar
     resource: https://github.com/GQAdonis/librefang/blob/main/docs/bossfang-uar-connections.md
     title: BossFang connects to UAR
-    last_modified: "2026-10-13T00:25:33+00:00"
+    last_modified: "2026-10-13T01:28:18+00:00"
 ---
 
 # How BossFang works

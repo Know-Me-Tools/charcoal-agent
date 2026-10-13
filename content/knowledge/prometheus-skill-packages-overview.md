@@ -2,7 +2,7 @@
 
 ## What the Prometheus skill packages are
 
-A skill is a packaged set of instructions an AI coding assistant can load for a kind of task. The Prometheus skill packages give a coding assistant a repeatable way to plan work, assign ownership, implement a specification and keep useful lessons for later sessions. There are two packages: the full Prometheus Skill Pack and Prometheus Skills Mini.
+A skill is a packaged set of instructions an AI coding assistant can load for a kind of task. The Prometheus skill packages give a coding assistant a repeatable way to plan work, assign ownership, implement a specification and keep useful lessons for later sessions. There are two packages: the full Prometheus Skill Pack and Prometheus Skills Mini. The Prometheus skill packages are made by Prometheus AGS.
 
 Source: Prometheus Skill Pack README, retrieved 2026-10-13.
 

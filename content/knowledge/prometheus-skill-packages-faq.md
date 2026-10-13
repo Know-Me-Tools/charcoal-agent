@@ -9,14 +9,13 @@ Source: Prometheus Skills Mini README, retrieved 2026-10-13.
 
 ## Are the Prometheus skill packages free?
 
-The full Prometheus Skill Pack is MIT licensed and has a LICENSE file. For Prometheus Skills Mini, its package manifest and README say MIT, but no LICENSE file is in the repository yet, so check the repository before relying on that.
+The full Prometheus Skill Pack is MIT licensed and has a LICENSE file. Prometheus Skills Mini is also MIT licensed. The owners state it is MIT licensed; a LICENSE file has been proposed in the repository.
 
 Source: Prometheus Skill Pack LICENSE, retrieved 2026-10-13.
-Source: Prometheus Skills Mini README, retrieved 2026-10-13.
 
 ## Do the Prometheus skill packages need a cloud account?
 
-No account with KnowMe AI, LLC is needed. The skills are files installed into your coding assistant, and the services are optional. Any model your assistant uses needs that provider's own account.
+No account is needed. The skills are files installed into your coding assistant, and the services are optional. Any model your assistant uses needs that provider's own account.
 
 Source: Prometheus Skill Pack README, retrieved 2026-10-13.
 
@@ -53,3 +52,11 @@ The full pack's CONTRIBUTING.md asks contributors to open a scoped issue at http
 
 Source: Prometheus Skill Pack contribution guide, retrieved 2026-10-13.
 Source: Prometheus Skills Mini README, retrieved 2026-10-13.
+
+## Who makes the Prometheus skill packages?
+
+Prometheus AGS makes the Prometheus skill packages, both the full Prometheus Skill Pack and Prometheus Skills Mini.
+
+## What is Prometheus, behind the Prometheus skill packages?
+
+Prometheus AGS makes the Universal Agent Runtime, the Surreal Memory Server, BossFang and the Prometheus skill packages. Prometheus is the name of its server-side AI platform work.

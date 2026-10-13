@@ -2,11 +2,10 @@
 
 ## How many skills the Prometheus skill packages have
 
-See each package's own skill index. The full pack's catalog is `SKILLS.md` and its inventory is generated from `skill-system.json`; the counts in its files do not all agree, so this knowledge base does not quote one. Mini's counts and targets come from its `skill-system.json`, `package.json` and `versions.toml`.
+Counted by listing the skill folders in the repository on 2026-10-13. The full pack, version 1.12.2 in its `skill-system.json`, has 120 skills in its `skills/<category>/<skill>/` folders, each with a SKILL.md; two of them are imported from other repositories. With nested helper skills it has 404 SKILL.md files in total, not counting installed dependencies. Mini, version 1.12.1 in its `package.json`, has 100 skills in its `skills/<name>/` folders.
 
-Source: Prometheus Skill Pack skill catalog, retrieved 2026-10-13.
-Source: Prometheus Skill Pack README, retrieved 2026-10-13.
-Source: Prometheus Skills Mini README, retrieved 2026-10-13.
+Source: Prometheus Skill Pack skill-system manifest, retrieved 2026-10-13.
+Source: Prometheus Skills Mini package manifest, retrieved 2026-10-13.
 
 ## Status of the full pack in the Prometheus skill packages
 
@@ -17,7 +16,7 @@ Source: Prometheus Skill Pack README, retrieved 2026-10-13.
 
 ## Status of Mini in the Prometheus skill packages
 
-Mini's `package.json` gives version 1.12.1; treat that as the source version, not a tested release. Mini's source and documentation were published for review on 2026-10-05. The note says this is a source publication, not a release, and that an earlier release integration did not pass as a whole. Its source targets Windows, macOS and Linux with Node 22 or later; acceptance on real installed coding assistants is still pending on each of the three.
+Mini's `package.json` gives version 1.12.1; treat that as the source version, not a tested release. Mini's source and documentation were published for review on 2026-10-05. The note says this is a source publication, not a release. The owner plans to resume testing once the code base has stabilised. Its source targets Windows, macOS and Linux with Node 22 or later; acceptance on real installed coding assistants is still pending on each of the three.
 
 Source: Prometheus Skills Mini package manifest, retrieved 2026-10-13.
 Source: Prometheus Skills Mini source publication note, 2026-10-05, retrieved 2026-10-13.
@@ -25,7 +24,7 @@ Source: Prometheus Skills Mini maintenance and platform limits, retrieved 2026-1
 
 ## Prometheus skill packages licences
 
-The full Prometheus Skill Pack is MIT licensed and has a LICENSE file. For Prometheus Skills Mini, its package manifest and README say MIT, but no LICENSE file is in the repository yet, so check the repository before relying on that. Skills imported into either package keep their own licences.
+The full Prometheus Skill Pack is MIT licensed and has a LICENSE file. Prometheus Skills Mini is MIT licensed, as its package manifest and README say. The owners state it is MIT licensed; a LICENSE file has been proposed in the repository. Skills imported into either package keep their own licences.
 
 Source: Prometheus Skill Pack LICENSE, retrieved 2026-10-13.
 Source: Prometheus Skills Mini package manifest, retrieved 2026-10-13.
