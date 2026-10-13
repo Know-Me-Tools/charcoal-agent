@@ -355,6 +355,12 @@ start_uar() { # mcp.json path
     fi
     export MCP_CONFIG_PATH="$1" WEBSEARCH_MCP_AUTH RUST_LOG=info
     WEBSEARCH_MCP_AUTH="$(<"$SECRETS/mcp-auth")"
+    # UAR copies every well-known provider variable (OPENAI_API_KEY, ...) into a per-provider
+    # key that the model registry and model verification read for the provider named
+    # "openai", which here is the Qwen Token Plan endpoint. The cluster has none of them. The
+    # proof sets its own key above, so keep the operator's out of the UAR process.
+    unset OPENAI_API_KEY ANTHROPIC_API_KEY GROQ_API_KEY MISTRAL_API_KEY COHERE_API_KEY \
+      GEMINI_API_KEY TOGETHER_API_KEY PERPLEXITY_API_KEY LLM_API_KEY
     cd "$cwd"
     exec "$UAR_BIN"
   ) >"$LOGS/uar-$(basename "$1" .json).log" 2>&1 &
