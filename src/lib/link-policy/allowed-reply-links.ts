@@ -21,9 +21,9 @@ export const ALLOWED_REPLY_LINK_URLS: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * The site's own host. A message image may load only from this host or one
- * of its subdomains (operator decision 2: own hosts only), or from a
- * same-origin relative path. Unlike links, subdomains match here: they are
- * all under the site's control.
+ * The site's own host. A message image may load only from exactly this host
+ * (operator decision 2: own hosts only; the CSP `img-src 'self'` does not
+ * cover subdomains, so neither does this policy), or from a same-origin
+ * relative path.
  */
 export const OWN_IMAGE_HOST = "know-me.tools";

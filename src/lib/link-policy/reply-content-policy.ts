@@ -29,6 +29,15 @@ export function isSameOriginRelative(url: string): boolean {
   }
 }
 
+/**
+ * A relative link counts only when it is a root path or an anchor. A bare
+ * word such as `evil.example` resolves inside the site but reads like a
+ * destination in the visible text, so it is not a link.
+ */
+function isRelativeReplyLink(url: string): boolean {
+  return (url.startsWith("/") || url.startsWith("#")) && isSameOriginRelative(url);
+}
+
 /** An `https:` URL without userinfo, or null. */
 function parseHttps(url: string): URL | null {
   let parsed: URL;
@@ -49,17 +58,16 @@ function parseHttps(url: string): URL | null {
  * (footnotes). Everything else, including `mailto:`, renders as text.
  */
 export function isAllowedReplyLink(url: string): boolean {
-  if (isSameOriginRelative(url)) return true;
+  if (isRelativeReplyLink(url)) return true;
   const parsed = parseHttps(url);
   if (!parsed) return false;
   return ALLOWED_REPLY_LINK_URLS.has(url) || ALLOWED_REPLY_LINK_HOSTS.has(parsed.hostname);
 }
 
-/** Whether an image in a chat message may load: own host, its subdomains, or same-origin. */
+/** Whether an image in a chat message may load: exactly the own host (the CSP `img-src 'self'` covers no subdomain), or same-origin. */
 export function isAllowedReplyImage(src: string): boolean {
   if (isSameOriginRelative(src)) return true;
   const parsed = parseHttps(src);
   if (!parsed) return false;
-  const host = parsed.hostname;
-  return host === OWN_IMAGE_HOST || host.endsWith(`.${OWN_IMAGE_HOST}`);
+  return parsed.hostname === OWN_IMAGE_HOST;
 }
