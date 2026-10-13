@@ -100,6 +100,24 @@ export interface ArtifactContentBlock {
   metadata?: Record<string, unknown>;
 }
 
+/** Public step phases sent by the server (`agui.step`). */
+export const STEP_PHASES = ["started", "finished", "failed", "denied"] as const;
+export type StepPhase = (typeof STEP_PHASES)[number];
+
+/** A message renders at most this many step blocks. */
+export const MAX_STEPS_PER_MESSAGE = 20;
+
+/**
+ * A public tool/thinking step. `label` is a fixed server-side string shown as
+ * plain text; `index` pairs a step's start with its finish within one response.
+ */
+export interface StepContentBlock {
+  type: "step";
+  index: number;
+  phase: StepPhase;
+  label: string;
+}
+
 export type ContentBlock =
   | TextContentBlock
   | ReasoningContentBlock
@@ -111,7 +129,8 @@ export type ContentBlock =
   | ErrorContentBlock
   | MemoryRecallContentBlock
   | MemoryMutationContentBlock
-  | ArtifactContentBlock;
+  | ArtifactContentBlock
+  | StepContentBlock;
 
 export interface RichMessage {
   id: string;

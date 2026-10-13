@@ -8,8 +8,10 @@ import type {
   MemoryRecallContentBlock,
   RichMessage,
   SkillActivationContentBlock,
+  StepContentBlock,
   ToolCallContentBlock,
 } from "@/types/chat-content";
+import { MAX_STEPS_PER_MESSAGE } from "@/types/chat-content";
 import { enqueueWrite } from "@/lib/db/write-queue";
 
 interface ChatMessageState {
@@ -64,6 +66,8 @@ interface ChatMessageActions {
     threadId: string,
     artifact: Omit<ArtifactContentBlock, "type">,
   ): void;
+  /** Adds a step, or updates the one with the same index in the streaming message. */
+  upsertStep(threadId: string, step: Omit<StepContentBlock, "type">): void;
   finishStream(threadId: string): void;
   setStreamError(threadId: string, error: string): void;
   /**
@@ -455,6 +459,22 @@ export const useChatMessageStore = create<ChatMessageStore>()(
         if (!message) return;
 
         message.content.push({ type: "artifact", ...artifact });
+      }),
+
+    upsertStep: (threadId, step) =>
+      set((state) => {
+        const message = activeStreamingMessage(state, threadId);
+        if (!message) return;
+
+        const steps = message.content.filter((b): b is StepContentBlock => b.type === "step");
+        const existing = steps.find((b) => b.index === step.index);
+        if (existing) {
+          existing.phase = step.phase;
+          existing.label = step.label;
+          return;
+        }
+        if (steps.length >= MAX_STEPS_PER_MESSAGE) return;
+        message.content.push({ type: "step", ...step });
       }),
 
     finishStream: (threadId) => {

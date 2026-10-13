@@ -8,13 +8,15 @@ import { CitationBlock } from "@/features/chat/components/citation-block";
 import { ContextUpdateBlock } from "@/features/chat/components/context-update-block";
 import { MemoryMutationBlock, MemoryRecallBlock } from "@/features/chat/components/memory-block";
 import { RunCancelledBlock } from "@/features/chat/components/run-cancelled-block";
+import { StepBlock } from "@/features/chat/components/step-block";
 import { SkillActivationBlock } from "@/features/chat/components/skill-activation-block";
 import { ToolCallBlock, ToolCallBlockWrapper } from "@/features/chat/components/tool-call-block";
-import type { MemoryItem } from "@/types/chat-content";
+import type { MemoryItem, StepPhase } from "@/types/chat-content";
 import { defaultRenderRegistry } from "./default-entries";
 import {
   APPROVAL_PART,
   CANCELLED_PART,
+  STEP_PART,
   SUBAGENT_PART,
   type CancelledUsage,
   type SubagentStatus,
@@ -106,6 +108,11 @@ const SubagentPart: PartRenderer = ({ args }) => {
 const CancelledPart: PartRenderer = ({ args }) => {
   const a = args as { usage?: CancelledUsage };
   return <RunCancelledBlock usage={a.usage} />;
+};
+
+const StepPart: PartRenderer = ({ args }) => {
+  const a = args as { phase: StepPhase; label: string };
+  return <StepBlock phase={a.phase} label={a.label} />;
 };
 
 const MemoryRecallPart: PartRenderer = ({ args }) => {
@@ -214,6 +221,7 @@ const PART_RENDERERS: Readonly<Record<string, PartRenderer>> = {
   __artifact_input__: ArtifactInputPart,
   __artifact__: ArtifactPart,
   [APPROVAL_PART]: ApprovalPart,
+  [STEP_PART]: StepPart,
   [SUBAGENT_PART]: SubagentPart,
   [CANCELLED_PART]: CancelledPart,
 };

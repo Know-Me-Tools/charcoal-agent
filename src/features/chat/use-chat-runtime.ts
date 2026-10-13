@@ -11,7 +11,7 @@ import { useChatMessages } from "./use-chat-messages";
 import { useMessageStream } from "./use-message-stream";
 import { generateThreadTitle } from "./use-thread-naming";
 import type { RichMessage, ContentBlock } from "@/types/chat-content";
-import { CANCELLED_PART } from "./render-registry/pseudo-parts";
+import { CANCELLED_PART, STEP_PART } from "./render-registry/pseudo-parts";
 
 /**
  * Convert our internal RichMessage to the ThreadMessageLike shape expected by
@@ -191,6 +191,24 @@ export function richMessageToThreadMessageLike(msg: RichMessage): ThreadMessageL
           isError: false,
         });
         break;
+      case "step": {
+        // A step still "started" in a settled message will never finish.
+        const phase =
+          block.phase === "started" && msg.status !== "in_progress"
+            ? msg.status === "failed"
+              ? "failed"
+              : "finished"
+            : block.phase;
+        parts.push({
+          type: "tool-call",
+          toolCallId: `step-${block.index}`,
+          toolName: STEP_PART,
+          args: { index: block.index, phase, label: block.label },
+          result: undefined,
+          isError: false,
+        });
+        break;
+      }
       default:
         // image, error — intentionally skipped (no assistant-ui equivalent)
         break;
