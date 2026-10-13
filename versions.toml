@@ -22,6 +22,20 @@ created = "2026-09-25"
 "server/tracing" = "0.1.44"
 "server/tracing-subscriber" = "0.3.23"
 "server/futures-util" = "0.3.34"
+
+# websearch/ (site-websearch MCP wrapper, openspec/changes/site-web-search).
+# Exact versions from websearch/Cargo.toml; separate crate, so these differ from server/ where noted.
+"websearch/axum" = "0.8.9"
+"websearch/tokio" = "1.53.2"            # server/tokio is 1.53.1
+"websearch/reqwest" = "0.13.5"
+"websearch/serde" = "1.0.229"
+"websearch/serde_json" = "1.0.154"      # server/serde_json is 1.0.151
+"websearch/thiserror" = "2.0.21"
+"websearch/tracing" = "0.1.44"
+"websearch/tracing-subscriber" = "0.3.23"
+"websearch/url" = "2.5.8"
+"websearch/subtle" = "2.6.1"
+"websearch/wiremock" = "0.6.5"          # dev-dependency
 "rust" = "1.98.1"
 "node" = "24.21.0"
 "image/node" = "node:24.21.0-trixie-slim@sha256:8ec5d7557396cfe32d21c3f9c13072355ceab22b584578ca4bb28af31120cffe"
