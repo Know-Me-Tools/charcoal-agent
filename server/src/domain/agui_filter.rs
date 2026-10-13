@@ -25,6 +25,18 @@
 //! - an event-less frame only when its data is `[DONE]`;
 //! - comment-only frames (keep-alives), which carry no data.
 //!
+//! What is derived: `agui.step` ([`STEP_EVENT`]), a content-free progress frame
+//! built from UAR's tool and reasoning events by a per-response
+//! [`StepTracker`] (see `crate::domain::agui_steps`). It carries only a phase,
+//! a server-minted index and a fixed label, never a tool id, name, arguments,
+//! result, policy reason or reasoning text. A tool denial reaches a visitor
+//! only as an `agui.step` with phase `denied`; `agui.tool_call.denied` itself
+//! is not forwarded. An upstream frame named `agui.step` is dropped.
+//!
+//! The outbound set is therefore [`ALLOWED_EVENTS`], [`ARTIFACT_EVENT`],
+//! [`STATE_PATCH_EVENT`], [`STEP_EVENT`], `[DONE]` and keep-alives. Memory
+//! events (`agui.memory.*`) are never forwarded (decision D-P3).
+//!
 //! An `agui.artifact` or `agui.state.patch` whose payload cannot be read (bad
 //! JSON, missing field) is dropped, but reported as [`Verdict::DropMalformed`]
 //! so the caller logs it rather than counting it as internal.
@@ -36,14 +48,18 @@
 
 use serde_json::{Map, Value, json};
 
+pub use crate::domain::agui_steps::STEP_EVENT;
+use crate::domain::agui_steps::{StepOutcome, StepTracker};
 use crate::domain::meter::{Usage, parse_done_usage};
 
 pub const ARTIFACT_EVENT: &str = "agui.artifact";
 pub const STATE_PATCH_EVENT: &str = "agui.state.patch";
 /// Artifact types a visitor may receive. Everything else is diagnostic.
 pub const ALLOWED_ARTIFACT_TYPES: [&str; 1] = ["a2ui"];
-/// Events a visitor may receive. `agui.done` carries the usage the meter reads.
-pub const ALLOWED_EVENTS: [&str; 8] = [
+/// Upstream events a visitor may receive, rebuilt. `agui.done` carries the
+/// usage the meter reads. Tool and reasoning events are not here: they become
+/// [`STEP_EVENT`] frames.
+pub const ALLOWED_EVENTS: [&str; 7] = [
     "agui.stream.start",
     "agui.message.delta",
     "agui.done",
@@ -51,7 +67,6 @@ pub const ALLOWED_EVENTS: [&str; 8] = [
     "agui.cancelled",
     "agui.citation.added",
     "agui.rag_citations",
-    "agui.tool_call.denied",
 ];
 /// The only A2UI components a visitor may be sent: layout and text, nothing
 /// that takes input. The client enforces the same set on the public build.
@@ -67,8 +82,6 @@ const A2UI_MESSAGE_KEYS: [&str; 6] = [
 ];
 /// Replaces UAR's error text, which can name hosts, providers or tables.
 pub const PUBLIC_ERROR_MESSAGE: &str = "The reply stopped before it finished.";
-/// Replaces UAR's denial reason, which describes the run policy.
-pub const PUBLIC_DENIED_REASON: &str = "This action is not permitted.";
 /// Largest `a2ui` artifact `content` forwarded, in bytes. The site client
 /// refuses anything larger than this too.
 pub const MAX_A2UI_CONTENT_BYTES: usize = 256 * 1024;
@@ -108,23 +121,51 @@ pub struct Filtered {
 }
 
 impl Filtered {
-    fn take(&mut self, event: &[u8]) {
+    fn take(&mut self, event: &[u8], steps: &mut StepTracker) {
         let parsed = ParsedEvent::parse(event);
         if let Some(signal) = parsed.signal() {
             self.signals.push(signal);
         }
-        match parsed.outcome() {
-            Outcome::Rewritten(frame) => self.forward.extend_from_slice(&frame),
-            Outcome::Drop(Verdict::DropMalformed) => self.dropped_malformed += 1,
-            Outcome::Drop(_) => self.dropped_internal += 1,
+        let (frames, dropped) = evaluate(&parsed, steps);
+        self.forward.extend_from_slice(&frames);
+        match dropped {
+            None => {}
+            Some(Verdict::DropMalformed) => self.dropped_malformed += 1,
+            Some(_) => self.dropped_internal += 1,
         }
     }
 }
 
-/// Incremental filter over one SSE response body.
+/// The frames to send for one upstream event, and the drop verdict when the
+/// event itself was not forwarded. A drop can still send frames: a malformed
+/// message delta still ends an active thinking step.
+fn evaluate(parsed: &ParsedEvent, steps: &mut StepTracker) -> (Vec<u8>, Option<Verdict>) {
+    let step = match parsed.event_type.as_deref() {
+        Some(name) => steps.observe(name, &parsed.data),
+        None => StepOutcome::Pass { prefix: Vec::new() },
+    };
+    match step {
+        StepOutcome::Replaced { frames } if frames.is_empty() => {
+            (frames, Some(Verdict::DropInternal))
+        }
+        StepOutcome::Replaced { frames } => (frames, None),
+        StepOutcome::Malformed => (Vec::new(), Some(Verdict::DropMalformed)),
+        StepOutcome::Pass { mut prefix } => match parsed.outcome() {
+            Outcome::Rewritten(frame) => {
+                prefix.extend_from_slice(&frame);
+                (prefix, None)
+            }
+            Outcome::Drop(verdict) => (prefix, Some(verdict)),
+        },
+    }
+}
+
+/// Incremental filter over one SSE response body. Holds the step state, so
+/// use one instance per response.
 #[derive(Debug, Default)]
 pub struct InternalArtifactFilter {
     pending: Vec<u8>,
+    steps: StepTracker,
 }
 
 impl InternalArtifactFilter {
@@ -138,7 +179,7 @@ impl InternalArtifactFilter {
         let mut out = Filtered::default();
         let mut start = 0;
         while let Some(len) = event_len(&self.pending[start..]) {
-            out.take(&self.pending[start..start + len]);
+            out.take(&self.pending[start..start + len], &mut self.steps);
             start += len;
         }
         self.pending.drain(..start);
@@ -150,7 +191,7 @@ impl InternalArtifactFilter {
         let rest = std::mem::take(&mut self.pending);
         let mut out = Filtered::default();
         if !rest.is_empty() {
-            out.take(&rest);
+            out.take(&rest, &mut self.steps);
         }
         out
     }
@@ -185,9 +226,11 @@ fn event_len(buf: &[u8]) -> Option<usize> {
     None
 }
 
-/// Classifies one event block (its bytes, with or without the terminator).
+/// Classifies one event block (its bytes, with or without the terminator), as
+/// the first event of a response.
 pub fn classify(event: &[u8]) -> Verdict {
-    ParsedEvent::parse(event).verdict()
+    let (_, dropped) = evaluate(&ParsedEvent::parse(event), &mut StepTracker::default());
+    dropped.unwrap_or(Verdict::Forward)
 }
 
 /// The `event` and joined `data` fields of one SSE event block.
@@ -216,13 +259,6 @@ impl ParsedEvent {
         Self {
             event_type,
             data: data.join("\n"),
-        }
-    }
-
-    fn verdict(&self) -> Verdict {
-        match self.outcome() {
-            Outcome::Rewritten(_) => Verdict::Forward,
-            Outcome::Drop(verdict) => verdict,
         }
     }
 
@@ -439,15 +475,6 @@ fn public_payload(name: &str, v: &Value) -> Option<Value> {
                 .collect();
             Some(json!({ "kind": "rag_citations", "phase": "added", "citations": citations }))
         }
-        "agui.tool_call.denied" => {
-            let mut out = pick(v, &["id", "name"], &["call_index"]);
-            out.get("id")?;
-            out.get("name")?;
-            out.insert("kind".into(), json!("tool_call"));
-            out.insert("phase".into(), json!("denied"));
-            out.insert("reason".into(), json!(PUBLIC_DENIED_REASON));
-            Some(Value::Object(out))
-        }
         _ => None,
     }
 }
@@ -570,13 +597,32 @@ mod tests {
         "event: agui.artifact\ndata: {\"artifact_type\":\"a2ui\",\"content\":\"{}\"}\n\n";
     const DONE_SENTINEL_FRAME: &str = "data: [DONE]\n\n";
 
+    const THINK: &str =
+        "event: agui.thinking.delta\nid: 10\ndata: {\"delta\":{\"text\":\"t\"}}\n\n";
+    const TOOL_START: &str = "event: agui.tool_call.complete\nid: 11\ndata: {\"call_index\":0,\"id\":\"c\",\"name\":\"presentation_render\",\"arguments_json\":\"{}\"}\n\n";
+    const TOOL_DELTA: &str = "event: agui.tool_call.delta\nid: 12\ndata: {\"call_index\":0,\"id\":\"c\",\"delta\":{\"arguments\":\"{}\"}}\n\n";
+    const TOOL_RESULT: &str = "event: agui.tool_result\nid: 13\ndata: {\"call_index\":0,\"id\":\"c\",\"name\":\"presentation_render\",\"content\":\"x\",\"success\":true}\n\n";
+    const MEMORY: &str = "event: agui.memory.recall\nid: 14\ndata: {\"items\":[]}\n\n";
+
+    /// The `agui.step` frame a visitor receives.
+    fn step(phase: &str, index: u64, label: &str) -> String {
+        let data = json!({ "kind": "step", "phase": phase, "index": index, "label": label });
+        format!("event: agui.step\ndata: {data}\n\n")
+    }
+
     #[test]
     fn should_forward_only_allowlisted_frames_in_order_rebuilt_from_public_fields() {
         let stream = [
             START,
             POLICY,
+            THINK,
+            THINK,
             DELTA,
             MANIFEST,
+            TOOL_START,
+            TOOL_DELTA,
+            TOOL_RESULT,
+            MEMORY,
             PROVIDER,
             ATTEMPT,
             OPENAI,
@@ -592,7 +638,11 @@ mod tests {
             String::from_utf8(out.forward).unwrap(),
             [
                 PUB_START,
+                &step("started", 0, "Thinking"),
+                &step("finished", 0, "Thinking"),
                 PUB_DELTA,
+                &step("started", 1, "Preparing an answer card"),
+                &step("finished", 1, "Preparing an answer card"),
                 PUB_A2UI,
                 KEEPALIVE,
                 DONE_SENTINEL_FRAME,
@@ -600,14 +650,15 @@ mod tests {
             ]
             .concat()
         );
-        assert_eq!((out.dropped_internal, out.dropped_malformed), (6, 0));
+        // POLICY, the second THINK, MANIFEST, TOOL_DELTA, MEMORY, PROVIDER,
+        // ATTEMPT, OPENAI and CODE.
+        assert_eq!((out.dropped_internal, out.dropped_malformed), (9, 0));
     }
 
     #[test]
     fn every_allowed_event_name_should_be_forwarded() {
         for name in ALLOWED_EVENTS {
             let data = match name {
-                "agui.tool_call.denied" => r#"{"id":"c1","name":"t"}"#,
                 "agui.citation.added" => r#"{"citation":{"index":1}}"#,
                 "agui.rag_citations" => r#"{"citations":[]}"#,
                 _ => "{}",
@@ -618,13 +669,40 @@ mod tests {
     }
 
     #[test]
+    fn step_source_events_should_be_forwarded_only_as_derived_steps() {
+        for (name, data, verdict) in [
+            ("agui.thinking.delta", "{}", Verdict::Forward),
+            ("agui.reasoning.delta", "{}", Verdict::Forward),
+            ("agui.tool_call.complete", r#"{"id":"c"}"#, Verdict::Forward),
+            ("agui.tool_call.denied", r#"{"id":"c"}"#, Verdict::Forward),
+            // Nothing started, so nothing to finish.
+            ("agui.tool_result", r#"{"id":"c"}"#, Verdict::DropInternal),
+            // No id and no call_index: no step can be keyed.
+            ("agui.tool_call.complete", "{}", Verdict::DropMalformed),
+            ("agui.tool_result", "{}", Verdict::DropMalformed),
+            ("agui.tool_call.denied", "{}", Verdict::DropMalformed),
+            (
+                "agui.tool_call.complete",
+                "{not json",
+                Verdict::DropMalformed,
+            ),
+        ] {
+            let frame = format!("event: {name}\ndata: {data}\n\n");
+            assert_eq!(classify(frame.as_bytes()), verdict, "{name} {data}");
+            let out = String::from_utf8(run(&[frame.as_bytes()]).forward).unwrap();
+            assert!(
+                out.is_empty() || out.starts_with("event: agui.step\n"),
+                "{name}: {out}"
+            );
+        }
+    }
+
+    #[test]
     fn every_other_event_name_should_be_dropped() {
         for name in [
-            "agui.thinking.delta",
-            "agui.reasoning.delta",
+            "agui.step",
             "agui.tool_call.delta",
-            "agui.tool_call.complete",
-            "agui.tool_result",
+            "agui.tool_call.approval_required",
             "agui.memory.recall",
             "agui.memory.mutation",
             "agui.memory.update",
@@ -640,6 +718,7 @@ mod tests {
             "agui.raw",
             "runtime.run",
             "runtime.step",
+            "runtime.tool_call",
             "agui.some.future.event",
         ] {
             let frame = format!("event: {name}\ndata: {{}}\n\n");
@@ -916,23 +995,442 @@ mod tests {
     }
 
     #[test]
-    fn a_denied_tool_call_should_be_public_with_a_fixed_reason() {
+    fn a_denied_tool_call_should_reach_a_visitor_only_as_a_step_with_a_fixed_label() {
         let upstream = r#"{"kind":"tool_call","phase":"denied","request_id":"run-9","call_index":0,"id":"call_1","name":"activate_skill","reason":"tools.mode=selected excludes activate_skill (effective_run_policy)","arguments_json":"{\"x\":1}"}"#;
         let (name, data) = public(&named("agui.tool_call.denied", upstream)).unwrap();
-        assert_eq!(name, "agui.tool_call.denied");
+        assert_eq!(name, "agui.step");
         assert_eq!(
             data,
-            json!({
-                "kind": "tool_call", "phase": "denied", "id": "call_1",
-                "name": "activate_skill", "call_index": 0, "reason": PUBLIC_DENIED_REASON
-            })
+            json!({ "kind": "step", "phase": "denied", "index": 0, "label": "Working" })
         );
-        for missing in [r#"{"name":"t"}"#, r#"{"id":"c"}"#, r#"{"id":1,"name":"t"}"#] {
+        for unkeyed in [r#"{"name":"t"}"#, r#"{"id":1,"name":"t"}"#] {
             assert_eq!(
-                classify(named("agui.tool_call.denied", missing).as_bytes()),
+                classify(named("agui.tool_call.denied", unkeyed).as_bytes()),
                 Verdict::DropMalformed,
-                "{missing}"
+                "{unkeyed}"
             );
+        }
+    }
+
+    // ── derived steps ───────────────────────────────────────────────────────
+
+    /// Every frame a visitor receives, as (event name, parsed data).
+    fn frames(out: &Filtered) -> Vec<(String, Value)> {
+        let text = String::from_utf8(out.forward.clone()).unwrap();
+        text.split_terminator("\n\n")
+            .map(|block| {
+                let mut lines = block.lines();
+                let name = lines.next().unwrap().strip_prefix("event: ").unwrap();
+                let data = lines.next().unwrap().strip_prefix("data: ").unwrap();
+                (name.to_owned(), serde_json::from_str(data).unwrap())
+            })
+            .collect()
+    }
+
+    /// The `agui.step` payloads only, in order.
+    fn steps_of(stream: &[String]) -> Vec<Value> {
+        let joined = stream.concat();
+        frames(&run(&[joined.as_bytes()]))
+            .into_iter()
+            .filter(|(name, _)| name == "agui.step")
+            .map(|(_, data)| data)
+            .collect()
+    }
+
+    fn st(phase: &str, index: u64, label: &str) -> Value {
+        json!({ "kind": "step", "phase": phase, "index": index, "label": label })
+    }
+
+    fn start(id: &str, name: &str) -> String {
+        named(
+            "agui.tool_call.complete",
+            &json!({ "id": id, "name": name, "call_index": 7, "arguments_json": "{}" }).to_string(),
+        )
+    }
+
+    fn result(id: &str, success: Option<bool>) -> String {
+        let mut data = json!({ "id": id, "name": "presentation_render", "content": "x" });
+        if let Some(ok) = success {
+            data["success"] = json!(ok);
+        }
+        named("agui.tool_result", &data.to_string())
+    }
+
+    fn denied(id: &str, name: &str) -> String {
+        named(
+            "agui.tool_call.denied",
+            &json!({ "id": id, "name": name, "reason": "r" }).to_string(),
+        )
+    }
+
+    #[test]
+    fn a_tool_start_and_result_should_pair_on_a_minted_index_with_a_fixed_label() {
+        let steps = steps_of(&[
+            start("call_abc", "presentation_render"),
+            result("call_abc", Some(true)),
+        ]);
+        // `call_index` upstream is 7; the public index is minted from 0.
+        assert_eq!(
+            steps,
+            vec![
+                st("started", 0, "Preparing an answer card"),
+                st("finished", 0, "Preparing an answer card"),
+            ]
+        );
+    }
+
+    #[test]
+    fn a_result_without_success_true_should_fail_the_step() {
+        for success in [Some(false), None] {
+            let steps = steps_of(&[start("c", "a2ui_render"), result("c", success)]);
+            assert_eq!(
+                steps,
+                vec![
+                    st("started", 0, "Preparing an answer card"),
+                    st("failed", 0, "Preparing an answer card"),
+                ],
+                "{success:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_denial_should_reuse_the_index_of_a_started_call() {
+        let steps = steps_of(&[
+            start("a", "presentation_render"),
+            start("b", "other_tool"),
+            denied("b", "other_tool"),
+            result("a", Some(true)),
+        ]);
+        assert_eq!(
+            steps,
+            vec![
+                st("started", 0, "Preparing an answer card"),
+                st("started", 1, "Working"),
+                st("denied", 1, "Working"),
+                st("finished", 0, "Preparing an answer card"),
+            ]
+        );
+    }
+
+    #[test]
+    fn a_denial_without_a_start_should_mint_an_index_and_settle_the_call() {
+        let steps = steps_of(&[
+            start("a", "x"),
+            denied("d", "presentation_render"),
+            // UAR may still announce the denied call; it is already settled.
+            start("d", "presentation_render"),
+            result("d", Some(true)),
+            denied("d", "presentation_render"),
+        ]);
+        assert_eq!(
+            steps,
+            vec![
+                st("started", 0, "Working"),
+                st("denied", 1, "Preparing an answer card"),
+            ]
+        );
+    }
+
+    #[test]
+    fn a_duplicate_start_should_be_ignored() {
+        let stream = [
+            start("a", "x"),
+            start("a", "presentation_render"),
+            result("a", Some(true)),
+        ];
+        assert_eq!(
+            steps_of(&stream),
+            vec![st("started", 0, "Working"), st("finished", 0, "Working")]
+        );
+        let out = run(&[stream.concat().as_bytes()]);
+        assert_eq!(out.dropped_internal, 1);
+    }
+
+    #[test]
+    fn a_result_without_a_mapped_id_should_be_dropped() {
+        let stream = [
+            result("never_started", Some(true)),
+            start("a", "x"),
+            result("a", Some(true)),
+            result("a", Some(true)),
+        ];
+        assert_eq!(
+            steps_of(&stream),
+            vec![st("started", 0, "Working"), st("finished", 0, "Working")]
+        );
+        let out = run(&[stream.concat().as_bytes()]);
+        assert_eq!((out.dropped_internal, out.dropped_malformed), (2, 0));
+    }
+
+    #[test]
+    fn call_index_should_key_a_step_only_when_the_id_is_missing() {
+        let steps = steps_of(&[
+            named("agui.tool_call.complete", r#"{"call_index":3,"name":"x"}"#),
+            named("agui.tool_result", r#"{"call_index":3,"success":true}"#),
+            named("agui.tool_result", r#"{"id":"3","success":true}"#),
+        ]);
+        assert_eq!(
+            steps,
+            vec![st("started", 0, "Working"), st("finished", 0, "Working")]
+        );
+    }
+
+    #[test]
+    fn steps_past_the_cap_should_be_dropped_with_their_results() {
+        use crate::domain::agui_steps::MAX_TRACKED_STEPS;
+        let mut stream: Vec<String> = (0..MAX_TRACKED_STEPS)
+            .map(|i| start(&format!("c{i}"), "x"))
+            .collect();
+        stream.push(start("over", "x"));
+        stream.push(result("over", Some(true)));
+        stream.push(denied("over_denied", "x"));
+        stream.push(result("c0", Some(true)));
+        let steps = steps_of(&stream);
+        assert_eq!(steps.len(), MAX_TRACKED_STEPS + 1);
+        assert_eq!(
+            steps[MAX_TRACKED_STEPS - 1],
+            st("started", MAX_TRACKED_STEPS as u64 - 1, "Working")
+        );
+        assert_eq!(steps[MAX_TRACKED_STEPS], st("finished", 0, "Working"));
+    }
+
+    #[test]
+    fn an_unknown_tool_name_should_be_labelled_working() {
+        for name in [
+            "web_fetch",
+            "Presentation_Render",
+            "presentation_render_v2",
+            "",
+        ] {
+            assert_eq!(
+                steps_of(&[start("c", name)]),
+                vec![st("started", 0, "Working")],
+                "{name}"
+            );
+        }
+        assert_eq!(
+            steps_of(&[named("agui.tool_call.complete", r#"{"id":"c"}"#)]),
+            vec![st("started", 0, "Working")]
+        );
+    }
+
+    fn reasoning(event: &str, text: &str) -> String {
+        named(event, &json!({ "delta": { "text": text } }).to_string())
+    }
+
+    #[test]
+    fn the_first_reasoning_delta_should_start_one_thinking_step_ended_by_a_message_delta() {
+        for event in ["agui.thinking.delta", "agui.reasoning.delta"] {
+            let stream = [
+                reasoning(event, "a"),
+                reasoning(event, "b"),
+                reasoning("agui.reasoning.delta", "c"),
+                named("agui.message.delta", r#"{"delta":{"text":"hi"}}"#),
+                reasoning(event, "after"),
+                named("agui.message.delta", r#"{"delta":{"text":"more"}}"#),
+            ];
+            let out = run(&[stream.concat().as_bytes()]);
+            let names: Vec<String> = frames(&out).into_iter().map(|(n, _)| n).collect();
+            assert_eq!(
+                names,
+                [
+                    "agui.step",
+                    "agui.step",
+                    "agui.message.delta",
+                    "agui.message.delta"
+                ],
+                "{event}"
+            );
+            assert_eq!(
+                steps_of(&stream),
+                vec![st("started", 0, "Thinking"), st("finished", 0, "Thinking")],
+                "{event}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_thinking_step_should_finish_before_a_tool_starts() {
+        let steps = steps_of(&[
+            reasoning("agui.thinking.delta", "t"),
+            start("c", "presentation_render"),
+            result("c", Some(true)),
+        ]);
+        assert_eq!(
+            steps,
+            vec![
+                st("started", 0, "Thinking"),
+                st("finished", 0, "Thinking"),
+                st("started", 1, "Preparing an answer card"),
+                st("finished", 1, "Preparing an answer card"),
+            ]
+        );
+    }
+
+    #[test]
+    fn a_thinking_step_should_finish_on_a_terminal_event_before_it() {
+        for (terminal, data) in [
+            ("agui.done", r#"{"usage":{"input_tokens":1}}"#),
+            ("agui.error", r#"{"message":"m"}"#),
+            ("agui.cancelled", "{}"),
+            // Unreadable, so not forwarded; the run still ended.
+            ("agui.done", "{not json"),
+        ] {
+            let stream = [reasoning("agui.thinking.delta", "t"), named(terminal, data)];
+            let out = run(&[stream.concat().as_bytes()]);
+            let got = frames(&out);
+            assert_eq!(got[0].1, st("started", 0, "Thinking"), "{terminal}");
+            assert_eq!(got[1].1, st("finished", 0, "Thinking"), "{terminal}");
+            assert!(got.len() == 3 || data.starts_with("{not"), "{terminal}");
+        }
+    }
+
+    #[test]
+    fn a_thinking_step_should_not_be_ended_by_other_events_or_shown_without_reasoning() {
+        let steps = steps_of(&[
+            reasoning("agui.thinking.delta", "t"),
+            MEMORY.to_owned(),
+            A2UI.to_owned(),
+            named("agui.tool_call.delta", r#"{"id":"c"}"#),
+        ]);
+        assert_eq!(steps, vec![st("started", 0, "Thinking")]);
+        let none = steps_of(&[DELTA.to_owned(), DONE.to_owned()]);
+        assert!(none.is_empty(), "{none:?}");
+    }
+
+    // Distinctive upstream values that must never reach a visitor.
+    const LEAK_ID: &str = "call_SENTINEL_id_7f3k";
+    const LEAK_NAME: &str = "SENTINEL_tool_name_q2";
+    const LEAK_ARGS: &str = "SENTINEL_arguments_x8";
+    const LEAK_RESULT: &str = "SENTINEL_result_content_m4";
+    const LEAK_REASON: &str = "SENTINEL_policy_reason_p1";
+    const LEAK_REASONING: &str = "SENTINEL_reasoning_text_r6";
+    const LEAK_REQUEST: &str = "SENTINEL_request_id_z0";
+    const LEAK_MEMORY: &str = "SENTINEL_memory_value_k5";
+
+    fn leaky_stream() -> String {
+        let tool = |event: &str, extra: Value| {
+            let mut data = json!({
+                "kind": "tool_call", "request_id": LEAK_REQUEST,
+                "call_index": 0, "id": LEAK_ID, "name": LEAK_NAME,
+            });
+            data.as_object_mut()
+                .unwrap()
+                .extend(extra.as_object().unwrap().clone());
+            named(event, &data.to_string())
+        };
+        let memory = |event: &str| {
+            named(
+                event,
+                &json!({ "request_id": LEAK_REQUEST, "items": [{ "id": LEAK_ID, "value": LEAK_MEMORY }] })
+                    .to_string(),
+            )
+        };
+        [
+            named(
+                "agui.stream.start",
+                &json!({ "request_id": LEAK_REQUEST }).to_string(),
+            ),
+            named(
+                "agui.thinking.delta",
+                &json!({ "request_id": LEAK_REQUEST, "delta": { "text": LEAK_REASONING } })
+                    .to_string(),
+            ),
+            named(
+                "agui.reasoning.delta",
+                &json!({ "delta": { "text": LEAK_REASONING } }).to_string(),
+            ),
+            tool(
+                "agui.tool_call.delta",
+                json!({ "delta": { "arguments": LEAK_ARGS } }),
+            ),
+            tool(
+                "agui.tool_call.complete",
+                json!({ "arguments_json": LEAK_ARGS }),
+            ),
+            tool(
+                "agui.tool_call.approval_required",
+                json!({ "arguments_json": LEAK_ARGS, "risk_reason": LEAK_REASON }),
+            ),
+            tool(
+                "agui.tool_result",
+                json!({ "content": LEAK_RESULT, "success": true }),
+            ),
+            tool("agui.tool_call.denied", json!({ "reason": LEAK_REASON })),
+            named(
+                "agui.tool_call.denied",
+                &json!({ "id": format!("{LEAK_ID}_2"), "name": LEAK_NAME, "reason": LEAK_REASON })
+                    .to_string(),
+            ),
+            memory("agui.memory.recall"),
+            memory("agui.memory.update"),
+            memory("agui.memory.mutation"),
+            named("agui.message.delta", r#"{"delta":{"text":"hi"}}"#),
+            named(
+                "agui.done",
+                &json!({ "request_id": LEAK_REQUEST }).to_string(),
+            ),
+        ]
+        .concat()
+    }
+
+    #[test]
+    fn no_tool_reasoning_or_memory_internals_should_reach_a_visitor() {
+        let stream = leaky_stream();
+        // Every split point, so a sentinel cut across chunks is caught too.
+        let bytes = stream.as_bytes();
+        for split in (0..=bytes.len()).step_by(7) {
+            let out = run(&[&bytes[..split], &bytes[split..]]);
+            let text = String::from_utf8(out.forward).unwrap();
+            for leak in [
+                LEAK_ID,
+                LEAK_NAME,
+                LEAK_ARGS,
+                LEAK_RESULT,
+                LEAK_REASON,
+                LEAK_REASONING,
+                LEAK_REQUEST,
+                LEAK_MEMORY,
+                "SENTINEL",
+                "agui.tool_call",
+                "agui.tool_result",
+                "agui.thinking",
+                "agui.reasoning",
+                "agui.memory",
+                "call_index",
+            ] {
+                assert!(!text.contains(leak), "{leak} leaked at {split}: {text}");
+            }
+        }
+        let steps = steps_of(&[stream]);
+        assert_eq!(
+            steps,
+            vec![
+                st("started", 0, "Thinking"),
+                st("finished", 0, "Thinking"),
+                st("started", 1, "Working"),
+                st("finished", 1, "Working"),
+                st("denied", 2, "Working"),
+            ]
+        );
+    }
+
+    #[test]
+    fn memory_events_should_always_be_dropped() {
+        for name in [
+            "agui.memory.recall",
+            "agui.memory.update",
+            "agui.memory.mutation",
+        ] {
+            let frame = named(
+                name,
+                &json!({ "items": [{ "value": LEAK_MEMORY }] }).to_string(),
+            );
+            assert_eq!(classify(frame.as_bytes()), Verdict::DropInternal, "{name}");
+            let out = run(&[frame.as_bytes()]);
+            assert!(out.forward.is_empty(), "{name}");
+            assert_eq!(out.dropped_internal, 1, "{name}");
         }
     }
 

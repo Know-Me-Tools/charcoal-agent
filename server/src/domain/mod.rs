@@ -2,6 +2,7 @@
 //! Pure policy for the site proxy. No I/O, no framework types beyond `http`.
 
 pub mod agui_filter;
+pub mod agui_steps;
 pub mod chat_request;
 pub mod client_ip;
 pub mod csp;
