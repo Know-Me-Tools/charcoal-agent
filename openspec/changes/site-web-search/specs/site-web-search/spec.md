@@ -62,7 +62,7 @@ The composer SHALL offer a labelled web-search toggle that is off by default, op
 - **THEN** no fetch occurs, no tool other than the search tool is called, and no URL from the request is emitted as a link
 
 ### Requirement: Search is bounded
-The wrapper SHALL send Firecrawl only `query`, `limit: 5` and `sources: ["web"]`, SHALL return at most five results of title, URL and a description of at most 240 characters, SHALL accept a query of 1 to 200 characters, SHALL enforce a daily search cap, and each reply SHALL use at most one search.
+The wrapper SHALL send Firecrawl only `query`, `limit: 5` and `sources: ["web"]`, SHALL return to the model at most five results of title, URL and a description of at most 240 characters (the model sees the description; the visitor does not, see the citation requirement below), SHALL accept a query of 1 to 200 characters, SHALL enforce a daily search cap, and each reply SHALL use at most one search.
 
 #### Scenario: Result shaping
 - **GIVEN** Firecrawl returns items carrying `markdown`, `html`, `links` and `metadata`
@@ -88,17 +88,24 @@ The Firecrawl API key SHALL exist only in a cluster Secret mounted into `site-we
 - **THEN** the reply refuses and the stream contains no key-shaped string and no tool or provider name
 
 ### Requirement: The public stream shows a fixed web-search step and sanitized web citations only
-The site proxy SHALL show a web search as one `agui.step` with the fixed label "Searching the web" and SHALL emit web sources only as `agui.web_citations` frames minted by the proxy with the fields `origin`, `marker`, `title`, `host`, `url` and `snippet`, and SHALL NOT forward the query, arguments, raw tool result, tool id or tool name.
+The site proxy SHALL show a web search as one `agui.step` with the fixed label "Searching the web" and SHALL emit web sources only as one `agui.web_citations` frame minted by the proxy with the fields `origin`, `marker`, `title`, `host` and `url` (no snippet, no other field), and SHALL NOT forward the query, arguments, raw tool result, tool id, tool name or the search result's description. *(Superseded wording, kept as history: "...with the fields `origin`, `marker`, `title`, `host`, `url` and `snippet`". The operator decided on 2026-10-13, after the local proof's P3 finding, that no web snippet reaches the visitor: the injected sentence of a hostile page appeared verbatim in the public snippet, as attacker-written text in our UI under a "Web" label.)*
 
 #### Scenario: Web turn on the public stream
 - **GIVEN** a turn in which the agent searches and answers
 - **WHEN** the public stream is read
-- **THEN** it contains a started and a finished step labelled "Searching the web", one `agui.web_citations` frame before the first message delta, and none of the query, arguments, raw result, tool id or tool name
+- **THEN** it contains a started and a finished step labelled "Searching the web", exactly one `agui.web_citations` frame after that step has finished and before `agui.done`, and none of the query, arguments, raw result, tool id or tool name
+
+> Frame timing (corrected 2026-10-13). *Superseded wording, kept as history: "one `agui.web_citations` frame before the first message delta".* Real streams carry the model's short preamble while the search runs, so message deltas legitimately precede the frame. The rule is: exactly one frame, minted when the search result arrives, after the "Searching the web" step has finished and before `agui.done`. Preamble text before the frame is fine; the client resolves `[Wn]` markers reactively and places Sources after the answer. Evidence: the real P3 stream (`.kbd-orchestrator/phases/site-chat-hardening-and-polish/evidence/13-local-web-search-proof/README.md`, "Citation frame order"); `scripts/ops/validate-live.mjs` enforces the corrected rule.
 
 #### Scenario: Upstream spoof
 - **GIVEN** an upstream frame named `agui.web_citations`
 - **WHEN** the filter processes it
 - **THEN** it is dropped
+
+#### Scenario: No snippet reaches the visitor
+- **GIVEN** a search result that carries a description (the model reads it)
+- **WHEN** the proxy builds the citation item
+- **THEN** the item has exactly the fields `origin`, `marker`, `title`, `host` and `url`, and no description text appears anywhere in the public stream
 
 #### Scenario: Unsafe result URL
 - **GIVEN** a search result whose URL is not `https`, carries userinfo or a fragment, or uses `javascript:` or `data:`
@@ -116,7 +123,7 @@ Every claim the agent takes from the web SHALL carry a marker `[W1]` to `[W5]` t
 #### Scenario: Web-sourced answer
 - **GIVEN** a question that needs the web
 - **WHEN** the agent answers
-- **THEN** the answer contains at least one `[Wn]`, each `[Wn]` has a matching web citation with title, host and a snippet of at most 240 characters, and the live validator reports no problem
+- **THEN** the answer contains at least one `[Wn]`, each `[Wn]` has a matching web citation with title, host and URL and no snippet, and the live validator reports no problem
 
 #### Scenario: Unresolved marker
 - **GIVEN** a reply containing `[W4]` with no fourth web citation
@@ -181,7 +188,8 @@ The AI disclosure and the About panel SHALL say that some answers use a web sear
 - **THEN** they contain the web-search statement approved by the operator
 
 #### Scenario: Rollback
-- **GIVEN** the agents are seeded with `SEED_WEB_AGENT=0` and the server's web-agent id is unset
+*(Corrected 2026-10-13: "unset" is wrong. An absent `SITE_WEB_AGENT_ID` defaults to `knowme-site-web` (`server/src/config.rs:189-193`); off means the variable is set empty or equal to `SITE_AGENT_ID`.)*
+- **GIVEN** the agents are seeded with `SEED_WEB_AGENT=0` and the server's `SITE_WEB_AGENT_ID` is set empty
 - **WHEN** a visitor with the toggle on asks a web question
 - **THEN** no search step appears and the agent answers from the knowledge base or says it does not know
 
@@ -189,6 +197,24 @@ The AI disclosure and the About panel SHALL say that some answers use a web sear
 - **GIVEN** `SEED_MODE=agent SEED_WEB_AGENT=0`
 - **WHEN** the seed runs
 - **THEN** `knowme-site` is replaced, `knowme-site-web` is neither created nor deleted, and `SEED_MODE=kb` behaves as before
+
+### Requirement: The stored MCP server entry is correct at first start and is never saved through the admin API
+UAR persists MCP server settings in its database on the first start that finds the stored `mcp.servers` empty, and reads the stored copy on every later start (UAR `src/uar/admin/mcp.rs:220-223`). The `websearch` entry in `k8s/base/uar-mcp-configmap.yaml` SHALL therefore carry its final `url`, its `headers` `secret_ref` and `preapproved_tools: ["search"]` before UAR first starts with `MCP_CONFIG_PATH` set, and the entry SHALL NOT be saved through the admin API `PUT /api/uar/mcp/servers/{name}`, which discards `preapproved_tools` (`src/uar/api/mcp_admin.rs:74`, `:87`). The Secret value behind `secret_ref: env:WEBSEARCH_MCP_AUTH` MAY be rotated without a database change. An operator-run read-only check SHALL report the stored servers' names, `enabled`, `connected` and `host:port` (`scripts/ops/check-uar-mcp-store.sh`), and SHALL state that `preapproved_tools` is not shown by the API.
+
+#### Scenario: First start
+- **GIVEN** an empty stored `mcp.servers` and the ConfigMap mounted
+- **WHEN** UAR starts
+- **THEN** the stored entry equals the ConfigMap's `websearch` entry and the check lists `websearch` with `enabled=true`
+
+#### Scenario: Later ConfigMap edit
+- **GIVEN** a stored `websearch` entry and a ConfigMap edited afterwards
+- **WHEN** UAR restarts
+- **THEN** the stored entry, not the ConfigMap, is used (an inference from the code; not yet run against a live UAR)
+
+#### Scenario: Secret rotation
+- **GIVEN** the Secret key `WEBSEARCH_MCP_AUTH` patched to a new `Bearer <token>`
+- **WHEN** the wrapper and then UAR restart
+- **THEN** UAR authenticates to the wrapper with the new value and the stored entry is unchanged
 
 ## MODIFIED Requirements
 
