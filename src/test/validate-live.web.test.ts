@@ -20,7 +20,7 @@ const done = ev("agui.done", { kind: "done" });
 const WEB_OK = { allowWebStep: true, expectWebCitation: true };
 
 describe("validate-live: web citations (site-web-search 16.8.3)", () => {
-  it("accepts a clean web turn: one search step, a web citation before the text, a resolved [W1]", () => {
+  it("accepts a clean web turn: one search step, one web citation after it finished, a resolved [W1]", () => {
     const body =
       step("started", 0, "Searching the web") +
       step("finished", 0, "Searching the web") +
@@ -28,6 +28,55 @@ describe("validate-live: web citations (site-web-search 16.8.3)", () => {
       text("Rust 1.9 shipped [W1].") +
       done;
     expect(analyse(200, body, WEB_OK).problems).toEqual([]);
+  });
+
+  it("accepts a late frame: preamble text, then the search finishes, then the one frame, then the answer", () => {
+    const body =
+      step("started", 0, "Thinking") +
+      step("finished", 0, "Thinking") +
+      step("started", 1, "Searching the web") +
+      text("Let me check the web on that topic.") +
+      text(" One moment.") +
+      step("finished", 1, "Searching the web") +
+      web([item(1)]) +
+      text("Rust 1.9 shipped [W1].") +
+      done;
+    expect(analyse(200, body, WEB_OK).problems).toEqual([]);
+  });
+
+  it("fails a frame that arrives before any search step started", () => {
+    const body = web([item(1)]) + step("started", 0, "Searching the web") + step("finished", 0, "Searching the web") + text("Rust 1.9 [W1].") + done;
+    expect(analyse(200, body, WEB_OK).problems).toEqual(
+      expect.arrayContaining([expect.stringContaining("before any search step started")]),
+    );
+  });
+
+  it("fails a frame that arrives while the search step is still running", () => {
+    const body = step("started", 0, "Searching the web") + web([item(1)]) + step("finished", 0, "Searching the web") + text("Rust [W1].") + done;
+    expect(analyse(200, body, WEB_OK).problems).toEqual(
+      expect.arrayContaining([expect.stringContaining("before the search step finished")]),
+    );
+  });
+
+  it("fails a second web citation frame in one reply", () => {
+    const body =
+      step("started", 0, "Searching the web") +
+      step("finished", 0, "Searching the web") +
+      web([item(1)]) +
+      web([item(1)]) +
+      text("Rust 1.9 [W1].") +
+      done;
+    expect(analyse(200, body, WEB_OK).problems).toEqual(
+      expect.arrayContaining([expect.stringContaining("more than one frame")]),
+    );
+  });
+
+  it("fails a frame that arrives after agui.done", () => {
+    const body =
+      step("started", 0, "Searching the web") + step("finished", 0, "Searching the web") + text("Rust 1.9 [W1].") + done + web([item(1)]);
+    expect(analyse(200, body, WEB_OK).problems).toEqual(
+      expect.arrayContaining([expect.stringContaining("after agui.done")]),
+    );
   });
 
   it("fails a web-sourced answer that has no web citation", () => {
