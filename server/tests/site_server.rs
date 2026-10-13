@@ -409,19 +409,69 @@ async fn forced_tool_call_should_reach_the_visitor_only_as_a_denial() {
     assert!(public.contains("agui.done"), "{public}");
 }
 
-/// FR-11: the committed agent offers the public visitor `presentation_render`
-/// and nothing else. A drift in any of these keys fails the build.
+/// A committed agent definition under `uar/agents/`.
+fn committed_agent(file: &str) -> serde_json::Value {
+    let path = format!("{}/../uar/agents/{file}", env!("CARGO_MANIFEST_DIR"));
+    let text = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{path}: {e}"));
+    serde_json::from_str(&text).unwrap_or_else(|e| panic!("{path}: {e}"))
+}
+
+/// The ids of a JSON string array, as a set, with duplicates rejected.
+fn id_set(value: &serde_json::Value) -> std::collections::BTreeSet<&str> {
+    let items = value
+        .as_array()
+        .unwrap_or_else(|| panic!("not an array: {value}"));
+    let set: std::collections::BTreeSet<&str> = items
+        .iter()
+        .map(|v| v.as_str().unwrap_or_else(|| panic!("not a string: {v}")))
+        .collect();
+    assert_eq!(set.len(), items.len(), "duplicate id in {value}");
+    set
+}
+
+/// FR-11 as amended by site-web-search (16.4.1): the committed web agent
+/// offers exactly `presentation_render` and the one search tool of the one
+/// `websearch` MCP server, with skills off and one search plus the card per
+/// turn. Another worker writes `uar/agents/knowme-site-web.json`; this test
+/// fails until that file is merged next to it.
+#[test]
+fn committed_web_agent_should_expose_only_the_card_and_web_search() {
+    let agent = committed_agent("knowme-site-web.json");
+    let tools: std::collections::BTreeSet<&str> =
+        ["presentation_render", "websearch__search"].into();
+    let policy = &agent["extensions"]["uar.run_policy"];
+
+    assert_eq!(agent["id"], "knowme-site-web");
+    assert_eq!(id_set(&agent["policy"]["tools"]["allow"]), tools);
+    assert_eq!(policy["tools"]["mode"], "selected");
+    assert_eq!(id_set(&policy["tools"]["ids"]), tools);
+    assert_eq!(policy["tools"]["denied_ids"], serde_json::json!([]));
+    assert_eq!(policy["mcp_servers"]["mode"], "selected");
+    assert_eq!(
+        policy["mcp_servers"]["ids"],
+        serde_json::json!(["websearch"])
+    );
+    assert_eq!(policy["skills"]["mode"], "none");
+    assert_eq!(policy["tool_approval"], "auto");
+    assert_eq!(agent["policy"]["skills"]["max_active"], 0);
+    assert_eq!(agent["tools"], serde_json::json!({}));
+    assert_eq!(
+        agent["extensions"]["budgets"]["max_tool_calls_per_turn"], 2,
+        "one search plus the answer card"
+    );
+}
+
+/// FR-11: the committed default agent offers the public visitor
+/// `presentation_render` and nothing else. A drift in any of these keys fails
+/// the build. Web search lives only in the second agent, so this pin is
+/// unchanged by it and holds through a rollback.
 #[test]
 fn committed_site_agent_should_expose_only_presentation_render() {
-    let path = concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../uar/agents/knowme-site.json"
-    );
-    let agent: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(path).expect("agent file")).unwrap();
+    let agent = committed_agent("knowme-site.json");
     let only = serde_json::json!(["presentation_render"]);
     let policy = &agent["extensions"]["uar.run_policy"];
 
+    assert_eq!(agent["id"], "knowme-site");
     assert_eq!(agent["policy"]["tools"]["allow"], only);
     assert_eq!(policy["tools"]["mode"], "selected");
     assert_eq!(policy["tools"]["ids"], only);
@@ -832,4 +882,173 @@ async fn a2ui_message_action_and_surface_routes_should_stay_closed() {
         );
     }
     assert_eq!(h.stub.count(), 0);
+}
+
+/// The toggle picks the agent; nothing else from the visitor does (16.4.6).
+#[tokio::test]
+async fn web_search_true_should_reach_the_web_agent_and_nothing_else_should() {
+    let h = start_with(Options {
+        chat_burst: Some(50),
+        ..Options::default()
+    })
+    .await;
+    let cases: [(&'static str, &str); 7] = [
+        (r#"{"message":"hi","web_search":true}"#, WEB_AGENT),
+        (r#"{"message":"hi","web_search":"true"}"#, "knowme-site"),
+        (r#"{"message":"hi","web_search":1}"#, "knowme-site"),
+        (r#"{"message":"hi","web_search":null}"#, "knowme-site"),
+        (
+            r#"{"message":"hi","web_search":true,"web_search":true}"#,
+            "knowme-site",
+        ),
+        (r#"{"message":"hi","web_search":false}"#, "knowme-site"),
+        (
+            r#"{"message":"hi","web_search":true,"agent_id":"knowme-admin",
+                "tools":[{"type":"function","function":{"name":"web_fetch"}}],
+                "mcp_servers":{"mode":"all"},"tool_choice":"required",
+                "run_policy":{"tools":{"mode":"all"}},"memory_enabled":true}"#,
+            WEB_AGENT,
+        ),
+    ];
+    for (body, agent) in cases {
+        let res = h.chat(body).send().await.unwrap();
+        assert_eq!(res.status(), StatusCode::OK, "{body}");
+        drop(res);
+        assert_eq!(
+            json(&h.stub.last().body),
+            pinned_body_for(agent, "hi"),
+            "{body}"
+        );
+    }
+}
+
+/// Rollback: with the web agent switched off by config, the toggle has no
+/// effect and the default agent answers.
+#[tokio::test]
+async fn web_search_should_be_ignored_when_the_web_agent_is_switched_off() {
+    for off in ["", "knowme-site"] {
+        let h = start_with(Options {
+            web_agent_id: Some(off),
+            ..Options::default()
+        })
+        .await;
+        let res = h
+            .chat(r#"{"message":"hi","web_search":true}"#)
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(res.status(), StatusCode::OK, "{off:?}");
+        drop(res);
+        assert_eq!(json(&h.stub.last().body), pinned_body("hi"), "{off:?}");
+    }
+}
+
+/// Every frame of a public stream, as (event name, data).
+fn public_frames(public: &str) -> Vec<(String, serde_json::Value)> {
+    public
+        .split_terminator("\n\n")
+        .filter_map(|block| {
+            let mut lines = block.lines();
+            let name = lines.next()?.strip_prefix("event: ")?.to_owned();
+            let data = lines.next()?.strip_prefix("data: ")?;
+            Some((name, serde_json::from_str(data).unwrap()))
+        })
+        .collect()
+}
+
+/// 16.4.5: a recorded web turn through the real proxy path. The search shows
+/// as fixed-label steps, its sources arrive as one minted
+/// `agui.web_citations` frame before the reply text, KB citations are
+/// unchanged, nothing from the tool call leaks, and the meter still settles
+/// to the run's usage.
+#[tokio::test]
+async fn a_web_turn_should_stream_steps_and_web_citations_and_settle_the_meter() {
+    let h = start(None).await;
+    let res = h
+        .chat(r#"{"message":"webturn","web_search":true}"#)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(res.status(), StatusCode::OK);
+    let public = res.text().await.unwrap();
+    assert_eq!(json(&h.stub.last().body)["agent_id"], WEB_AGENT);
+
+    let frames = public_frames(&public);
+    let names: Vec<&str> = frames.iter().map(|(n, _)| n.as_str()).collect();
+    assert_eq!(
+        names,
+        [
+            "agui.stream.start",
+            "agui.rag_citations",
+            "agui.step",
+            "agui.step",
+            "agui.web_citations",
+            "agui.step",
+            "agui.step",
+            "agui.message.delta",
+            "agui.message.delta",
+            "agui.done",
+        ],
+        "{public}"
+    );
+    let step = |phase: &str, index: u64, label: &str| serde_json::json!({ "kind": "step", "phase": phase, "index": index, "label": label });
+    assert_eq!(frames[2].1, step("started", 0, "Searching the web"));
+    assert_eq!(frames[3].1, step("finished", 0, "Searching the web"));
+    assert_eq!(frames[5].1, step("started", 1, "Preparing an answer card"));
+    assert_eq!(frames[6].1, step("finished", 1, "Preparing an answer card"));
+    // KB citations keep their existing public shape.
+    assert_eq!(
+        frames[1].1,
+        serde_json::json!({ "kind": "rag_citations", "phase": "added", "citations": [
+            { "marker": 1, "document_name": "company.md",
+              "snippet": "KnowMe AI, LLC builds KnowMe." }
+        ]})
+    );
+    // Minted from the fixture: marker 3 (plain http) is dropped and not
+    // renumbered, and the upstream spoof is gone.
+    assert_eq!(
+        frames[4].1,
+        serde_json::json!({ "kind": "web_citations", "phase": "added", "citations": [
+            { "origin": "web", "marker": 1, "title": "Announcing Rust 1.97.0",
+              "host": "blog.rust-lang.org",
+              "url": "https://blog.rust-lang.org/2026/09/18/Rust-1.97.0/",
+              "snippet": "The Rust team is happy to announce a new version of Rust, 1.97.0." },
+            { "origin": "web", "marker": 2, "title": "Rust 1.97.0 release notes",
+              "host": "doc.rust-lang.org",
+              "url": "https://doc.rust-lang.org/releases.html",
+              "snippet": "Language changes, compiler changes and stabilized APIs." }
+        ]})
+    );
+    assert_eq!(frames[9].1, serde_json::json!({ "kind": "done" }));
+    for leak in [
+        WEB_QUERY_SENTINEL,
+        "call_fixture_ws",
+        "call_card",
+        "websearch",
+        "presentation_render",
+        "arguments",
+        "spoof-sentinel",
+        "evil.example",
+        "mirror.example",
+        "untrusted",
+        "\"n\":",
+        "score",
+        "doc-1",
+        "kb_id",
+        "qwen3.8-max",
+        "agui.tool",
+    ] {
+        assert!(!public.contains(leak), "{leak} leaked: {public}");
+    }
+
+    // 3,300 used of 5,000 reserved: settled down by 1,700.
+    let settled = h.meter.settlement(0).await;
+    assert!(
+        settled.query.contains("SET total += -1700"),
+        "{}",
+        settled.query
+    );
+    assert!(settled.query.contains("input_tokens: 3000"));
+    assert!(settled.query.contains("output_tokens: 300"));
+    assert_eq!(settled.var("outcome"), Some("completed"));
 }

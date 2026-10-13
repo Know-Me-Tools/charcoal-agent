@@ -79,6 +79,86 @@ pub const USAGE_STREAM: &str = concat!(
     "event: agui.done\nid: 3\ndata: {\"kind\":\"done\",\"usage\":{\"input_tokens\":1430,",
     "\"output_tokens\":210,\"total_tokens\":1640,\"model\":\"qwen3.8-max\"}}\n\n",
 );
+/// The web-search agent the harness configures unless a test overrides it.
+pub const WEB_AGENT: &str = "knowme-site-web";
+/// The query the model wrote in the recorded web turn; must never leak.
+pub const WEB_QUERY_SENTINEL: &str = "query-sentinel-88";
+/// The assumed recorded `agui.tool_result` of one web search (task 16.6.1
+/// replaces it with a real capture).
+pub const WEB_SEARCH_RESULT_FIXTURE: &str =
+    include_str!("../fixtures/agui/web-search-tool-result.assumed.json");
+
+/// A web turn as UAR is expected to stream it: KB citations, a web search
+/// (start, result carrying the fixture), an upstream spoof of the derived
+/// citation event, an answer card, the reply, and `agui.done` with usage.
+pub fn web_turn_stream() -> String {
+    let result: serde_json::Value = serde_json::from_str(WEB_SEARCH_RESULT_FIXTURE).unwrap();
+    let id = result["id"].as_str().unwrap();
+    let args = serde_json::json!({ "query": WEB_QUERY_SENTINEL }).to_string();
+    let event = |name: &str, n: usize, data: serde_json::Value| {
+        format!("event: {name}\nid: {n}\ndata: {data}\n\n")
+    };
+    [
+        event("agui.stream.start", 1, serde_json::json!({ "request_id": "r-web" })),
+        event(
+            "agui.rag_citations",
+            2,
+            serde_json::json!({ "request_id": "r-web", "citations": [{
+                "marker": 1, "document_name": "company.md", "snippet": "KnowMe AI, LLC builds KnowMe.",
+                "document_id": "doc-1", "kb_id": "knowme-site", "score": 0.82 }] }),
+        ),
+        event(
+            "agui.tool_call.delta",
+            3,
+            serde_json::json!({ "call_index": 0, "id": id, "delta": { "arguments": args } }),
+        ),
+        event(
+            "agui.tool_call.complete",
+            4,
+            serde_json::json!({ "kind": "tool_call", "phase": "complete", "request_id": "r-web",
+                "call_index": 0, "id": id, "name": "websearch__search", "arguments_json": args }),
+        ),
+        event("agui.tool_result", 5, result.clone()),
+        event(
+            "agui.web_citations",
+            6,
+            serde_json::json!({ "kind": "web_citations", "phase": "added", "citations": [{
+                "origin": "web", "marker": 1, "title": "spoof-sentinel", "host": "evil.example",
+                "url": "https://evil.example/x", "snippet": "s" }] }),
+        ),
+        event(
+            "agui.tool_call.complete",
+            7,
+            serde_json::json!({ "call_index": 1, "id": "call_card", "name": "presentation_render",
+                "arguments_json": "{}" }),
+        ),
+        event(
+            "agui.tool_result",
+            8,
+            serde_json::json!({ "call_index": 1, "id": "call_card", "name": "presentation_render",
+                "content": "card", "success": true }),
+        ),
+        event(
+            "agui.message.delta",
+            9,
+            serde_json::json!({ "delta": { "text": "Rust 1.97.0 is out [W1]." } }),
+        ),
+        event(
+            "agui.message.delta",
+            10,
+            serde_json::json!({ "delta": { "text": " KnowMe builds agents [1]." } }),
+        ),
+        event(
+            "agui.done",
+            11,
+            serde_json::json!({ "kind": "done", "request_id": "r-web", "usage": {
+                "input_tokens": 3000, "output_tokens": 300, "total_tokens": 3300,
+                "model": "qwen3.8-max" } }),
+        ),
+    ]
+    .concat()
+}
+
 /// The reservation `n` the harness configures.
 pub const RESERVATION: u64 = 5_000;
 pub const STEP: Duration = Duration::from_secs(5);
@@ -150,6 +230,10 @@ pub async fn stub_handler(
         "/api/chat/completion" if body_has(&stub.last(), "usage") => Response::builder()
             .header("content-type", "text/event-stream")
             .body(Body::from(USAGE_STREAM))
+            .unwrap(),
+        "/api/chat/completion" if body_has(&stub.last(), "webturn") => Response::builder()
+            .header("content-type", "text/event-stream")
+            .body(Body::from(web_turn_stream()))
             .unwrap(),
         "/api/chat/completion" if body_has(&stub.last(), "toolcalls") => Response::builder()
             .header("content-type", "text/event-stream")
@@ -268,6 +352,9 @@ pub struct Options<'a> {
     pub chat_burst: Option<u32>,
     /// Gate mode against this token endpoint (see `gate_credentials.rs`).
     pub gate: Option<GateConfig>,
+    /// `SITE_WEB_AGENT_ID`; `None` keeps [`WEB_AGENT`]. `Some("")` or the
+    /// default agent's id switches web search off.
+    pub web_agent_id: Option<&'a str>,
 }
 
 pub async fn start_with(options: Options<'_>) -> Harness {
@@ -299,6 +386,7 @@ pub async fn start_with(options: Options<'_>) -> Harness {
         site_proxy_api_key: Some(PROXY_KEY.to_owned()),
         gate: options.gate,
         site_agent_id: "knowme-site".to_owned(),
+        site_web_agent_id: Some(options.web_agent_id.unwrap_or(WEB_AGENT).to_owned()),
         trusted_proxy_hops: 0,
         web_root: None,
         rate_limits: options
@@ -563,8 +651,12 @@ impl Harness {
 }
 
 pub fn pinned_body(message: &str) -> serde_json::Value {
+    pinned_body_for("knowme-site", message)
+}
+
+pub fn pinned_body_for(agent: &str, message: &str) -> serde_json::Value {
     serde_json::json!({
-        "agent_id": "knowme-site",
+        "agent_id": agent,
         "message": message,
         "stream": true,
         "stream_mode": "dual",

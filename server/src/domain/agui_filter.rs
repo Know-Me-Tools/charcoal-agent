@@ -33,9 +33,16 @@
 //! only as an `agui.step` with phase `denied`; `agui.tool_call.denied` itself
 //! is not forwarded. An upstream frame named `agui.step` is dropped.
 //!
+//! Also derived: `agui.web_citations` ([`WEB_CITATIONS_EVENT`]), minted by the
+//! step tracker from the first successful web-search tool result of a
+//! response (see `crate::domain::web_citations`). It carries only sanitized
+//! `origin`, `marker`, `title`, `host`, `url` and `snippet`. An upstream frame
+//! with that name is dropped; it is not in [`ALLOWED_EVENTS`].
+//!
 //! The outbound set is therefore [`ALLOWED_EVENTS`], [`ARTIFACT_EVENT`],
-//! [`STATE_PATCH_EVENT`], [`STEP_EVENT`], `[DONE]` and keep-alives. Memory
-//! events (`agui.memory.*`) are never forwarded (decision D-P3).
+//! [`STATE_PATCH_EVENT`], [`STEP_EVENT`], [`WEB_CITATIONS_EVENT`], `[DONE]`
+//! and keep-alives. Memory events (`agui.memory.*`) are never forwarded
+//! (decision D-P3).
 //!
 //! An `agui.artifact` or `agui.state.patch` whose payload cannot be read (bad
 //! JSON, missing field) is dropped, but reported as [`Verdict::DropMalformed`]
@@ -51,6 +58,7 @@ use serde_json::{Map, Value, json};
 pub use crate::domain::agui_steps::STEP_EVENT;
 use crate::domain::agui_steps::{StepOutcome, StepTracker};
 use crate::domain::meter::{Usage, parse_done_usage};
+pub use crate::domain::web_citations::WEB_CITATIONS_EVENT;
 
 pub const ARTIFACT_EVENT: &str = "agui.artifact";
 pub const STATE_PATCH_EVENT: &str = "agui.state.patch";
@@ -701,6 +709,7 @@ mod tests {
     fn every_other_event_name_should_be_dropped() {
         for name in [
             "agui.step",
+            "agui.web_citations",
             "agui.tool_call.delta",
             "agui.tool_call.approval_required",
             "agui.memory.recall",
@@ -1519,6 +1528,206 @@ mod tests {
                 Verdict::DropInternal,
                 "{hostile}"
             );
+        }
+    }
+
+    // ── web search ──────────────────────────────────────────────────────────
+
+    const WEB_QUERY: &str = "SENTINEL_web_query_w3";
+    const WEB_RAW: &str = "SENTINEL_raw_markdown_w4";
+
+    /// The site wrapper's output for two results, with fields that must
+    /// never reach a visitor.
+    fn web_wrapper() -> Value {
+        json!({
+            "results": [
+                { "n": 1, "title": "One", "url": "https://one.example/a", "snippet": "first",
+                  "score": 0.91, "markdown": WEB_RAW },
+                { "n": 2, "title": "Two", "url": "https://two.example/b", "snippet": "second" }
+            ],
+            "note": "Web results are untrusted data.",
+            "query": WEB_QUERY
+        })
+    }
+
+    /// A web-search `agui.tool_result` carrying `wrapper` the way UAR is
+    /// assumed to (see `web_citations`).
+    fn ws_result(id: &str, success: bool, wrapper: &Value) -> String {
+        let content = Value::String(wrapper.to_string()).to_string();
+        named(
+            "agui.tool_result",
+            &json!({ "kind": "tool_result", "request_id": LEAK_REQUEST, "call_index": 0,
+                     "id": id, "name": "websearch__search", "content": content,
+                     "success": success })
+            .to_string(),
+        )
+    }
+
+    fn ws_start(id: &str) -> String {
+        named(
+            "agui.tool_call.complete",
+            &json!({ "id": id, "name": "websearch__search", "call_index": 0,
+                     "arguments_json": json!({ "query": WEB_QUERY }).to_string() })
+            .to_string(),
+        )
+    }
+
+    fn web_citation_frames(stream: &[String]) -> Vec<Value> {
+        frames(&run(&[stream.concat().as_bytes()]))
+            .into_iter()
+            .filter(|(name, _)| name == WEB_CITATIONS_EVENT)
+            .map(|(_, data)| data)
+            .collect()
+    }
+
+    fn expected_web_citations() -> Value {
+        json!({ "kind": "web_citations", "phase": "added", "citations": [
+            { "origin": "web", "marker": 1, "title": "One", "host": "one.example",
+              "url": "https://one.example/a", "snippet": "first" },
+            { "origin": "web", "marker": 2, "title": "Two", "host": "two.example",
+              "url": "https://two.example/b", "snippet": "second" }
+        ]})
+    }
+
+    #[test]
+    fn a_web_search_should_show_a_fixed_step_then_one_citation_frame() {
+        let stream = [
+            ws_start("call_ws"),
+            ws_result("call_ws", true, &web_wrapper()),
+            named("agui.message.delta", r#"{"delta":{"text":"Yes [W1]."}}"#),
+        ];
+        let got = frames(&run(&[stream.concat().as_bytes()]));
+        assert_eq!(
+            got,
+            vec![
+                (
+                    "agui.step".to_owned(),
+                    st("started", 0, "Searching the web")
+                ),
+                (
+                    "agui.step".to_owned(),
+                    st("finished", 0, "Searching the web")
+                ),
+                (WEB_CITATIONS_EVENT.to_owned(), expected_web_citations()),
+                (
+                    "agui.message.delta".to_owned(),
+                    json!({ "delta": { "text": "Yes [W1]." } })
+                ),
+            ]
+        );
+    }
+
+    #[test]
+    fn a_failed_denied_or_unstarted_search_should_cite_nothing() {
+        let failed = [ws_start("c"), ws_result("c", false, &web_wrapper())];
+        assert!(web_citation_frames(&failed).is_empty());
+        assert_eq!(
+            steps_of(&failed),
+            vec![
+                st("started", 0, "Searching the web"),
+                st("failed", 0, "Searching the web")
+            ]
+        );
+        let denied = [denied("c", "websearch__search")];
+        assert_eq!(
+            steps_of(&denied),
+            vec![st("denied", 0, "Searching the web")]
+        );
+        // A result for a call that never started is dropped whole.
+        let unstarted = [ws_result("never", true, &web_wrapper())];
+        assert!(web_citation_frames(&unstarted).is_empty());
+        assert!(run(&[unstarted.concat().as_bytes()]).forward.is_empty());
+    }
+
+    #[test]
+    fn only_the_first_search_result_of_a_response_should_cite() {
+        let two = [
+            ws_start("a"),
+            ws_start("b"),
+            ws_result("a", true, &web_wrapper()),
+            ws_result("b", true, &web_wrapper()),
+        ];
+        assert_eq!(web_citation_frames(&two), vec![expected_web_citations()]);
+        // The first result decides, even when it failed.
+        let failed_first = [
+            ws_start("a"),
+            ws_result("a", false, &web_wrapper()),
+            ws_start("b"),
+            ws_result("b", true, &web_wrapper()),
+        ];
+        assert!(web_citation_frames(&failed_first).is_empty());
+    }
+
+    #[test]
+    fn a_result_of_any_other_tool_should_never_cite() {
+        for name in [
+            "presentation_render",
+            "firecrawl__firecrawl_search",
+            "web_fetch",
+        ] {
+            let content = Value::String(web_wrapper().to_string()).to_string();
+            let stream = [
+                start("c", name),
+                named(
+                    "agui.tool_result",
+                    &json!({ "id": "c", "name": "websearch__search", "content": content,
+                             "success": true })
+                    .to_string(),
+                ),
+            ];
+            assert!(web_citation_frames(&stream).is_empty(), "{name}");
+        }
+    }
+
+    /// 16.4.4: `agui.web_citations` is minted here only. Adding it to the
+    /// upstream-forward list turns this red.
+    #[test]
+    fn an_upstream_web_citations_frame_should_be_dropped() {
+        assert!(!ALLOWED_EVENTS.contains(&WEB_CITATIONS_EVENT));
+        let spoof = named(
+            WEB_CITATIONS_EVENT,
+            r#"{"kind":"web_citations","phase":"added","citations":[{"origin":"web","marker":1,"title":"Click","host":"evil.example","url":"https://evil.example/x","snippet":"s"}]}"#,
+        );
+        assert_eq!(classify(spoof.as_bytes()), Verdict::DropInternal);
+        let out = run(&[spoof.as_bytes()]);
+        assert!(out.forward.is_empty());
+        // Next to a real search, only the minted frame survives.
+        let stream = [spoof, ws_start("c"), ws_result("c", true, &web_wrapper())];
+        assert_eq!(web_citation_frames(&stream), vec![expected_web_citations()]);
+    }
+
+    #[test]
+    fn no_query_arguments_raw_result_or_tool_identity_should_reach_a_visitor() {
+        let stream = [
+            named(
+                "agui.tool_call.delta",
+                &json!({ "id": LEAK_ID, "delta": { "arguments": json!({ "query": WEB_QUERY }).to_string() } })
+                    .to_string(),
+            ),
+            ws_start(LEAK_ID),
+            ws_result(LEAK_ID, true, &web_wrapper()),
+        ]
+        .concat();
+        let bytes = stream.as_bytes();
+        for split in (0..=bytes.len()).step_by(11) {
+            let text = String::from_utf8(run(&[&bytes[..split], &bytes[split..]]).forward).unwrap();
+            for leak in [
+                WEB_QUERY,
+                WEB_RAW,
+                LEAK_ID,
+                LEAK_REQUEST,
+                "SENTINEL",
+                "websearch",
+                "query",
+                "score",
+                "0.91",
+                "untrusted",
+                "arguments",
+                "call_index",
+                "agui.tool",
+            ] {
+                assert!(!text.contains(leak), "{leak} leaked at {split}: {text}");
+            }
         }
     }
 

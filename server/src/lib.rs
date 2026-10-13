@@ -23,6 +23,7 @@ use crate::application::meter::Meter;
 pub use crate::application::public_stream::UpstreamTap;
 use crate::application::site_proxy::SiteProxy;
 use crate::config::Config;
+use crate::domain::chat_request::SiteAgents;
 use crate::infrastructure::assets::AssetSource;
 use crate::infrastructure::kill_switch::KillSwitch;
 use crate::infrastructure::meter_store::MeterStore;
@@ -69,7 +70,10 @@ fn build_proxy(config: &Config) -> Result<SiteProxy, StartupError> {
     );
     Ok(SiteProxy::new(
         uar,
-        config.site_agent_id.clone(),
+        SiteAgents::new(
+            config.site_agent_id.clone(),
+            config.site_web_agent_id.clone(),
+        ),
         config.session_secret.clone(),
         Arc::new(meter),
     ))
