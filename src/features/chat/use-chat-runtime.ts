@@ -9,7 +9,7 @@ import { useChatIntentStore } from "@/stores/chat-intent-store";
 import { useThreadRegistryStore } from "@/stores/thread-registry-store";
 import { useChatMessages } from "./use-chat-messages";
 import { useMessageStream } from "./use-message-stream";
-import { generateThreadTitle } from "./use-thread-naming";
+import { generateThreadTitle, titleFromQuestion } from "./use-thread-naming";
 import type { RichMessage, ContentBlock } from "@/types/chat-content";
 import { CANCELLED_PART, CITATIONS_PART, STEP_PART, arrangeAssistantParts } from "./render-registry/pseudo-parts";
 
@@ -282,17 +282,21 @@ export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {
   const markPersisted = useThreadRegistryStore((s) => s.markPersisted);
   const setTitle = useThreadRegistryStore((s) => s.setTitle);
   const touch = useThreadRegistryStore((s) => s.touch);
+  const hydrated = useThreadRegistryStore((s) => s.hydrated);
 
   // Set the active thread and ensure it exists in the registry whenever
   // the thread detail page mounts or threadId changes.
   useEffect(() => {
     setActive(threadId);
+    // Wait for the stored threads: a reloaded URL points at a stored row, and
+    // registering it first would overwrite that row as ephemeral.
+    if (!hydrated) return;
     // Handle direct URL navigation — register as ephemeral if unknown
     const existing = useThreadRegistryStore.getState().threads[threadId];
     if (!existing) {
       registerThread(threadId);
     }
-  }, [threadId, setActive, registerThread]);
+  }, [threadId, hydrated, setActive, registerThread]);
 
   /**
    * After a stream completes:
@@ -319,7 +323,10 @@ export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {
         (m) => m.role === "assistant" && m.status === "complete",
       );
       const assistantText = firstAssistant ? extractText(firstAssistant) : "";
-      if (!assistantText.trim()) return;
+      if (!assistantText.trim()) {
+        setTitle(threadId, titleFromQuestion(userMsgText));
+        return;
+      }
 
       const title = await generateThreadTitle(userMsgText, assistantText);
       setTitle(threadId, title);

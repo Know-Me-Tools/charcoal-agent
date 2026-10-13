@@ -17,6 +17,13 @@ import { scrubThreadFromJournals } from "@/lib/db/persistence-journal";
 interface ThreadRegistryState {
   threads: Record<string, LocalThread>;
   activeThreadId: string | null;
+  /**
+   * True once the stored threads have been read back from PGlite (or that
+   * read failed). A thread route must not register an unknown id before this:
+   * the id may be a stored row, and registering it would overwrite that row
+   * with a fresh ephemeral one.
+   */
+  hydrated: boolean;
 }
 
 interface ThreadRegistryActions {
@@ -62,12 +69,14 @@ export const useThreadRegistryStore = create<ThreadRegistryStore>()(
   immer((set, get) => ({
     threads: {},
     activeThreadId: null,
+    hydrated: false,
 
     initFromDb: (threads) =>
       set((state) => {
         for (const t of threads) {
           state.threads[t.id] = t;
         }
+        state.hydrated = true;
       }),
 
     registerThread: (id, agentId, agentName) => {

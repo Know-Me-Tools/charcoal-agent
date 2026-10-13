@@ -24,6 +24,24 @@ interface NonStreamingResponse {
   choices?: { message?: { content?: string } }[];
 }
 
+const DEFAULT_TITLE = "New conversation";
+const QUESTION_TITLE_MAX = 60;
+
+/**
+ * A readable title taken from the visitor's own question, used whenever the
+ * model title is unavailable. Collapses whitespace, cuts at a word boundary
+ * and falls back to the default title for an empty question.
+ */
+export function titleFromQuestion(question: string): string {
+  const text = question.replace(/\s+/g, " ").trim();
+  if (!text) return DEFAULT_TITLE;
+  if (text.length <= QUESTION_TITLE_MAX) return text;
+  const cut = text.slice(0, QUESTION_TITLE_MAX);
+  const lastSpace = cut.lastIndexOf(" ");
+  const base = lastSpace > QUESTION_TITLE_MAX / 2 ? cut.slice(0, lastSpace) : cut;
+  return `${base.trimEnd()}…`;
+}
+
 /**
  * Call the UAR completion endpoint in non-streaming mode to get a short title.
  *
@@ -34,7 +52,7 @@ export async function generateThreadTitle(
   userMsg: string,
   assistantMsg: string,
 ): Promise<string> {
-  const fallback = "New conversation";
+  const fallback = titleFromQuestion(userMsg);
   if (!userMsg.trim() || !assistantMsg.trim()) return fallback;
 
   // Use an ephemeral session so this call never leaks into real thread history.

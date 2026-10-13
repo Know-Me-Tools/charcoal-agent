@@ -15,11 +15,12 @@ export function useDbHydration() {
   useEffect(() => {
     db.getThreads()
       .then((threads) => {
-        if (threads.length > 0) {
-          initFromDb(threads);
-        }
+        initFromDb(threads);
       })
-      .catch(console.error);
+      .catch(() => {
+        // A failed read must not leave thread routes waiting forever.
+        initFromDb([]);
+      });
     // Run only once on mount — db reference is stable (singleton)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
