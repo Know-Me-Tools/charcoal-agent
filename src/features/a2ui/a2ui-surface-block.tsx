@@ -58,7 +58,7 @@ export interface A2uiSurfaceBlockProps {
  * unmarked style, so model output can neither fill nor imitate this slot.
  */
 const SurfaceFrame: FC<{ children: ReactNode }> = ({ children }) => (
-  <div data-testid="a2ui-surface-frame" className="my-2 flex min-w-0 max-w-full flex-col gap-1">
+  <div data-testid="a2ui-surface-frame" className="my-2 flex min-w-0 max-w-[65ch] flex-col gap-1">
     {children}
     <p
       data-ai-caption=""

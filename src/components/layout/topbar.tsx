@@ -12,8 +12,11 @@ import { ABOUT_PANEL_CONTENT } from "../../../content/site/about-panel";
 import { getNavDestinations, isDestinationActive } from "@/components/layout/nav-destinations";
 import { cn } from "@/lib/utils";
 
-const ICON_BUTTON =
+const ICON_BUTTON_BASE =
   "flex size-8 items-center justify-center rounded-md text-muted-foreground transition-hover hover:bg-hover hover:text-foreground focus-cue";
+// Critique P2-6: 44px touch targets below 768 on the site build. The 48px bar
+// still fits them.
+const ICON_BUTTON_SITE = cn(ICON_BUTTON_BASE, "max-md:size-11");
 
 export function Topbar() {
   const { pathname } = useLocation();
@@ -25,6 +28,7 @@ export function Topbar() {
   const showSidebar = pathname.startsWith("/threads") || pathname === "/";
   const nextTheme = theme === "dark" ? "light" : "dark";
   const siteBuild = isSiteBuild();
+  const ICON_BUTTON = siteBuild ? ICON_BUTTON_SITE : ICON_BUTTON_BASE;
 
   return (
     <header className="fixed top-0 right-0 left-0 z-50 flex h-12 shrink-0 items-center justify-between bg-chrome px-4 md:static">

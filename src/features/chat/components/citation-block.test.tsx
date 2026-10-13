@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/link-policy/is-allowed-link", () => ({
@@ -55,8 +55,19 @@ describe("CitationBlock display cleanup", () => {
     );
 
     expect(screen.getByText("KnowMe platforms and status")).toBeInTheDocument();
+    expect(screen.queryByText("Platforms. Desktop is available.")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Show excerpt" }));
     expect(screen.getByText("Platforms. Desktop is available.")).toBeInTheDocument();
     expect(screen.queryByText(/0123456789ab/)).not.toBeInTheDocument();
+  });
+
+  it("keeps the excerpt behind an expand control that reports its state", () => {
+    render(<CitationBlock source="Planning guide" content="Plan first." index={4} />);
+    const toggle = screen.getByRole("button", { name: "Show excerpt" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(toggle);
+    expect(screen.getByRole("button", { name: "Hide excerpt" })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByText("Plan first.")).toBeInTheDocument();
   });
 });
 
@@ -96,6 +107,19 @@ describe("CitationList", () => {
     expect(links).toHaveLength(1);
     expect(links[0]).toHaveAttribute("href", "https://allowed.example/doc");
     expect(screen.getByText("https://evil.example/x")).toBeInTheDocument();
+  });
+
+  it("shows one 'Reading N sources' line instead of the cards while streaming", () => {
+    render(<CitationList citations={citations} streaming />);
+
+    expect(screen.getByRole("status")).toHaveTextContent("Reading 3 sources");
+    expect(screen.queryByRole("list")).not.toBeInTheDocument();
+    expect(screen.queryByText("Sources")).not.toBeInTheDocument();
+  });
+
+  it("caps the block at the prose measure", () => {
+    render(<CitationList citations={citations} />);
+    expect(screen.getByTestId("citation-sources").className).toContain("max-w-[65ch]");
   });
 
   it("renders nothing for an empty list", () => {

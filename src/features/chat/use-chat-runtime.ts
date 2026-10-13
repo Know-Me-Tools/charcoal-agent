@@ -11,7 +11,7 @@ import { useChatMessages } from "./use-chat-messages";
 import { useMessageStream } from "./use-message-stream";
 import { generateThreadTitle } from "./use-thread-naming";
 import type { RichMessage, ContentBlock } from "@/types/chat-content";
-import { CANCELLED_PART, CITATIONS_PART, STEP_PART } from "./render-registry/pseudo-parts";
+import { CANCELLED_PART, CITATIONS_PART, STEP_PART, arrangeAssistantParts } from "./render-registry/pseudo-parts";
 
 /**
  * Convert our internal RichMessage to the ThreadMessageLike shape expected by
@@ -236,7 +236,7 @@ export function richMessageToThreadMessageLike(msg: RichMessage): ThreadMessageL
   return {
     role: "assistant",
     id: msg.id,
-    content: parts,
+    content: arrangeAssistantParts(parts, msg.status === "in_progress"),
     createdAt: toDate(msg.createdAt),
     status:
       msg.status === "in_progress"

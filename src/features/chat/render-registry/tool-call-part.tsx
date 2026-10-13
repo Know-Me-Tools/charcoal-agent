@@ -8,7 +8,7 @@ import { CitationList, type CitationListItem } from "@/features/chat/components/
 import { ContextUpdateBlock } from "@/features/chat/components/context-update-block";
 import { MemoryMutationBlock, MemoryRecallBlock } from "@/features/chat/components/memory-block";
 import { RunCancelledBlock } from "@/features/chat/components/run-cancelled-block";
-import { StepBlock } from "@/features/chat/components/step-block";
+import { StepBlock, StepGroupBlock } from "@/features/chat/components/step-block";
 import { SkillActivationBlock } from "@/features/chat/components/skill-activation-block";
 import { ToolCallBlock, ToolCallBlockWrapper } from "@/features/chat/components/tool-call-block";
 import type { MemoryItem, StepPhase } from "@/types/chat-content";
@@ -17,6 +17,7 @@ import {
   APPROVAL_PART,
   CANCELLED_PART,
   CITATIONS_PART,
+  STEP_GROUP_PART,
   STEP_PART,
   SUBAGENT_PART,
   type CancelledUsage,
@@ -83,8 +84,8 @@ const ContextPart: PartRenderer = ({ args }) => {
 };
 
 const CitationsPart: PartRenderer = ({ args }) => {
-  const a = args as { citations?: CitationListItem[] };
-  return <CitationList citations={a.citations ?? []} />;
+  const a = args as { citations?: CitationListItem[]; streaming?: boolean };
+  return <CitationList citations={a.citations ?? []} streaming={a.streaming} />;
 };
 
 // agui.tool_call.denied (FR-11 client case, site-chat-offline-states): the
@@ -114,6 +115,11 @@ const CancelledPart: PartRenderer = ({ args }) => {
 const StepPart: PartRenderer = ({ args }) => {
   const a = args as { phase: StepPhase; label: string };
   return <StepBlock phase={a.phase} label={a.label} />;
+};
+
+const StepGroupPart: PartRenderer = ({ args }) => {
+  const a = args as { steps: { index: number; label: string }[] };
+  return <StepGroupBlock steps={a.steps} />;
 };
 
 const MemoryRecallPart: PartRenderer = ({ args }) => {
@@ -223,6 +229,7 @@ const PART_RENDERERS: Readonly<Record<string, PartRenderer>> = {
   __artifact__: ArtifactPart,
   [APPROVAL_PART]: ApprovalPart,
   [STEP_PART]: StepPart,
+  [STEP_GROUP_PART]: StepGroupPart,
   [SUBAGENT_PART]: SubagentPart,
   [CANCELLED_PART]: CancelledPart,
 };

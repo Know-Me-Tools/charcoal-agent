@@ -24,7 +24,7 @@ export const ABOUT_TOGGLE_ID = "about-sources-toggle";
 
 const SECTION_HEADING = "font-display text-sm font-semibold text-fg";
 
-function SourceItem({ citation, index }: { citation: ThreadCitation; index: number }) {
+function SourceItem({ citation }: { citation: ThreadCitation }) {
   const { url } = citation;
   // Same rule as the citation cards (FR-16): the URL comes from the model's
   // stream, so only an allowlisted destination is clickable; any other
@@ -36,7 +36,9 @@ function SourceItem({ citation, index }: { citation: ThreadCitation; index: numb
       <BookOpenIcon className="mt-0.5 size-3.5 shrink-0 text-cyan-text" aria-hidden="true" />
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
-          <span className="font-mono text-xs font-semibold text-cyan-text">{index}</span>
+          <span className="font-mono text-xs font-semibold text-cyan-text">
+            {citation.indices.map((n) => `[${n}]`).join(" ")}
+          </span>
           <span className="min-w-0 font-ui text-sm font-semibold text-fg wrap-anywhere">
             {citationDisplayName(citation.source)}
           </span>
@@ -86,8 +88,8 @@ function AboutSourcesBody() {
           <p className="mt-2 font-body text-sm leading-relaxed text-fg-secondary">{sources.empty}</p>
         ) : (
           <ol aria-labelledby={sourcesHeadingId} className="mt-3 flex flex-col gap-2">
-            {citations.map((citation, i) => (
-              <SourceItem key={`${citation.source}-${citation.url ?? ""}`} citation={citation} index={i + 1} />
+            {citations.map((citation) => (
+              <SourceItem key={`${citation.source}-${citation.url ?? ""}`} citation={citation} />
             ))}
           </ol>
         )}
@@ -107,7 +109,7 @@ function AboutSourcesBody() {
               href={about.theBoss.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-sm font-semibold text-ember-text underline-offset-2 hover:underline focus-cue"
+              className="rounded-sm font-semibold whitespace-nowrap text-ember-text underline-offset-2 hover:underline focus-cue"
             >
               {about.theBoss.label}
               <span className="sr-only"> {sources.opensInNewTab}</span>
@@ -176,14 +178,28 @@ function OpenAboutSourcesPanel({ onClose }: { onClose: () => void }) {
 export function AboutSourcesSheet() {
   const { contextSheetOpen, setContextSheetOpen } = useUi();
   useCloseWithLayout(setContextSheetOpen);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+
+  // P1-4: the sheet opened scrolled to a later link. Start at the title (the
+  // inline panel already focuses its title) and at the top of the scroller.
+  const resetScroll = (node: HTMLDivElement | null) => {
+    if (node) node.scrollTop = 0;
+  };
 
   return (
     <Sheet open={contextSheetOpen} onOpenChange={setContextSheetOpen}>
-      <SheetContent side="right" closeLabel={ABOUT_PANEL_CONTENT.closeLabel} className="w-[320px] bg-surface">
+      <SheetContent
+        side="right"
+        closeLabel={ABOUT_PANEL_CONTENT.closeLabel}
+        className="w-[320px] bg-surface"
+        initialFocus={titleRef}
+      >
         <SheetHeader>
-          <SheetTitle>{ABOUT_PANEL_CONTENT.title}</SheetTitle>
+          <SheetTitle ref={titleRef} tabIndex={-1} className="rounded-sm outline-none focus-cue">
+            {ABOUT_PANEL_CONTENT.title}
+          </SheetTitle>
         </SheetHeader>
-        <div className="flex-1 overflow-y-auto">
+        <div ref={resetScroll} className="flex-1 overflow-y-auto">
           <AboutSourcesBody />
         </div>
       </SheetContent>

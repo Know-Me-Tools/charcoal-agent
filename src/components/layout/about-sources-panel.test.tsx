@@ -109,6 +109,30 @@ describe("AboutSourcesPanel", () => {
     expect(panel.textContent).not.toMatch(/choose an agent|system prompt|active agent/i);
   });
 
+  it("labels each source with the stream's markers, so [4] in a reply is item [4] here", () => {
+    useChatMessageStore.setState({
+      messagesByThread: {
+        [THREAD_ID]: [
+          assistant("m1", [
+            { type: "citation", source: "a.md", content: "", index: 1 },
+            { type: "citation", source: "b.md", content: "", index: 2 },
+            { type: "citation", source: "b.md", content: "", index: 3 },
+            { type: "citation", source: "c.md", content: "", index: 4 },
+          ]),
+        ],
+      },
+    });
+    renderInThread(<AboutSourcesPanel />);
+    const items = within(screen.getByRole("list", { name: ABOUT_PANEL_CONTENT.sources.heading })).getAllByRole(
+      "listitem",
+    );
+    expect(items).toHaveLength(3);
+    expect(items[0]).toHaveTextContent("[1]");
+    expect(items[1]).toHaveTextContent("[2] [3]");
+    expect(items[2]).toHaveTextContent("[4]");
+    expect(items[2]).toHaveTextContent("C");
+  });
+
   it("renders nothing while closed", () => {
     useUiStore.setState({ aboutPanelOpen: false });
     renderInThread(<AboutSourcesPanel />);
@@ -131,6 +155,10 @@ describe("AboutSourcesSheet", () => {
     // The focus trap moves focus in after the dialog mounts; under load that can lag.
     await waitFor(() => expect(dialog).toContainElement(document.activeElement as HTMLElement));
     expect(within(dialog).getByRole("button", { name: ABOUT_PANEL_CONTENT.closeLabel })).toBeInTheDocument();
+    // P1-4: focus starts on the title, not on a later link.
+    await waitFor(() =>
+      expect(document.activeElement).toBe(within(dialog).getByRole("heading", { name: ABOUT_PANEL_CONTENT.title })),
+    );
 
     await userEvent.keyboard("{Escape}");
     expect(useUiStore.getState().contextSheetOpen).toBe(false);

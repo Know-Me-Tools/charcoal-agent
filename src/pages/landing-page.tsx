@@ -9,6 +9,7 @@ import { isSiteBuild } from "@/hooks/use-site-config";
 import { cn } from "@/lib/utils";
 import { useChatIntentStore } from "@/stores/chat-intent-store";
 import { useThreadRegistryStore } from "@/stores/thread-registry-store";
+import { AI_DISCLOSURE_CONTENT } from "../../content/site/ai-disclosure";
 import { LANDING_CONTENT } from "../../content/site/landing";
 import { SITE_LANDING_CONTENT, type SiteLandingContent } from "../../content/site/landing-site";
 
@@ -50,6 +51,7 @@ export default function LandingPage() {
 	const registerThread = useThreadRegistryStore((s) => s.registerThread);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+	const siteBuild = isSiteBuild();
 	const content = landingContent();
 	const { line1, line2Lead, emberWord } = splitHeadline(content.headline);
 
@@ -87,14 +89,20 @@ export default function LandingPage() {
 				<section aria-labelledby="hero-heading" className="bg-canvas">
 					<div className="mx-auto w-full max-w-6xl px-4 pt-10 pb-12 sm:px-6 md:px-8 md:pt-16 md:pb-20 lg:grid lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-end lg:gap-12 lg:px-12 lg:pt-24 lg:pb-24">
 						<div className="md:max-w-2xl lg:max-w-none">
-							<KnowMeLockup variant="hero" />
-							<p className="section-label mt-8 md:mt-12">{content.eyebrow}</p>
+							{/* The site header already carries the lockup; a second one 120px
+							    below it is noise (design critique P2-4). The app landing keeps it. */}
+							{!siteBuild && <KnowMeLockup variant="hero" />}
+							<p className={cn("section-label", !siteBuild && "mt-8 md:mt-12")}>{content.eyebrow}</p>
 							<h1
 								id="hero-heading"
-								className="mt-3 font-display text-[2rem] font-bold leading-[1.05] tracking-[-0.035em] text-fg md:text-[3.25rem] lg:text-[3.5rem] xl:text-[4rem]"
+								className={cn(
+									"mt-3 font-display text-[2rem] font-bold leading-[1.05] tracking-[-0.035em] text-fg md:text-[3.25rem] lg:text-[3.5rem] xl:text-[4rem]",
+									// 320px: keep "understands you." on one line instead of orphaning "you."
+									siteBuild && "text-[1.75rem] sm:text-[2rem]",
+								)}
 							>
 								{line1}
-								<span className="block">
+								<span className={cn("block", siteBuild && "whitespace-nowrap")}>
 									{line2Lead}
 									<span className="text-ember-text">{emberWord}</span>
 								</span>
@@ -104,7 +112,7 @@ export default function LandingPage() {
 							</p>
 						</div>
 
-						<div className="mt-8 w-full md:max-w-xl lg:mt-0 lg:max-w-none">
+						<div className={cn("mt-8 w-full lg:mt-0 lg:max-w-none", !siteBuild && "md:max-w-xl")}>
 							<form
 								onSubmit={handleSubmit}
 								className="rounded-xl bg-composer p-2 transition-hover focus-within:bg-raised has-[textarea:focus-visible]:outline-2 has-[textarea:focus-visible]:outline-offset-2 has-[textarea:focus-visible]:outline-ring"
@@ -125,6 +133,12 @@ export default function LandingPage() {
 									</button>
 								</div>
 							</form>
+							{siteBuild && (
+								<div className="mt-3 flex flex-col gap-0.5 px-1">
+									<p className="font-mono text-xs text-faint">{AI_DISCLOSURE_CONTENT.label}</p>
+									<p className="font-mono text-xs text-faint">{AI_DISCLOSURE_CONTENT.sensitiveDataHint}</p>
+								</div>
+							)}
 						</div>
 					</div>
 				</section>
@@ -137,12 +151,17 @@ export default function LandingPage() {
 					>
 						<div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 md:px-8 md:py-20 lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-12 lg:px-12 lg:py-24">
 							<div>
-								<p className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-fg-secondary">
-									{section.label}
-								</p>
+								{!siteBuild && (
+									<p className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-fg-secondary">
+										{section.label}
+									</p>
+								)}
 								<h2
 									id={`${section.id}-heading`}
-									className="mt-3 text-balance font-display text-2xl font-bold leading-[1.15] tracking-[-0.02em] text-fg md:text-3xl"
+									className={cn(
+										"text-balance font-display text-2xl font-bold leading-[1.15] tracking-[-0.02em] text-fg md:text-3xl",
+										!siteBuild && "mt-3",
+									)}
 								>
 									{section.heading}
 								</h2>
@@ -156,7 +175,7 @@ export default function LandingPage() {
 												href={section.link.href}
 												target="_blank"
 												rel="noopener noreferrer"
-												className="rounded-sm font-semibold text-ember-text underline-offset-2 hover:underline focus-cue"
+												className="whitespace-nowrap rounded-sm font-semibold text-ember-text underline-offset-2 hover:underline focus-cue"
 											>
 												{section.link.label}
 												<span className="sr-only"> {section.link.opensInNewTab}</span>
