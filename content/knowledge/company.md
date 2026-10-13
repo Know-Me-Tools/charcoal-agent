@@ -12,7 +12,7 @@ KnowMe AI, LLC makes the products described on this site:
 
 ## The parts KnowMe AI, LLC's products run on
 
-KnowMe AI, LLC also builds the parts these products run on. The Universal Agent Runtime is a governed agent runtime, written in Rust, that routes models and runs agents and tools under policy; the KnowMe agent on this site runs on it, and The Boss packages it. BossFang is an agent operating system forked from the open-source LibreFang project, with SurrealDB storage, for agents that run on schedules; The Boss packages it too. The Surreal Memory Server is a memory service with a knowledge graph and search that The Boss works with as a separate service. Each will get its own page on this site.
+KnowMe AI, LLC also builds the parts these products run on. The Universal Agent Runtime is a governed agent runtime, written in Rust, that routes models and runs agents and tools under policy; the KnowMe agent on this site runs on it, and The Boss bundles it. BossFang is an agent operating system forked from the open-source LibreFang project, with SurrealDB storage, for agents that run on schedules; The Boss bundles it too. The Surreal Memory Server is a memory service with a knowledge graph and search that The Boss works with as a separate service. Each will get its own page on this site.
 
 ## How the know-me.tools site and the KnowMe agent work
 

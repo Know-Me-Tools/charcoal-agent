@@ -20,4 +20,4 @@ In KnowMe AI, LLC's development builds of KnowMe, chat and the local memory grap
 
 ## What you can use today instead of waiting for KnowMe
 
-You can talk with the KnowMe agent on this site; the site runs on the Universal Agent Runtime, the same agent runtime KnowMe is built on. The KnowMe agent on this site is not the KnowMe app. You can also download The Boss, KnowMe AI, LLC's free, open-source desktop workspace for macOS and Windows, which packages the Universal Agent Runtime and BossFang.
+You can talk with the KnowMe agent on this site; the site runs on the Universal Agent Runtime, the same agent runtime KnowMe is built on. The KnowMe agent on this site is not the KnowMe app. You can also download The Boss, KnowMe AI, LLC's free, open-source desktop workspace for macOS and Windows, which bundles the Universal Agent Runtime and BossFang.

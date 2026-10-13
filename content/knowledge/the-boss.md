@@ -21,7 +21,7 @@ Source: The Boss product context, retrieved 2026-10-12.
 
 ## The Boss is not an edition of KnowMe
 
-The Boss is not a KnowMe edition or tier and is not built on KnowMe. The two share the Universal Agent Runtime: The Boss packages it as a sidecar, and KnowMe, which is still in development, is built on it. The Boss is what KnowMe AI, LLC offers for download today.
+The Boss is not a KnowMe edition or tier and is not built on KnowMe. The two share the Universal Agent Runtime: The Boss bundles it as a program that runs beside The Boss, and KnowMe, which is still in development, is built on it. The Boss is what KnowMe AI, LLC offers for download today.
 
 ## What you can do with The Boss today
 
@@ -34,9 +34,9 @@ Provider access and optional integrations each need their own configuration, for
 
 Source: The Boss README, retrieved 2026-10-12.
 
-## What The Boss packages: Universal Agent Runtime, BossFang and Surreal Memory
+## What The Boss includes: Universal Agent Runtime, BossFang and the Surreal Memory Server
 
-All current The Boss installers, the v2.2.36 builds for macOS on Apple Silicon and Windows x64 and the v2.2.30 builds for Intel Mac and Windows ARM64, package the Universal Agent Runtime and BossFang, with its dashboard, as sidecar programs. The Surreal Memory Server is not inside the installer: The Boss works with it over MCP as a separate service that The Boss can manage or connect to. Running The Boss's managed Surreal Memory service needs a container runtime, because The Boss pins it as a container image.
+All current The Boss installers, the v2.2.36 builds for macOS on Apple Silicon and Windows x64 and the v2.2.30 builds for Intel Mac and Windows ARM64, include the Universal Agent Runtime and BossFang (with its dashboard) as bundled programs that run beside The Boss. The Surreal Memory Server is not inside the installer: The Boss works with it over MCP as a separate service that The Boss can manage or connect to. Running the Surreal Memory Server as a service managed by The Boss needs a container runtime, because The Boss pins it as a container image.
 
 Source: The Boss integration artifacts manifest, retrieved 2026-10-12.
 Source: The Boss UAR model source adapter, retrieved 2026-10-12.
@@ -56,7 +56,7 @@ Source: The Boss release records, retrieved 2026-10-12.
 
 ## Getting The Boss
 
-Download The Boss from https://the-boss.know-me.tools, which is free, open source and needs no account, or from the GitHub releases page at https://github.com/Prometheus-AGS/the-boss/releases. Each release entry records its source commit, checksum, size and signing status.
+The Boss is free, open source and needs no account. Download it from https://the-boss.know-me.tools or from the GitHub releases page at https://github.com/Prometheus-AGS/the-boss/releases. Each release entry records its source commit, checksum, size and signing status.
 
 Source: The Boss download page, retrieved 2026-10-12.
 Source: The Boss release records, retrieved 2026-10-12.

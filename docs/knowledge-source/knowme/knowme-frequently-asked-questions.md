@@ -37,7 +37,7 @@ Answers to common questions about KnowMe AI, LLC and its products: KnowMe, The B
 
 ## What is KnowMe?
 
-KnowMe is KnowMe AI, LLC's personal AI platform, designed so that its assistants and agents adapt to the person while the person's data stays under their own control. KnowMe is still in development and has not been publicly released. See the KnowMe overview for what it is designed to do.
+KnowMe is KnowMe AI, LLC's personal AI platform. It is designed so that the person helps build their own product by using it: its assistants and agents adapt to the person, and the person's data stays under their own control. KnowMe is still in development and has not been publicly released. See the KnowMe overview for what it is designed to do.
 
 ## Can I download KnowMe today?
 
@@ -73,7 +73,7 @@ The Boss is a free, open-source AI desktop workspace from KnowMe AI, LLC for con
 
 ## Is The Boss an early version of KnowMe?
 
-No. The Boss is not a KnowMe edition or tier, and it is not built on KnowMe. The two share the Universal Agent Runtime: The Boss packages it as a sidecar, and KnowMe is built on it. The Boss is a desktop workspace for developers and technical operators that you can download today; KnowMe is a personal AI platform still in development.
+No. The Boss is not a KnowMe edition or tier, and it is not built on KnowMe. The two share the Universal Agent Runtime: The Boss bundles it as a program that runs beside The Boss, and KnowMe is built on it. The Boss is a desktop workspace for developers and technical operators that you can download today; KnowMe is a personal AI platform still in development.
 
 ## What platforms does The Boss from KnowMe AI, LLC run on?
 
@@ -97,7 +97,7 @@ Yes. The Boss is free to download, and its source is published under the GNU Aff
 
 ## Does The Boss from KnowMe AI, LLC include the Universal Agent Runtime, BossFang and the Surreal Memory Server?
 
-All current The Boss installers package the Universal Agent Runtime and BossFang as sidecar programs.[^boss-build] The Surreal Memory Server is not inside the installer: The Boss works with it over MCP as a separate service that The Boss can manage or connect to, and running The Boss's managed Surreal Memory service needs a container runtime, because The Boss pins it as a container image.[^boss-payload]
+All current The Boss installers include the Universal Agent Runtime and BossFang as bundled programs that run beside The Boss.[^boss-build] The Surreal Memory Server is not inside the installer: The Boss works with it over MCP as a separate service that The Boss can manage or connect to, and running the Surreal Memory Server as a service managed by The Boss needs a container runtime, because The Boss pins it as a container image.[^boss-payload]
 
 ## What are the Universal Agent Runtime, BossFang and the Surreal Memory Server from KnowMe AI, LLC?
 
