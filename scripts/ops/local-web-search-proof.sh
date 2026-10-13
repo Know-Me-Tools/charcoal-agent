@@ -244,8 +244,13 @@ PLAN (nothing is started in --dry-run)
   5  start        site server (SITE_AGENT_ID=knowme-site, SITE_WEB_AGENT_ID=knowme-site-web, meter on the local SurrealDB)
   6  capture      16.6.1 direct + proxy, 16.6.2 (preapproved), 16.6.3 budget, 16.6.4 P1 P2 P4-P8, 16.6.5 activate_skill, 16.6.6 meter rows
      auth check   one authenticated GET (agent 'knowme-site', x-api-key, no model call) must return 2xx before step 6
-  7  restart UAR  with the fixture stub as 'websearch': 16.6.4 P3 (injection fixture)
-  8  restart UAR  with mcp.json WITHOUT preapproved_tools: 16.6.2 (20 s cap, reported as 'would wait')
+  7  restart UAR  with the fixture stub as 'websearch', in its OWN database uar_fixture: 16.6.4 P3 (injection fixture).
+                  Proof of path: FAIL unless the stub logged >= 1 search call and the real wrapper logged none
+  8  restart UAR  with mcp.json WITHOUT preapproved_tools, in its OWN database uar_plain: 16.6.2 (20 s cap, 'would wait').
+                  Proof of config: the instance's persisted mcp.servers is read from its database first;
+                  FAIL 'config not applied' if websearch still has preapproved_tools (no model call is made)
+                  (UAR copies mcp.json into its settings database on the FIRST start and reads the database on
+                  every later start, so a shared database would keep the first instance's servers)
      after EVERY restart (7 and 8): UAR keeps API keys in memory only, so the harness re-runs the seed
                   (mints a new site key into the file the capture steps read, re-verifies the models),
                   restarts the site server with that key, and repeats the authenticated GET, which must
@@ -375,7 +380,12 @@ start_stub() {
 }
 
 UAR_PID=""
-start_uar() { # mcp.json path
+# UAR_DB is the SurrealDB database of the instance being started. UAR copies its MCP server list from
+# mcp.json into its settings database on the first start and reads the database on every later start
+# (UAR src/uar/admin/mcp.rs hydrate), so each instance that must obey its own mcp.json gets its own
+# database. Same Surreal server, same namespace "uar".
+UAR_DB=uar
+start_uar() { # mcp.json path; UAR_DB set by the caller (default: uar, the first instance)
   local cwd="$WORK/uar-cwd"
   [[ "${LWS_UAR_CWD:-}" == repo ]] && cwd="$UAR_REPO_DIR"
   (
@@ -385,7 +395,7 @@ start_uar() { # mcp.json path
     UAR_SECURITY__SETTINGS_ADMIN_KEY="$(<"$SECRETS/admin")"
     export UAR_PERSISTENCE__PROVIDER=surreal UAR_PERSISTENCE__DATABASE_URL="$SURREAL_URL" UAR_PERSISTENCE__VECTOR_DIMENSION="$KB_DIMS"
     export UAR_PERSISTENCE__SURREAL_USER=root UAR_PERSISTENCE__SURREAL_PASS UAR_PERSISTENCE__SURREAL_AUTH_LEVEL=root
-    export UAR_PERSISTENCE__SURREAL_NS=uar UAR_PERSISTENCE__SURREAL_DB=uar
+    export UAR_PERSISTENCE__SURREAL_NS=uar UAR_PERSISTENCE__SURREAL_DB="$UAR_DB"
     UAR_PERSISTENCE__SURREAL_PASS="$(<"$SECRETS/surreal-root")"
     export UAR_LLM__MODEL="openai/$LLM_MODEL" UAR_LLM__BASE_URL UAR_LLM__API_KEY
     if [[ "$LLM_MODE" == "qwen" ]]; then
@@ -655,6 +665,7 @@ restart_and_capture() {
   local label="$1" mcp="$2" step="$3" task="$4"
   shift 4
   stop_uar
+  UAR_DB="uar_$label" # a fresh, isolated database: the mcp.json given here is the only source of this instance's MCP servers
   start_uar "$mcp"
   if ! wait_http "$UAR_URL/readyz" 120 "UAR ($label)"; then
     fail_step "$step" "$task" "UAR ($label) did not become ready after the restart"
@@ -677,7 +688,8 @@ fi
 
 if want approval-off; then
   log "restarting UAR with an mcp.json WITHOUT preapproved_tools (16.6.2, 20 s cap)"
-  restart_and_capture no-preapproval "$MCP_PLAIN" approval-off 16.6.2-B
+  restart_and_capture plain "$MCP_PLAIN" approval-off 16.6.2-B \
+    --surreal "$SURREAL_URL" --surreal-root-file "$SECRETS/surreal-root" --uar-ns uar --uar-db uar_plain
 fi
 stop_uar
 

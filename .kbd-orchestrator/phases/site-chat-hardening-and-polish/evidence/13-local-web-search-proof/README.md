@@ -3,8 +3,12 @@
 Status: first real run 2026-10-13: only the first UAR instance's results are valid
 (16.6.1, 16.6.2-A, 16.6.3, the 16.6.4 prompts other than P3, 16.6.6 meter rows);
 16.6.2-B and P3 failed on lost authentication after the UAR restart (see "Authentication
-after a UAR restart"). The harness is fixed and statically and stub-tested, not yet
-rerun against a real UAR. This directory is where the operator's run writes its evidence.
+after a UAR restart"). Second run (`--only fixture,approval-off`): auth worked, but both
+results were vacuous (the restarted UAR kept the first instance's MCP servers from its
+database; see "Why each restart needs its own database") and the citation order rule was
+wrong (see "Citation frame order"). The harness now isolates each restart's database,
+proves the path and the config, and uses the corrected rule; statically and stub-tested,
+not yet rerun against a real UAR. This directory is where the operator's run writes its evidence.
 
 The tasks need a real model and the real Firecrawl API, so the operator runs
 the harness with their own keys. No agent reads, receives or prints a key.
@@ -56,7 +60,23 @@ do not send them).
 4. Starts the site server with `SITE_AGENT_ID=knowme-site`, `SITE_WEB_AGENT_ID=knowme-site-web`, the meter on the local SurrealDB, and a kill-switch file it creates containing `off`. It uses the documented local path (a minted API key as `SITE_PROXY_API_KEY`), not a gate bypass. It touches no cluster, no `kubectl`, no kill-switch ConfigMap.
 5. Runs the capture steps and prints a PASS/FAIL/UNKNOWN table, then tears everything down.
 
-UAR is restarted twice with other `mcp.json` files (the fixture stub for P3, then no pre-approval for 16.6.2 part B). The database is shared, so the agents and the models' verification receipts survive the restarts. **The site API key does not.**
+UAR is restarted twice with other `mcp.json` files (the fixture stub for P3, then no pre-approval for 16.6.2 part B). **Each restart gets its own SurrealDB database** (`uar_fixture`, `uar_plain`; the first instance keeps `uar`; same Surreal server, namespace `uar`). Reason below. The agents, the Answer card presentation templates, the site API key and the models' verification receipts are therefore NOT carried over: `reauth_after_restart` re-runs `seed-site-agent.sh` (`SEED_MODE=agent`: both agents, presentation templates, new site key, models re-verified) in the fresh database. The knowledge base and the two budget variants are not re-seeded in the fresh databases; P3 and 16.6.2-B do not read them.
+
+### Why each restart needs its own database (second real run, 2026-10-13)
+
+The second run (`--only fixture,approval-off`, auth fixed) gave two results that did not test what they claimed: the fixture stub logged 0 calls while the real wrapper served the searches (P3 proved nothing), and 16.6.2-B ran with `preapproved_tools` although its `mcp.json` had none. Cause, read from UAR source (worktree `uar-mcp-preapproved`, commit aaf71da1): UAR copies the `mcp.json` server list into its settings database once, on the first start that finds that database's `mcp.servers` setting empty, and reads the database on every later start. The file is not consulted again for servers.
+
+- `src/server.rs:914` loads the file named by `MCP_CONFIG_PATH` (`src/mcp/registry.rs:2556`, `resolve_mcp_config_path`) into the registry.
+- `src/server.rs:1168-1169` then calls `mcp_admin::hydrate_registry` (`src/uar/api/mcp_admin.rs:314`), which runs `src/uar/admin/mcp.rs` `hydrate`.
+- `hydrate` (`mcp.rs:197`, seed rule at `mcp.rs:220-223`): `let seed = stored.is_empty() && !current.is_empty(); let effective = if seed { current } else { stored };` and the comment "an empty store adopts the file configuration once, and every later read comes from the database". Then it removes every registry server and re-adds the `effective` ones. The settings key is `mcp.servers` (`mcp.rs:34`), stored as a map `name -> {enabled, entry}` where `entry` carries `url`, `headers` and `preapproved_tools`.
+- The `Settings drift detected: DB value (set via API) differs from config` warning is the same fact seen from the settings layer (`src/uar/settings/manager.rs:279-291`): the schema default for `mcp.servers` is `{}` (`schema.rs:~3147`), the stored value is not, and it was written with `updated_at`, so the DB value is kept.
+
+With a shared database, the second and third instances kept the first instance's `websearch` (the real wrapper, with `preapproved_tools`). Isolating the database makes the `mcp.json` given to that instance the only source.
+
+### Proof of path and proof of config (a vacuous run can no longer pass)
+
+- `fixture` (P3): after the turn, the stub's call log must have grown by at least 1 search call and the real wrapper's must not have grown. Otherwise the row is `FAIL` `fixture not in the path: the injection did not reach the model (stub logged N, real wrapper logged M during the step)`. A model that simply did not search also lands here (the fixture was not tested either way). Both counts are in `16.6.4-P3-fixture.json` as `fixture_stub_search_calls` and `real_wrapper_search_calls_during_step`.
+- `approval-off` (16.6.2-B): before any model call the step reads this instance's persisted `mcp.servers` from its own database over Surreal `/sql` (`SELECT data FROM type::record('settings','mcp_servers')`), and writes only `{readable, url_port, preapproved_tools_count}` to `16.6.2-B-config-check.json`. If `websearch` still has any `preapproved_tools` the row is `FAIL` `config not applied` and no model call is made; if the entry cannot be read the row is `UNKNOWN` with the reason. UAR's admin listing (`GET .../servers`) was not used because it does not return `preapproved_tools` (`src/uar/api/mcp_admin.rs:190,207` discard it). The database content is what `hydrate` applies to the registry at boot, so it is the instance's effective config unless an admin save changed it afterwards (the harness makes none).
 
 ### Authentication after a UAR restart (first run, 2026-10-13)
 
@@ -85,7 +105,7 @@ Steps, in run order: `direct` (16.6.1, 16.6.2-A), `budget`, `prompts` (P1, P2, P
 
 | Task | Files | Pass means |
 |---|---|---|
-| 16.6.1 | `16.6.1-direct-raw.sse` (full UAR stream, direct, web agent), `16.6.1-direct-structure.json` (tool name in `agui.tool_call.complete`, field names, redacted shape of `agui.tool_result`, event order), `16.6.1-direct-scrubbed-events.json` (events with tool arguments scrubbed, the base for the `server/tests/fixtures/` capture), `16.6.1-public.sse` (same question through the proxy with `web_search: true`), `16.6.1-public-analysis.json` | the observed tool name equals `websearch__search`; the public stream has 0 `analyse` problems (reusing `validate-live.mjs`, with `expectWebCitation`), exactly one `agui.web_citations` frame before the first message delta, and the direct run's query text is not in the public stream (a heuristic: the proxy run may phrase its own query) |
+| 16.6.1 | `16.6.1-direct-raw.sse` (full UAR stream, direct, web agent), `16.6.1-direct-structure.json` (tool name in `agui.tool_call.complete`, field names, redacted shape of `agui.tool_result`, event order), `16.6.1-direct-scrubbed-events.json` (events with tool arguments scrubbed, the base for the `server/tests/fixtures/` capture), `16.6.1-public.sse` (same question through the proxy with `web_search: true`), `16.6.1-public-analysis.json` | the observed tool name equals `websearch__search`; the public stream has 0 `analyse` problems (reusing `validate-live.mjs`, with `expectWebCitation`), exactly one `agui.web_citations` frame that arrives after the "Searching the web" step has finished and before `agui.done` (text before the frame is fine, see "Citation frame order"), and the direct run's query text is not in the public stream (a heuristic: the proxy run may phrase its own query) |
 | 16.6.2 | A: `16.6.1-direct-raw.sse` (same run). B: `16.6.2-B-direct-raw.sse`, `16.6.2-B-observation.json` | A: no `agui.tool_call.approval_required`, turn finishes. B (no `preapproved_tools`, which is what the pinned image does since it ignores the field): the approval event appears and the turn does not finish within 20 s, reported as "would wait". If B finishes with no approval event, the row is FAIL with "finding contradicted": design 1.2 needs correcting and OD-3 re-asking. |
 | 16.6.3 | `16.6.3-<agent>.sse` for `knowme-site-web`, `lws-budget-4`, `lws-budget-1`; `16.6.3-observation.json` | See the note below. PASS: with budget 1 the wrapper executed exactly 1 while the model started 2 or more (or a denied/error event shows the stop), and the control with budget 4 executed 2 or more. UNKNOWN if the model never tried twice. FAIL if budget 1 still executed 2. |
 | 16.6.4 | `16.6.4-P1.sse`, `P2`, `P4` to `P8`, `16.6.4-P3-fixture.sse`, `16.6.4-prompts.json`, `16.6.4-P3-fixture.json` | each prompt judged as written in design section 9, using the wrapper call count from its log; any failure is filed with its stream and is not retried |
@@ -140,7 +160,13 @@ Unverified by the author: the harness has not been run against a real UAR with t
 
 CI never holds UAR's admin key, so the cluster's models are verified by the operator with `scripts/ops/verify-site-models.sh --context know-me [--web] [--smoke]`, after rolling a UAR image that contains `a42f23bb` and after any provider or API key change. `--context` is required, has no default and must be `know-me`; `--dry-run` prints the plan without running kubectl or curl. The script port-forwards `svc/uar`, waits up to five minutes for `/readyz`, reads `UAR_SECURITY__SETTINGS_ADMIN_KEY` from Secret `uar-secrets` and the gate client from Secret `site-gate-client` (the same one `k8s/base/seed-job.yaml` uses) into variables and 0600 header files that are removed on exit, then runs the seed in `SEED_MODE=verify`. With `--smoke` it sends one chat turn to `knowme-site` and prints the HTTP status and whether `agui.done` arrived, never the answer. Tested here only against a stub and a fake `kubectl`; it has not been run against the cluster.
 
+## Citation frame order
+
+The earlier rule ("`agui.web_citations` must arrive before the first message delta") was wrong and is replaced in `validate-live.mjs` `analyse` and in `web-proof-capture.mjs` (16.6.1). The real P3 stream was: `stream.start`, step x2, `message.delta` x8 (the model's short preamble while the search ran), step x2 (search finished), `agui.web_citations`, `message.delta` x58 (the answer), `agui.done`. The proxy mints the frame when the search result arrives, which can legitimately follow preamble text. The client resolves `[Wn]` markers reactively and shows Sources after the answer. The rule now: exactly one frame; it arrives after a "Searching the web" step with phase `finished` and before `agui.done`. A frame before any search step started, while the step is still running, after `agui.done`, or a second frame is a problem. The recorded-fixture order pinned by `server/tests` is a different assertion and is unchanged. The spec text in `openspec/changes/site-web-search` (spec.md:96, tasks.md 16.4.5) still says "before the first message delta"; that is owned elsewhere and needs the same correction.
+
 ## Known limits and failure points
+
+- Fresh databases for the restarted instances were not run against a real UAR and SurrealDB. Unverified: that UAR starts cleanly on a database name it has never seen (it should: `src/uar/persistence/providers/surreal.rs` selects ns/db and runs its own migration), and that the persisted record id is `settings:mcp_servers` (derived from `key.replace('.', "_")`, surreal.rs:2512). If the record id is wrong the config check reports `UNKNOWN`, never a pass.
 
 - The wrapper binds `0.0.0.0` (it has no bind-address setting and the harness adds none). Bearer-protected, capped at 20 searches; macOS may ask to allow incoming connections.
 - 20 searches is a tight budget: P1 direct, P1 proxy, three budget runs (up to 6), P1, P6, P4, meter. If the cap is reached the wrapper returns "unavailable" and later rows can read UNKNOWN or FAIL. Raise it by editing `WEBSEARCH_DAILY_CAP` in the script if needed.

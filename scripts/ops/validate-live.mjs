@@ -26,7 +26,11 @@
 // A default run never sends the field, so it stays KB-only. Extra rules: a
 // "Searching the web" step and web citations are allowed only for prompts that
 // expect them; a web-sourced answer needs a web citation; every [Wn] in the
-// reply needs a matching `agui.web_citations` item; at most one search step.
+// reply needs a matching `agui.web_citations` item; at most one search step;
+// exactly one `agui.web_citations` frame, after the search step has finished
+// and before `agui.done`. Preamble text before the frame is fine: the proxy
+// mints the frame when the search result arrives, and the client resolves [Wn]
+// markers reactively and places Sources after the answer.
 //
 // Usage: node scripts/ops/validate-live.mjs [--base-url https://know-me.tools]
 //        [--timeout-ms 120000] [--delay-ms 1500] [--web]
@@ -260,9 +264,12 @@ export function analyse(status, body, opts = {}) {
   const webItems = [];
   let replyText = "";
   let webSteps = 0;
-  let sawDelta = false;
   let webStepReported = false;
   let webFrameReported = false;
+  let webFrames = 0;
+  let webStarted = false;
+  let webFinished = false;
+  let sawDone = false;
   if (status !== 200) problems.push(`HTTP ${status}`);
   if (BANNED_WORDS.test(body)) problems.push(`banned word: ${BANNED_WORDS.exec(body)[0]}`);
   for (const { event, data } of events) {
@@ -285,7 +292,6 @@ export function analyse(status, body, opts = {}) {
     }
     checkKeys(event, payload, problems);
     if (event === "agui.message.delta") {
-      sawDelta = true;
       if (typeof payload?.delta?.text === "string") replyText += payload.delta.text;
     }
     if (event === "agui.web_citations") {
@@ -293,7 +299,13 @@ export function analyse(status, body, opts = {}) {
         webFrameReported = true;
         problems.push("agui.web_citations: not expected for this prompt");
       }
-      if (sawDelta) problems.push("agui.web_citations: arrived after the first message delta");
+      webFrames++;
+      if (opts.allowWebStep) {
+        if (webFrames > 1) problems.push("agui.web_citations: more than one frame in one reply");
+        if (sawDone) problems.push("agui.web_citations: arrived after agui.done");
+        else if (!webStarted) problems.push("agui.web_citations: arrived before any search step started");
+        else if (!webFinished) problems.push("agui.web_citations: arrived before the search step finished");
+      }
       const list = Array.isArray(payload?.citations) ? payload.citations : [];
       if (list.length > WEB_MAX_ITEMS) problems.push(`agui.web_citations: more than ${WEB_MAX_ITEMS} items`);
       for (const item of list) {
@@ -322,11 +334,18 @@ export function analyse(status, body, opts = {}) {
           webStepReported = true;
           problems.push(`agui.step: '${WEB_STEP_LABEL}' is not expected for this prompt`);
         }
-        if (payload.phase === "started") webSteps++;
+        if (payload.phase === "started") {
+          webSteps++;
+          webStarted = true;
+        }
+        if (payload.phase === "finished") webFinished = true;
       }
     }
     if (event === "agui.error") counts.error++;
-    if (event === "agui.done") counts.done++;
+    if (event === "agui.done") {
+      counts.done++;
+      sawDone = true;
+    }
   }
   if (webSteps > 1) problems.push(`agui.step: more than one search step in one reply (${webSteps})`);
   const cited = new Set(webItems.map((i) => i?.marker));
