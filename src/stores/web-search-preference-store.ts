@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { isSiteBuild } from "@/hooks/use-site-config";
+import { isWebSearchEnabled } from "@/hooks/use-site-config";
 
 /**
  * The visitor's "Search the web" choice (site build only, off by default).
@@ -48,5 +48,5 @@ export const useWebSearchPreferenceStore = create<WebSearchPreferenceState>()((s
  * an empty object, so the field is omitted rather than sent as `false`.
  */
 export function webSearchRequestField(): { web_search: true } | Record<string, never> {
-  return isSiteBuild() && useWebSearchPreferenceStore.getState().enabled ? { web_search: true } : {};
+  return isWebSearchEnabled() && useWebSearchPreferenceStore.getState().enabled ? { web_search: true } : {};
 }

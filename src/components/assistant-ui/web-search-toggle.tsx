@@ -1,7 +1,7 @@
 import { useId, type FC } from "react";
 import { CheckIcon, GlobeIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { isSiteBuild } from "@/hooks/use-site-config";
+import { isWebSearchEnabled } from "@/hooks/use-site-config";
 import { cn } from "@/lib/utils";
 import { useWebSearchPreferenceStore } from "@/stores/web-search-preference-store";
 import { WEB_SEARCH_CONTENT } from "../../../content/site/web-search";
@@ -26,7 +26,7 @@ export const WebSearchToggle: FC = () => {
   const setEnabled = useWebSearchPreferenceStore((s) => s.setEnabled);
   const descriptionId = useId();
 
-  if (!isSiteBuild()) return null;
+  if (!isWebSearchEnabled()) return null;
 
   const { toggleLabel, tooltip, stateOn, stateOff } = WEB_SEARCH_CONTENT;
 

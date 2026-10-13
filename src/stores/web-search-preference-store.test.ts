@@ -15,6 +15,7 @@ async function load() {
 beforeEach(() => {
   localStorage.clear();
   vi.stubEnv("VITE_SITE_AGENT_ID", "knowme-site");
+  vi.stubEnv("VITE_SITE_WEB_SEARCH", "1");
 });
 
 afterEach(() => {
@@ -36,6 +37,15 @@ describe("web search preference store", () => {
     useWebSearchPreferenceStore.getState().setEnabled(false);
     expect(webSearchRequestField()).toEqual({});
     expect("web_search" in webSearchRequestField()).toBe(false);
+  });
+
+  it("sends no field without the web search build flag, even when the stored choice is on", async () => {
+    vi.stubEnv("VITE_SITE_WEB_SEARCH", "");
+    const { useWebSearchPreferenceStore, webSearchRequestField } = await load();
+    useWebSearchPreferenceStore.getState().setEnabled(true);
+    expect(webSearchRequestField()).toEqual({});
+    vi.stubEnv("VITE_SITE_WEB_SEARCH", "true");
+    expect(webSearchRequestField()).toEqual({});
   });
 
   it("persists the choice for the next visit", async () => {

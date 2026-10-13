@@ -58,6 +58,7 @@ afterEach(() => {
 describe("useMessageStream: web_search on the site build", () => {
   beforeEach(() => {
     vi.stubEnv("VITE_SITE_AGENT_ID", "knowme-site");
+    vi.stubEnv("VITE_SITE_WEB_SEARCH", "1");
   });
 
   it("omits the field when the toggle is off", async () => {

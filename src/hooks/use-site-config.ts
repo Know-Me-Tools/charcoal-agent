@@ -22,3 +22,13 @@ export function getSiteAgentId(): string | undefined {
 export function isSiteBuild(): boolean {
   return Boolean(getSiteAgentId());
 }
+
+/**
+ * True when this site build ships the web search toggle. A second build-time
+ * flag, `VITE_SITE_WEB_SEARCH=1`, because the toggle only works when the
+ * whole backend (wrapper, UAR image, second agent) is live; a deploy without
+ * it must not show a control that does nothing. Off unless explicitly "1".
+ */
+export function isWebSearchEnabled(): boolean {
+  return isSiteBuild() && (import.meta.env.VITE_SITE_WEB_SEARCH as string | undefined)?.trim() === "1";
+}

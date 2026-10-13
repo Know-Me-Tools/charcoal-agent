@@ -13,6 +13,7 @@ beforeEach(() => {
   localStorage.clear();
   useWebSearchPreferenceStore.setState({ enabled: false });
   vi.stubEnv("VITE_SITE_AGENT_ID", "knowme-site");
+  vi.stubEnv("VITE_SITE_WEB_SEARCH", "1");
 });
 
 afterEach(() => {
@@ -20,6 +21,12 @@ afterEach(() => {
 });
 
 describe("WebSearchToggle", () => {
+  it("renders nothing unless the build ships web search (VITE_SITE_WEB_SEARCH=1)", () => {
+    vi.stubEnv("VITE_SITE_WEB_SEARCH", "");
+    const { container } = render(<WebSearchToggle />);
+    expect(container).toBeEmptyDOMElement();
+  });
+
   it("is a pressed/unpressed toggle button named for the feature, off by default", () => {
     render(<WebSearchToggle />);
     const button = screen.getByRole("button", { name: new RegExp(WEB_SEARCH_CONTENT.toggleLabel) });

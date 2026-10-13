@@ -4,7 +4,7 @@
  *
  * The toggle exists only on the site build (`VITE_SITE_AGENT_ID` set when the
  * dev server starts), so this spec skips on the default app build. Run it with
- *   VITE_SITE_AGENT_ID=knowme-site npx playwright test e2e/web-search.spec.ts
+ *   VITE_SITE_AGENT_ID=knowme-site VITE_SITE_WEB_SEARCH=1 npx playwright test e2e/web-search.spec.ts
  * No golden is captured here; screenshots of the Sources block at 320 and
  * 1440 in both themes stay a reviewed manual step.
  */
@@ -12,7 +12,10 @@ import { expect, test } from "./support/test";
 import { FIXTURE_THREAD_ID } from "./support/routes";
 import { TITLE_RESPONSE, toSseBody, type SseEvent } from "./fixtures/sse";
 
-test.skip(!process.env.VITE_SITE_AGENT_ID, "The web-search toggle exists only on the site build (set VITE_SITE_AGENT_ID).");
+test.skip(
+  !process.env.VITE_SITE_AGENT_ID || process.env.VITE_SITE_WEB_SEARCH !== "1",
+  "The web-search toggle exists only on the site build with web search (set VITE_SITE_AGENT_ID and VITE_SITE_WEB_SEARCH=1).",
+);
 
 const TOGGLE_NAME = /Search the web/;
 const WEB_HOST = "example.org";
