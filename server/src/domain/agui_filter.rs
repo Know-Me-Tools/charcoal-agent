@@ -1535,11 +1535,11 @@ mod tests {
     #[test]
     fn the_answer_card_and_inferred_row_surfaces_should_pass() {
         let card = surface(
-            r#"[{"id":"root","component":"Card","child":"body"},{"id":"body","component":"Column","children":["title","rule","answer","source"]},{"id":"title","component":"Text","variant":"h3","text":{"path":"/title"}},{"id":"rule","component":"Divider"},{"id":"answer","component":"Text","variant":"body","text":{"path":"/answer"}},{"id":"source","component":"Text","variant":"caption","text":{"path":"/source"}}]"#,
+            r#"[{"id":"root","component":"Card","child":"body"},{"id":"body","component":"Column","children":["title","rule","summary","source"]},{"id":"title","component":"Text","variant":"h3","text":{"path":"/title"}},{"id":"rule","component":"Divider"},{"id":"summary","component":"Text","variant":"body","text":{"path":"/summary"}},{"id":"source","component":"Text","variant":"caption","text":{"path":"/source"}}]"#,
         );
         let card = format!(
             "{card}\n{}",
-            r#"{"version":"v0.9.1","updateDataModel":{"surfaceId":"s","path":"/","value":{"title":"T","answer":"A","source":"S","action":"data keys are inert"}}}"#
+            r#"{"version":"v0.9.1","updateDataModel":{"surfaceId":"s","path":"/","value":{"title":"T","summary":"A","source":"S","action":"data keys are inert"}}}"#
         );
         assert!(is_passive_surface(&card));
         let row = surface(

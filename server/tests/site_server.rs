@@ -433,6 +433,69 @@ fn committed_site_agent_should_expose_only_presentation_render() {
     assert_eq!(agent["tools"], serde_json::json!({}));
 }
 
+/// D-1: the committed answer card is a passive header (title, one-line
+/// summary, source) that the public filter lets through unchanged, with no
+/// action or function call anywhere in it, and the agent prompt names the
+/// same data keys as the template.
+#[test]
+fn committed_answer_card_should_be_a_passive_title_summary_source_header() {
+    use knowme_site_server::domain::agui_filter::is_passive_surface;
+    use std::collections::BTreeSet;
+
+    let read = |rel: &str| -> serde_json::Value {
+        let path = format!("{}/../uar/{rel}", env!("CARGO_MANIFEST_DIR"));
+        serde_json::from_str(&std::fs::read_to_string(&path).expect(rel)).expect(rel)
+    };
+    let card = read("presentations/answer-card.json");
+    // seed-site-agent.sh matches the stored template by this title.
+    assert_eq!(card["title"], "Answer card");
+
+    let t = &card["template"];
+    let components = t["components"].as_array().expect("components");
+    let surface = [
+        serde_json::json!({"version": t["version"], "createSurface":
+            {"surfaceId": "s", "catalogId": t["catalog_id"]}}),
+        serde_json::json!({"version": t["version"], "updateComponents":
+            {"surfaceId": "s", "components": components}}),
+        serde_json::json!({"version": t["version"], "updateDataModel":
+            {"surfaceId": "s", "path": "/", "value": t["default_data"]}}),
+    ]
+    .map(|m| m.to_string())
+    .join("\n");
+    assert!(is_passive_surface(&surface), "not passive: {surface}");
+
+    fn interactive(v: &serde_json::Value) -> bool {
+        match v {
+            serde_json::Value::Object(m) => m
+                .iter()
+                .any(|(k, v)| matches!(k.as_str(), "action" | "call") || interactive(v)),
+            serde_json::Value::Array(a) => a.iter().any(interactive),
+            _ => false,
+        }
+    }
+    assert!(!interactive(&card), "action or call key in {card}");
+
+    let expected: BTreeSet<&str> = ["source", "summary", "title"].into();
+    let paths: BTreeSet<&str> = components
+        .iter()
+        .filter_map(|c| c["text"]["path"].as_str())
+        .map(|p| p.trim_start_matches('/'))
+        .collect();
+    let data: BTreeSet<&str> = t["default_data"]
+        .as_object()
+        .expect("default_data")
+        .keys()
+        .map(String::as_str)
+        .collect();
+    assert_eq!(paths, expected);
+    assert_eq!(data, expected);
+
+    let agent = read("agents/knowme-site.json");
+    let system = agent["prompt"]["system"].as_str().expect("system prompt");
+    assert!(system.contains("{title, summary, source}"), "{system}");
+    assert!(!system.contains("The card replaces nothing"), "{system}");
+}
+
 #[tokio::test]
 async fn disallowed_api_paths_and_methods_should_never_reach_upstream() {
     let h = start(None).await;
