@@ -6,6 +6,9 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { WIDE_LAYOUT_QUERY } from "@/components/layout/breakpoints";
 import { KnowMeLockup } from "@/components/brand";
 import { UarStatus } from "@/components/common/uar-status";
+import { ABOUT_PANEL_ID, ABOUT_TOGGLE_ID } from "@/components/layout/about-sources-panel";
+import { isSiteBuild } from "@/hooks/use-site-config";
+import { ABOUT_PANEL_CONTENT } from "../../../content/site/about-panel";
 import { getNavDestinations, isDestinationActive } from "@/components/layout/nav-destinations";
 import { cn } from "@/lib/utils";
 
@@ -14,12 +17,14 @@ const ICON_BUTTON =
 
 export function Topbar() {
   const { pathname } = useLocation();
-  const { theme, setTheme, toggleRightPanel, setContextSheetOpen, toggleMobileSidebar } = useUi();
+  const { theme, setTheme, toggleRightPanel, aboutPanelOpen, setAboutPanelOpen, setContextSheetOpen, toggleMobileSidebar } =
+    useUi();
   const isMobile = useIsMobile();
   const isWide = useMediaQuery(WIDE_LAYOUT_QUERY);
   const isThreadView = pathname.startsWith("/threads/");
   const showSidebar = pathname.startsWith("/threads") || pathname === "/";
   const nextTheme = theme === "dark" ? "light" : "dark";
+  const siteBuild = isSiteBuild();
 
   return (
     <header className="fixed top-0 right-0 left-0 z-50 flex h-12 shrink-0 items-center justify-between bg-chrome px-4 md:static">
@@ -55,7 +60,8 @@ export function Topbar() {
       </div>
 
       <div className="flex items-center gap-2">
-        {!isMobile && <UarStatus compact />}
+        {/* Runtime status is infra detail; on the site it showed visitors "localhost". */}
+        {!isMobile && !siteBuild && <UarStatus compact />}
 
         <button
           type="button"
@@ -67,7 +73,23 @@ export function Topbar() {
           {theme === "dark" ? <Sun size={16} aria-hidden="true" /> : <Moon size={16} aria-hidden="true" />}
         </button>
 
-        {isThreadView && (
+        {isThreadView && siteBuild && (
+          <button
+            type="button"
+            id={ABOUT_TOGGLE_ID}
+            onClick={isWide ? () => setAboutPanelOpen(!aboutPanelOpen) : () => setContextSheetOpen(true)}
+            className={ICON_BUTTON}
+            aria-label={ABOUT_PANEL_CONTENT.title}
+            title={ABOUT_PANEL_CONTENT.title}
+            {...(isWide
+              ? { "aria-expanded": aboutPanelOpen, "aria-controls": aboutPanelOpen ? ABOUT_PANEL_ID : undefined }
+              : { "aria-haspopup": "dialog" as const })}
+          >
+            <PanelRight size={16} aria-hidden="true" />
+          </button>
+        )}
+
+        {isThreadView && !siteBuild && (
           <button
             type="button"
             onClick={isWide ? toggleRightPanel : () => setContextSheetOpen(true)}

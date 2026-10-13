@@ -2,12 +2,14 @@ import { Outlet, useLocation } from "react-router-dom";
 import { Topbar } from "@/components/layout/topbar";
 import { LeftSidebar } from "@/components/layout/left-sidebar";
 import { ContextPanelSheet, RightContextPanel } from "@/components/layout/right-context-panel";
+import { AboutSourcesPanel, AboutSourcesSheet } from "@/components/layout/about-sources-panel";
 import { MobileBottomNav } from "@/components/layout/mobile-nav";
 import { MobileSidebarDrawer } from "@/components/layout/mobile-sidebar-drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { WIDE_LAYOUT_QUERY } from "@/components/layout/breakpoints";
 import { useDbHydration } from "@/hooks/use-db-hydration";
+import { isSiteBuild } from "@/hooks/use-site-config";
 
 /** Fragment navigation doesn't reliably move focus, so the skip link does it. */
 function focusMain(event: React.MouseEvent<HTMLAnchorElement>): void {
@@ -24,6 +26,11 @@ export function AppLayout() {
   const isWide = useMediaQuery(WIDE_LAYOUT_QUERY);
   const isThreadView = location.pathname.startsWith("/threads/");
   const showSidebar = location.pathname.startsWith("/threads") || location.pathname === "/";
+  // The site build shows About / Sources instead of the agent Context panel,
+  // which describes agents, models and prompts a visitor cannot choose.
+  const siteBuild = isSiteBuild();
+  const InlinePanel = siteBuild ? AboutSourcesPanel : RightContextPanel;
+  const PanelSheet = siteBuild ? AboutSourcesSheet : ContextPanelSheet;
 
   return (
     <div className="flex h-screen flex-col bg-canvas">
@@ -57,10 +64,10 @@ export function AppLayout() {
         </main>
 
         {/* Desktop right panel */}
-        {isWide && isThreadView && <RightContextPanel />}
+        {isWide && isThreadView && <InlinePanel />}
       </div>
 
-      {!isWide && isThreadView && <ContextPanelSheet />}
+      {!isWide && isThreadView && <PanelSheet />}
 
       {/* Mobile bottom nav */}
       {isMobile && <MobileBottomNav />}

@@ -11,12 +11,15 @@ export const UI_STORAGE_KEY = "knowme:ui";
 interface UiState {
   /** Inline context panel (wide screens). */
   rightPanelOpen: boolean;
-  /** Context panel as a sheet below 1280px; never persisted. */
+  /** Site build's inline About / Sources panel (wide screens); closed by default, never persisted. */
+  aboutPanelOpen: boolean;
+  /** Context panel (site: About / Sources) as a sheet below 1280px; never persisted. */
   contextSheetOpen: boolean;
   mobileSidebarOpen: boolean;
   theme: Theme;
   fontSize: FontSize;
   toggleRightPanel: () => void;
+  setAboutPanelOpen: (open: boolean) => void;
   setContextSheetOpen: (open: boolean) => void;
   setMobileSidebarOpen: (open: boolean) => void;
   toggleMobileSidebar: () => void;
@@ -36,6 +39,7 @@ export const useUiStore = create<UiState>()(
   persist(
     immer((set) => ({
       rightPanelOpen: true,
+      aboutPanelOpen: false,
       contextSheetOpen: false,
       mobileSidebarOpen: false,
       theme: "dark",
@@ -44,6 +48,11 @@ export const useUiStore = create<UiState>()(
       toggleRightPanel: () =>
         set((state) => {
           state.rightPanelOpen = !state.rightPanelOpen;
+        }),
+
+      setAboutPanelOpen: (open) =>
+        set((state) => {
+          state.aboutPanelOpen = open;
         }),
 
       setContextSheetOpen: (open) =>
