@@ -8,6 +8,7 @@ import {
 	MessagePrimitive,
 	ThreadPrimitive,
 	useAuiState,
+	useThreadViewportStore,
 	type MessagePartStatus,
 } from "@assistant-ui/react";
 import {
@@ -30,7 +31,7 @@ import {
 	ZapIcon,
 	ZapOffIcon,
 } from "lucide-react";
-import { type FC, useState } from "react";
+import { type FC, type ReactNode, type RefObject, useEffect, useRef, useState } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
 	ComposerAddAttachment,
@@ -51,6 +52,7 @@ import { usePersistenceStatus } from "@/hooks/use-persistence-status";
 import { AI_DISCLOSURE_CONTENT } from "../../../content/site/ai-disclosure";
 import { EMPTY_STATE_CONTENT } from "../../../content/site/empty-state";
 import { isSiteBuild } from "@/hooks/use-site-config";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { isFirstAssistantMessageIndex } from "@/features/chat/first-assistant-message";
 
 // ─── Root Thread ─────────────────────────────────────────────────────────────
@@ -67,6 +69,10 @@ export const EnhancedThread: FC<EnhancedThreadProps> = ({
 	onTogglePromptCaching,
 }) => {
 	const persistenceStatus = usePersistenceStatus();
+	const siteBuild = isSiteBuild();
+	const footerRef = useRef<HTMLDivElement>(null);
+	const [composerFocused, setComposerFocused] = useState(false);
+	useFooterHeightVar(footerRef, siteBuild);
 
 	return (
 		<ThreadPrimitive.Root
@@ -76,8 +82,13 @@ export const EnhancedThread: FC<EnhancedThreadProps> = ({
 		>
 			<ThreadPrimitive.Viewport
 				turnAnchor="top"
-				className="aui-thread-viewport relative flex flex-1 flex-col overflow-x-hidden overflow-y-scroll scroll-smooth px-4 pt-6"
+				className={cn(
+					"aui-thread-viewport relative flex flex-1 flex-col overflow-x-hidden overflow-y-scroll scroll-smooth px-4 pt-6",
+					// Critique P1-2: anchored scrolls land above the footer, not under it.
+					siteBuild && "scroll-pb-(--thread-footer-h)",
+				)}
 			>
+				{siteBuild && <ThreadChromeEffects composerFocused={composerFocused} />}
 				<AuiIf condition={(s) => s.thread.isEmpty}>
 					<ThreadWelcome />
 				</AuiIf>
@@ -94,18 +105,92 @@ export const EnhancedThread: FC<EnhancedThreadProps> = ({
 					}
 				</ThreadPrimitive.Messages>
 
-				<ThreadPrimitive.ViewportFooter className="aui-thread-viewport-footer sticky bottom-0 mx-auto mt-auto flex w-full max-w-(--thread-max-width) flex-col gap-3 bg-canvas pt-3 pb-4 @md:pb-6">
+				{siteBuild && <ThreadEndSpacer />}
+
+				<ThreadPrimitive.ViewportFooter
+					ref={footerRef}
+					className={cn(
+						"aui-thread-viewport-footer sticky bottom-0 mx-auto mt-auto flex w-full max-w-(--thread-max-width) flex-col bg-canvas @md:pb-6",
+						// Critique P1-3: at 320 the footer is the chrome that crowds the
+						// thread, so the site build tightens its padding and gap there.
+						siteBuild ? "gap-2 pt-2 pb-2 md:gap-3 md:pt-3 md:pb-4" : "gap-3 pt-3 pb-4",
+					)}
+				>
 					<ThreadScrollToBottom />
 					<ChatConnectivityBanner />
 					<EnhancedComposer
 						promptCachingEnabled={promptCachingEnabled}
 						onTogglePromptCaching={onTogglePromptCaching}
+						onFocusWithinChange={setComposerFocused}
 					/>
 					<ComposerDisclosure />
 				</ThreadPrimitive.ViewportFooter>
 			</ThreadPrimitive.Viewport>
 		</ThreadPrimitive.Root>
 	);
+};
+
+// ─── Viewport and footer (site build, critique P1-2 and P1-3) ─────────────────
+
+/**
+ * Publishes the sticky footer's height as `--thread-footer-h` on the viewport
+ * (the footer's parent) so the end spacer and `scroll-padding-bottom` can
+ * match it. A ResizeObserver keeps it current as the composer grows.
+ */
+export function useFooterHeightVar(footerRef: RefObject<HTMLElement | null>, enabled: boolean): void {
+	useEffect(() => {
+		const footer = footerRef.current;
+		const host = footer?.parentElement;
+		if (!enabled || !footer || !host || typeof ResizeObserver === "undefined") return;
+		const publish = () => host.style.setProperty("--thread-footer-h", `${footer.offsetHeight}px`);
+		publish();
+		const observer = new ResizeObserver(publish);
+		observer.observe(footer);
+		return () => {
+			observer.disconnect();
+			host.style.removeProperty("--thread-footer-h");
+		};
+	}, [footerRef, enabled]);
+}
+
+/** Space after the last message equal to the footer, so the end is never under it. */
+export const ThreadEndSpacer: FC = () => (
+	<div aria-hidden="true" data-thread-end-spacer="" className="h-(--thread-footer-h,0px) shrink-0" />
+);
+
+/** Document attribute read by the phone tab bar (`mobile-nav.tsx`). */
+export const CHAT_ACTIVE_ATTRIBUTE = "data-chat-active";
+
+/**
+ * Site build: (1) re-scroll to the true end once history has rendered, since
+ * the library's first scroll can land before late content has laid out;
+ * (2) flag the document while the composer has focus or a run is active so
+ * the phone tab bar steps aside.
+ */
+const ThreadChromeEffects: FC<{ composerFocused: boolean }> = ({ composerFocused }) => {
+	const viewportStore = useThreadViewportStore();
+	const hasMessages = useAuiState((s) => s.thread.messages.length > 0);
+	const isRunning = useAuiState((s) => s.thread.isRunning);
+	const settled = useRef(false);
+
+	useEffect(() => {
+		if (!hasMessages || isRunning || settled.current) return;
+		requestAnimationFrame(() =>
+			requestAnimationFrame(() => {
+				settled.current = true;
+				viewportStore.getState().scrollToBottom({ behavior: "instant" });
+			}),
+		);
+	}, [hasMessages, isRunning, viewportStore]);
+
+	const chatActive = composerFocused || isRunning;
+	useEffect(() => {
+		const root = document.documentElement;
+		if (chatActive) root.setAttribute(CHAT_ACTIVE_ATTRIBUTE, "true");
+		return () => root.removeAttribute(CHAT_ACTIVE_ATTRIBUTE);
+	}, [chatActive]);
+
+	return null;
 };
 
 // ─── Welcome Screen ───────────────────────────────────────────────────────────
@@ -128,7 +213,19 @@ const SiteWelcome: FC = () => (
 			</h1>
 			<p className="max-w-md font-body text-sm text-fg-secondary leading-relaxed">
 				{EMPTY_STATE_CONTENT.description}
-			</p>		</div>
+			</p>
+			<StarterPromptSlot />
+		</div>
+	</div>
+);
+
+/**
+ * Reserved row for the starter prompts of change 07 (critique P1-5). Empty on
+ * purpose: no prompts are invented here. Chips drop in as children.
+ */
+export const StarterPromptSlot: FC<{ children?: ReactNode }> = ({ children }) => (
+	<div data-slot="starter-prompts" className="flex min-h-11 w-full flex-wrap items-center justify-center gap-2">
+		{children}
 	</div>
 );
 
@@ -215,21 +312,49 @@ export const ComposerDisclosure: FC = () => (
 interface ComposerProps {
 	promptCachingEnabled?: boolean;
 	onTogglePromptCaching?: () => void;
+	/** Reports whether focus is anywhere inside the composer (site build, tab-bar flag). */
+	onFocusWithinChange?: (focused: boolean) => void;
 }
 
-export const EnhancedComposer: FC<ComposerProps> = ({ promptCachingEnabled, onTogglePromptCaching }) => {
+export const EnhancedComposer: FC<ComposerProps> = ({
+	promptCachingEnabled,
+	onTogglePromptCaching,
+	onFocusWithinChange,
+}) => {
 	// The public site has no prompt-caching control (a runtime setting, not a
 	// visitor's choice) and its own placeholder.
 	const siteBuild = isSiteBuild();
+	// Critique P2-7: autofocus raises the phone keyboard and paints an ember
+	// ring on load, so the site build only autofocuses from 768px up.
+	const isPhone = useIsMobile();
 	return (
-	<ComposerPrimitive.Root className="relative flex w-full flex-col">
-		<ComposerPrimitive.AttachmentDropzone className="group relative flex w-full flex-col rounded-xl bg-composer px-1 pt-2 transition-hover focus-within:bg-raised has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring data-[dragging=true]:bg-hover">
+	<ComposerPrimitive.Root
+		className="relative flex w-full flex-col"
+		onFocus={onFocusWithinChange ? () => onFocusWithinChange(true) : undefined}
+		onBlur={
+			onFocusWithinChange
+				? (event) => {
+						if (!event.currentTarget.contains(event.relatedTarget as Node | null)) onFocusWithinChange(false);
+					}
+				: undefined
+		}
+	>
+		<ComposerPrimitive.AttachmentDropzone
+			className={cn(
+				"group relative flex w-full flex-col rounded-xl bg-composer px-1 transition-hover focus-within:bg-raised has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring data-[dragging=true]:bg-hover",
+				siteBuild ? "pt-1 md:pt-2" : "pt-2",
+			)}
+		>
 			<ComposerAttachments />
 			<ComposerPrimitive.Input
 				placeholder={siteBuild ? EMPTY_STATE_CONTENT.composerPlaceholder : "Ask your agent anything…"}
-				className="mb-1 max-h-48 min-h-14 w-full resize-none bg-transparent px-4 py-3 font-body text-[0.9375rem] text-fg leading-relaxed caret-ember outline-none placeholder:text-faint focus-visible:outline-none"
+				className={cn(
+					"mb-1 max-h-48 w-full resize-none bg-transparent px-4 font-body text-[0.9375rem] text-fg leading-relaxed caret-ember outline-none placeholder:text-faint focus-visible:outline-none",
+					// Critique P1-3: one line tall at 320, the 3.5rem box from 768 up.
+					siteBuild ? "min-h-11 py-2 md:min-h-14 md:py-3" : "min-h-14 py-3",
+				)}
 				rows={1}
-				autoFocus
+				autoFocus={!(siteBuild && isPhone)}
 				aria-label="Message input"
 			/>
 			<ComposerActionBar
@@ -246,6 +371,9 @@ export const EnhancedComposer: FC<ComposerProps> = ({ promptCachingEnabled, onTo
 };
 
 const ComposerActionBar: FC<ComposerProps> = ({ promptCachingEnabled, onTogglePromptCaching }) => {
+	const siteBuild = isSiteBuild();
+	// Critique P2-6: 44px send/stop targets below 768 on the site build.
+	const phoneTarget = siteBuild ? "max-md:size-11" : undefined;
 	const isCachingOn = promptCachingEnabled === true;
 	const isCachingOff = promptCachingEnabled === false;
 	const label =
@@ -256,7 +384,7 @@ const ComposerActionBar: FC<ComposerProps> = ({ promptCachingEnabled, onTogglePr
 				: "Prompt caching: inherit from server (click to enable)";
 
 	return (
-		<div className="mx-2 mb-2 flex items-center justify-between gap-2">
+		<div className={cn("mx-2 flex items-center justify-between gap-2", siteBuild ? "mb-1 md:mb-2" : "mb-2")}>
 			<div className="flex items-center gap-1">
 				<ComposerAddAttachment />
 				{onTogglePromptCaching && (
@@ -297,7 +425,7 @@ const ComposerActionBar: FC<ComposerProps> = ({ promptCachingEnabled, onTogglePr
 						type="submit"
 						variant="default"
 						size="icon"
-						className="size-8 rounded-full bg-primary text-primary-foreground hover:bg-ember-2"
+						className={cn("size-8 rounded-full bg-primary text-primary-foreground hover:bg-ember-2", phoneTarget)}
 						aria-label="Send message"
 					>
 						<ArrowUpIcon className="size-4" />
@@ -310,7 +438,7 @@ const ComposerActionBar: FC<ComposerProps> = ({ promptCachingEnabled, onTogglePr
 						type="button"
 						variant="default"
 						size="icon"
-						className="size-8 rounded-full"
+						className={cn("size-8 rounded-full", phoneTarget)}
 						aria-label="Stop generating"
 					>
 						<SquareIcon className="size-3 fill-current" />

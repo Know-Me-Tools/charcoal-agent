@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { isSiteBuild } from "@/hooks/use-site-config";
 
 export type TooltipIconButtonProps = ComponentPropsWithRef<typeof Button> & {
   tooltip: string;
@@ -31,6 +32,8 @@ export const TooltipIconButton = forwardRef<
               {...rest}
               className={cn(
                 "aui-button-icon size-8 rounded-md p-0 text-fg-secondary hover:bg-hover hover:text-fg focus-cue active:scale-95 [&_svg]:size-4",
+                // Critique P2-6: 44px touch targets below 768 on the site build.
+                isSiteBuild() && "max-md:size-11",
                 className,
               )}
               ref={ref}

@@ -8,7 +8,14 @@ export function MobileBottomNav() {
   return (
     <nav
       aria-label="Main"
-      className="fixed right-0 bottom-0 left-0 z-50 flex h-14 items-stretch gap-1 bg-chrome px-2 py-1.5 md:hidden"
+      className={cn(
+        "fixed right-0 bottom-0 left-0 z-50 flex h-14 items-stretch gap-1 bg-chrome px-2 py-1.5 md:hidden",
+        // Critique P1-3: while the thread composer has focus or a run is
+        // active (document flag set by enhanced-thread.tsx) the bar steps
+        // aside, and so does the layout's spacer, its next sibling
+        // (app-layout.tsx), so the thread gets the 56px back.
+        "[html[data-chat-active]_&]:hidden [html[data-chat-active]_&+div]:hidden",
+      )}
     >
       {getNavDestinations().map(({ to, label, icon: Icon }) => {
         const active = isDestinationActive(to, pathname);
