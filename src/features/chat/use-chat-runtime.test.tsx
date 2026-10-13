@@ -82,7 +82,7 @@ describe("richMessageToThreadMessageLike", () => {
     expect(idOf(one)).toBe(idOf(two));
   });
 
-  it("starts a new group when other content separates citations", async () => {
+  it("merges separated citation runs into one Sources part after the last prose", async () => {
     const { richMessageToThreadMessageLike } = await import("./use-chat-runtime");
     const assistant = richMessageToThreadMessageLike({
       id: "a4",
@@ -95,8 +95,13 @@ describe("richMessageToThreadMessageLike", () => {
       createdAt: new Date("2026-09-01T00:00:04Z"),
       status: "complete",
     });
-    const parts = assistant.content as Array<{ type: string; toolName?: string; toolCallId?: string }>;
-    expect(parts.map((p) => p.toolName ?? p.type)).toEqual(["__citations__", "text", "__citations__"]);
-    expect(parts[0].toolCallId).not.toBe(parts[2].toolCallId);
+    const parts = assistant.content as Array<{
+      type: string;
+      toolName?: string;
+      args?: { citations?: unknown[]; streaming?: boolean };
+    }>;
+    expect(parts.map((p) => p.toolName ?? p.type)).toEqual(["text", "__citations__"]);
+    expect(parts[1].args?.citations).toHaveLength(2);
+    expect(parts[1].args?.streaming).toBe(false);
   });
 });

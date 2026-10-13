@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import type { ToolCallMessagePartProps } from "@assistant-ui/react";
 import { describe, expect, it, vi } from "vitest";
 import { richMessageToThreadMessageLike } from "@/features/chat/use-chat-runtime";
@@ -70,6 +70,8 @@ describe("ToolCallPart dispatch (characterization)", () => {
     );
     expect(screen.getByRole("list", { name: "Sources" })).toBeInTheDocument();
     expect(screen.getByText("Guide")).toBeInTheDocument();
+    expect(screen.queryByText("Snip")).not.toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole("button", { name: "Show excerpt" })[0]);
     expect(screen.getByText("Snip")).toBeInTheDocument();
     expect(screen.getByText("FAQ")).toBeInTheDocument();
     expect(screen.getByText("[4]")).toBeInTheDocument();
@@ -228,6 +230,8 @@ describe("ToolCallPart: registry-driven rendering (tasks 1.7, 1.8)", () => {
       "FAQ",
       "Company",
     ]);
+    expect(screen.queryByText("The Boss. A desktop workspace.")).not.toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole("button", { name: "Show excerpt" })[0]);
     expect(screen.getByText("The Boss. A desktop workspace.")).toBeInTheDocument();
     expect(screen.getByText("[3]")).toBeInTheDocument();
   });

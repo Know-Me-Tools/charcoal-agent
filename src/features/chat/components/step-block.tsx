@@ -1,5 +1,6 @@
-import { BanIcon, CheckIcon, TriangleAlertIcon } from "lucide-react";
+import { BanIcon, CheckIcon, ChevronDownIcon, TriangleAlertIcon } from "lucide-react";
 import type { FC } from "react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { STEP_PHASES, type StepPhase } from "@/types/chat-content";
 
@@ -31,7 +32,7 @@ export const StepBlock: FC<StepBlockProps> = ({ phase, label }) => {
   return (
     <div
       role="status"
-      className="my-1.5 flex min-w-0 items-center gap-2 rounded-lg bg-surface px-3 py-1.5 first:mt-0 last:mb-0"
+      className="my-1.5 flex min-w-0 max-w-[65ch] items-center gap-2 py-1.5 first:mt-0 last:mb-0"
     >
       <span className="flex size-3.5 shrink-0 items-center justify-center" aria-hidden="true">
         {phase === "started" && (
@@ -61,5 +62,35 @@ export const StepBlock: FC<StepBlockProps> = ({ phase, label }) => {
         {state.visible ? state.word : `, ${state.word}`}
       </span>
     </div>
+  );
+};
+
+interface StepGroupBlockProps {
+  /** Finished steps, in order. */
+  steps: ReadonlyArray<{ index: number; label: string }>;
+}
+
+/**
+ * Finished steps folded into one line ("N steps") that expands to the rows.
+ * Only finished steps are grouped, so nothing that needs attention hides here.
+ */
+export const StepGroupBlock: FC<StepGroupBlockProps> = ({ steps }) => {
+  if (steps.length === 0) return null;
+  return (
+    <Collapsible className="my-1.5 min-w-0 max-w-[65ch] first:mt-0 last:mb-0">
+      <CollapsibleTrigger className="group flex items-center gap-2 rounded-md py-1.5 font-ui text-xs text-fg-secondary transition-hover hover:bg-hover focus-cue">
+        <CheckIcon className="size-3.5 text-faint" aria-hidden="true" />
+        <span>{steps.length} steps</span>
+        <ChevronDownIcon
+          className="size-3.5 text-faint group-data-panel-open:rotate-180"
+          aria-hidden="true"
+        />
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        {steps.map((s) => (
+          <StepBlock key={s.index} phase="finished" label={s.label} />
+        ))}
+      </CollapsibleContent>
+    </Collapsible>
   );
 };
