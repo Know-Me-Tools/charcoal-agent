@@ -61,7 +61,7 @@ The Boss is built for developers and technical operators who want one daily AI w
 
 ## The Boss is not an edition of KnowMe
 
-The Boss is not a KnowMe edition or tier and is not built on KnowMe. The two share the Universal Agent Runtime: The Boss packages it as a sidecar, and KnowMe, which is still in development, is built on it. The Boss is what KnowMe AI, LLC offers for download today.
+The Boss is not a KnowMe edition or tier and is not built on KnowMe. The two share the Universal Agent Runtime: The Boss bundles it as a program that runs beside The Boss, and KnowMe, which is still in development, is built on it. The Boss is what KnowMe AI, LLC offers for download today.
 
 ## What you can do with The Boss today
 
@@ -72,9 +72,9 @@ The Boss is not a KnowMe edition or tier and is not built on KnowMe. The two sha
 
 Provider access and optional integrations each need their own configuration, for example your own credentials for a cloud model provider.[^boss-readme]
 
-## What The Boss packages: Universal Agent Runtime, BossFang and Surreal Memory
+## What The Boss includes: Universal Agent Runtime, BossFang and the Surreal Memory Server
 
-All current The Boss installers, the v2.2.36 builds for macOS on Apple Silicon and Windows x64 and the v2.2.30 builds for Intel Mac and Windows ARM64, package the Universal Agent Runtime and BossFang, with its dashboard, as sidecar programs.[^boss-build] The Surreal Memory Server is not inside the installer: The Boss works with it over MCP as a separate service that The Boss can manage or connect to.[^boss-memory-adapter] Running The Boss's managed Surreal Memory service needs a container runtime, because The Boss pins it as a container image.[^boss-payload]
+All current The Boss installers, the v2.2.36 builds for macOS on Apple Silicon and Windows x64 and the v2.2.30 builds for Intel Mac and Windows ARM64, include the Universal Agent Runtime and BossFang (with its dashboard) as bundled programs that run beside The Boss.[^boss-build] The Surreal Memory Server is not inside the installer: The Boss works with it over MCP as a separate service that The Boss can manage or connect to.[^boss-memory-adapter] Running the Surreal Memory Server as a service managed by The Boss needs a container runtime, because The Boss pins it as a container image.[^boss-payload]
 
 ## Platforms The Boss supports
 
@@ -86,7 +86,7 @@ The macOS builds of The Boss are signed with a Developer ID and notarized. The W
 
 ## Getting The Boss
 
-Download The Boss from https://the-boss.know-me.tools, which is free, open source and needs no account, or from the GitHub releases page at https://github.com/Prometheus-AGS/the-boss/releases. Each release entry records its source commit, checksum, size and signing status.[^boss-site][^boss-releases]
+The Boss is free, open source and needs no account. Download it from https://the-boss.know-me.tools or from the GitHub releases page at https://github.com/Prometheus-AGS/the-boss/releases. Each release entry records its source commit, checksum, size and signing status.[^boss-site][^boss-releases]
 
 ## The Boss licence and attribution
 

@@ -14,7 +14,7 @@ Branch: `feat/kb-knowme-corrections`. Sources: `docs/knowledge-source/knowme/*.m
 - `node scripts/kb/validate-kb.mjs`: 0 failures (5 pre-existing index-bullet warnings in untouched product indexes).
 - `npx vitest run src/test/brand-naming.test.ts`: 2 passed.
 - `node --test 'scripts/kb/__tests__/*.test.mjs'`: 17 of 20 pass. The three failures are the test asserting the committed manifest is empty and the two eval tests that replay `eval/questions.json` against a two-question mock; both are addressed outside this change.
-- No `/Users/` path, secret pattern or banned assertion in the bundle or corpus; `ipfs-sync-for-obsidian.md` is byte-identical to `origin/main`.
+- No local absolute path, secret pattern or banned assertion in the bundle or corpus; `ipfs-sync-for-obsidian.md` is byte-identical to `origin/main`.
 
 ## Editorial pre-review (km-chief-content-officer) and fact check (critic)
 Two independent reviews were applied in the second commit on this branch: the live-site data-flow disclosure replaces every "your history stays with you" sentence; The Boss packaging scope covers all current installers and states that the Surreal Memory Server is not inside the installer; KnowMe desktop and Android development-build wording follows the documented runs; licence statements name the authoritative LICENSE file; The Boss telemetry is stated as not yet published, with the upstream policy's default collection described; one-sentence descriptions of the Universal Agent Runtime, BossFang and the Surreal Memory Server were added; FAQ answers and eval questions were added; `stale_after` is set on the FAQ and The Boss sources.
