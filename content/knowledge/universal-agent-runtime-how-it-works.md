@@ -9,7 +9,7 @@ Source: Universal Agent Runtime architecture overview, retrieved 2026-10-13.
 
 ## What governed agent execution means in the Universal Agent Runtime
 
-Every tool call takes the same path, whether the tool came from an MCP server or is built in. UAR checks the inputs against the tool's schema, a Cedar policy returns Allow, RequireApproval or Deny, and the decision is written to an audit record. A user's approval cannot override a Deny. By default every API request needs a signed token (JWT), and production setups must configure authentication, their own secrets, trusted origins and an explicit tool policy.
+Every tool call takes the same path, whether the tool came from an MCP (Model Context Protocol, the open standard agents use to call tools) server or is built in. UAR checks the inputs against the tool's schema, a policy, written in the Cedar policy language, returns Allow, RequireApproval or Deny, and the decision is written to an audit record. A user's approval cannot override a Deny. By default every API request needs a signed token (JWT), and production setups must configure authentication, their own secrets, trusted origins and an explicit tool policy.
 
 Source: Universal Agent Runtime architecture overview, retrieved 2026-10-13.
 Source: Universal Agent Runtime README, retrieved 2026-10-13.

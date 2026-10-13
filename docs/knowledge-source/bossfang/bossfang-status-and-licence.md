@@ -5,7 +5,7 @@ description: BossFang's status as recorded in its own feature ledger, the known 
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-13T00:05:39+00:00"
+  at: "2026-10-13T00:25:33+00:00"
 tags:
   - bossfang
   - status
@@ -14,23 +14,23 @@ sources:
   - id: bf-ledger
     resource: https://github.com/GQAdonis/librefang/blob/main/docs/bossfang/feature-ledger.md
     title: BossFang feature ledger
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: bf-uar
     resource: https://github.com/GQAdonis/librefang/blob/main/docs/bossfang-uar-connections.md
     title: BossFang connects to UAR
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: bf-releases
     resource: https://github.com/GQAdonis/librefang/releases
     title: BossFang fork releases page
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: bf-readme
     resource: https://github.com/GQAdonis/librefang/blob/main/README.md
     title: BossFang repository README
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: bf-license
     resource: https://github.com/GQAdonis/librefang/blob/main/LICENSE
     title: BossFang repository LICENSE
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
 ---
 
 # BossFang status and licence
@@ -41,11 +41,11 @@ BossFang keeps a feature ledger of every BossFang-only feature with a status: GR
 
 ## Known gaps in BossFang
 
-The ledger records them openly. The command-line binary is still named `librefang`, although some documents say otherwise. Remote SurrealDB mode is tested through configuration only, not against a live server. The Surreal Memory semantic backend is not yet wired into the kernel's boot path. Several recent upstream schema changes have no SurrealDB counterpart yet.[^bf-ledger]
+The command-line binary is still named `librefang`, although some documents say otherwise. Remote SurrealDB mode is tested through configuration only, not against a live server. BossFang does not yet start its Surreal Memory Server-based semantic memory when it boots, and the ledger notes that this backend's writes are currently rejected. Several recent upstream schema changes have no SurrealDB counterpart yet.[^bf-ledger]
 
 ## Status of the BossFang connection to the Universal Agent Runtime
 
-The current connection design, where BossFang connects to an existing runtime and never runs it, is described in its documentation as implemented in source without builds, tests or review. Desktop packaging and real desktop operation remain to be done.[^bf-uar]
+The current connection design, where BossFang connects to an existing runtime and never runs it, is described in its documentation as implemented in source, not yet built or tested. Desktop packaging and real desktop operation remain to be done.[^bf-uar]
 
 ## BossFang releases
 

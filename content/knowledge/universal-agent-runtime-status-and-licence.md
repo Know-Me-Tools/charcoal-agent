@@ -8,7 +8,7 @@ Source: Universal Agent Runtime changelog, retrieved 2026-10-13.
 
 ## What the Universal Agent Runtime support levels mean
 
-The support matrix is UAR's public release contract. Stable rows have executable release gates. Preview and Experimental rows promise less. Being listed in a catalog is not a promise that something works.
+The support matrix is UAR's public release contract. Stable rows are backed by automated release checks. Preview and Experimental rows are not. Being listed in a catalog is not a promise that something works.
 
 Source: Universal Agent Runtime product support matrix, retrieved 2026-10-13.
 
@@ -33,7 +33,8 @@ Source: Universal Agent Runtime README, retrieved 2026-10-13.
 
 ## Universal Agent Runtime licence
 
-UAR's code, including its Rust, Python and TypeScript SDKs, is MIT licensed. Its documentation is CC-BY-4.0. It was relicensed from AGPL-3.0-only to MIT on 2026-08-07, and there is no commercial licence to buy. The licence does not grant trademark rights.
+UAR's code, including its Rust, Python and TypeScript SDKs, is MIT licensed, and the repository has a LICENSE file. Its documentation is CC-BY-4.0. It was relicensed from AGPL-3.0-only to MIT on 2026-08-07, and there is no commercial licence to buy. The licence does not grant trademark rights.
 
+Source: Universal Agent Runtime LICENSE, retrieved 2026-10-13.
 Source: Universal Agent Runtime README, retrieved 2026-10-13.
 Source: Universal Agent Runtime licensing model, retrieved 2026-10-13.

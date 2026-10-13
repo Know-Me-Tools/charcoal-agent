@@ -5,7 +5,7 @@ description: Visitor questions about the Surreal Memory Server, answered from it
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-13T00:05:39+00:00"
+  at: "2026-10-13T00:25:33+00:00"
 tags:
   - surreal-memory-server
   - faq
@@ -13,34 +13,34 @@ sources:
   - id: sms-readme
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/README.md
     title: Surreal Memory Server README
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: sms-intro
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/website/docs/intro.md
     title: Surreal Memory Server documentation introduction
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: sms-publication
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/docs/source-publication-20261005.md
     title: Surreal Memory Server source publication note, 2026-10-05
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: sms-crate
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/crates/surreal-memory/Cargo.toml
     title: surreal-memory library package manifest
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: sms-palace
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/docs/PALACE.md
     title: Surreal Memory Server Memory Palace architecture
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: uar-memory
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/MEMORY_SYSTEM.md
     title: Universal Agent Runtime memory system
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
 ---
 
 # Surreal Memory Server questions
 
 ## What is the Surreal Memory Server?
 
-A Rust memory service for AI agents, built on SurrealDB. It keeps a knowledge graph, scoped memories, task streams and mind maps, offers hybrid search, and speaks both MCP and REST.[^sms-readme]
+A Rust memory service for AI agents, built on SurrealDB. It keeps a knowledge graph, scoped memories, task streams and mind maps, offers hybrid search, and speaks both MCP (Model Context Protocol, the open standard agents use to call tools) and REST.[^sms-readme] Its source was published for review on 2026-10-05; it is not a release.[^sms-publication]
 
 ## Is the Surreal Memory Server free?
 

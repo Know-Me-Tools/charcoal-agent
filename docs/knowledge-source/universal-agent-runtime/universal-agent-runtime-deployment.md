@@ -5,7 +5,7 @@ description: The documented ways to run UAR, native service, container, Kubernet
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-13T00:05:39+00:00"
+  at: "2026-10-13T00:25:33+00:00"
 tags:
   - universal-agent-runtime
   - deployment
@@ -13,15 +13,15 @@ sources:
   - id: uar-readme
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/README.md
     title: Universal Agent Runtime README
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: uar-deploy
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/DEPLOYMENT.md
     title: Universal Agent Runtime production deployment guide
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: uar-matrix
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/product-support-matrix.md
     title: Universal Agent Runtime product support matrix
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
 ---
 
 # Universal Agent Runtime deployment
@@ -44,4 +44,4 @@ A desktop bundle built with Tauri exists and is Preview. Mobile is Experimental.
 
 ## How Universal Agent Runtime releases are signed
 
-Release archives and the container image are built locally from a clean source checkout, with SBOMs, Sigstore signatures, SLSA provenance and a signed checksum list. The README shows how to verify a download yourself with cosign.[^uar-readme] Building from source needs a Rust toolchain, Node.js and pnpm.[^uar-readme]
+Release archives and the container image are built locally from a clean source checkout, with a list of included components (SBOM), a signature, a build-provenance record (SLSA) and a signed checksum list. The README shows how to verify a download yourself with the cosign tool.[^uar-readme] Building from source needs a Rust toolchain, Node.js and pnpm.[^uar-readme]

@@ -2,9 +2,18 @@
 
 ## What is BossFang?
 
-BossFang is a fork of LibreFang, an open-source agent operating system written in Rust. It adds SurrealDB storage, the Surreal Memory Server library for memory, and a connection to the Universal Agent Runtime.
+BossFang is a fork of LibreFang, an open-source agent operating system written in Rust. It adds SurrealDB storage, the Surreal Memory Server library for memory, and a connection to the Universal Agent Runtime (the connection is implemented in source, not yet built or tested).
 
 Source: BossFang AGENTS.md, product identity and fork additions, retrieved 2026-10-13.
+Source: BossFang connects to UAR, retrieved 2026-10-13.
+
+## Is BossFang the same thing as The Boss?
+
+No. BossFang is an agent operating system forked from LibreFang. The Boss is a desktop workspace for AI conversations, agents, tools and project work, built on Cherry Studio. The Boss desktop app ships BossFang as a native sidecar program: the BossFang fork's releases are payloads built for The Boss.
+
+Source: BossFang AGENTS.md, product identity and fork additions, retrieved 2026-10-13.
+Source: The Boss README, retrieved 2026-10-13.
+Source: BossFang fork releases page, retrieved 2026-10-13.
 
 ## Is BossFang free?
 
@@ -20,13 +29,13 @@ Source: BossFang AGENTS.md, product identity and fork additions, retrieved 2026-
 
 ## How is BossFang different from LibreFang?
 
-BossFang keeps LibreFang's agent operating system and changes storage to SurrealDB by default, memory to the Surreal Memory Server library, and model access to include the Universal Agent Runtime. It also has its own branding, desktop identity and plugin host. See [BossFang and upstream LibreFang](/bossfang/bossfang-and-upstream-librefang.md).
+BossFang keeps LibreFang's agent operating system and changes storage to SurrealDB by default, memory to the Surreal Memory Server library, and model access to include the Universal Agent Runtime. It also has its own branding, desktop identity and plugin host. Ask about BossFang and upstream LibreFang for the full list.
 
 Source: BossFang feature ledger, retrieved 2026-10-13.
 
 ## How is BossFang different from the Universal Agent Runtime?
 
-BossFang manages agents, channels and a dashboard. The Universal Agent Runtime is a separate service that BossFang connects to for model access and governed runs; BossFang never starts or stops it. That connection is implemented in source but not yet built or tested.
+BossFang manages agents, channels and a dashboard. The Universal Agent Runtime is a separate service that BossFang connects to for model access and governed runs; BossFang never starts or stops it. That connection is implemented in source, not yet built or tested.
 
 Source: BossFang connects to UAR, retrieved 2026-10-13.
 
@@ -37,3 +46,9 @@ Install steps exist in the fork's README, but they mix upstream LibreFang packag
 Source: BossFang repository README, retrieved 2026-10-13.
 Source: BossFang feature ledger, retrieved 2026-10-13.
 Source: BossFang fork releases page, retrieved 2026-10-13.
+
+## How do I report a bug in or contribute to BossFang?
+
+The fork's CONTRIBUTING.md asks for bug reports with reproduction steps through GitHub Issues on https://github.com/GQAdonis/librefang, and describes how to contribute code.
+
+Source: BossFang contribution guide, retrieved 2026-10-13.

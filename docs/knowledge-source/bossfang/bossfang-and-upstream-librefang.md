@@ -5,7 +5,7 @@ description: Which parts of BossFang are BossFang-specific and which are inherit
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-13T00:05:39+00:00"
+  at: "2026-10-13T00:25:33+00:00"
 tags:
   - bossfang
   - librefang
@@ -14,18 +14,18 @@ sources:
   - id: bf-agents
     resource: https://github.com/GQAdonis/librefang/blob/main/AGENTS.md
     title: BossFang AGENTS.md, product identity and fork additions
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: bf-ledger
     resource: https://github.com/GQAdonis/librefang/blob/main/docs/bossfang/feature-ledger.md
     title: BossFang feature ledger
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
 ---
 
 # BossFang and upstream LibreFang
 
 ## What BossFang inherits from LibreFang
 
-The agent operating system itself comes from LibreFang: the kernel that runs agents, their tools and memory, messaging channels, networking between agents, the web dashboard and the command line. LibreFang is written in Rust on tokio and axum.[^bf-agents] Package listings, partner announcements, install scripts and project statistics in the repository README describe upstream LibreFang. They are not BossFang claims, and this knowledge base does not repeat them.
+The agent operating system itself comes from LibreFang: the kernel that runs agents, their tools and memory, messaging channels, networking between agents, the web dashboard and the command line. LibreFang is written in Rust.[^bf-agents] Package listings, partner announcements, install scripts and project statistics in the repository README describe upstream LibreFang. They are not BossFang claims, and this knowledge base does not repeat them.
 
 ## BossFang-specific storage
 
@@ -37,4 +37,4 @@ BossFang uses the Surreal Memory Server library for memory.[^bf-agents] It adds 
 
 ## Other BossFang-specific features
 
-BossFang adds a WASI component-model plugin host whose permissions are denied by default. It carries BossFang branding in the dashboard and desktop app, with its own desktop identity and update channel. Its `BOSSFANG_*` environment variables take priority over the `LIBREFANG_*` names, which still work.[^bf-ledger] Internal crate and function names keep their LibreFang names on purpose.[^bf-ledger]
+BossFang adds a plugin host (WASI components) that grants plugins no permissions unless the owner allows them. It carries BossFang branding in the dashboard and desktop app, with its own desktop identity and update channel. Its `BOSSFANG_*` environment variables take priority over the `LIBREFANG_*` names, which still work.[^bf-ledger] Internal crate and function names keep their LibreFang names on purpose.[^bf-ledger]

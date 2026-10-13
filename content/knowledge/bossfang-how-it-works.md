@@ -8,14 +8,9 @@ Source: BossFang AGENTS.md, product identity and fork additions, retrieved 2026-
 
 ## Where BossFang keeps data
 
-By default BossFang stores its operational data in SurrealDB, either embedded on disk or on a remote SurrealDB server. Operational data and memory are kept in separate databases. Changes to the database layout are applied as numbered migrations, and BossFang checks that applied migrations have not been altered, although the ledger notes that this drift check itself has no test yet.
+By default BossFang stores its operational data in SurrealDB, either embedded on disk or on a remote SurrealDB server. Operational data and memory are kept in separate databases. Memory uses the Surreal Memory Server library with an embedded database, so no separate database service is needed. Changes to the database layout are applied as numbered migrations, and BossFang checks that applied migrations have not been altered, although the ledger notes that this drift check itself has no test yet.
 
 Source: BossFang feature ledger, retrieved 2026-10-13.
-
-## How BossFang remembers
-
-BossFang's memory layer is built on the Surreal Memory Server library with an embedded database, so memory works without a separate database service.
-
 Source: BossFang AGENTS.md, product identity and fork additions, retrieved 2026-10-13.
 
 ## How BossFang reaches the Universal Agent Runtime

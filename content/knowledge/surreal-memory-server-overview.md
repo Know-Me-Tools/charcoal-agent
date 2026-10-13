@@ -2,15 +2,16 @@
 
 ## What the Surreal Memory Server is
 
-The Surreal Memory Server is a memory service for AI agents, written in Rust on top of SurrealDB. It holds a knowledge graph, scoped memories, hybrid search, task streams and mind maps, and it reaches agents through MCP and a REST API. Writes go through a durable operation ledger, so a caller can confirm what was stored after a timeout or a restart.
+The Surreal Memory Server is a memory service for AI agents, written in Rust on top of SurrealDB. It holds a knowledge graph, scoped memories, hybrid search, task streams and mind maps, and it reaches agents through MCP (Model Context Protocol, the open standard agents use to call tools) and a REST API. Writes go through a durable operation ledger, so a caller can confirm what was stored after a timeout or a restart.
 
 Source: Surreal Memory Server README, retrieved 2026-10-13.
 
 ## The problem the Surreal Memory Server addresses
 
-Agents forget between turns. Its documentation names the usual shortcuts and why they fail: a plain vector store returns what was written last rather than what is most relevant, nothing separates a lasting fact from a passing remark, and one user's memory is not kept apart from another's. The server treats memory as typed, scoped and durable instead.
+Agents forget between turns. Its documentation names the usual shortcuts and why they fail: a plain vector store returns what was written last rather than what is most relevant, nothing separates a lasting fact from a passing remark, and one user's memory is not kept apart from another's. Its answer is typed, durable memory. The server tags each memory with its owner and keeps a durable record of every write; full scope separation is documented as still incomplete.
 
 Source: Surreal Memory Server documentation introduction, retrieved 2026-10-13.
+Source: Surreal Memory Server MCP, REST and storage contract matrix, retrieved 2026-10-13.
 
 ## Two parts of the Surreal Memory Server
 
@@ -33,7 +34,4 @@ Source: Surreal Memory Server README, retrieved 2026-10-13.
 
 ## More about the Surreal Memory Server
 
-* [How it works](/surreal-memory-server/surreal-memory-server-how-it-works.md)
-* [Use cases](/surreal-memory-server/surreal-memory-server-use-cases-and-who-it-is-for.md)
-* [Status and licence](/surreal-memory-server/surreal-memory-server-status-and-licence.md)
-* [Questions](/surreal-memory-server/surreal-memory-server-faq.md)
+You can also ask how it works, how to run it, its status and licence, and common questions.

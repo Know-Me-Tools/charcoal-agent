@@ -34,8 +34,4 @@ Source: BossFang fork releases page, retrieved 2026-10-13.
 
 ## More about BossFang
 
-* [BossFang and upstream LibreFang](/bossfang/bossfang-and-upstream-librefang.md)
-* [How it works](/bossfang/bossfang-how-it-works.md)
-* [Use cases](/bossfang/bossfang-use-cases-and-who-it-is-for.md)
-* [Status and licence](/bossfang/bossfang-status-and-licence.md)
-* [Questions](/bossfang/bossfang-faq.md)
+You can also ask how it differs from LibreFang, how it works, its status and licence, and common questions.

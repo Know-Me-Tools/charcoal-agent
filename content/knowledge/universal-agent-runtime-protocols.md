@@ -2,7 +2,7 @@
 
 ## Which protocols the Universal Agent Runtime speaks
 
-UAR exposes an OpenAI-compatible API under `/v1`, an AG-UI event stream, A2UI surfaces for declarative interfaces, an MCP client with a governed tool bridge, and an A2A endpoint for other agents. Version 1.0.0 published versioned contracts for the OpenAI-compatible API, AG-UI, A2UI and MCP.
+UAR exposes an OpenAI-compatible API under `/v1`, an AG-UI event stream, A2UI surfaces for declarative interfaces, an MCP (Model Context Protocol, the open standard agents use to call tools) client with a governed tool bridge, and an A2A endpoint for other agents. Version 1.0.0 published versioned contracts for the OpenAI-compatible API, AG-UI, A2UI and MCP.
 
 Source: Universal Agent Runtime README, retrieved 2026-10-13.
 Source: Universal Agent Runtime changelog, retrieved 2026-10-13.

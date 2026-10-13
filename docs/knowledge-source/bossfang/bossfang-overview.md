@@ -5,7 +5,7 @@ description: What BossFang is, where it comes from, and how it relates to the Un
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-13T00:05:39+00:00"
+  at: "2026-10-13T00:25:33+00:00"
 tags:
   - bossfang
   - overview
@@ -13,19 +13,19 @@ sources:
   - id: bf-agents
     resource: https://github.com/GQAdonis/librefang/blob/main/AGENTS.md
     title: BossFang AGENTS.md, product identity and fork additions
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: bf-uar
     resource: https://github.com/GQAdonis/librefang/blob/main/docs/bossfang-uar-connections.md
     title: BossFang connects to UAR
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: bf-releases
     resource: https://github.com/GQAdonis/librefang/releases
     title: BossFang fork releases page
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
   - id: bf-license
     resource: https://github.com/GQAdonis/librefang/blob/main/LICENSE
     title: BossFang repository LICENSE
-    last_modified: "2026-10-13T00:05:39+00:00"
+    last_modified: "2026-10-13T00:25:33+00:00"
 ---
 
 # BossFang overview
@@ -52,8 +52,4 @@ BossFang's source is public at https://github.com/GQAdonis/librefang, the BossFa
 
 ## More about BossFang
 
-* [BossFang and upstream LibreFang](/bossfang/bossfang-and-upstream-librefang.md)
-* [How it works](/bossfang/bossfang-how-it-works.md)
-* [Use cases](/bossfang/bossfang-use-cases-and-who-it-is-for.md)
-* [Status and licence](/bossfang/bossfang-status-and-licence.md)
-* [Questions](/bossfang/bossfang-faq.md)
+You can also ask how it differs from LibreFang, how it works, its status and licence, and common questions.

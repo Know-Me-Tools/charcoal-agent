@@ -2,13 +2,14 @@
 
 ## What the Universal Agent Runtime is
 
-The Universal Agent Runtime (UAR) is a server that runs AI agents. It is written in Rust and does the work around the model: it picks and calls models, runs tools under a policy, searches documents, keeps memory, and streams results to a user interface. Its own operator interface is a React web app. The current version is 1.0.0.
+The Universal Agent Runtime (UAR) is a server that runs AI agents. It is written in Rust and does the work around the model: it picks and calls models, runs tools under a policy, searches documents, keeps memory, and streams results to a user interface. Tools can come from MCP (Model Context Protocol, the open standard agents use to call tools) servers or be built in. Its own operator interface is a React web app. The current version is 1.0.0.
 
 Source: Universal Agent Runtime README, retrieved 2026-10-13.
+Source: Universal Agent Runtime architecture overview, retrieved 2026-10-13.
 
 ## Who the Universal Agent Runtime is for
 
-UAR is for developers and teams who build agent applications and want one process to own model access, tool permissions and the audit trail. Clients reach it over HTTP and server-sent events. The browser never talks to model providers, tools or storage directly; everything goes through UAR's one governed boundary.
+UAR is for developers and teams who build agent applications and want one process to own model access, tool permissions and the audit trail. Clients reach it over HTTP and server-sent events. The browser never talks to model providers, tools or storage directly; everything goes through UAR, where each action is checked and recorded.
 
 Source: Universal Agent Runtime README, retrieved 2026-10-13.
 
@@ -20,10 +21,12 @@ Source: KnowMe client README, retrieved 2026-10-13.
 
 ## The Universal Agent Runtime, BossFang and The Boss
 
-The documents disagree on who runs UAR. UAR's README and support matrix say BossFang should supervise UAR out of process, using UAR's OpenAI-compatible API first and adding A2A or AG-UI where needed. BossFang's own documents say it never bundles, installs, spawns, restarts or terminates UAR, and connects to an existing instance, which can be one The Boss manages. BossFang's document is the later one and describes its current design.
+BossFang connects to a Universal Agent Runtime instance that already exists and never installs, starts or stops it; that instance can be one The Boss manages. BossFang's own document describes this as implemented in source, not yet built or tested. An older note in UAR's README and support matrix describes BossFang supervising UAR; BossFang's later document is the current design. The Boss desktop app can run a managed UAR instance as a sidecar program.
 
-Source: Universal Agent Runtime product support matrix, retrieved 2026-10-13.
 Source: BossFang connects to UAR, retrieved 2026-10-13.
+Source: Universal Agent Runtime product support matrix, retrieved 2026-10-13.
+Source: The Boss agent fabric convergence notes, retrieved 2026-10-13.
+Source: The Boss supported execution profiles, retrieved 2026-10-13.
 
 ## Where to get the Universal Agent Runtime
 
@@ -34,9 +37,4 @@ Source: Universal Agent Runtime product support matrix, retrieved 2026-10-13.
 
 ## More about the Universal Agent Runtime
 
-* [How it works](/universal-agent-runtime/universal-agent-runtime-how-it-works.md)
-* [Protocols](/universal-agent-runtime/universal-agent-runtime-protocols.md)
-* [Deployment](/universal-agent-runtime/universal-agent-runtime-deployment.md)
-* [Status and licence](/universal-agent-runtime/universal-agent-runtime-status-and-licence.md)
-* [Use cases](/universal-agent-runtime/universal-agent-runtime-use-cases-and-who-it-is-for.md)
-* [Questions](/universal-agent-runtime/universal-agent-runtime-faq.md)
+You can also ask how it works, how to run it, its status and licence, and common questions.

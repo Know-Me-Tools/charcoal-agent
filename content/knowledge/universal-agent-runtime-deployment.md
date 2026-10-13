@@ -28,6 +28,6 @@ Source: Universal Agent Runtime product support matrix, retrieved 2026-10-13.
 
 ## How Universal Agent Runtime releases are signed
 
-Release archives and the container image are built locally from a clean source checkout, with SBOMs, Sigstore signatures, SLSA provenance and a signed checksum list. The README shows how to verify a download yourself with cosign. Building from source needs a Rust toolchain, Node.js and pnpm.
+Release archives and the container image are built locally from a clean source checkout, with a list of included components (SBOM), a signature, a build-provenance record (SLSA) and a signed checksum list. The README shows how to verify a download yourself with the cosign tool. Building from source needs a Rust toolchain, Node.js and pnpm.
 
 Source: Universal Agent Runtime README, retrieved 2026-10-13.
