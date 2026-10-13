@@ -14,7 +14,7 @@ import {
   skillsResponse,
   userSettingsResponse,
 } from "../fixtures/uar-data";
-import { TITLE_RESPONSE, toSseBody } from "../fixtures/sse";
+import { FIXTURE_IMAGE_PATH, FIXTURE_IMAGE_PNG_BASE64, TITLE_RESPONSE, toSseBody } from "../fixtures/sse";
 
 type Handler = (route: Route, match: RegExpMatchArray) => Promise<void>;
 interface RouteDef {
@@ -147,6 +147,17 @@ export async function holdChatStreamOpen(page: Page, sseBody: string): Promise<v
 
 export async function installUarMock(page: Page): Promise<UarMock> {
   const mock: UarMock = { unmocked: [] };
+
+  // The same-origin image the fixture reply embeds (see FIXTURE_IMAGE_PATH).
+  await page.route(
+    (url) => url.pathname === FIXTURE_IMAGE_PATH,
+    (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "image/png",
+        body: Buffer.from(FIXTURE_IMAGE_PNG_BASE64, "base64"),
+      }),
+  );
 
   await page.route(
     (url) => BACKEND_PATH.test(url.pathname),
