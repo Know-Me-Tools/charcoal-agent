@@ -1,16 +1,27 @@
 # UAR — no PVC: persistence is the remote SurrealDB, not the embedded store.
 # Image pinned by digest (ci-supply-chain-pins): the `main` image built by
-# Prometheus-AGS/universal-agent-runtime's "Build and Publish Images" run for
-# commit 2cc9a182 (merge of #378), manifest published 2026-10-11 17:07 UTC. It
-# is the first main image since 2026-10-04: every build in between failed on
-# the .dockerignore and entity-graph-react gaps that #378 fixed. It descends
-# from #344/#345/#350/#353/#321 (the previous pin's features) and adds #358
-# (usage on non-streaming responses), #361 (usage on cancelled runs) and #360
-# (guardrails and usage). The digest is
-# ghcr.io/prometheus-ags/universal-agent-runtime@sha256:e955789aa6aea70853d4e19ce95b5c5774750d232472c048bd4763c96e5513f5
-# and resolves a linux/amd64 + linux/arm64 index. The image has no vcs revision
-# label; the commit above comes from the CI run that published it. Renovate
-# tracks this digest going forward (renovate.json); bump deliberately.
+# Prometheus-AGS/universal-agent-runtime's "Build and Publish Images" run 38435095046
+# for commit 3e6af7c4 (merge of #381), manifest published 2026-10-13 17:57 UTC.
+# The digest is
+# ghcr.io/prometheus-ags/universal-agent-runtime@sha256:7dc13eb3dab415a2c9dbd6989fdbdcc1ed4745c24a2dcb10912e2330a198fcf5
+# (read from both the CI log and the live registry; the :main and :sha-3e6af7c4
+# tags resolve to it) and is a linux/amd64 + linux/arm64 index. It replaces the
+# 2cc9a182 build (@sha256:e955789aa6ae...) and adds eight commits:
+#   - #381 `preapproved_tools` on an mcpServers entry (administrator-only list of tools
+#     that skip approval; unused until the site-websearch wiring lands);
+#   - a42f23bb: runs require a VERIFIED model. Chat answers 422 `model_not_verified`
+#     until `POST /api/providers/<id>/test` has verified the model, and the receipt is
+#     invalidated by any provider or credential change. scripts/seed-site-agent.sh
+#     (SEED_MODE=agent) does this; run site-content.yml with sync=agent right after
+#     this image rolls, and again after any key rotation. Chat is down in between;
+#     the operator may close it with the kill switch for that window;
+#   - 4ee38989 (gateway aliases in model discovery), c314099b (validated history in
+#     delegated runs), 536df169 and 501deac8/efb17986/b4244aea (verification digests,
+#     admission placement fixes).
+# Rollback is the previous digest, ghcr.io/prometheus-ags/universal-agent-runtime
+# @sha256:e955789aa6aea70853d4e19ce95b5c5774750d232472c048bd4763c96e5513f5 (2cc9a182). The image has no vcs revision label; the
+# commit above comes from the CI run that published it. Renovate tracks this digest
+# going forward (renovate.json); bump deliberately.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -55,9 +66,9 @@ spec:
           # the minutes between (1) and (2).
           # The verification is a real tiny LLM call. Its receipt is bound to the
           # provider configuration and credential revision, so re-verify after any
-          # provider edit or API key rotation. Older builds (like the one pinned
-          # before that bump) have no gate, so the step is optional until then.
-          image:ghcr.io/prometheus-ags/universal-agent-runtime:main@sha256:e955789aa6aea70853d4e19ce95b5c5774750d232472c048bd4763c96e5513f5
+          # provider edit or API key rotation. Builds before a42f23bb (the 2cc9a182
+          # pin this replaced) have no gate, so the step only matters from this pin on.
+          image: ghcr.io/prometheus-ags/universal-agent-runtime:main@sha256:7dc13eb3dab415a2c9dbd6989fdbdcc1ed4745c24a2dcb10912e2330a198fcf5
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
