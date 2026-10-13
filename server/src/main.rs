@@ -51,6 +51,7 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
         %addr,
         upstream = %config.uar_upstream,
         agent = %config.site_agent_id,
+        web_agent = ?config.site_web_agent_id,
         trusted_proxy_hops = config.trusted_proxy_hops,
         external_web_root = ?config.web_root,
         "listening"

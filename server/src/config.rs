@@ -46,6 +46,14 @@
 //!   not all set: startup fails.
 //! - Key mode (none of the three set, e.g. the local compose stack):
 //!   `SITE_PROXY_API_KEY` is sent as `X-API-Key`; unset sends nothing.
+//!
+//! Agents (site-web-search):
+//! - `SITE_AGENT_ID`: the default agent, `knowme-site` when absent; empty
+//!   refuses to start.
+//! - `SITE_WEB_AGENT_ID`: the agent a turn with `web_search: true` goes to,
+//!   `knowme-site-web` when absent. Set it empty, or to the same id as
+//!   `SITE_AGENT_ID`, to switch web search off: the toggle is then ignored
+//!   and the default agent answers (rollback without a client release).
 
 use std::num::NonZeroU32;
 use std::path::PathBuf;
@@ -61,6 +69,7 @@ const DEFAULT_RESERVATION_TOKENS: u64 = 16_000;
 
 const DEFAULT_PORT: u16 = 8080;
 const DEFAULT_AGENT_ID: &str = "knowme-site";
+const DEFAULT_WEB_AGENT_ID: &str = "knowme-site-web";
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum ConfigError {
@@ -128,6 +137,8 @@ pub struct Config {
     /// Gate client credentials. When set, UAR gets a gate-minted bearer.
     pub gate: Option<GateConfig>,
     pub site_agent_id: String,
+    /// The web-search agent; `None` switches the `web_search` toggle off.
+    pub site_web_agent_id: Option<String>,
     /// Proxies in front of this server that append to `X-Forwarded-For`.
     pub trusted_proxy_hops: usize,
     /// External asset mode: serve this compiled bundle instead of the embedded one.
@@ -175,6 +186,12 @@ impl Config {
             Some(v) if v.trim().is_empty() => return Err(ConfigError::EmptyAgentId),
             Some(v) => v.trim().to_owned(),
         };
+        let site_web_agent_id = match lookup("SITE_WEB_AGENT_ID") {
+            None => Some(DEFAULT_WEB_AGENT_ID.to_owned()),
+            Some(v) => {
+                Some(v.trim().to_owned()).filter(|id| !id.is_empty() && *id != site_agent_id)
+            }
+        };
 
         let session_secret = SessionSecret::new(
             lookup("SITE_SESSION_SECRET")
@@ -190,6 +207,7 @@ impl Config {
             site_proxy_api_key,
             gate: gate_config(&get)?,
             site_agent_id,
+            site_web_agent_id,
             trusted_proxy_hops: parse_number("TRUSTED_PROXY_HOPS", get("TRUSTED_PROXY_HOPS"), 0)?,
             web_root: get("KNOWME_WEB_ROOT").map(PathBuf::from),
             rate_limits: chat_limits(&get)?,
@@ -364,6 +382,29 @@ mod tests {
         );
         assert_eq!((cfg.trusted_proxy_hops, cfg.site_proxy_api_key), (0, None));
         assert_eq!(cfg.gate, None);
+        assert_eq!(cfg.site_web_agent_id.as_deref(), Some("knowme-site-web"));
+    }
+
+    #[test]
+    fn web_agent_should_be_settable_and_switch_off_when_empty_or_the_default() {
+        let up = ("UAR_UPSTREAM", "http://uar");
+        let web = |vars: &[(&str, &str)]| config(vars).unwrap().site_web_agent_id;
+        assert_eq!(
+            web(&[up, ("SITE_WEB_AGENT_ID", " other-web ")]).as_deref(),
+            Some("other-web")
+        );
+        for off in [
+            vec![up, ("SITE_WEB_AGENT_ID", "")],
+            vec![up, ("SITE_WEB_AGENT_ID", "  ")],
+            vec![up, ("SITE_WEB_AGENT_ID", "knowme-site")],
+            vec![
+                up,
+                ("SITE_AGENT_ID", "kb-only"),
+                ("SITE_WEB_AGENT_ID", "kb-only"),
+            ],
+        ] {
+            assert_eq!(web(&off), None, "{off:?}");
+        }
     }
 
     const GATE_URL: &str = "http://flint-gate.flint-core.svc:4456/oauth/token";

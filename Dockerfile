@@ -29,7 +29,10 @@ COPY src ./src
 # the key. .env files are excluded by .dockerignore; the empty values here are
 # a second guard.
 ARG VITE_SITE_AGENT_ID=knowme-site
-RUN VITE_SITE_AGENT_ID="${VITE_SITE_AGENT_ID}" VITE_UAR_API_KEY= VITE_UAR_BASE_URL= \
+# "1" ships the composer's web search toggle. Leave empty until the wrapper, the
+# UAR image and the second agent are live (openspec/changes/site-web-search).
+ARG VITE_SITE_WEB_SEARCH=
+RUN VITE_SITE_AGENT_ID="${VITE_SITE_AGENT_ID}" VITE_SITE_WEB_SEARCH="${VITE_SITE_WEB_SEARCH}" VITE_UAR_API_KEY= VITE_UAR_BASE_URL= \
     npm run build
 
 # ─── Stage 2: server binary ──────────────────────────────────────────────────

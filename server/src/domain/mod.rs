@@ -10,3 +10,4 @@ pub mod forwarding;
 pub mod meter;
 pub mod query;
 pub mod session_binding;
+pub mod web_citations;

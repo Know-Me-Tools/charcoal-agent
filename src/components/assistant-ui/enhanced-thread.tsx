@@ -40,6 +40,7 @@ import {
 } from "@/components/assistant-ui/attachment";
 import { EnhancedMarkdownText } from "@/components/assistant-ui/enhanced-markdown-text";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
+import { WebSearchToggle } from "@/components/assistant-ui/web-search-toggle";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -412,6 +413,7 @@ const ComposerActionBar: FC<ComposerProps> = ({ promptCachingEnabled, onTogglePr
 		<div className={cn("mx-2 flex items-center justify-between gap-2", siteBuild ? "mb-1 md:mb-2" : "mb-2")}>
 			<div className="flex items-center gap-1">
 				<ComposerAddAttachment />
+				<WebSearchToggle />
 				{onTogglePromptCaching && (
 					<Tooltip>
 						<TooltipTrigger

@@ -1,14 +1,15 @@
 import { useEffect, useId, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { BookOpenIcon, ExternalLinkIcon, XIcon } from "lucide-react";
+import { BookOpenIcon, ExternalLinkIcon, GlobeIcon, XIcon } from "lucide-react";
 import { useCloseWithLayout } from "@/hooks/use-close-with-layout";
 import { useThreadCitations, type ThreadCitation } from "@/hooks/use-thread-citations";
 import { useUi } from "@/hooks/use-ui";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { citationDisplayName } from "@/features/chat/citation-text";
+import { citationDisplayName, citationMarkerLabel } from "@/features/chat/citation-text";
 import { isAllowedLink } from "@/lib/link-policy/is-allowed-link";
 import { ABOUT_PANEL_CONTENT } from "../../../content/site/about-panel";
+import { WEB_SEARCH_CONTENT } from "../../../content/site/web-search";
 
 /**
  * The public site's right-hand panel (site-shell-about-panel-and-empty-state,
@@ -30,20 +31,31 @@ function SourceItem({ citation }: { citation: ThreadCitation }) {
   // stream, so only an allowlisted destination is clickable; any other
   // destination stays visible as text.
   const isLinkAllowed = !!url && isAllowedLink(url);
+  const isWeb = citation.origin === "web";
 
   const body = (
     <span className="flex min-w-0 items-start gap-2">
-      <BookOpenIcon className="mt-0.5 size-3.5 shrink-0 text-cyan-text" aria-hidden="true" />
+      {isWeb ? (
+        <GlobeIcon className="mt-0.5 size-3.5 shrink-0 text-cyan-text" aria-hidden="true" />
+      ) : (
+        <BookOpenIcon className="mt-0.5 size-3.5 shrink-0 text-cyan-text" aria-hidden="true" />
+      )}
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
+          {isWeb && (
+            <span className="font-ui text-xs font-semibold text-cyan-text">{WEB_SEARCH_CONTENT.sourceLabel}</span>
+          )}
           <span className="font-mono text-xs font-semibold text-cyan-text">
-            {citation.indices.map((n) => `[${n}]`).join(" ")}
+            {citation.indices.map((n) => citationMarkerLabel(n, citation.origin)).join(" ")}
           </span>
           <span className="min-w-0 font-ui text-sm font-semibold text-fg wrap-anywhere">
             {citationDisplayName(citation.source)}
           </span>
           {isLinkAllowed && <ExternalLinkIcon className="size-3.5 shrink-0 text-cyan-text" aria-hidden="true" />}
         </span>
+        {isWeb && citation.host && (
+          <span className="font-mono text-xs break-all text-fg-secondary wrap-anywhere">{citation.host}</span>
+        )}
         {url && !isLinkAllowed && (
           <span className="font-mono text-xs break-all text-fg-secondary wrap-anywhere">{url}</span>
         )}
@@ -89,7 +101,7 @@ function AboutSourcesBody() {
         ) : (
           <ol aria-labelledby={sourcesHeadingId} className="mt-3 flex flex-col gap-2">
             {citations.map((citation) => (
-              <SourceItem key={`${citation.source}-${citation.url ?? ""}`} citation={citation} />
+              <SourceItem key={`${citation.origin}-${citation.source}-${citation.url ?? ""}`} citation={citation} />
             ))}
           </ol>
         )}

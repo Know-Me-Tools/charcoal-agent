@@ -15,6 +15,7 @@ export const DEFAULT_RENDER_ENTRIES: readonly RenderEntryDef[] = [
   { kind: "event", name: "agui.reasoning.delta", disposition: "render", reason: "Reasoning block." },
   { kind: "event", name: "agui.citation.added", disposition: "render", reason: "Citation block." },
   { kind: "event", name: "agui.rag_citations", disposition: "render", reason: "Citation block, one per retrieved chunk." },
+  { kind: "event", name: "agui.web_citations", disposition: "render", reason: "Web sources, minted by the site proxy; Citation block with origin web." },
   { kind: "event", name: "agui.tool_call.delta", disposition: "render", reason: "Accumulates tool arguments." },
   { kind: "event", name: "agui.tool_call.complete", disposition: "render", reason: "Tool-call block." },
   { kind: "event", name: "agui.tool_result", disposition: "render", reason: "Tool-call result." },

@@ -20,9 +20,21 @@
 #                      all   = agent, presentation templates, KB sync and FR-8 checks
 #                      agent = agent PUT and presentation templates only
 #                      kb    = KB create/sync and FR-8 checks only
-#   UAR_URL          Base URL of the UAR API (default: http://localhost:6565)
+#   SEED_WEB_AGENT   Whether to also seed the web-search agent (default: 1).
+#                      1 = also PUT $WEB_AGENT_FILE (agent id knowme-site-web), after knowme-site.
+#                          Both agents share the knowme-site KB and the same presentation templates.
+#                      0 = ROLLBACK SWITCH (site-web-search task 16.9.2): seed only knowme-site and
+#                          skip knowme-site-web. Re-run with SEED_MODE=agent SEED_WEB_AGENT=0 to
+#                          return to the single-agent state without an image deploy. This script
+#                          never deletes an agent from UAR, so an existing knowme-site-web stays
+#                          registered but unused: the site proxy only routes to it when the
+#                          visitor's web_search flag is on and the server is configured to map it.
+#                          Has no effect in SEED_MODE=kb.
+#   UAR_URL         Base URL of the UAR API (default: http://localhost:6565)
 #   UAR_JWT_SECRET    HS256 secret UAR verifies JWTs with (required)
 #   AGENT_FILE        Path to the AgentArtifact JSON (default: uar/agents/knowme-site.json)
+#   WEB_AGENT_FILE    Path to the web-search AgentArtifact JSON (default: uar/agents/knowme-site-web.json);
+#                     seeded unless SEED_WEB_AGENT=0
 #   CORPUS_DIR        Directory of *.md corpus files (default: content/knowledge)
 #   PRESENTATIONS_DIR Directory of presentation template drafts (default: uar/presentations)
 #   KB_NAME           Knowledge base name (default: knowme-site)
@@ -68,6 +80,8 @@ set -euo pipefail
 
 UAR_URL="${UAR_URL:-http://localhost:6565}"
 AGENT_FILE="${AGENT_FILE:-uar/agents/knowme-site.json}"
+WEB_AGENT_FILE="${WEB_AGENT_FILE:-uar/agents/knowme-site-web.json}"
+SEED_WEB_AGENT="${SEED_WEB_AGENT:-1}"
 CORPUS_DIR="${CORPUS_DIR:-content/knowledge}"
 PRESENTATIONS_DIR="${PRESENTATIONS_DIR:-uar/presentations}"
 KB_NAME="${KB_NAME:-knowme-site}"
@@ -115,7 +129,7 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     -h|--help)
-      sed -n '2,40p' "$0"
+      sed -n '2,/^set -euo pipefail/p' "$0" | sed '$d'
       exit 0
       ;;
     *)
@@ -128,6 +142,10 @@ done
 case "$SEED_MODE" in
   all | agent | kb) ;;
   *) die "SEED_MODE must be kb, agent or all (got '$SEED_MODE')" ;;
+esac
+case "$SEED_WEB_AGENT" in
+  0 | 1) ;;
+  *) die "SEED_WEB_AGENT must be 0 or 1 (got '$SEED_WEB_AGENT')" ;;
 esac
 SEED_AGENT=0
 SEED_KB=0
@@ -149,6 +167,9 @@ else
 fi
 if [[ "$SEED_AGENT" == 1 ]]; then
   [[ -f "$AGENT_FILE" ]] || die "agent artifact not found: $AGENT_FILE (owned by km-conversational-designer)"
+  if [[ "$SEED_WEB_AGENT" == 1 ]]; then
+    [[ -f "$WEB_AGENT_FILE" ]] || die "web agent artifact not found: $WEB_AGENT_FILE (set SEED_WEB_AGENT=0 to seed without it)"
+  fi
 fi
 
 if [[ -n "$MINT_KEY_TO_K8S_SECRET" ]]; then
@@ -235,18 +256,33 @@ require_2xx() {
 # Sections 1 and 1b run in SEED_MODE all and agent (the block is not
 # re-indented, to keep this change reviewable).
 if [[ "$SEED_AGENT" == 1 ]]; then
-log "seeding agent '$AGENT_ID' from $AGENT_FILE"
-api PUT "/api/agents/${AGENT_ID}" -H 'Content-Type: application/json' --data-binary @"$AGENT_FILE"
-status="$API_STATUS"
-if [[ "$status" == "404" ]]; then
-  log "agent '$AGENT_ID' does not exist yet; creating"
-  api POST "/api/agents" -H 'Content-Type: application/json' --data-binary @"$AGENT_FILE"
-  status="$API_STATUS"
-  require_2xx "$status" "create agent"
+# The concierge agent knowme-site comes first, then (unless SEED_WEB_AGENT=0)
+# the web-search agent knowme-site-web. Both use the same KB and the same
+# presentation templates (1b), which is why the templates are seeded after both.
+# An agent is only ever created or replaced here, never deleted.
+seed_agent_file() {
+  local file="$1" id
+  id="$(jq -r '.id // empty' "$file")"
+  [[ -n "$id" ]] || die "$file has no top-level .id"
+  log "seeding agent '$id' from $file"
+  api PUT "/api/agents/${id}" -H 'Content-Type: application/json' --data-binary @"$file"
+  local put_status="$API_STATUS"
+  if [[ "$put_status" == "404" ]]; then
+    log "agent '$id' does not exist yet; creating"
+    api POST "/api/agents" -H 'Content-Type: application/json' --data-binary @"$file"
+    require_2xx "$API_STATUS" "create agent '$id'"
+  else
+    require_2xx "$put_status" "replace agent '$id'"
+  fi
+  log "agent '$id' is up to date"
+}
+
+seed_agent_file "$AGENT_FILE"
+if [[ "$SEED_WEB_AGENT" == 1 ]]; then
+  seed_agent_file "$WEB_AGENT_FILE"
 else
-  require_2xx "$status" "replace agent"
+  log "SEED_WEB_AGENT=0: not seeding the web-search agent (an existing knowme-site-web is left registered, not deleted)"
 fi
-log "agent '$AGENT_ID' is up to date"
 
 # ── 1b. Presentation templates (A2UI answer cards) ─────────────────────────
 # Owned by the same identity as the agent (sub=knowme-site), which is what makes

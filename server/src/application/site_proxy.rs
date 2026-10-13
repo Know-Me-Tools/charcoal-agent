@@ -21,7 +21,7 @@ use axum::response::Response;
 
 use crate::application::meter::{Meter, TurnTracker};
 use crate::application::public_stream::{UpstreamTap, filter_internal_artifacts};
-use crate::domain::chat_request::{ChatRequestError, build_site_chat_request};
+use crate::domain::chat_request::{ChatRequestError, SiteAgents, build_site_chat_request};
 use crate::domain::forwarding::{SESSION_HEADER, upstream_request_headers};
 use crate::domain::meter::Outcome;
 use crate::domain::query::allowlisted_query;
@@ -36,7 +36,7 @@ const CHAT_QUERY_PARAMS: &[&str] = &[];
 #[derive(Debug)]
 pub struct SiteProxy {
     uar: UarClient,
-    agent_id: String,
+    agents: SiteAgents,
     secret: SessionSecret,
     meter: Arc<Meter>,
     /// Always `None` outside the `test-harness` build.
@@ -54,13 +54,13 @@ pub struct Visitor {
 impl SiteProxy {
     pub fn new(
         uar: UarClient,
-        agent_id: String,
+        agents: SiteAgents,
         secret: SessionSecret,
         meter: Arc<Meter>,
     ) -> Self {
         Self {
             uar,
-            agent_id,
+            agents,
             secret,
             meter,
             tap: None,
@@ -115,7 +115,7 @@ impl SiteProxy {
             return Err(AppError::UnsupportedMediaType);
         }
         let thread = thread_id(headers)?;
-        let pinned = build_site_chat_request(body, &self.agent_id).map_err(chat_error)?;
+        let pinned = build_site_chat_request(body, &self.agents).map_err(chat_error)?;
 
         let mut session = HeaderValue::from_str(&self.secret.upstream_session_id(visitor, &thread))
             .map_err(|_| AppError::Internal("derived session id is not a header value"))?;
@@ -174,11 +174,8 @@ impl SiteProxy {
             });
         }
         let (parts, body) = response.into_parts();
-        let filtered = filter_internal_artifacts(
-            body.into_data_stream(),
-            self.tap.clone(),
-            Some(tracker),
-        );
+        let filtered =
+            filter_internal_artifacts(body.into_data_stream(), self.tap.clone(), Some(tracker));
         Ok(Response::from_parts(parts, Body::from_stream(filtered)))
     }
 }

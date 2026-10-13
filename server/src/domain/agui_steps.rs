@@ -30,10 +30,21 @@
 //!
 //! At most [`MAX_TRACKED_STEPS`] tool keys are tracked per response; a step
 //! past the cap is dropped, and so is its result (fail closed).
+//!
+//! Web search (site-web-search): a call to a [`WEB_SEARCH_TOOLS`] name is
+//! labelled [`LABEL_WEB_SEARCH`]. The first web-search result of a response
+//! that settles a started call with `success: true` also yields one
+//! `agui.web_citations` frame, right after its `finished` step, minted by
+//! `crate::domain::web_citations` from the sanitized result. Any later
+//! web-search result in the same response yields no citations (one search
+//! per reply). The query, arguments, raw result, tool id and name are never
+//! forwarded.
 
 use std::collections::HashMap;
 
 use serde_json::{Value, json};
+
+use crate::domain::web_citations;
 
 /// The derived public event name. An upstream frame with this name is never
 /// forwarded: only the filter emits it.
@@ -53,8 +64,15 @@ pub const MAX_TRACKED_STEPS: usize = 64;
 pub const KNOWLEDGE_SEARCH_TOOLS: [&str; 0] = [];
 /// Tool names that render an answer card.
 pub const ANSWER_CARD_TOOLS: [&str; 2] = ["presentation_render", "a2ui_render"];
+/// The provider-visible name of the site's web-search tool, as UAR sends it in
+/// `agui.tool_call.complete`: `sanitize_tool_name("{server}__{tool}")` with
+/// server key `websearch` and tool `search` (UAR `src/mcp/registry.rs:958`,
+/// `:1498-1528`, at `b4244aea`). Derived from source, not yet observed on a
+/// real run (task 16.6.1); if the capture differs, change it here only.
+pub const WEB_SEARCH_TOOLS: [&str; 1] = ["websearch__search"];
 
 pub const LABEL_KNOWLEDGE_SEARCH: &str = "Searching the knowledge base";
+pub const LABEL_WEB_SEARCH: &str = "Searching the web";
 pub const LABEL_ANSWER_CARD: &str = "Preparing an answer card";
 pub const LABEL_WORKING: &str = "Working";
 pub const LABEL_THINKING: &str = "Thinking";
@@ -102,6 +120,7 @@ struct ToolStep {
     index: u64,
     label: &'static str,
     settled: bool,
+    web_search: bool,
 }
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
@@ -130,6 +149,8 @@ pub struct StepTracker {
     next_index: u64,
     tools: HashMap<StepKey, ToolStep>,
     thinking: Thinking,
+    /// A web-search result has been seen in this response.
+    web_search_seen: bool,
 }
 
 impl StepTracker {
@@ -189,7 +210,8 @@ impl StepTracker {
         if self.tools.contains_key(&key) || self.tools.len() >= MAX_TRACKED_STEPS {
             return Vec::new();
         }
-        let label = tool_label(tool_name(payload));
+        let name = tool_name(payload);
+        let label = tool_label(name);
         let index = self.mint();
         self.tools.insert(
             key,
@@ -197,6 +219,7 @@ impl StepTracker {
                 index,
                 label,
                 settled: false,
+                web_search: is_web_search(name),
             },
         );
         let mut frames = self.end_thinking();
@@ -209,12 +232,22 @@ impl StepTracker {
             return Vec::new();
         };
         step.settled = true;
-        let phase = if payload.get("success").and_then(Value::as_bool) == Some(true) {
+        let step = *step;
+        let succeeded = payload.get("success").and_then(Value::as_bool) == Some(true);
+        let phase = if succeeded {
             Phase::Finished
         } else {
             Phase::Failed
         };
-        step_frame(phase, step.index, step.label)
+        let mut frames = step_frame(phase, step.index, step.label);
+        if step.web_search && !self.web_search_seen {
+            // One search per reply: only the first result can cite.
+            self.web_search_seen = true;
+            if succeeded {
+                frames.extend(web_citations::frame_from_tool_result(payload));
+            }
+        }
+        frames
     }
 
     fn on_tool_denied(&mut self, key: StepKey, payload: &Value) -> Vec<u8> {
@@ -228,7 +261,8 @@ impl StepTracker {
         if self.tools.len() >= MAX_TRACKED_STEPS {
             return Vec::new();
         }
-        let label = tool_label(tool_name(payload));
+        let name = tool_name(payload);
+        let label = tool_label(name);
         let index = self.mint();
         self.tools.insert(
             key,
@@ -236,6 +270,7 @@ impl StepTracker {
                 index,
                 label,
                 settled: true,
+                web_search: is_web_search(name),
             },
         );
         step_frame(Phase::Denied, index, label)
@@ -268,9 +303,15 @@ fn tool_label(name: Option<&str>) -> &'static str {
 fn tool_label_from(name: Option<&str>, knowledge: &[&str]) -> &'static str {
     match name {
         Some(n) if knowledge.contains(&n) => LABEL_KNOWLEDGE_SEARCH,
+        Some(n) if is_web_search(Some(n)) => LABEL_WEB_SEARCH,
         Some(n) if ANSWER_CARD_TOOLS.contains(&n) => LABEL_ANSWER_CARD,
         _ => LABEL_WORKING,
     }
+}
+
+/// Exact match on [`WEB_SEARCH_TOOLS`].
+fn is_web_search(name: Option<&str>) -> bool {
+    name.is_some_and(|n| WEB_SEARCH_TOOLS.contains(&n))
 }
 
 fn step_frame(phase: Phase, index: u64, label: &'static str) -> Vec<u8> {
@@ -291,10 +332,19 @@ mod tests {
     fn labels_should_match_exactly_with_working_as_the_default() {
         assert_eq!(tool_label(Some("presentation_render")), LABEL_ANSWER_CARD);
         assert_eq!(tool_label(Some("a2ui_render")), LABEL_ANSWER_CARD);
+        assert_eq!(tool_label(Some("websearch__search")), LABEL_WEB_SEARCH);
+        assert_eq!(LABEL_WEB_SEARCH, "Searching the web");
         for other in [
             Some("Presentation_Render"),
             Some("presentation_render "),
             Some("kb_probe"),
+            // Near misses and the raw Firecrawl surface are not the site tool.
+            Some("websearch__Search"),
+            Some("websearch::search"),
+            Some("websearch__search_v2"),
+            Some("firecrawl__firecrawl_search"),
+            Some("firecrawl_search"),
+            Some("web_fetch"),
             Some(""),
             None,
         ] {

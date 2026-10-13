@@ -74,6 +74,23 @@ interface AguiToolResult {
   content: string;
   success: boolean;
 }
+/**
+ * Web sources, minted by the site proxy (site-web-search design section 4).
+ * Only these item fields are read; anything else on the frame is ignored.
+ */
+interface AguiWebCitations {
+  kind: "web_citations";
+  phase?: string;
+  citations?: Array<{
+    origin?: unknown;
+    marker?: unknown;
+    title?: unknown;
+    host?: unknown;
+    url?: unknown;
+    snippet?: unknown;
+  }>;
+}
+
 /** Public step (server filter, task 4.2): fixed label, no upstream names. */
 interface AguiStep {
   kind: "step";
@@ -303,6 +320,29 @@ export const AGUI_EVENT_HANDLERS: Readonly<Record<string, Handler>> = {
         content: c.snippet ?? "",
         // The marker is the `[n]` the reply text uses; the list shows it.
         index: typeof c.marker === "number" ? c.marker : undefined,
+      });
+    }
+    return "continue";
+  },
+
+  "agui.web_citations": (p, ctx) => {
+    const items = (p as Partial<AguiWebCitations> | null)?.citations;
+    if (!Array.isArray(items)) return "continue";
+    for (const c of items) {
+      // Strict: a web item is origin "web" with a whole-number marker of 1 or
+      // more (the `W{n}` of the reply). Anything else is dropped, not guessed.
+      if (c?.origin !== "web") continue;
+      if (typeof c.marker !== "number" || !Number.isInteger(c.marker) || c.marker < 1) continue;
+      const host = typeof c.host === "string" && c.host !== "" ? c.host : undefined;
+      const title = typeof c.title === "string" && c.title !== "" ? c.title : undefined;
+      const url = typeof c.url === "string" && c.url !== "" ? c.url : undefined;
+      store().addCitation(ctx.threadId, {
+        source: title ?? host ?? "Web source",
+        content: typeof c.snippet === "string" ? c.snippet : "",
+        url,
+        index: c.marker,
+        origin: "web",
+        host,
       });
     }
     return "continue";
