@@ -33,7 +33,7 @@ describe("generateThreadTitle streaming fallback", () => {
     expect(title).toBe("Weekly plan");
   });
 
-  it("falls back to 'New conversation' when the stream never carries any agui.message.delta text", async () => {
+  it("falls back to the question when the stream never carries any agui.message.delta text", async () => {
     const sse = "event: message\ndata: [DONE]\n\n";
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(sse, { status: 200, headers: { "content-type": "text/event-stream" } }),
@@ -41,6 +41,6 @@ describe("generateThreadTitle streaming fallback", () => {
 
     const title = await generateThreadTitle("Hi", "Hello");
 
-    expect(title).toBe("New conversation");
+    expect(title).toBe("Hi");
   });
 });
