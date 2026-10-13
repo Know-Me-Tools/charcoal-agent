@@ -43,17 +43,24 @@ const SECURITY_HEADERS: &[(&str, &str)] = &[
 
 /// The policy is enforced (site-reply-content-hardening 3.4). This replaces
 /// the earlier "report-only until a clean week" plan with a numeric
-/// acceptance rule, measured on the local run and over the first 48 hours
-/// after deploy: zero CSP reports other than (a) inline script, eval or
-/// connect violations whose document is a preview frame and (b)
-/// browser-extension origins. Any other report: revert by renaming this
-/// header back to `content-security-policy-report-only` (a one-line change).
-/// There is no report-only twin; `report-uri`/`report-to` and
-/// `Reporting-Endpoints` stay, so violations are still collected.
+/// acceptance rule (corrected by the task 3.5 browser proof), measured on the
+/// local run and over the first 48 hours after deploy: zero CSP reports other
+/// than (a) any report whose `document` is `about:srcdoc` (an HTML preview
+/// frame: inline script, `img-src` for remote images, `connect-src`, any
+/// directive), (b) `frame-src`/`default-src` reports on the app page whose
+/// blocked resource is a remote origin, raised when a preview navigates
+/// itself away (the app has no other iframe), and (c) browser-extension
+/// origins. Any other report (its document is the app page) triggers the
+/// revert: rename this header back to `content-security-policy-report-only`
+/// (a one-line change). The `csp violation` log line carries the
+/// `document` (`routes/api.rs`) so (a) can be told apart. There is no
+/// report-only twin; `report-uri`/`report-to` and `Reporting-Endpoints`
+/// stay, so violations are still collected.
 ///
 /// A `srcdoc` preview frame inherits this policy (a meta CSP inside it can
 /// only tighten it), so inline scripts in model-written HTML previews are
-/// blocked once this is enforced: risk R3, proved in a browser by task 3.5.
+/// blocked: risk R3, proved in a browser by task 3.5; the site shows a
+/// "scripts do not run" note on such previews (decision: option 1).
 const CSP_HEADER: HeaderName = HeaderName::from_static("content-security-policy");
 const REPORTING_ENDPOINTS: HeaderName = HeaderName::from_static("reporting-endpoints");
 

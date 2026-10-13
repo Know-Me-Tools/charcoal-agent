@@ -83,6 +83,13 @@ All scratch output went to a session scratch directory (`$SCRATCH` below). No cr
 - **Not tested:** inline event-handler attributes (`onclick=`; the header should block them, no `'unsafe-hashes'`), `javascript:` URLs, a same-origin self-navigation (`<a href="/">`: allowed by the parent's `frame-src` fallback `'self'`, so the site would load inside the sandboxed, opaque-origin frame), SVG fences (they use the same card), `tsx`/`jsx` fences (same card).
 - **Case 6 request event.** Playwright reported a `request` event for the blocked remote image, while the route never saw the request and Chrome logged the CSP block. I did not record the `requestfailed` reason.
 
+## Decision (2026-10-13)
+
+- **Option 1 adopted.** The operator keeps previews and keeps the CSP enforced. On the site build, `HtmlArtifactCard` shows "Scripts do not run in previews." (DRAFT copy, `content/site/preview-note.ts`) when the previewed code contains a `<script>` element, an `on…=` attribute or a `javascript:` URL (`src/features/artifacts/preview-scripts.ts`). The app build sends no such header and shows no note. Checked in the browser against the real server: spec case 2b, at 320 px in light and dark, the note is visible with no horizontal overflow (`2 passed`; screenshots inspected). A fence of 100 characters or fewer is not previewed at all; it renders as plain code.
+- **Option 2 deferred.** It reopens only if interactive previews become a stated product need. It then needs its own change with the header exemption, the `postMessage` shell and a browser proof run against the new route.
+- **Acceptance rule corrected** (`CSP_HEADER` doc comment in `server/src/interface/routes/mod.rs`, plan task 3.4): any `about:srcdoc` report, plus top-page `frame-src`/`default-src` reports from a preview navigating away, plus browser-extension origins, count as expected; any other report in the first 48 hours triggers the revert. The `csp violation` log line now carries the report's document (query and fragment stripped, thread ids masked as `:id`, at most 200 characters).
+- **Report delivery is still undemonstrated.** It did not work in headless Chrome (cases 10 and 11), so the 48-hour watch must first prove delivery on the real site with one deliberate violation in the app page (plan task 15.4, first step). It is also unverified that a browser reports a `srcdoc` frame's violations with `document-uri` `about:srcdoc`. That is what the browser exposes as the frame's `location.href` (seen in this proof), but no real report was captured. The same 15.4 step should confirm it with one preview-frame violation.
+
 ## Recommendation (based only on the results above)
 
 What the results establish:

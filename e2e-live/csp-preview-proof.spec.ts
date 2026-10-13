@@ -239,6 +239,35 @@ test("2 an inline script does not run", async ({ page }) => {
   ).toBe(true);
 });
 
+/** Decision option 1: the site build says scripts do not run (320 px, both themes). */
+for (const theme of ["light", "dark"] as const) {
+  test(`2b the scripts note shows at 320 px (${theme})`, async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 800 });
+    await page.addInitScript((t) => {
+      localStorage.setItem("knowme:ui", JSON.stringify({ state: { theme: t, fontSize: "default" }, version: 0 }));
+    }, theme);
+    await streamReply(
+      page,
+      `2b-note-320-${theme}`,
+      // Over 100 characters, or the fence renders as plain code with no preview.
+      fence(
+        `<p id="out">script did not run</p><button onclick="go()">Go</button><script>go()</script>` +
+          `<p>Padding text for the fence length.</p>`,
+      ),
+    );
+    const note = page.getByText("Scripts do not run in previews.").first();
+    await expect(note).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
+    await note.evaluate((el) => el.scrollIntoView({ block: "center" }));
+    await page
+      .locator('iframe[title="html artifact"]')
+      .first()
+      .locator("xpath=ancestor::div[contains(@class,'rounded-lg')][1]")
+      .screenshot({ path: `${RESULTS_DIR}/2b-note-320-${theme}.png` });
+  });
+}
+
 test("3 a remote fetch from the frame is blocked", async ({ page }) => {
   const log = await streamReply(
     page,
