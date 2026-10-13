@@ -1,7 +1,50 @@
 ## ADDED Requirements
 
+> Amendment 2026-10-13 (D-11): web search is a per-visitor opt-in served by a second agent, `knowme-site-web`. Requirements and scenarios below that say "the `knowme-site` agent" for the web tool are **[SUPERSEDED by the amendment]** and apply to `knowme-site-web`; `knowme-site` keeps `presentation_render` alone. They stay as history. The first requirement below supersedes them.
+
+### Requirement: Web search is off by default and served by a second agent
+Web search SHALL be off by default. The browser SHALL send the boolean `web_search: true` only when the visitor has turned web search on, and the site proxy SHALL map exactly that value to the agent `knowme-site-web`, configured on the server, and every other request to `knowme-site`. A visitor SHALL NOT be able to name an agent, a tool or a policy.
+
+#### Scenario: Default
+- **GIVEN** a visitor who has not turned web search on
+- **WHEN** they send a message
+- **THEN** the request carries no `web_search` flag and the turn runs on `knowme-site` with no search step
+
+#### Scenario: Toggle on
+- **GIVEN** a visitor who has turned web search on
+- **WHEN** they send a message
+- **THEN** the request carries `web_search: true` and the proxy runs the turn on `knowme-site-web`
+
+#### Scenario: Not a strict boolean
+- **GIVEN** a request whose `web_search` is the string `"true"`, the number 1, null or absent
+- **WHEN** the proxy builds the upstream request
+- **THEN** it runs on `knowme-site`
+
+#### Scenario: Visitor names an agent or tool
+- **GIVEN** a request body containing `agent_id`, `tools`, `mcp_servers`, `tool_choice` or `run_policy`
+- **WHEN** the proxy builds the upstream request
+- **THEN** those fields are dropped and `memory_enabled` is false
+
+### Requirement: The toggle is accessible, persists per visitor and asks consent at the point of use
+The composer SHALL offer a labelled web-search toggle that is off by default, operable by keyboard and screen reader, whose state is not conveyed by colour alone and which is stored per visitor on the device without the page depending on storage. The first time the visitor turns it on, the page SHALL show the operator-approved disclosure that the search words go to a third-party search service.
+
+#### Scenario: Persistence
+- **GIVEN** a visitor who turned web search on
+- **WHEN** they reload the page on the same device
+- **THEN** the toggle is still on and the consent is not shown again
+
+#### Scenario: Storage unavailable
+- **GIVEN** browser storage is blocked
+- **WHEN** the page loads
+- **THEN** the toggle renders off and works for the current page view
+
+#### Scenario: Web agent unavailable
+- **GIVEN** no web agent is configured, the daily cap is reached or the wrapper is down
+- **WHEN** the visitor sends a message with the toggle on
+- **THEN** the reply comes from the knowledge base or says web search is not available right now, with no raw runtime error text
+
 ### Requirement: One search-only web tool on the public agent
-The `knowme-site` agent SHALL be able to search the web through exactly one tool, `websearch__search`, served by the `site-websearch` MCP server, and SHALL have no tool that fetches a URL, scrapes, crawls, maps, interacts, parses or runs an agent.
+**[Amended: the agent is `knowme-site-web`; `knowme-site` has no web tool.]** The `knowme-site` agent SHALL be able to search the web through exactly one tool, `websearch__search`, served by the `site-websearch` MCP server, and SHALL have no tool that fetches a URL, scrapes, crawls, maps, interacts, parses or runs an agent.
 
 #### Scenario: Policy and manifest list exactly two tools
 - **GIVEN** the seeded `knowme-site` agent
@@ -130,7 +173,7 @@ UAR SHALL run the search tool under `tool_approval: auto` without waiting for a 
 - **THEN** it still requires approval
 
 ### Requirement: The visitor is told about web search
-The AI disclosure and the About panel SHALL say that some answers use a web search, that the search words go to a third-party search service, and that web sources are marked "Web", and the agent SHALL be switchable off by re-seeding the agent without the tool.
+The AI disclosure and the About panel SHALL say that some answers use a web search, that the search words go to a third-party search service, and that web sources are marked "Web", and the agent SHALL be switchable off by re-seeding the agent without the tool. **[Amended: the capability SHALL be switchable off by seeding with `SEED_WEB_AGENT=0` and unsetting the server's web-agent id; the seed never deletes an agent.]**
 
 #### Scenario: Disclosure present
 - **GIVEN** the site with web search enabled
@@ -138,14 +181,19 @@ The AI disclosure and the About panel SHALL say that some answers use a web sear
 - **THEN** they contain the web-search statement approved by the operator
 
 #### Scenario: Rollback
-- **GIVEN** the agent is re-seeded without `websearch__search`
-- **WHEN** a visitor asks a web question
+- **GIVEN** the agents are seeded with `SEED_WEB_AGENT=0` and the server's web-agent id is unset
+- **WHEN** a visitor with the toggle on asks a web question
 - **THEN** no search step appears and the agent answers from the knowledge base or says it does not know
+
+#### Scenario: Seed without the web agent
+- **GIVEN** `SEED_MODE=agent SEED_WEB_AGENT=0`
+- **WHEN** the seed runs
+- **THEN** `knowme-site` is replaced, `knowme-site-web` is neither created nor deleted, and `SEED_MODE=kb` behaves as before
 
 ## MODIFIED Requirements
 
 ### Requirement: Only the A2UI render tool is allowed on the public agent
-The `knowme-site` policy SHALL allow `presentation_render` and `websearch__search` and no other tool, `a2ui_render` SHALL stay denied, and a forced `activate_skill` call SHALL still produce `agui.tool_call.denied`. Amends `site-agent-a2ui`.
+**[Amended by D-11]** The `knowme-site` policy SHALL allow `presentation_render` and no other tool; the `knowme-site-web` policy SHALL allow `presentation_render` and `websearch__search` and no other tool; for both, `a2ui_render` SHALL stay denied and a forced `activate_skill` call SHALL still produce `agui.tool_call.denied`. Amends `site-agent-a2ui`. *(Superseded wording, kept as history: "The `knowme-site` policy SHALL allow `presentation_render` and `websearch__search`".)*
 
 #### Scenario: Forced skill call
 - **GIVEN** a prompt forces a call to `activate_skill`
@@ -153,7 +201,7 @@ The `knowme-site` policy SHALL allow `presentation_render` and `websearch__searc
 - **THEN** the stream contains `agui.tool_call.denied` and no skill runs
 
 ### Requirement: No tool executes on the public path
-A public chat turn SHALL execute no tool except one `presentation_render` and at most one `websearch__search`, and a call to `activate_skill` SHALL be denied. Amends `site-agent-tool-allowlist`.
+A public chat turn SHALL execute no tool except one `presentation_render` and, only on a `web_search: true` turn, at most one `websearch__search`, and a call to `activate_skill` SHALL be denied. Amends `site-agent-tool-allowlist`.
 
 #### Scenario: Tool-eliciting prompts
 - **GIVEN** the tool-eliciting prompt set that does not need the web
