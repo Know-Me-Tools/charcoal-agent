@@ -25,8 +25,8 @@ export interface ChatOfflineStatesContent {
 export const CHAT_OFFLINE_STATES_CONTENT: ChatOfflineStatesContent = {
   offlineNotice: {
     heading: "The agent is offline right now.",
-    body: "It can't reply at the moment. You can still look around while it's back.",
-    ctaLabel: "See what KnowMe does",
+    body: "It can't reply at the moment. You can still look around until it's back.",
+    ctaLabel: "Read about the products",
   },
   rateLimited: {
     withWait: (seconds) => `Too many messages — try again in ${seconds} seconds.`,

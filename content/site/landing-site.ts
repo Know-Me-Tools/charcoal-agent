@@ -70,7 +70,7 @@ export const SITE_LANDING_CONTENT: SiteLandingContent = {
 		{
 			id: "your-conversations",
 			label: "Your conversations",
-			heading: "Your conversations stay in your browser.",
+			heading: "Your conversations are stored in this browser.",
 			body: [
 				"Your conversations are stored in this browser. To compose an answer, your messages are sent to a cloud language model.",
 			],
