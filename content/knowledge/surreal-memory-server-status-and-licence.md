@@ -2,7 +2,7 @@
 
 ## Who makes the Surreal Memory Server and what licence it uses
 
-Prometheus AGS makes the Surreal Memory Server, and its LICENSE file names Prometheus AGS as copyright holder. The Surreal Memory Server is MIT licensed.
+The Surreal Memory Server is MIT licensed, and its LICENSE file names Prometheus AGS as copyright holder. Prometheus AGS makes the Surreal Memory Server.
 
 Source: Surreal Memory Server LICENSE, retrieved 2026-10-13.
 
