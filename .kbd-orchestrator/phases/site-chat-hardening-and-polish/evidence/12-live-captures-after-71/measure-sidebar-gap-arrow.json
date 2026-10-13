@@ -1,0 +1,290 @@
+{
+ "empty1440_arrow": null,
+ "sidebar_fresh": [
+  "New thread",
+  "Is the Surreal Memory Server MIT licensed?10:03 AM",
+  ""
+ ],
+ "thread_url": "https://know-me.tools/threads/f145b8b6-79e7-4092-89dc-f5c5ced455c0",
+ "sidebar_before_reload": [
+  "New thread",
+  "Is the Surreal Memory Server MIT licensed?10:03 AM",
+  ""
+ ],
+ "reload_768_1": {
+  "sidebar": [
+   "New thread",
+   "Is the Surreal Memory Server MIT licensed?10:03 AM",
+   ""
+  ],
+  "url": "https://know-me.tools/threads/f145b8b6-79e7-4092-89dc-f5c5ced455c0",
+  "answer": true
+ },
+ "reload_768_2": {
+  "sidebar": [
+   "New thread",
+   "Is the Surreal Memory Server MIT licensed?10:03 AM",
+   ""
+  ],
+  "url": "https://know-me.tools/threads/f145b8b6-79e7-4092-89dc-f5c5ced455c0",
+  "answer": true
+ },
+ "reload_768_3": {
+  "sidebar": [
+   "New thread",
+   "Is the Surreal Memory Server MIT licensed?10:03 AM",
+   ""
+  ],
+  "url": "https://know-me.tools/threads/f145b8b6-79e7-4092-89dc-f5c5ced455c0",
+  "answer": true
+ },
+ "open_from_sidebar_768": {
+  "on_new_thread_sidebar": [
+   "New thread",
+   "Is the Surreal Memory Server MIT licensed?10:03 AM",
+   ""
+  ],
+  "clicked": "Is the Surreal Memory Server MIT licensed?\n\n10:03 AM",
+  "url_after": "https://know-me.tools/threads/f145b8b6-79e7-4092-89dc-f5c5ced455c0",
+  "is_original": true,
+  "answer": true
+ },
+ "reload_1024_1": {
+  "sidebar": [
+   "New thread",
+   "Is the Surreal Memory Server MIT licensed?10:03 AM",
+   ""
+  ],
+  "url": "https://know-me.tools/threads/f145b8b6-79e7-4092-89dc-f5c5ced455c0",
+  "answer": true
+ },
+ "reload_1024_2": {
+  "sidebar": [
+   "New thread",
+   "Is the Surreal Memory Server MIT licensed?10:03 AM",
+   ""
+  ],
+  "url": "https://know-me.tools/threads/f145b8b6-79e7-4092-89dc-f5c5ced455c0",
+  "answer": true
+ },
+ "reload_1024_3": {
+  "sidebar": [
+   "New thread",
+   "Is the Surreal Memory Server MIT licensed?10:03 AM",
+   ""
+  ],
+  "url": "https://know-me.tools/threads/f145b8b6-79e7-4092-89dc-f5c5ced455c0",
+  "answer": true
+ },
+ "open_from_sidebar_1024": {
+  "on_new_thread_sidebar": [
+   "New thread",
+   "Is the Surreal Memory Server MIT licensed?10:03 AM",
+   ""
+  ],
+  "clicked": "Is the Surreal Memory Server MIT licensed?\n\n10:03 AM",
+  "url_after": "https://know-me.tools/threads/f145b8b6-79e7-4092-89dc-f5c5ced455c0",
+  "is_original": true,
+  "answer": true
+ },
+ "reload_1440_1": {
+  "sidebar": [
+   "New thread",
+   "Is the Surreal Memory Server MIT licensed?10:03 AM",
+   ""
+  ],
+  "url": "https://know-me.tools/threads/f145b8b6-79e7-4092-89dc-f5c5ced455c0",
+  "answer": true
+ },
+ "reload_1440_2": {
+  "sidebar": [
+   "New thread",
+   "Is the Surreal Memory Server MIT licensed?10:03 AM",
+   ""
+  ],
+  "url": "https://know-me.tools/threads/f145b8b6-79e7-4092-89dc-f5c5ced455c0",
+  "answer": true
+ },
+ "reload_1440_3": {
+  "sidebar": [
+   "New thread",
+   "Is the Surreal Memory Server MIT licensed?10:03 AM",
+   ""
+  ],
+  "url": "https://know-me.tools/threads/f145b8b6-79e7-4092-89dc-f5c5ced455c0",
+  "answer": true
+ },
+ "open_from_sidebar_1440": {
+  "on_new_thread_sidebar": [
+   "New thread",
+   "Is the Surreal Memory Server MIT licensed?10:03 AM",
+   ""
+  ],
+  "clicked": "Is the Surreal Memory Server MIT licensed?\n\n10:03 AM",
+  "url_after": "https://know-me.tools/threads/f145b8b6-79e7-4092-89dc-f5c5ced455c0",
+  "is_original": true,
+  "answer": true
+ },
+ "gap_320": {
+  "composerTop": 441,
+  "assistantBottom": 433,
+  "actionsBottom": 409,
+  "sourcesBottom": 361,
+  "lastParaBottom": -45,
+  "gap_actions": 32,
+  "gap_assistant": 8,
+  "lastParaHidden": false,
+  "spacerH": null,
+  "scroller": {
+   "top": 832,
+   "ch": 596,
+   "sh": 1428
+  },
+  "scrollW": 320,
+  "vw": 320
+ },
+ "arrow_answered_320": {
+  "top": 0,
+  "bottom": 0,
+  "x": 0,
+  "w": 0,
+  "disabled": true,
+  "opacity": "0.5",
+  "display": "none",
+  "visibility": "visible",
+  "composerTop": 441,
+  "vh": 700
+ },
+ "gap_768": {
+  "composerTop": 722,
+  "assistantBottom": 710,
+  "actionsBottom": 686,
+  "sourcesBottom": 650,
+  "lastParaBottom": 374,
+  "gap_actions": 36,
+  "gap_assistant": 12,
+  "lastParaHidden": false,
+  "spacerH": null,
+  "scroller": {
+   "top": 258,
+   "ch": 852,
+   "sh": 1110
+  },
+  "scrollW": 768,
+  "vw": 768
+ },
+ "arrow_answered_768": {
+  "top": 0,
+  "bottom": 0,
+  "x": 0,
+  "w": 0,
+  "disabled": true,
+  "opacity": "0.5",
+  "display": "none",
+  "visibility": "visible",
+  "composerTop": 722,
+  "vh": 900
+ },
+ "gap_1024": {
+  "composerTop": 622,
+  "assistantBottom": 610,
+  "actionsBottom": 586,
+  "sourcesBottom": 550,
+  "lastParaBottom": 274,
+  "gap_actions": 36,
+  "gap_assistant": 12,
+  "lastParaHidden": false,
+  "spacerH": null,
+  "scroller": {
+   "top": 291,
+   "ch": 752,
+   "sh": 1043
+  },
+  "scrollW": 1024,
+  "vw": 1024
+ },
+ "arrow_answered_1024": {
+  "top": 0,
+  "bottom": 0,
+  "x": 0,
+  "w": 0,
+  "disabled": true,
+  "opacity": "0.5",
+  "display": "none",
+  "visibility": "visible",
+  "composerTop": 622,
+  "vh": 800
+ },
+ "gap_1440": {
+  "composerTop": 722,
+  "assistantBottom": 710,
+  "actionsBottom": 686,
+  "sourcesBottom": 650,
+  "lastParaBottom": 374,
+  "gap_actions": 36,
+  "gap_assistant": 12,
+  "lastParaHidden": false,
+  "spacerH": null,
+  "scroller": {
+   "top": 191,
+   "ch": 852,
+   "sh": 1043
+  },
+  "scrollW": 1440,
+  "vw": 1440
+ },
+ "arrow_answered_1440": {
+  "top": 0,
+  "bottom": 0,
+  "x": 0,
+  "w": 0,
+  "disabled": true,
+  "opacity": "0.5",
+  "display": "none",
+  "visibility": "visible",
+  "composerTop": 722,
+  "vh": 900
+ },
+ "arrow_excerpt_open_bottomed": {
+  "top": 674,
+  "bottom": 710,
+  "x": 832,
+  "w": 36,
+  "disabled": false,
+  "opacity": "1",
+  "display": "flex",
+  "visibility": "visible",
+  "composerTop": 722,
+  "vh": 900
+ },
+ "gap_excerpt_open": {
+  "composerTop": 722,
+  "assistantBottom": 771,
+  "actionsBottom": 747,
+  "sourcesBottom": 711,
+  "lastParaBottom": 374,
+  "gap_actions": -25,
+  "gap_assistant": -49,
+  "lastParaHidden": false,
+  "spacerH": null,
+  "scroller": {
+   "top": 191,
+   "ch": 852,
+   "sh": 1152
+  },
+  "scrollW": 1440,
+  "vw": 1440
+ },
+ "arrow_excerpt_open_top": {
+  "top": 674,
+  "bottom": 710,
+  "x": 832,
+  "w": 36,
+  "disabled": false,
+  "opacity": "1",
+  "display": "flex",
+  "visibility": "visible",
+  "composerTop": 722,
+  "vh": 900
+ }
+}
