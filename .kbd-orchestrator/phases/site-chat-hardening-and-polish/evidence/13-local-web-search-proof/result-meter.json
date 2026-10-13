@@ -1,0 +1,15 @@
+{
+  "step": "meter",
+  "results": [
+    {
+      "task": "16.6.6",
+      "status": "PASS",
+      "detail": "web turn: reserved 16000, charged 6186, excess 0; non-web turn: reserved 16000, charged 2164, excess 0"
+    },
+    {
+      "task": "16.6.6-credits",
+      "status": "UNKNOWN",
+      "detail": "the wrapper does not log creditsUsed; read the Firecrawl dashboard delta over 9 executed searches"
+    }
+  ]
+}

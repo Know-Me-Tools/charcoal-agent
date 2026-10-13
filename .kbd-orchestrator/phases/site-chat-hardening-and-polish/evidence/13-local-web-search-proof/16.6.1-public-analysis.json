@@ -1,0 +1,22 @@
+{
+  "http_status": 200,
+  "web_citations_frames": 1,
+  "web_citations_before_first_delta": true,
+  "validator_problems": [],
+  "validator_counts": {
+    "artifact": 0,
+    "denied": 0,
+    "error": 0,
+    "done": 1
+  },
+  "query_from_direct_run_found_in_public_stream": null,
+  "query_check_note": "heuristic: the query comes from the direct run, the proxy run may have phrased its own",
+  "event_order": [
+    "agui.stream.start",
+    "agui.step x4",
+    "agui.web_citations",
+    "agui.message.delta x37",
+    "agui.done",
+    "[DONE]"
+  ]
+}

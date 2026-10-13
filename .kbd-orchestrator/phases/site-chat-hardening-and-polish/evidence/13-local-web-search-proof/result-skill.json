@@ -1,0 +1,10 @@
+{
+  "step": "skill",
+  "results": [
+    {
+      "task": "16.6.5",
+      "status": "UNKNOWN",
+      "detail": "the model never called activate_skill in either wording; the hang case was not exercised (not a pass)"
+    }
+  ]
+}

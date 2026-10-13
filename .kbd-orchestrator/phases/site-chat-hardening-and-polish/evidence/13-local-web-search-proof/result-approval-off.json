@@ -1,0 +1,10 @@
+{
+  "step": "approval-off",
+  "results": [
+    {
+      "task": "16.6.2-B",
+      "status": "UNKNOWN",
+      "detail": "no approval event and no finish within 20000 ms; inspect the raw stream"
+    }
+  ]
+}

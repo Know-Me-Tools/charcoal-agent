@@ -1,0 +1,138 @@
+{
+  "http_status": 200,
+  "all_turn_rows": [
+    {
+      "at": "2026-10-13T19:54:51.960099Z",
+      "charged": 6254,
+      "excess": 0,
+      "input_tokens": 5668,
+      "model": "qwen3.8-max",
+      "outcome": "completed",
+      "output_tokens": 586,
+      "reserved": 16000,
+      "total_tokens": 6254,
+      "ttft_ms": 17013
+    },
+    {
+      "at": "2026-10-13T19:57:00.028103Z",
+      "charged": 6247,
+      "excess": 0,
+      "input_tokens": 5668,
+      "model": "qwen3.8-max",
+      "outcome": "completed",
+      "output_tokens": 579,
+      "reserved": 16000,
+      "total_tokens": 6247,
+      "ttft_ms": 14702
+    },
+    {
+      "at": "2026-10-13T19:57:12.583812Z",
+      "charged": 2763,
+      "excess": 0,
+      "input_tokens": 2534,
+      "model": "qwen3.8-max",
+      "outcome": "completed",
+      "output_tokens": 229,
+      "reserved": 16000,
+      "total_tokens": 2763,
+      "ttft_ms": 7297
+    },
+    {
+      "at": "2026-10-13T19:57:22.701825Z",
+      "charged": 2749,
+      "excess": 0,
+      "input_tokens": 2542,
+      "model": "qwen3.8-max",
+      "outcome": "completed",
+      "output_tokens": 207,
+      "reserved": 16000,
+      "total_tokens": 2749,
+      "ttft_ms": 4878
+    },
+    {
+      "at": "2026-10-13T19:57:34.029696Z",
+      "charged": 2722,
+      "excess": 0,
+      "input_tokens": 2542,
+      "model": "qwen3.8-max",
+      "outcome": "completed",
+      "output_tokens": 180,
+      "reserved": 16000,
+      "total_tokens": 2722,
+      "ttft_ms": 6325
+    },
+    {
+      "at": "2026-10-13T19:57:49.140083Z",
+      "charged": 2963,
+      "excess": 0,
+      "input_tokens": 2546,
+      "model": "qwen3.8-max",
+      "outcome": "completed",
+      "output_tokens": 417,
+      "reserved": 16000,
+      "total_tokens": 2963,
+      "ttft_ms": 9219
+    },
+    {
+      "at": "2026-10-13T19:57:57.671645Z",
+      "charged": 2663,
+      "excess": 0,
+      "input_tokens": 2542,
+      "model": "qwen3.8-max",
+      "outcome": "completed",
+      "output_tokens": 121,
+      "reserved": 16000,
+      "total_tokens": 2663,
+      "ttft_ms": 3539
+    },
+    {
+      "at": "2026-10-13T19:58:10.872238Z",
+      "charged": 2846,
+      "excess": 0,
+      "input_tokens": 2538,
+      "model": "qwen3.8-max",
+      "outcome": "completed",
+      "output_tokens": 308,
+      "reserved": 16000,
+      "total_tokens": 2846,
+      "ttft_ms": 7647
+    },
+    {
+      "at": "2026-10-13T19:58:56.336208Z",
+      "charged": 6186,
+      "excess": 0,
+      "input_tokens": 5528,
+      "model": "qwen3.8-max",
+      "outcome": "completed",
+      "output_tokens": 658,
+      "reserved": 16000,
+      "total_tokens": 6186,
+      "ttft_ms": 17206
+    },
+    {
+      "at": "2026-10-13T19:59:08.841671Z",
+      "charged": 2164,
+      "excess": 0,
+      "input_tokens": 1941,
+      "model": "qwen3.8-max",
+      "outcome": "completed",
+      "output_tokens": 223,
+      "reserved": 16000,
+      "total_tokens": 2164,
+      "ttft_ms": 6947
+    }
+  ],
+  "meter_totals": [
+    {
+      "id": "meter:day_2026_10_13",
+      "period": "day",
+      "total": 37557
+    },
+    {
+      "id": "meter:month_2026_10",
+      "period": "month",
+      "total": 37557
+    }
+  ],
+  "note": "the last two turn rows are the non-web turn (last) and the web turn (second to last) of this step"
+}
