@@ -1,0 +1,768 @@
+{
+ "a-landing-320-dark": {
+  "scrollWidth": [
+   320,
+   320
+  ],
+  "h1_lines": [
+   "AIthat",
+   "understandsyou."
+  ],
+  "link_rects": {
+   "rects": 1,
+   "lines": null,
+   "white": "nowrap"
+  },
+  "link_lines": [
+   "(opensinanewtab)",
+   "the-boss.know-me.tools"
+  ],
+  "composer": {
+   "x": 16,
+   "w": 288,
+   "sectionW": 320,
+   "sectionX": 0,
+   "vw": 320
+  },
+  "disclosure": [
+   "// KnowMe AI, LLCAI that understands you.This site is the front door to the products of KnowMe AI, LLC. Ask the concierge about any of them, and go as deep as you like.SendKnowMe Concierge \u2014 an AI ass",
+   "SendKnowMe Concierge \u2014 an AI assistant. Answers may be wrong.Please don't share sensitive personal details in this chat.",
+   "KnowMe Concierge \u2014 an AI assistant. Answers may be wrong.Please don't share sensitive personal details in this chat.",
+   "KnowMe Concierge \u2014 an AI assistant. Answers may be wrong.",
+   "Please don't share sensitive personal details in this chat."
+  ],
+  "logos": [
+   [
+    "SPAN",
+    15,
+    108,
+    28
+   ],
+   [
+    "SPAN",
+    1597,
+    288,
+    24
+   ]
+  ],
+  "eyebrows_mono_caps": [],
+  "h2": [
+   "Ask about the products.",
+   "Your conversations are stored in this browser.",
+   "The Boss is available now."
+  ],
+  "bodyTextHasBands": false
+ },
+ "b-empty-thread-320-dark": {
+  "scrollWidth": [
+   320,
+   320
+  ],
+  "chrome": {
+   "innerHeight": 700,
+   "form": {
+    "top": 441,
+    "h": 121
+   },
+   "disclosure": {
+    "top": 570,
+    "h": 32,
+    "bottom": 602
+   },
+   "tabbar": {
+    "top": 644,
+    "h": 56
+   },
+   "chromeHeight": 259
+  },
+  "targets": {
+   "Open threads": {
+    "w": 44,
+    "h": 44,
+    "vis": true
+   },
+   "About and sources": {
+    "w": 44,
+    "h": 44,
+    "vis": true
+   },
+   "Switch to light theme": {
+    "w": 44,
+    "h": 44,
+    "vis": true
+   },
+   "Send message": {
+    "w": 44,
+    "h": 44,
+    "vis": true
+   }
+  },
+  "h1_lines": [
+   "AIthatunderstands",
+   "you."
+  ]
+ },
+ "a-landing-320-light": {
+  "scrollWidth": [
+   320,
+   320
+  ],
+  "h1_lines": [
+   "AIthat",
+   "understandsyou."
+  ],
+  "link_rects": {
+   "rects": 1,
+   "lines": null,
+   "white": "nowrap"
+  },
+  "link_lines": [
+   "(opensinanewtab)",
+   "the-boss.know-me.tools"
+  ],
+  "composer": {
+   "x": 16,
+   "w": 288,
+   "sectionW": 320,
+   "sectionX": 0,
+   "vw": 320
+  },
+  "disclosure": [
+   "// KnowMe AI, LLCAI that understands you.This site is the front door to the products of KnowMe AI, LLC. Ask the concierge about any of them, and go as deep as you like.SendKnowMe Concierge \u2014 an AI ass",
+   "SendKnowMe Concierge \u2014 an AI assistant. Answers may be wrong.Please don't share sensitive personal details in this chat.",
+   "KnowMe Concierge \u2014 an AI assistant. Answers may be wrong.Please don't share sensitive personal details in this chat.",
+   "KnowMe Concierge \u2014 an AI assistant. Answers may be wrong.",
+   "Please don't share sensitive personal details in this chat."
+  ],
+  "logos": [
+   [
+    "SPAN",
+    15,
+    108,
+    28
+   ],
+   [
+    "SPAN",
+    1597,
+    288,
+    24
+   ]
+  ],
+  "eyebrows_mono_caps": [],
+  "h2": [
+   "Ask about the products.",
+   "Your conversations are stored in this browser.",
+   "The Boss is available now."
+  ],
+  "bodyTextHasBands": false
+ },
+ "b-empty-thread-320-light": {
+  "scrollWidth": [
+   320,
+   320
+  ],
+  "chrome": {
+   "innerHeight": 700,
+   "form": {
+    "top": 441,
+    "h": 121
+   },
+   "disclosure": {
+    "top": 570,
+    "h": 32,
+    "bottom": 602
+   },
+   "tabbar": {
+    "top": 644,
+    "h": 56
+   },
+   "chromeHeight": 259
+  },
+  "targets": {
+   "Open threads": {
+    "w": 44,
+    "h": 44,
+    "vis": true
+   },
+   "About and sources": {
+    "w": 44,
+    "h": 44,
+    "vis": true
+   },
+   "Switch to dark theme": {
+    "w": 44,
+    "h": 44,
+    "vis": true
+   },
+   "Send message": {
+    "w": 44,
+    "h": 44,
+    "vis": true
+   }
+  },
+  "h1_lines": [
+   "AIthatunderstands",
+   "you."
+  ]
+ },
+ "a-landing-768-dark": {
+  "scrollWidth": [
+   768,
+   768
+  ],
+  "h1_lines": [
+   "AIthat",
+   "understandsyou."
+  ],
+  "link_rects": {
+   "rects": 1,
+   "lines": null,
+   "white": "nowrap"
+  },
+  "link_lines": [
+   "the-boss.know-me.tools(opensinanewtab)"
+  ],
+  "composer": {
+   "x": 32,
+   "w": 704,
+   "sectionW": 768,
+   "sectionX": 0,
+   "vw": 768
+  },
+  "disclosure": [
+   "// KnowMe AI, LLCAI that understands you.This site is the front door to the products of KnowMe AI, LLC. Ask the concierge about any of them, and go as deep as you like.SendKnowMe Concierge \u2014 an AI ass",
+   "SendKnowMe Concierge \u2014 an AI assistant. Answers may be wrong.Please don't share sensitive personal details in this chat.",
+   "KnowMe Concierge \u2014 an AI assistant. Answers may be wrong.Please don't share sensitive personal details in this chat.",
+   "KnowMe Concierge \u2014 an AI assistant. Answers may be wrong.",
+   "Please don't share sensitive personal details in this chat."
+  ],
+  "logos": [
+   [
+    "SPAN",
+    15,
+    108,
+    28
+   ],
+   [
+    "SPAN",
+    1587,
+    95,
+    24
+   ]
+  ],
+  "eyebrows_mono_caps": [],
+  "h2": [
+   "Ask about the products.",
+   "Your conversations are stored in this browser.",
+   "The Boss is available now."
+  ],
+  "bodyTextHasBands": false
+ },
+ "b-empty-thread-768-dark": {
+  "scrollWidth": [
+   768,
+   768
+  ],
+  "chrome": {
+   "innerHeight": 900,
+   "form": {
+    "top": 722,
+    "h": 108
+   },
+   "disclosure": {
+    "top": 842,
+    "h": 16,
+    "bottom": 858
+   },
+   "tabbar": null,
+   "chromeHeight": 178
+  },
+  "targets": {
+   "About and sources": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Switch to light theme": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Send message": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   }
+  },
+  "h1_lines": [
+   "AIthatunderstandsyou."
+  ]
+ },
+ "a-landing-768-light": {
+  "scrollWidth": [
+   768,
+   768
+  ],
+  "h1_lines": [
+   "AIthat",
+   "understandsyou."
+  ],
+  "link_rects": {
+   "rects": 1,
+   "lines": null,
+   "white": "nowrap"
+  },
+  "link_lines": [
+   "the-boss.know-me.tools(opensinanewtab)"
+  ],
+  "composer": {
+   "x": 32,
+   "w": 704,
+   "sectionW": 768,
+   "sectionX": 0,
+   "vw": 768
+  },
+  "disclosure": [
+   "// KnowMe AI, LLCAI that understands you.This site is the front door to the products of KnowMe AI, LLC. Ask the concierge about any of them, and go as deep as you like.SendKnowMe Concierge \u2014 an AI ass",
+   "SendKnowMe Concierge \u2014 an AI assistant. Answers may be wrong.Please don't share sensitive personal details in this chat.",
+   "KnowMe Concierge \u2014 an AI assistant. Answers may be wrong.Please don't share sensitive personal details in this chat.",
+   "KnowMe Concierge \u2014 an AI assistant. Answers may be wrong.",
+   "Please don't share sensitive personal details in this chat."
+  ],
+  "logos": [
+   [
+    "SPAN",
+    15,
+    108,
+    28
+   ],
+   [
+    "SPAN",
+    1587,
+    95,
+    24
+   ]
+  ],
+  "eyebrows_mono_caps": [],
+  "h2": [
+   "Ask about the products.",
+   "Your conversations are stored in this browser.",
+   "The Boss is available now."
+  ],
+  "bodyTextHasBands": false
+ },
+ "b-empty-thread-768-light": {
+  "scrollWidth": [
+   768,
+   768
+  ],
+  "chrome": {
+   "innerHeight": 900,
+   "form": {
+    "top": 722,
+    "h": 108
+   },
+   "disclosure": {
+    "top": 842,
+    "h": 16,
+    "bottom": 858
+   },
+   "tabbar": null,
+   "chromeHeight": 178
+  },
+  "targets": {
+   "About and sources": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Switch to dark theme": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Send message": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   }
+  },
+  "h1_lines": [
+   "AIthatunderstandsyou."
+  ]
+ },
+ "a-landing-1024-dark": {
+  "scrollWidth": [
+   1024,
+   1024
+  ],
+  "h1_lines": [
+   "AIthat",
+   "understandsyou."
+  ],
+  "link_rects": {
+   "rects": 1,
+   "lines": null,
+   "white": "nowrap"
+  },
+  "link_lines": [
+   "the-boss.know-me.tools(opensinanewtab)"
+  ],
+  "composer": {
+   "x": 609.328125,
+   "w": 366.671875,
+   "sectionW": 1024,
+   "sectionX": 0,
+   "vw": 1024
+  },
+  "disclosure": [
+   "// KnowMe AI, LLCAI that understands you.This site is the front door to the products of KnowMe AI, LLC. Ask the concierge about any of them, and go as deep as you like.SendKnowMe Concierge \u2014 an AI ass",
+   "SendKnowMe Concierge \u2014 an AI assistant. Answers may be wrong.Please don't share sensitive personal details in this chat.",
+   "KnowMe Concierge \u2014 an AI assistant. Answers may be wrong.Please don't share sensitive personal details in this chat.",
+   "KnowMe Concierge \u2014 an AI assistant. Answers may be wrong.",
+   "Please don't share sensitive personal details in this chat."
+  ],
+  "logos": [
+   [
+    "SPAN",
+    15,
+    108,
+    28
+   ],
+   [
+    "SPAN",
+    1387,
+    95,
+    24
+   ]
+  ],
+  "eyebrows_mono_caps": [],
+  "h2": [
+   "Ask about the products.",
+   "Your conversations are stored in this browser.",
+   "The Boss is available now."
+  ],
+  "bodyTextHasBands": false
+ },
+ "b-empty-thread-1024-dark": {
+  "scrollWidth": [
+   1024,
+   1024
+  ],
+  "chrome": {
+   "innerHeight": 800,
+   "form": {
+    "top": 622,
+    "h": 108
+   },
+   "disclosure": {
+    "top": 742,
+    "h": 16,
+    "bottom": 758
+   },
+   "tabbar": null,
+   "chromeHeight": 178
+  },
+  "targets": {
+   "About and sources": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Switch to light theme": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Send message": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   }
+  },
+  "h1_lines": [
+   "AIthatunderstandsyou."
+  ]
+ },
+ "a-landing-1024-light": {
+  "scrollWidth": [
+   1024,
+   1024
+  ],
+  "h1_lines": [
+   "AIthat",
+   "understandsyou."
+  ],
+  "link_rects": {
+   "rects": 1,
+   "lines": null,
+   "white": "nowrap"
+  },
+  "link_lines": [
+   "the-boss.know-me.tools(opensinanewtab)"
+  ],
+  "composer": {
+   "x": 609.328125,
+   "w": 366.671875,
+   "sectionW": 1024,
+   "sectionX": 0,
+   "vw": 1024
+  },
+  "disclosure": [
+   "// KnowMe AI, LLCAI that understands you.This site is the front door to the products of KnowMe AI, LLC. Ask the concierge about any of them, and go as deep as you like.SendKnowMe Concierge \u2014 an AI ass",
+   "SendKnowMe Concierge \u2014 an AI assistant. Answers may be wrong.Please don't share sensitive personal details in this chat.",
+   "KnowMe Concierge \u2014 an AI assistant. Answers may be wrong.Please don't share sensitive personal details in this chat.",
+   "KnowMe Concierge \u2014 an AI assistant. Answers may be wrong.",
+   "Please don't share sensitive personal details in this chat."
+  ],
+  "logos": [
+   [
+    "SPAN",
+    15,
+    108,
+    28
+   ],
+   [
+    "SPAN",
+    1387,
+    95,
+    24
+   ]
+  ],
+  "eyebrows_mono_caps": [],
+  "h2": [
+   "Ask about the products.",
+   "Your conversations are stored in this browser.",
+   "The Boss is available now."
+  ],
+  "bodyTextHasBands": false
+ },
+ "b-empty-thread-1024-light": {
+  "scrollWidth": [
+   1024,
+   1024
+  ],
+  "chrome": {
+   "innerHeight": 800,
+   "form": {
+    "top": 622,
+    "h": 108
+   },
+   "disclosure": {
+    "top": 742,
+    "h": 16,
+    "bottom": 758
+   },
+   "tabbar": null,
+   "chromeHeight": 178
+  },
+  "targets": {
+   "About and sources": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Switch to dark theme": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Send message": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   }
+  },
+  "h1_lines": [
+   "AIthatunderstandsyou."
+  ]
+ },
+ "a-landing-1440-dark": {
+  "scrollWidth": [
+   1440,
+   1440
+  ],
+  "h1_lines": [
+   "AIthat",
+   "understandsyou."
+  ],
+  "link_rects": {
+   "rects": 1,
+   "lines": null,
+   "white": "nowrap"
+  },
+  "link_lines": [
+   "(opensinanewtab)",
+   "the-boss.know-me.tools"
+  ],
+  "composer": {
+   "x": 828,
+   "w": 420,
+   "sectionW": 1440,
+   "sectionX": 0,
+   "vw": 1440
+  },
+  "disclosure": [
+   "// KnowMe AI, LLCAI that understands you.This site is the front door to the products of KnowMe AI, LLC. Ask the concierge about any of them, and go as deep as you like.SendKnowMe Concierge \u2014 an AI ass",
+   "SendKnowMe Concierge \u2014 an AI assistant. Answers may be wrong.Please don't share sensitive personal details in this chat.",
+   "KnowMe Concierge \u2014 an AI assistant. Answers may be wrong.Please don't share sensitive personal details in this chat.",
+   "KnowMe Concierge \u2014 an AI assistant. Answers may be wrong.",
+   "Please don't share sensitive personal details in this chat."
+  ],
+  "logos": [
+   [
+    "SPAN",
+    15,
+    108,
+    28
+   ],
+   [
+    "SPAN",
+    1409,
+    95,
+    24
+   ]
+  ],
+  "eyebrows_mono_caps": [],
+  "h2": [
+   "Ask about the products.",
+   "Your conversations are stored in this browser.",
+   "The Boss is available now."
+  ],
+  "bodyTextHasBands": false
+ },
+ "b-empty-thread-1440-dark": {
+  "scrollWidth": [
+   1440,
+   1440
+  ],
+  "chrome": {
+   "innerHeight": 900,
+   "form": {
+    "top": 722,
+    "h": 108
+   },
+   "disclosure": {
+    "top": 842,
+    "h": 16,
+    "bottom": 858
+   },
+   "tabbar": null,
+   "chromeHeight": 178
+  },
+  "targets": {
+   "About and sources": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Switch to light theme": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Send message": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   }
+  },
+  "h1_lines": [
+   "AIthatunderstandsyou."
+  ]
+ },
+ "a-landing-1440-light": {
+  "scrollWidth": [
+   1440,
+   1440
+  ],
+  "h1_lines": [
+   "AIthat",
+   "understandsyou."
+  ],
+  "link_rects": {
+   "rects": 1,
+   "lines": null,
+   "white": "nowrap"
+  },
+  "link_lines": [
+   "(opensinanewtab)",
+   "the-boss.know-me.tools"
+  ],
+  "composer": {
+   "x": 828,
+   "w": 420,
+   "sectionW": 1440,
+   "sectionX": 0,
+   "vw": 1440
+  },
+  "disclosure": [
+   "// KnowMe AI, LLCAI that understands you.This site is the front door to the products of KnowMe AI, LLC. Ask the concierge about any of them, and go as deep as you like.SendKnowMe Concierge \u2014 an AI ass",
+   "SendKnowMe Concierge \u2014 an AI assistant. Answers may be wrong.Please don't share sensitive personal details in this chat.",
+   "KnowMe Concierge \u2014 an AI assistant. Answers may be wrong.Please don't share sensitive personal details in this chat.",
+   "KnowMe Concierge \u2014 an AI assistant. Answers may be wrong.",
+   "Please don't share sensitive personal details in this chat."
+  ],
+  "logos": [
+   [
+    "SPAN",
+    15,
+    108,
+    28
+   ],
+   [
+    "SPAN",
+    1409,
+    95,
+    24
+   ]
+  ],
+  "eyebrows_mono_caps": [],
+  "h2": [
+   "Ask about the products.",
+   "Your conversations are stored in this browser.",
+   "The Boss is available now."
+  ],
+  "bodyTextHasBands": false
+ },
+ "b-empty-thread-1440-light": {
+  "scrollWidth": [
+   1440,
+   1440
+  ],
+  "chrome": {
+   "innerHeight": 900,
+   "form": {
+    "top": 722,
+    "h": 108
+   },
+   "disclosure": {
+    "top": 842,
+    "h": 16,
+    "bottom": 858
+   },
+   "tabbar": null,
+   "chromeHeight": 178
+  },
+  "targets": {
+   "About and sources": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Switch to dark theme": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Send message": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   }
+  },
+  "h1_lines": [
+   "AIthatunderstandsyou."
+  ]
+ }
+}

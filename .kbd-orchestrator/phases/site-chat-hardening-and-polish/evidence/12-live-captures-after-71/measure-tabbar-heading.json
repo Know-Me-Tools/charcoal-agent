@@ -1,0 +1,84 @@
+{
+ "empty_320": {
+  "arrow": null,
+  "h1": [
+   "AIthat",
+   "understandsyou."
+  ],
+  "scrollW": [
+   320,
+   320
+  ],
+  "focus": "BODY:",
+  "tab": {
+   "top": 644,
+   "h": 56
+  }
+ },
+ "empty_768": {
+  "arrow": null,
+  "h1": [
+   "AIthatunderstandsyou."
+  ],
+  "scrollW": [
+   768,
+   768
+  ],
+  "focus": "TEXTAREA:Message input",
+  "tab": null
+ },
+ "empty_1024": {
+  "arrow": null,
+  "h1": [
+   "AIthatunderstandsyou."
+  ],
+  "scrollW": [
+   1024,
+   1024
+  ],
+  "focus": "TEXTAREA:Message input",
+  "tab": null
+ },
+ "empty_1440": {
+  "arrow": null,
+  "h1": [
+   "AIthatunderstandsyou."
+  ],
+  "scrollW": [
+   1440,
+   1440
+  ],
+  "focus": "TEXTAREA:Message input",
+  "tab": null
+ },
+ "t1_empty_unfocused_tab": {
+  "top": 644,
+  "h": 56
+ },
+ "t2_focused_empty_tab": {
+  "top": 644,
+  "h": 56
+ },
+ "t2_focus": "TEXTAREA:Message input",
+ "t3_typing_tab": null,
+ "t4_streaming_tab_samples": {
+  "n": 75,
+  "any_visible": false
+ },
+ "t5_after_finish_tab": {
+  "top": 644,
+  "h": 56
+ },
+ "t5_focus": "BODY:",
+ "t5_thread_url": "https://know-me.tools/threads/f6412267-74dd-47a5-b215-6f55aabcac18",
+ "t6_focused_empty_after_reply_tab": {
+  "top": 644,
+  "h": 56
+ },
+ "t6_focus": "TEXTAREA:Message input",
+ "t7_typing_after_reply_tab": null,
+ "t8_tap_away_tab": {
+  "top": 644,
+  "h": 56
+ }
+}

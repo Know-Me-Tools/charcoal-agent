@@ -1,0 +1,2076 @@
+{
+ "320-dark": {
+  "measure_opening": {
+   "vw": 320,
+   "scrollWidth": 320,
+   "composerTop": 441,
+   "scroller": {
+    "scrollTop": 888,
+    "clientH": 596,
+    "scrollH": 1484,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 211,
+    "top": 222
+   },
+   "assistantBottom": 222,
+   "lastAnswerPara": {
+    "bottom": -256,
+    "top": -358,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": -244,
+    "bottom": 150,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 198,
+   "gapActionsToComposer": 243,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "measure_bottom": {
+   "vw": 320,
+   "scrollWidth": 320,
+   "composerTop": 441,
+   "scroller": {
+    "scrollTop": 888,
+    "clientH": 596,
+    "scrollH": 1484,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 211,
+    "top": 222
+   },
+   "assistantBottom": 222,
+   "lastAnswerPara": {
+    "bottom": -256,
+    "top": -358,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": -244,
+    "bottom": 150,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 198,
+   "gapActionsToComposer": 243,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "chrome": {
+   "innerHeight": 700,
+   "form": {
+    "top": 440.75,
+    "h": 121
+   },
+   "disclosure": {
+    "top": 569.75,
+    "h": 32,
+    "bottom": 601.75
+   },
+   "tabbar": {
+    "top": 644,
+    "h": 56
+   },
+   "chromeHeight": 259
+  },
+  "targets": {
+   "Open threads": {
+    "w": 44,
+    "h": 44,
+    "vis": true
+   },
+   "About and sources": {
+    "w": 44,
+    "h": 44,
+    "vis": true
+   },
+   "Switch to light theme": {
+    "w": 44,
+    "h": 44,
+    "vis": true
+   },
+   "Send message": {
+    "w": 44,
+    "h": 44,
+    "vis": true
+   }
+  },
+  "measure_tall": {
+   "vw": 320,
+   "scrollWidth": 320,
+   "composerTop": 1741,
+   "scroller": {
+    "scrollTop": 0,
+    "clientH": 1896,
+    "scrollH": 1896,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 211,
+    "top": 1110
+   },
+   "assistantBottom": 1110,
+   "lastAnswerPara": {
+    "bottom": 632,
+    "top": 530,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": 644,
+    "bottom": 1038,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 1086,
+   "gapActionsToComposer": 655,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "about": {
+   "found": true,
+   "role": "dialog",
+   "rect": {
+    "x": 48,
+    "w": 272,
+    "top": 0,
+    "h": 700
+   },
+   "scrollTop": 0,
+   "scrollH": 771,
+   "clientH": 652,
+   "items": [
+    "[1]Surreal Memory Server FAQ",
+    "[2] [3]Surreal Memory Server status and licence",
+    "[4]Agent memory systems compared",
+    "[5]Prometheus and its products"
+   ],
+   "heads": [
+    {
+     "t": "H2",
+     "txt": "About and sources",
+     "top": 12,
+     "bottom": 36
+    },
+    {
+     "t": "H3",
+     "txt": "Sources",
+     "top": 56,
+     "bottom": 76
+    },
+    {
+     "t": "LI",
+     "txt": "[1]Surreal Memory Server FAQ",
+     "top": 88,
+     "bottom": 140
+    },
+    {
+     "t": "LI",
+     "txt": "[2] [3]Surreal Memory Server status and licence",
+     "top": 148,
+     "bottom": 220
+    },
+    {
+     "t": "LI",
+     "txt": "[4]Agent memory systems compared",
+     "top": 228,
+     "bottom": 300
+    },
+    {
+     "t": "LI",
+     "txt": "[5]Prometheus and its products",
+     "top": 308,
+     "bottom": 380
+    },
+    {
+     "t": "H3",
+     "txt": "About this assistant",
+     "top": 412,
+     "bottom": 432
+    },
+    {
+     "t": "P",
+     "txt": "This is an AI assistant for KnowMe AI, LLC. Its answers come from a cu",
+     "top": 440,
+     "bottom": 531
+    },
+    {
+     "t": "P",
+     "txt": "It can only answer questions. It cannot act for you, and it cannot pas",
+     "top": 543,
+     "bottom": 611
+    },
+    {
+     "t": "P",
+     "txt": "Your conversations are stored in this browser. To compose an answer, y",
+     "top": 623,
+     "bottom": 714
+    },
+    {
+     "t": "P",
+     "txt": "The Boss, the desktop app, is free and open source. Download it from t",
+     "top": 726,
+     "bottom": 795
+    }
+   ],
+   "vh": 700,
+   "scrollWidth": 320
+  }
+ },
+ "320-light": {
+  "measure_opening": {
+   "vw": 320,
+   "scrollWidth": 320,
+   "composerTop": 441,
+   "scroller": {
+    "scrollTop": 888,
+    "clientH": 596,
+    "scrollH": 1484,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 211,
+    "top": 222
+   },
+   "assistantBottom": 222,
+   "lastAnswerPara": {
+    "bottom": -256,
+    "top": -358,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": -244,
+    "bottom": 150,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 198,
+   "gapActionsToComposer": 243,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "measure_bottom": {
+   "vw": 320,
+   "scrollWidth": 320,
+   "composerTop": 441,
+   "scroller": {
+    "scrollTop": 888,
+    "clientH": 596,
+    "scrollH": 1484,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 211,
+    "top": 222
+   },
+   "assistantBottom": 222,
+   "lastAnswerPara": {
+    "bottom": -256,
+    "top": -358,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": -244,
+    "bottom": 150,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 198,
+   "gapActionsToComposer": 243,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "chrome": {
+   "innerHeight": 700,
+   "form": {
+    "top": 440.75,
+    "h": 121
+   },
+   "disclosure": {
+    "top": 569.75,
+    "h": 32,
+    "bottom": 601.75
+   },
+   "tabbar": {
+    "top": 644,
+    "h": 56
+   },
+   "chromeHeight": 259
+  },
+  "targets": {
+   "Open threads": {
+    "w": 44,
+    "h": 44,
+    "vis": true
+   },
+   "About and sources": {
+    "w": 44,
+    "h": 44,
+    "vis": true
+   },
+   "Switch to dark theme": {
+    "w": 44,
+    "h": 44,
+    "vis": true
+   },
+   "Send message": {
+    "w": 44,
+    "h": 44,
+    "vis": true
+   }
+  },
+  "measure_tall": {
+   "vw": 320,
+   "scrollWidth": 320,
+   "composerTop": 1741,
+   "scroller": {
+    "scrollTop": 0,
+    "clientH": 1896,
+    "scrollH": 1896,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 211,
+    "top": 1110
+   },
+   "assistantBottom": 1110,
+   "lastAnswerPara": {
+    "bottom": 632,
+    "top": 530,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": 644,
+    "bottom": 1038,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 1086,
+   "gapActionsToComposer": 655,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "about": {
+   "found": true,
+   "role": "dialog",
+   "rect": {
+    "x": 48,
+    "w": 272,
+    "top": 0,
+    "h": 700
+   },
+   "scrollTop": 0,
+   "scrollH": 771,
+   "clientH": 652,
+   "items": [
+    "[1]Surreal Memory Server FAQ",
+    "[2] [3]Surreal Memory Server status and licence",
+    "[4]Agent memory systems compared",
+    "[5]Prometheus and its products"
+   ],
+   "heads": [
+    {
+     "t": "H2",
+     "txt": "About and sources",
+     "top": 12,
+     "bottom": 36
+    },
+    {
+     "t": "H3",
+     "txt": "Sources",
+     "top": 56,
+     "bottom": 76
+    },
+    {
+     "t": "LI",
+     "txt": "[1]Surreal Memory Server FAQ",
+     "top": 88,
+     "bottom": 140
+    },
+    {
+     "t": "LI",
+     "txt": "[2] [3]Surreal Memory Server status and licence",
+     "top": 148,
+     "bottom": 220
+    },
+    {
+     "t": "LI",
+     "txt": "[4]Agent memory systems compared",
+     "top": 228,
+     "bottom": 300
+    },
+    {
+     "t": "LI",
+     "txt": "[5]Prometheus and its products",
+     "top": 308,
+     "bottom": 380
+    },
+    {
+     "t": "H3",
+     "txt": "About this assistant",
+     "top": 412,
+     "bottom": 432
+    },
+    {
+     "t": "P",
+     "txt": "This is an AI assistant for KnowMe AI, LLC. Its answers come from a cu",
+     "top": 440,
+     "bottom": 531
+    },
+    {
+     "t": "P",
+     "txt": "It can only answer questions. It cannot act for you, and it cannot pas",
+     "top": 543,
+     "bottom": 611
+    },
+    {
+     "t": "P",
+     "txt": "Your conversations are stored in this browser. To compose an answer, y",
+     "top": 623,
+     "bottom": 714
+    },
+    {
+     "t": "P",
+     "txt": "The Boss, the desktop app, is free and open source. Download it from t",
+     "top": 726,
+     "bottom": 795
+    }
+   ],
+   "vh": 700,
+   "scrollWidth": 320
+  }
+ },
+ "768-dark": {
+  "measure_opening": {
+   "vw": 768,
+   "scrollWidth": 768,
+   "composerTop": 722,
+   "scroller": {
+    "scrollTop": 334,
+    "clientH": 852,
+    "scrollH": 1186,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 190,
+    "top": 520
+   },
+   "assistantBottom": 520,
+   "lastAnswerPara": {
+    "bottom": 184,
+    "top": 107,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": 196,
+    "bottom": 460,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 496,
+   "gapActionsToComposer": 226,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "measure_bottom": {
+   "vw": 768,
+   "scrollWidth": 768,
+   "composerTop": 722,
+   "scroller": {
+    "scrollTop": 334,
+    "clientH": 852,
+    "scrollH": 1186,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 190,
+    "top": 520
+   },
+   "assistantBottom": 520,
+   "lastAnswerPara": {
+    "bottom": 184,
+    "top": 107,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": 196,
+    "bottom": 460,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 496,
+   "gapActionsToComposer": 226,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "chrome": {
+   "innerHeight": 900,
+   "form": {
+    "top": 721.625,
+    "h": 108
+   },
+   "disclosure": {
+    "top": 841.625,
+    "h": 16,
+    "bottom": 857.625
+   },
+   "tabbar": null,
+   "chromeHeight": 178
+  },
+  "targets": {
+   "About and sources": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Switch to light theme": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Send message": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   }
+  },
+  "measure_tall": {
+   "vw": 768,
+   "scrollWidth": 768,
+   "composerTop": 1822,
+   "scroller": {
+    "scrollTop": 0,
+    "clientH": 1952,
+    "scrollH": 1952,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 190,
+    "top": 854
+   },
+   "assistantBottom": 854,
+   "lastAnswerPara": {
+    "bottom": 518,
+    "top": 441,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": 530,
+    "bottom": 794,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 830,
+   "gapActionsToComposer": 992,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "sidebar_after_reload": [
+   "New thread"
+  ],
+  "url_after_reload": "https://know-me.tools/threads/c150ef39-fd4d-4bf1-817b-38604ebf783a",
+  "about": {
+   "found": true,
+   "role": "dialog",
+   "rect": {
+    "x": 448,
+    "w": 320,
+    "top": 0,
+    "h": 900
+   },
+   "scrollTop": null,
+   "scrollH": null,
+   "clientH": null,
+   "items": [
+    "[1]Surreal Memory Server FAQ",
+    "[2] [3]Surreal Memory Server status and licence",
+    "[4]Agent memory systems compared",
+    "[5]Prometheus and its products"
+   ],
+   "heads": [
+    {
+     "t": "H2",
+     "txt": "About and sources",
+     "top": 12,
+     "bottom": 36
+    },
+    {
+     "t": "H3",
+     "txt": "Sources",
+     "top": 56,
+     "bottom": 76
+    },
+    {
+     "t": "LI",
+     "txt": "[1]Surreal Memory Server FAQ",
+     "top": 88,
+     "bottom": 124
+    },
+    {
+     "t": "LI",
+     "txt": "[2] [3]Surreal Memory Server status and licence",
+     "top": 132,
+     "bottom": 204
+    },
+    {
+     "t": "LI",
+     "txt": "[4]Agent memory systems compared",
+     "top": 212,
+     "bottom": 264
+    },
+    {
+     "t": "LI",
+     "txt": "[5]Prometheus and its products",
+     "top": 272,
+     "bottom": 308
+    },
+    {
+     "t": "H3",
+     "txt": "About this assistant",
+     "top": 340,
+     "bottom": 360
+    },
+    {
+     "t": "P",
+     "txt": "This is an AI assistant for KnowMe AI, LLC. Its answers come from a cu",
+     "top": 368,
+     "bottom": 436
+    },
+    {
+     "t": "P",
+     "txt": "It can only answer questions. It cannot act for you, and it cannot pas",
+     "top": 448,
+     "bottom": 517
+    },
+    {
+     "t": "P",
+     "txt": "Your conversations are stored in this browser. To compose an answer, y",
+     "top": 529,
+     "bottom": 597
+    },
+    {
+     "t": "P",
+     "txt": "The Boss, the desktop app, is free and open source. Download it from t",
+     "top": 609,
+     "bottom": 677
+    }
+   ],
+   "vh": 900,
+   "scrollWidth": 768
+  }
+ },
+ "768-light": {
+  "measure_opening": {
+   "vw": 768,
+   "scrollWidth": 768,
+   "composerTop": 722,
+   "scroller": {
+    "scrollTop": 334,
+    "clientH": 852,
+    "scrollH": 1186,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 190,
+    "top": 520
+   },
+   "assistantBottom": 520,
+   "lastAnswerPara": {
+    "bottom": 184,
+    "top": 107,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": 196,
+    "bottom": 460,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 496,
+   "gapActionsToComposer": 226,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "measure_bottom": {
+   "vw": 768,
+   "scrollWidth": 768,
+   "composerTop": 722,
+   "scroller": {
+    "scrollTop": 334,
+    "clientH": 852,
+    "scrollH": 1186,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 190,
+    "top": 520
+   },
+   "assistantBottom": 520,
+   "lastAnswerPara": {
+    "bottom": 184,
+    "top": 107,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": 196,
+    "bottom": 460,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 496,
+   "gapActionsToComposer": 226,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "chrome": {
+   "innerHeight": 900,
+   "form": {
+    "top": 721.625,
+    "h": 108
+   },
+   "disclosure": {
+    "top": 841.625,
+    "h": 16,
+    "bottom": 857.625
+   },
+   "tabbar": null,
+   "chromeHeight": 178
+  },
+  "targets": {
+   "About and sources": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Switch to dark theme": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Send message": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   }
+  },
+  "measure_tall": {
+   "vw": 768,
+   "scrollWidth": 768,
+   "composerTop": 1822,
+   "scroller": {
+    "scrollTop": 0,
+    "clientH": 1952,
+    "scrollH": 1952,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 190,
+    "top": 854
+   },
+   "assistantBottom": 854,
+   "lastAnswerPara": {
+    "bottom": 518,
+    "top": 441,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": 530,
+    "bottom": 794,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 830,
+   "gapActionsToComposer": 992,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "sidebar_after_reload": [
+   "New thread"
+  ],
+  "url_after_reload": "https://know-me.tools/threads/c150ef39-fd4d-4bf1-817b-38604ebf783a",
+  "about": {
+   "found": true,
+   "role": "dialog",
+   "rect": {
+    "x": 448,
+    "w": 320,
+    "top": 0,
+    "h": 900
+   },
+   "scrollTop": null,
+   "scrollH": null,
+   "clientH": null,
+   "items": [
+    "[1]Surreal Memory Server FAQ",
+    "[2] [3]Surreal Memory Server status and licence",
+    "[4]Agent memory systems compared",
+    "[5]Prometheus and its products"
+   ],
+   "heads": [
+    {
+     "t": "H2",
+     "txt": "About and sources",
+     "top": 12,
+     "bottom": 36
+    },
+    {
+     "t": "H3",
+     "txt": "Sources",
+     "top": 56,
+     "bottom": 76
+    },
+    {
+     "t": "LI",
+     "txt": "[1]Surreal Memory Server FAQ",
+     "top": 88,
+     "bottom": 124
+    },
+    {
+     "t": "LI",
+     "txt": "[2] [3]Surreal Memory Server status and licence",
+     "top": 132,
+     "bottom": 204
+    },
+    {
+     "t": "LI",
+     "txt": "[4]Agent memory systems compared",
+     "top": 212,
+     "bottom": 264
+    },
+    {
+     "t": "LI",
+     "txt": "[5]Prometheus and its products",
+     "top": 272,
+     "bottom": 308
+    },
+    {
+     "t": "H3",
+     "txt": "About this assistant",
+     "top": 340,
+     "bottom": 360
+    },
+    {
+     "t": "P",
+     "txt": "This is an AI assistant for KnowMe AI, LLC. Its answers come from a cu",
+     "top": 368,
+     "bottom": 436
+    },
+    {
+     "t": "P",
+     "txt": "It can only answer questions. It cannot act for you, and it cannot pas",
+     "top": 448,
+     "bottom": 517
+    },
+    {
+     "t": "P",
+     "txt": "Your conversations are stored in this browser. To compose an answer, y",
+     "top": 529,
+     "bottom": 597
+    },
+    {
+     "t": "P",
+     "txt": "The Boss, the desktop app, is free and open source. Download it from t",
+     "top": 609,
+     "bottom": 677
+    }
+   ],
+   "vh": 900,
+   "scrollWidth": 768
+  }
+ },
+ "1024-dark": {
+  "measure_opening": {
+   "vw": 1024,
+   "scrollWidth": 1024,
+   "composerTop": 622,
+   "scroller": {
+    "scrollTop": 392,
+    "clientH": 752,
+    "scrollH": 1144,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 190,
+    "top": 420
+   },
+   "assistantBottom": 420,
+   "lastAnswerPara": {
+    "bottom": 84,
+    "top": 33,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": 96,
+    "bottom": 360,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 396,
+   "gapActionsToComposer": 226,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "measure_bottom": {
+   "vw": 1024,
+   "scrollWidth": 1024,
+   "composerTop": 622,
+   "scroller": {
+    "scrollTop": 392,
+    "clientH": 752,
+    "scrollH": 1144,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 190,
+    "top": 420
+   },
+   "assistantBottom": 420,
+   "lastAnswerPara": {
+    "bottom": 84,
+    "top": 33,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": 96,
+    "bottom": 360,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 396,
+   "gapActionsToComposer": 226,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "chrome": {
+   "innerHeight": 800,
+   "form": {
+    "top": 622,
+    "h": 108
+   },
+   "disclosure": {
+    "top": 742,
+    "h": 16,
+    "bottom": 758
+   },
+   "tabbar": null,
+   "chromeHeight": 178
+  },
+  "targets": {
+   "About and sources": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Switch to light theme": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Send message": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   }
+  },
+  "measure_tall": {
+   "vw": 1024,
+   "scrollWidth": 1024,
+   "composerTop": 1822,
+   "scroller": {
+    "scrollTop": 0,
+    "clientH": 1952,
+    "scrollH": 1952,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 190,
+    "top": 812
+   },
+   "assistantBottom": 812,
+   "lastAnswerPara": {
+    "bottom": 476,
+    "top": 425,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": 488,
+    "bottom": 752,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 788,
+   "gapActionsToComposer": 1034,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "sidebar_after_reload": [
+   "New thread"
+  ],
+  "url_after_reload": "https://know-me.tools/threads/c150ef39-fd4d-4bf1-817b-38604ebf783a",
+  "about": {
+   "found": true,
+   "role": "dialog",
+   "rect": {
+    "x": 704,
+    "w": 320,
+    "top": 0,
+    "h": 800
+   },
+   "scrollTop": null,
+   "scrollH": null,
+   "clientH": null,
+   "items": [
+    "[1]Surreal Memory Server FAQ",
+    "[2] [3]Surreal Memory Server status and licence",
+    "[4]Agent memory systems compared",
+    "[5]Prometheus and its products"
+   ],
+   "heads": [
+    {
+     "t": "H2",
+     "txt": "About and sources",
+     "top": 12,
+     "bottom": 36
+    },
+    {
+     "t": "H3",
+     "txt": "Sources",
+     "top": 56,
+     "bottom": 76
+    },
+    {
+     "t": "LI",
+     "txt": "[1]Surreal Memory Server FAQ",
+     "top": 88,
+     "bottom": 124
+    },
+    {
+     "t": "LI",
+     "txt": "[2] [3]Surreal Memory Server status and licence",
+     "top": 132,
+     "bottom": 204
+    },
+    {
+     "t": "LI",
+     "txt": "[4]Agent memory systems compared",
+     "top": 212,
+     "bottom": 264
+    },
+    {
+     "t": "LI",
+     "txt": "[5]Prometheus and its products",
+     "top": 272,
+     "bottom": 308
+    },
+    {
+     "t": "H3",
+     "txt": "About this assistant",
+     "top": 340,
+     "bottom": 360
+    },
+    {
+     "t": "P",
+     "txt": "This is an AI assistant for KnowMe AI, LLC. Its answers come from a cu",
+     "top": 368,
+     "bottom": 436
+    },
+    {
+     "t": "P",
+     "txt": "It can only answer questions. It cannot act for you, and it cannot pas",
+     "top": 448,
+     "bottom": 517
+    },
+    {
+     "t": "P",
+     "txt": "Your conversations are stored in this browser. To compose an answer, y",
+     "top": 529,
+     "bottom": 597
+    },
+    {
+     "t": "P",
+     "txt": "The Boss, the desktop app, is free and open source. Download it from t",
+     "top": 609,
+     "bottom": 677
+    }
+   ],
+   "vh": 800,
+   "scrollWidth": 1024
+  }
+ },
+ "1024-light": {
+  "measure_opening": {
+   "vw": 1024,
+   "scrollWidth": 1024,
+   "composerTop": 622,
+   "scroller": {
+    "scrollTop": 392,
+    "clientH": 752,
+    "scrollH": 1144,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 190,
+    "top": 420
+   },
+   "assistantBottom": 420,
+   "lastAnswerPara": {
+    "bottom": 84,
+    "top": 33,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": 96,
+    "bottom": 360,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 396,
+   "gapActionsToComposer": 226,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "measure_bottom": {
+   "vw": 1024,
+   "scrollWidth": 1024,
+   "composerTop": 622,
+   "scroller": {
+    "scrollTop": 392,
+    "clientH": 752,
+    "scrollH": 1144,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 190,
+    "top": 420
+   },
+   "assistantBottom": 420,
+   "lastAnswerPara": {
+    "bottom": 84,
+    "top": 33,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": 96,
+    "bottom": 360,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 396,
+   "gapActionsToComposer": 226,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "chrome": {
+   "innerHeight": 800,
+   "form": {
+    "top": 622,
+    "h": 108
+   },
+   "disclosure": {
+    "top": 742,
+    "h": 16,
+    "bottom": 758
+   },
+   "tabbar": null,
+   "chromeHeight": 178
+  },
+  "targets": {
+   "About and sources": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Switch to dark theme": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Send message": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   }
+  },
+  "measure_tall": {
+   "vw": 1024,
+   "scrollWidth": 1024,
+   "composerTop": 1822,
+   "scroller": {
+    "scrollTop": 0,
+    "clientH": 1952,
+    "scrollH": 1952,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 190,
+    "top": 812
+   },
+   "assistantBottom": 812,
+   "lastAnswerPara": {
+    "bottom": 476,
+    "top": 425,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": 488,
+    "bottom": 752,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 788,
+   "gapActionsToComposer": 1034,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "sidebar_after_reload": [
+   "New thread"
+  ],
+  "url_after_reload": "https://know-me.tools/threads/c150ef39-fd4d-4bf1-817b-38604ebf783a",
+  "about": {
+   "found": true,
+   "role": "dialog",
+   "rect": {
+    "x": 704,
+    "w": 320,
+    "top": 0,
+    "h": 800
+   },
+   "scrollTop": null,
+   "scrollH": null,
+   "clientH": null,
+   "items": [
+    "[1]Surreal Memory Server FAQ",
+    "[2] [3]Surreal Memory Server status and licence",
+    "[4]Agent memory systems compared",
+    "[5]Prometheus and its products"
+   ],
+   "heads": [
+    {
+     "t": "H2",
+     "txt": "About and sources",
+     "top": 12,
+     "bottom": 36
+    },
+    {
+     "t": "H3",
+     "txt": "Sources",
+     "top": 56,
+     "bottom": 76
+    },
+    {
+     "t": "LI",
+     "txt": "[1]Surreal Memory Server FAQ",
+     "top": 88,
+     "bottom": 124
+    },
+    {
+     "t": "LI",
+     "txt": "[2] [3]Surreal Memory Server status and licence",
+     "top": 132,
+     "bottom": 204
+    },
+    {
+     "t": "LI",
+     "txt": "[4]Agent memory systems compared",
+     "top": 212,
+     "bottom": 264
+    },
+    {
+     "t": "LI",
+     "txt": "[5]Prometheus and its products",
+     "top": 272,
+     "bottom": 308
+    },
+    {
+     "t": "H3",
+     "txt": "About this assistant",
+     "top": 340,
+     "bottom": 360
+    },
+    {
+     "t": "P",
+     "txt": "This is an AI assistant for KnowMe AI, LLC. Its answers come from a cu",
+     "top": 368,
+     "bottom": 436
+    },
+    {
+     "t": "P",
+     "txt": "It can only answer questions. It cannot act for you, and it cannot pas",
+     "top": 448,
+     "bottom": 517
+    },
+    {
+     "t": "P",
+     "txt": "Your conversations are stored in this browser. To compose an answer, y",
+     "top": 529,
+     "bottom": 597
+    },
+    {
+     "t": "P",
+     "txt": "The Boss, the desktop app, is free and open source. Download it from t",
+     "top": 609,
+     "bottom": 677
+    }
+   ],
+   "vh": 800,
+   "scrollWidth": 1024
+  }
+ },
+ "1440-dark": {
+  "measure_opening": {
+   "vw": 1440,
+   "scrollWidth": 1440,
+   "composerTop": 722,
+   "scroller": {
+    "scrollTop": 292,
+    "clientH": 852,
+    "scrollH": 1144,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 190,
+    "top": 520
+   },
+   "assistantBottom": 520,
+   "lastAnswerPara": {
+    "bottom": 184,
+    "top": 133,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": 196,
+    "bottom": 460,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 496,
+   "gapActionsToComposer": 226,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "measure_bottom": {
+   "vw": 1440,
+   "scrollWidth": 1440,
+   "composerTop": 722,
+   "scroller": {
+    "scrollTop": 292,
+    "clientH": 852,
+    "scrollH": 1144,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 190,
+    "top": 520
+   },
+   "assistantBottom": 520,
+   "lastAnswerPara": {
+    "bottom": 184,
+    "top": 133,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": 196,
+    "bottom": 460,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 496,
+   "gapActionsToComposer": 226,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "chrome": {
+   "innerHeight": 900,
+   "form": {
+    "top": 722,
+    "h": 108
+   },
+   "disclosure": {
+    "top": 842,
+    "h": 16,
+    "bottom": 858
+   },
+   "tabbar": null,
+   "chromeHeight": 178
+  },
+  "targets": {
+   "About and sources": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Switch to light theme": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Send message": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   }
+  },
+  "measure_tall": {
+   "vw": 1440,
+   "scrollWidth": 1440,
+   "composerTop": 1822,
+   "scroller": {
+    "scrollTop": 0,
+    "clientH": 1952,
+    "scrollH": 1952,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 190,
+    "top": 812
+   },
+   "assistantBottom": 812,
+   "lastAnswerPara": {
+    "bottom": 476,
+    "top": 425,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": 488,
+    "bottom": 752,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 788,
+   "gapActionsToComposer": 1034,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "excerpt_text": "SOURCES\n\n[1]\nSurreal Memory Server FAQ\n\nSurreal Memory Server questions. What is the Surreal Memory Server? A Rust memory service for AI agents, built on SurrealDB. It keeps a knowledge graph, scoped\u2026\n\n[2]\nSurreal Memory Server status and licence\n[3]\nSurreal Memory Server status and licence\n[4]\nAgent memory systems compared\n[5]\nPrometheus and its products",
+  "steps_expanded_text": "Agent:\n\nKnowMe Concierge \u2014 an AI assistant. Answers may be wrong.\n\n2 steps\nThinking\n, done\nPreparing an answer card\n, done\nSurreal Memory Server licence\n\nThe memory service is MIT licensed, with Prometheus AGS named as copyright holder.\n\nSurreal Memory Server status and licence\n\nAI-GENERATED \u00b7 CHECK IMPORTANT DETAILS\n\nI'm an AI concierge for KnowMe AI, LLC \u2014 happy to help.\n\nYes. The Surreal Memory Server is MIT licensed, and its LICENSE file names Prometheus AGS as the copyright holder [2].\n\nSOU",
+  "sidebar_after_reload": [
+   "New thread"
+  ],
+  "url_after_reload": "https://know-me.tools/threads/c150ef39-fd4d-4bf1-817b-38604ebf783a",
+  "about": {
+   "found": true,
+   "role": null,
+   "rect": {
+    "x": 1120,
+    "w": 320,
+    "top": 48,
+    "h": 852
+   },
+   "scrollTop": null,
+   "scrollH": null,
+   "clientH": null,
+   "items": [
+    "[1]Surreal Memory Server FAQ",
+    "[2] [3]Surreal Memory Server status and licence",
+    "[4]Agent memory systems compared",
+    "[5]Prometheus and its products"
+   ],
+   "heads": [
+    {
+     "t": "H2",
+     "txt": "About and sources",
+     "top": 66,
+     "bottom": 82
+    },
+    {
+     "t": "H3",
+     "txt": "Sources",
+     "top": 100,
+     "bottom": 120
+    },
+    {
+     "t": "LI",
+     "txt": "[1]Surreal Memory Server FAQ",
+     "top": 132,
+     "bottom": 168
+    },
+    {
+     "t": "LI",
+     "txt": "[2] [3]Surreal Memory Server status and licence",
+     "top": 176,
+     "bottom": 248
+    },
+    {
+     "t": "LI",
+     "txt": "[4]Agent memory systems compared",
+     "top": 256,
+     "bottom": 308
+    },
+    {
+     "t": "LI",
+     "txt": "[5]Prometheus and its products",
+     "top": 316,
+     "bottom": 352
+    },
+    {
+     "t": "H3",
+     "txt": "About this assistant",
+     "top": 384,
+     "bottom": 404
+    },
+    {
+     "t": "P",
+     "txt": "This is an AI assistant for KnowMe AI, LLC. Its answers come from a cu",
+     "top": 412,
+     "bottom": 480
+    },
+    {
+     "t": "P",
+     "txt": "It can only answer questions. It cannot act for you, and it cannot pas",
+     "top": 492,
+     "bottom": 561
+    },
+    {
+     "t": "P",
+     "txt": "Your conversations are stored in this browser. To compose an answer, y",
+     "top": 573,
+     "bottom": 641
+    },
+    {
+     "t": "P",
+     "txt": "The Boss, the desktop app, is free and open source. Download it from t",
+     "top": 653,
+     "bottom": 721
+    }
+   ],
+   "vh": 900,
+   "scrollWidth": 1440
+  }
+ },
+ "1440-light": {
+  "measure_opening": {
+   "vw": 1440,
+   "scrollWidth": 1440,
+   "composerTop": 722,
+   "scroller": {
+    "scrollTop": 292,
+    "clientH": 852,
+    "scrollH": 1144,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 190,
+    "top": 520
+   },
+   "assistantBottom": 520,
+   "lastAnswerPara": {
+    "bottom": 184,
+    "top": 133,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": 196,
+    "bottom": 460,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 496,
+   "gapActionsToComposer": 226,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "measure_bottom": {
+   "vw": 1440,
+   "scrollWidth": 1440,
+   "composerTop": 722,
+   "scroller": {
+    "scrollTop": 292,
+    "clientH": 852,
+    "scrollH": 1144,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 190,
+    "top": 520
+   },
+   "assistantBottom": 520,
+   "lastAnswerPara": {
+    "bottom": 184,
+    "top": 133,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": 196,
+    "bottom": 460,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 496,
+   "gapActionsToComposer": 226,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "chrome": {
+   "innerHeight": 900,
+   "form": {
+    "top": 722,
+    "h": 108
+   },
+   "disclosure": {
+    "top": 842,
+    "h": 16,
+    "bottom": 858
+   },
+   "tabbar": null,
+   "chromeHeight": 178
+  },
+  "targets": {
+   "About and sources": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Switch to dark theme": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   },
+   "Send message": {
+    "w": 32,
+    "h": 32,
+    "vis": true
+   }
+  },
+  "measure_tall": {
+   "vw": 1440,
+   "scrollWidth": 1440,
+   "composerTop": 1822,
+   "scroller": {
+    "scrollTop": 0,
+    "clientH": 1952,
+    "scrollH": 1952,
+    "atBottom": true
+   },
+   "spacer": {
+    "h": 190,
+    "top": 812
+   },
+   "assistantBottom": 812,
+   "lastAnswerPara": {
+    "bottom": 476,
+    "top": 425,
+    "text": "Yes. The Surreal Memory Server is MIT licensed, an",
+    "hiddenUnderComposer": false
+   },
+   "sources": {
+    "top": 488,
+    "bottom": 752,
+    "hiddenUnderComposer": false,
+    "text": "SOURCES | [1] | Surreal Memory Server FAQ | [2] | Surreal Memory Server status and licence | [3] | Surreal Memory Server status and licence | [4] | Agent memory systems compared | [5] | Prometheus and its products",
+    "showExcerptBtns": 5,
+    "items": 5
+   },
+   "answerBeforeSources": true,
+   "actionsBottom": 788,
+   "gapActionsToComposer": 1034,
+   "steps": [
+    {
+     "text": "2 steps",
+     "h": 28,
+     "w": 86,
+     "bg": "rgba(0, 0, 0, 0)",
+     "parentBg": "rgba(0, 0, 0, 0)",
+     "radius": "8px"
+    }
+   ],
+   "thinkingRows": []
+  },
+  "sidebar_after_reload": [
+   "New thread"
+  ],
+  "url_after_reload": "https://know-me.tools/threads/c150ef39-fd4d-4bf1-817b-38604ebf783a",
+  "about": {
+   "found": true,
+   "role": null,
+   "rect": {
+    "x": 1120,
+    "w": 320,
+    "top": 48,
+    "h": 852
+   },
+   "scrollTop": null,
+   "scrollH": null,
+   "clientH": null,
+   "items": [
+    "[1]Surreal Memory Server FAQ",
+    "[2] [3]Surreal Memory Server status and licence",
+    "[4]Agent memory systems compared",
+    "[5]Prometheus and its products"
+   ],
+   "heads": [
+    {
+     "t": "H2",
+     "txt": "About and sources",
+     "top": 66,
+     "bottom": 82
+    },
+    {
+     "t": "H3",
+     "txt": "Sources",
+     "top": 100,
+     "bottom": 120
+    },
+    {
+     "t": "LI",
+     "txt": "[1]Surreal Memory Server FAQ",
+     "top": 132,
+     "bottom": 168
+    },
+    {
+     "t": "LI",
+     "txt": "[2] [3]Surreal Memory Server status and licence",
+     "top": 176,
+     "bottom": 248
+    },
+    {
+     "t": "LI",
+     "txt": "[4]Agent memory systems compared",
+     "top": 256,
+     "bottom": 308
+    },
+    {
+     "t": "LI",
+     "txt": "[5]Prometheus and its products",
+     "top": 316,
+     "bottom": 352
+    },
+    {
+     "t": "H3",
+     "txt": "About this assistant",
+     "top": 384,
+     "bottom": 404
+    },
+    {
+     "t": "P",
+     "txt": "This is an AI assistant for KnowMe AI, LLC. Its answers come from a cu",
+     "top": 412,
+     "bottom": 480
+    },
+    {
+     "t": "P",
+     "txt": "It can only answer questions. It cannot act for you, and it cannot pas",
+     "top": 492,
+     "bottom": 561
+    },
+    {
+     "t": "P",
+     "txt": "Your conversations are stored in this browser. To compose an answer, y",
+     "top": 573,
+     "bottom": 641
+    },
+    {
+     "t": "P",
+     "txt": "The Boss, the desktop app, is free and open source. Download it from t",
+     "top": 653,
+     "bottom": 721
+    }
+   ],
+   "vh": 900,
+   "scrollWidth": 1440
+  }
+ }
+}
