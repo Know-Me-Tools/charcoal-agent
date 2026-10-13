@@ -1,7 +1,7 @@
 /**
- * DRAFT copy — pending operator approval, recorded in
- * `docs/content/reviews/site-ai-disclosure-label.md`. Do not treat as final;
- * see that file before changing or shipping this text.
+ * Operator-approved 2026-10-13, recorded in
+ * `docs/content/reviews/site-ai-disclosure-label.md`. See that file before
+ * changing this text.
  *
  * The EU AI Act Art. 50 disclosure label and the composer's sensitive-data
  * hint are the only source for this copy (site-ai-disclosure-label, tasks
@@ -21,8 +21,8 @@ export const AI_DISCLOSURE_CONTENT: AiDisclosureContent = {
 };
 
 /**
- * DRAFT copy — pending content-officer pre-review and operator approval
- * (site-answer-card-and-sources, task 5.4); no review record exists yet.
+ * Operator-approved 2026-10-13, recorded in
+ * `docs/content/reviews/site-ai-surface-caption.md`.
  *
  * The fixed, app-rendered caption under every A2UI surface (task 5.3, W3).
  * The app renders it outside the model's surface content, so no model output

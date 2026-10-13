@@ -1,7 +1,6 @@
 /**
- * DRAFT copy — pending operator approval and the chief content officer's
- * pre-review. Do not treat as final; a review record for this piece belongs
- * in `docs/content/reviews/site-about-panel.md` before it ships.
+ * Operator-approved 2026-10-13, recorded in
+ * `docs/content/reviews/site-about-panel.md`. Change this text only with a new review record.
  *
  * The public site's About / Sources panel (site-shell-about-panel-and-empty-state,
  * task 6.2), which replaces the app's agent Context panel on the site build.

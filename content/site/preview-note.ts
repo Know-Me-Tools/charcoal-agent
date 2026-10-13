@@ -1,6 +1,6 @@
 /**
- * DRAFT copy — pending operator approval and the chief content officer's
- * pre-review. Do not treat as final.
+ * Operator-approved 2026-10-13, recorded in
+ * `docs/content/reviews/site-preview-note.md`. Change this text only with a new review record.
  *
  * Shown under the toolbar of an HTML preview on the site build when the
  * previewed code contains scripts (site-reply-content-hardening, task 3.5
