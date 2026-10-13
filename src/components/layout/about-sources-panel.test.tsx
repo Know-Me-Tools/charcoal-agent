@@ -5,7 +5,7 @@
  * destination is shown as text. The About copy comes from
  * `content/site/about-panel.ts` (DRAFT).
  */
-import { act, render, screen, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -128,7 +128,8 @@ describe("AboutSourcesSheet", () => {
     act(() => useUiStore.setState({ contextSheetOpen: true }));
 
     const dialog = await screen.findByRole("dialog", { name: ABOUT_PANEL_CONTENT.title });
-    expect(dialog).toContainElement(document.activeElement as HTMLElement);
+    // The focus trap moves focus in after the dialog mounts; under load that can lag.
+    await waitFor(() => expect(dialog).toContainElement(document.activeElement as HTMLElement));
     expect(within(dialog).getByRole("button", { name: ABOUT_PANEL_CONTENT.closeLabel })).toBeInTheDocument();
 
     await userEvent.keyboard("{Escape}");
