@@ -20,6 +20,8 @@
 #                      all   = agent, presentation templates, KB sync and FR-8 checks
 #                      agent = agent PUT and presentation templates only
 #                      kb    = KB create/sync and FR-8 checks only
+#                      verify = ONLY the model verification below (no PUT, no KB). Used by
+#                              scripts/ops/verify-site-models.sh. Ignores SEED_VERIFY_MODELS=0 by dying.
 #   SEED_WEB_AGENT   Whether to also seed the web-search agent (default: 1).
 #                      1 = also PUT $WEB_AGENT_FILE (agent id knowme-site-web), after knowme-site.
 #                          Both agents share the knowme-site KB and the same presentation templates.
@@ -169,8 +171,8 @@ done
 
 # ── Preflight ────────────────────────────────────────────────────────────────
 case "$SEED_MODE" in
-  all | agent | kb) ;;
-  *) die "SEED_MODE must be kb, agent or all (got '$SEED_MODE')" ;;
+  all | agent | kb | verify) ;;
+  *) die "SEED_MODE must be kb, agent, verify or all (got '$SEED_MODE')" ;;
 esac
 case "$SEED_WEB_AGENT" in
   0 | 1) ;;
@@ -182,8 +184,14 @@ case "$SEED_VERIFY_MODELS" in
 esac
 SEED_AGENT=0
 SEED_KB=0
-[[ "$SEED_MODE" != kb ]] && SEED_AGENT=1
-[[ "$SEED_MODE" != agent ]] && SEED_KB=1
+[[ "$SEED_MODE" == all || "$SEED_MODE" == agent ]] && SEED_AGENT=1
+[[ "$SEED_MODE" == all || "$SEED_MODE" == kb ]] && SEED_KB=1
+SEED_VERIFY=0
+[[ "$SEED_AGENT" == 1 && "$SEED_VERIFY_MODELS" == 1 ]] && SEED_VERIFY=1
+if [[ "$SEED_MODE" == verify ]]; then
+  [[ "$SEED_VERIFY_MODELS" == 1 ]] || die "SEED_MODE=verify with SEED_VERIFY_MODELS=0 would do nothing"
+  SEED_VERIFY=1
+fi
 for cmd in curl jq openssl; do
   command -v "$cmd" >/dev/null 2>&1 || die "required command not found: $cmd"
 done
@@ -198,7 +206,7 @@ if [[ -n "${SITE_GATE_TOKEN_URL:-}" || -n "${SITE_GATE_CLIENT_ID:-}" || -n "${SI
 else
   [[ -n "${UAR_JWT_SECRET:-}" ]] || die "UAR_JWT_SECRET must be set (or the SITE_GATE_* client credentials)"
 fi
-if [[ "$SEED_AGENT" == 1 ]]; then
+if [[ "$SEED_AGENT" == 1 || "$SEED_MODE" == verify ]]; then
   [[ -f "$AGENT_FILE" ]] || die "agent artifact not found: $AGENT_FILE (owned by km-conversational-designer)"
   if [[ "$SEED_WEB_AGENT" == 1 ]]; then
     [[ -f "$WEB_AGENT_FILE" ]] || die "web agent artifact not found: $WEB_AGENT_FILE (set SEED_WEB_AGENT=0 to seed without it)"
@@ -242,10 +250,11 @@ mint_jwt() {
 # its aud is the client's audience (uar). Never echoed.
 gate_token() {
   local body
-  body="$(curl -sS --max-time 10 -X POST "$SITE_GATE_TOKEN_URL" \
-    --data-urlencode grant_type=client_credentials \
-    --data-urlencode "client_id=${SITE_GATE_CLIENT_ID}" \
-    --data-urlencode "client_secret=${SITE_GATE_CLIENT_SECRET}")" || die "gate token request failed"
+  # The client secret goes to curl on stdin (-K -), not on the command line, so it is not visible in ps.
+  body="$(printf 'data-urlencode = "client_secret=%s"\n' "$SITE_GATE_CLIENT_SECRET" |
+    curl -sS --max-time 10 -X POST "$SITE_GATE_TOKEN_URL" -K - \
+      --data-urlencode grant_type=client_credentials \
+      --data-urlencode "client_id=${SITE_GATE_CLIENT_ID}")" || die "gate token request failed"
   jq -er '.access_token' <<<"$body" 2>/dev/null || die "gate returned no access_token"
 }
 
@@ -260,6 +269,14 @@ fi
 # not in $(...): a subshell would drop REPLY_BODY. Never logs Authorization.
 REPLY_BODY=""
 API_STATUS=""
+# The bearer token and the admin key go to curl as header files (-H @file, 0600, removed on
+# exit), never as command-line arguments, so neither is visible in ps.
+HDR_DIR="$(umask 077 && mktemp -d)"
+trap 'rm -rf "$HDR_DIR"' EXIT
+(umask 077 && printf 'Authorization: Bearer %s\n' "$JWT" >"$HDR_DIR/auth")
+if [[ -n "${UAR_ADMIN_KEY:-}" ]]; then
+  (umask 077 && printf 'X-UAR-Admin-Key: %s\n' "$UAR_ADMIN_KEY" >"$HDR_DIR/admin")
+fi
 api() {
   local method="$1" path="$2"
   shift 2
@@ -267,7 +284,7 @@ api() {
   tmp="$(mktemp)"
   API_STATUS="$(curl -sS -o "$tmp" -w '%{http_code}' \
     -X "$method" "${UAR_URL}${path}" \
-    -H "Authorization: Bearer ${JWT}" \
+    -H "@${HDR_DIR}/auth" \
     "$@")" || API_STATUS="000"
   REPLY_BODY="$(cat "$tmp")"
   rm -f "$tmp"
@@ -299,7 +316,7 @@ agent_model_pairs() {
 # ok | retry | unsupported | unauthorized | fail and VERIFY_NOTE (never a secret).
 verify_attempt() {
   local provider="$1" model="$2" body hdr=()
-  [[ -n "${UAR_ADMIN_KEY:-}" ]] && hdr=(-H "X-UAR-Admin-Key: ${UAR_ADMIN_KEY}")
+  [[ -f "$HDR_DIR/admin" ]] && hdr=(-H "@${HDR_DIR}/admin")
   body="$(jq -nc --arg m "$model" '{model: $m}')"
   api POST "/api/providers/${provider}/test" --max-time "$VERIFY_TIMEOUT_SECS" \
     -H 'Content-Type: application/json' ${hdr[@]+"${hdr[@]}"} --data-binary "$body"
@@ -421,16 +438,17 @@ for tpl in "$PRESENTATIONS_DIR"/*.json; do
   fi
 done
 shopt -u nullglob
+else
+  [[ "$SEED_MODE" == verify ]] || log "SEED_MODE=$SEED_MODE: skipping the agent and presentation templates"
+fi # end of SEED_AGENT sections 1 and 1b
 
 # ── 1c. Verify the agents' models ──────────────────────────────────────────
-if [[ "$SEED_VERIFY_MODELS" == 1 ]]; then
+# Runs in SEED_MODE agent and all (unless SEED_VERIFY_MODELS=0) and in verify.
+if [[ "$SEED_VERIFY" == 1 ]]; then
   verify_models
-else
+elif [[ "$SEED_AGENT" == 1 ]]; then
   log "SEED_VERIFY_MODELS=0: skipping model verification (a UAR with the model_not_verified gate will refuse chat until the models are verified)"
 fi
-else
-  log "SEED_MODE=$SEED_MODE: skipping the agent and presentation templates"
-fi # end of SEED_AGENT sections 1 and 1b
 
 # ── 2. Knowledge base: create if missing, looked up by name ────────────────
 # Sections 2 to 4 run in SEED_MODE all and kb (not re-indented, as above).

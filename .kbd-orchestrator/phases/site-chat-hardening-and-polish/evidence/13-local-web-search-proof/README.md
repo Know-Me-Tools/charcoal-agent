@@ -110,6 +110,10 @@ A request the server rejects is never reported as a model behaviour. When a capt
 
 Unverified by the author: the harness has not been run against a real UAR with the gate (no UAR was reachable from the change's environment). If the receipt does not survive the UAR restarts in steps 7 and 8 (its digest covers the provider configuration), the later steps will show `request rejected: HTTP 422, error.code model_not_verified`; that is the signal to add a re-verify after those restarts.
 
+### Production: the operator verifies the live models
+
+CI never holds UAR's admin key, so the cluster's models are verified by the operator with `scripts/ops/verify-site-models.sh --context know-me [--web] [--smoke]`, after rolling a UAR image that contains `a42f23bb` and after any provider or API key change. `--context` is required, has no default and must be `know-me`; `--dry-run` prints the plan without running kubectl or curl. The script port-forwards `svc/uar`, waits up to five minutes for `/readyz`, reads `UAR_SECURITY__SETTINGS_ADMIN_KEY` from Secret `uar-secrets` and the gate client from Secret `site-gate-client` (the same one `k8s/base/seed-job.yaml` uses) into variables and 0600 header files that are removed on exit, then runs the seed in `SEED_MODE=verify`. With `--smoke` it sends one chat turn to `knowme-site` and prints the HTTP status and whether `agui.done` arrived, never the answer. Tested here only against a stub and a fake `kubectl`; it has not been run against the cluster.
+
 ## Known limits and failure points
 
 - The wrapper binds `0.0.0.0` (it has no bind-address setting and the harness adds none). Bearer-protected, capped at 20 searches; macOS may ask to allow incoming connections.

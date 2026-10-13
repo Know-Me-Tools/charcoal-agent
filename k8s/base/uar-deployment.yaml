@@ -43,13 +43,16 @@ spec:
           # RUNBOOK, bumping this image to a build that includes UAR a42f23bb
           # ("unify verified agent and model execution selection"): chat answers
           # HTTP 422 `model_not_verified` until each model the agents use has been
-          # verified. Order: (1) roll this image; (2) verify the models, either by
-          # running scripts/seed-site-agent.sh with SEED_MODE=agent and
-          # UAR_ADMIN_KEY set (read from Secret uar-secrets, key
-          # UAR_SECURITY__SETTINGS_ADMIN_KEY, by an operator; CI cannot read it,
-          # so the site-content.yml sync=agent job cannot do this step), or by hand:
-          # POST /api/providers/<provider>/test {"model":"<model>"} with header
-          # X-UAR-Admin-Key. Expect chat down for the minutes between (1) and (2).
+          # verified. Order: (1) roll this image; (2) the OPERATOR runs, from their
+          # own shell with kubectl access to the know-me cluster,
+          #   scripts/ops/verify-site-models.sh --context know-me [--web] [--smoke]
+          # (it port-forwards svc/uar, reads the admin key and gate client from
+          # the cluster Secrets inside its own process, verifies each agent
+          # model, and with --smoke proves one chat turn). CI cannot do this: it
+          # cannot read uar-secrets by design, so the site-content.yml sync=agent
+          # job only warns "NOT VERIFIED". Start the script before step (1)
+          # finishes: it waits up to 5 minutes for /readyz. Expect chat down for
+          # the minutes between (1) and (2).
           # The verification is a real tiny LLM call. Its receipt is bound to the
           # provider configuration and credential revision, so re-verify after any
           # provider edit or API key rotation. Older builds (like the one pinned
