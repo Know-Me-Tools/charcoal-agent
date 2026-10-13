@@ -129,5 +129,54 @@
       "KnowMe AI, LLC"
     ],
     "critical": true
+  },
+  {
+    "question": "What is the Universal Agent Runtime?",
+    "expect_file": "universal-agent-runtime-overview.md",
+    "expect_contains": [
+      "Universal Agent Runtime"
+    ],
+    "critical": true
+  },
+  {
+    "question": "What licence does the Universal Agent Runtime use?",
+    "expect_file": "universal-agent-runtime-status-and-licence.md",
+    "expect_contains": [
+      "MIT"
+    ],
+    "critical": true
+  },
+  {
+    "question": "What licence does the Surreal Memory Server use?",
+    "expect_file": "surreal-memory-server-status-and-licence.md",
+    "expect_contains": [
+      "MIT",
+      "LICENSE file"
+    ],
+    "critical": true
+  },
+  {
+    "question": "What is the Surreal Memory Server?",
+    "expect_file": "surreal-memory-server-overview.md",
+    "expect_contains": [
+      "SurrealDB"
+    ],
+    "critical": true
+  },
+  {
+    "question": "What is BossFang?",
+    "expect_file": "bossfang-overview.md",
+    "expect_contains": [
+      "LibreFang"
+    ],
+    "critical": true
+  },
+  {
+    "question": "What is the difference between the full and mini Prometheus skill packages?",
+    "expect_file": "prometheus-skill-packages-choosing-full-or-mini.md",
+    "expect_contains": [
+      "Node 22"
+    ],
+    "critical": true
   }
 ]
