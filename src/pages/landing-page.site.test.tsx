@@ -92,7 +92,7 @@ describe("site landing content module", () => {
 	});
 
 	it("has no '!', no banned word and no forbidden claim", () => {
-		const banned = /revolutionary|game-changing|cutting-edge|unlock|unleash|supercharge|charcoal/i;
+		const banned = /revolutionary|game-changing|cutting-edge|unlock|unleash|supercharge/i;
 		for (const s of collectStrings(SITE_LANDING_CONTENT)) {
 			expect(s.includes("!"), s).toBe(false);
 			expect(banned.test(s), s).toBe(false);

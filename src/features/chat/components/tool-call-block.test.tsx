@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { ToolCallBlock, ToolCallBlockWrapper } from "./tool-call-block";
@@ -112,7 +112,9 @@ describe("ToolCallBlock result (inferred A2UI)", () => {
 		await userEvent.click(screen.getByRole("button", { name: /deep/ }));
 
 		expect(screen.queryByTestId("a2ui-surface")).not.toBeInTheDocument();
-		expect(await screen.findByText(/"e"/)).toBeInTheDocument();
+		// The highlighter swaps the code nodes after the first match, so retry the
+		// whole assertion rather than asserting on a node that may have been replaced.
+		await waitFor(() => expect(screen.getByText(/"e"/)).toBeInTheDocument());
 	});
 
 	it("never infers for failed calls or plain-text results", async () => {
