@@ -15,6 +15,25 @@ describe("citationDisplayName", () => {
     expect(citationDisplayName(raw)).toBe(expected);
   });
 
+  // Integration gate 08, S2/S2b/C3: the shapes that leaked a hash or a folder.
+  it.each([
+    // `.md` already removed upstream, hash still there.
+    ["knowme-platforms-and-status.0123456789ab", "KnowMe platforms and status"],
+    // `_` and `-` before the hash.
+    ["the-boss-overview_3f9a2c1d7e4b.md", "The Boss overview"],
+    ["the-boss-0123456789ab.md", "The Boss"],
+    // Hash first.
+    ["0123456789ab_ipfs-sync-for-obsidian.md", "IPFS sync for Obsidian"],
+    // A title that kept the hash as its last word.
+    ["The Boss overview 3f9a2c1d7e4b", "The Boss overview"],
+    // Folder prefixes: only the last segment is a name.
+    ["Products/universal agent runtime", "Universal Agent Runtime"],
+    ["products/the-boss.a1b2c3d4e5f6.md", "The Boss"],
+    ["kb\\surreal-memory-server.md", "Surreal Memory Server"],
+  ])("cleans the gate shape %s -> %s", (raw, expected) => {
+    expect(citationDisplayName(raw)).toBe(expected);
+  });
+
   it("leaves a human-readable title unchanged", () => {
     expect(citationDisplayName("Planning guide")).toBe("Planning guide");
     expect(citationDisplayName("KnowMe docs")).toBe("KnowMe docs");
@@ -35,7 +54,39 @@ describe("citationDisplayName", () => {
 describe("cleanCitationSnippet", () => {
   it("strips headings, emphasis, list markers and inline code", () => {
     const raw = "## Platforms\n\n- **Desktop**: macOS and *Windows*\n1. `knowme` CLI\n> quoted __note__";
-    expect(cleanCitationSnippet(raw)).toBe("Platforms Desktop: macOS and Windows knowme CLI quoted note");
+    expect(cleanCitationSnippet(raw)).toBe("Platforms. Desktop: macOS and Windows knowme CLI quoted note");
+  });
+
+  // Integration gate 08, C2: "The Boss The Boss is…".
+  it("drops a heading that the next line only repeats", () => {
+    const raw = "# The Boss\n\nThe Boss is a free, open-source desktop workspace for developers.";
+    expect(cleanCitationSnippet(raw)).toBe("The Boss is a free, open-source desktop workspace for developers.");
+  });
+
+  it("compares the repeated heading by words, ignoring case and emphasis", () => {
+    const raw = "## IPFS Sync for Obsidian\n**IPFS sync for Obsidian** keeps a vault in sync over IPFS.";
+    expect(cleanCitationSnippet(raw)).toBe("IPFS sync for Obsidian keeps a vault in sync over IPFS.");
+  });
+
+  it("keeps a heading that differs from the next line as its own sentence", () => {
+    const raw = "## Licence\nThe Boss is AGPL-3.0 in its repository.";
+    expect(cleanCitationSnippet(raw)).toBe("Licence. The Boss is AGPL-3.0 in its repository.");
+  });
+
+  it("does not add a second stop after a heading that already ends in punctuation", () => {
+    expect(cleanCitationSnippet("### Why local first?\nYour data stays on your device.")).toBe(
+      "Why local first? Your data stays on your device.",
+    );
+  });
+
+  it("separates consecutive headings and keeps a trailing heading as is", () => {
+    expect(cleanCitationSnippet("# The Boss\n## Platforms\nmacOS, Windows and Linux.\n## Licence")).toBe(
+      "The Boss. Platforms. macOS, Windows and Linux. Licence",
+    );
+  });
+
+  it("does not treat a heading that is only a prefix of a longer word as repeated", () => {
+    expect(cleanCitationSnippet("# Know\nKnowMe is not yet released.")).toBe("Know. KnowMe is not yet released.");
   });
 
   it("replaces links and images with their label text", () => {

@@ -12,8 +12,13 @@ export const SNIPPET_MAX_CHARS = 160;
 const ELLIPSIS = "…";
 const FALLBACK_NAME = "Source";
 
-/** The KB sync uploads `<slug>.<12-hex hash>.md`. */
-const UPLOAD_HASH = /\.[0-9a-f]{12}$/i;
+/**
+ * The KB sync uploads `<slug>.<12-hex hash>.md`; other uploads put `-` or `_`
+ * before the hash, or put it first, and a title can carry the hash as its
+ * last word. Each is stripped whether or not `.md` is still there.
+ */
+const UPLOAD_HASH_SUFFIX = /[.\-_\s][0-9a-f]{12}$/i;
+const UPLOAD_HASH_PREFIX = /^[0-9a-f]{12}[-_]/i;
 const MARKDOWN_EXT = /\.md$/i;
 
 /**
@@ -22,6 +27,8 @@ const MARKDOWN_EXT = /\.md$/i;
  */
 const BRAND_WORDS: ReadonlyArray<readonly [tokens: readonly string[], display: string]> = [
   [["the", "boss"], "The Boss"],
+  [["universal", "agent", "runtime"], "Universal Agent Runtime"],
+  [["surreal", "memory", "server"], "Surreal Memory Server"],
   [["ag", "ui"], "AG-UI"],
   [["agui"], "AG-UI"],
   [["knowme"], "KnowMe"],
@@ -48,19 +55,38 @@ function isFileNameLike(raw: string): boolean {
 }
 
 /**
- * A readable source name. An uploaded file name such as
- * `knowme-platforms-and-status.0123456789ab.md` becomes
- * "KnowMe platforms and status": the `.md` and the 12-hex upload hash are
- * stripped, `-` and `_` become spaces, and the result is sentence case with
- * brand words kept. A value that already reads as a title is returned as is.
+ * The last segment of a folder-style name (`Products/universal agent runtime`
+ * gives `universal agent runtime`). A URL, or a name with no folder prefix,
+ * is returned unchanged.
+ */
+function lastPathSegment(raw: string): string {
+  if (raw.includes("://")) return raw;
+  const segments = raw.split(/[\\/]/).filter((s) => s.trim() !== "");
+  if (segments.length < 2) return raw;
+  return segments[segments.length - 1].trim();
+}
+
+/**
+ * A readable source name, shared by the citation cards and the About panel.
+ * An uploaded file name such as `knowme-platforms-and-status.0123456789ab.md`
+ * becomes "KnowMe platforms and status": a folder prefix, the `.md` and the
+ * 12-hex upload hash are stripped, `-` and `_` become spaces, and the result
+ * is sentence case with brand words kept. A value that already reads as a
+ * title is returned as is.
  */
 export function citationDisplayName(raw: string): string {
   const trimmed = raw.trim();
   if (!trimmed) return FALLBACK_NAME;
-  if (!isFileNameLike(trimmed)) return trimmed;
 
-  const stem = trimmed.replace(MARKDOWN_EXT, "").replace(UPLOAD_HASH, "");
-  const tokens = stem.toLowerCase().split(/[-_]+/).filter(Boolean);
+  const segment = lastPathSegment(trimmed);
+  const stem = segment
+    .replace(MARKDOWN_EXT, "")
+    .replace(UPLOAD_HASH_SUFFIX, "")
+    .replace(UPLOAD_HASH_PREFIX, "");
+  const changed = segment !== trimmed || stem !== segment;
+  if (!changed && !isFileNameLike(trimmed)) return trimmed;
+
+  const tokens = stem.toLowerCase().split(/[-_\s]+/).filter(Boolean);
   if (tokens.length === 0) return trimmed;
 
   const words: string[] = [];
@@ -95,9 +121,11 @@ function dropNonProseLines(lines: readonly string[]): string[] {
     .filter((l) => !FENCE_LINE.test(l) && !RULE_LINE.test(l) && !FRONT_MATTER_LINE.test(l));
 }
 
+const HEADING_LINE = /^\s*#{1,6}\s+/;
+
 function stripLineMarkers(line: string): string {
   return line
-    .replace(/^\s*#{1,6}\s+/, "")
+    .replace(HEADING_LINE, "")
     .replace(/^\s*>\s?/, "")
     .replace(/^\s*(?:[-*+]|\d+[.)])\s+/, "");
 }
@@ -125,15 +153,49 @@ function trimAtWord(text: string, max: number): string {
   return `${cut.replace(/[\s,;:.\-–—]+$/, "")}${ELLIPSIS}`;
 }
 
+/** Lower-case words of `text`, for comparing a heading with the line after it. */
+function wordsOf(text: string): string[] {
+  return text.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+}
+
+/** True when `line` begins with every word of `heading`, in order. */
+function repeatsHeading(heading: string, line: string): boolean {
+  const head = wordsOf(heading);
+  const start = wordsOf(line).slice(0, head.length);
+  return head.length > 0 && head.every((w, i) => w === start[i]);
+}
+
+/** A heading kept in running text ends as a sentence, so it can't run into the body. */
+function asSentence(heading: string): string {
+  return /[.!?:;…]$/.test(heading) ? heading : `${heading}.`;
+}
+
+/**
+ * Joins prose lines into one line of plain text. A markdown heading becomes
+ * its own sentence ("Platforms. Desktop: …"), or is dropped when the next line
+ * only repeats it ("# The Boss" then "The Boss is …").
+ */
+function joinProseLines(lines: readonly string[]): string {
+  const parts: string[] = [];
+  let heading: string | null = null;
+  for (const line of lines) {
+    const text = stripInlineMarkdown(stripLineMarkers(line)).replace(/\s+/g, " ").trim();
+    if (!text) continue;
+    if (heading !== null && !repeatsHeading(heading, text)) parts.push(asSentence(heading));
+    heading = null;
+    if (HEADING_LINE.test(line)) heading = text;
+    else parts.push(text);
+  }
+  if (heading !== null) parts.push(heading);
+  return parts.join(" ");
+}
+
 /**
  * Plain text for a citation excerpt: markdown syntax removed (headings,
  * emphasis, list markers, code fences, links reduced to their label), front
  * matter dropped, whitespace collapsed, and the result cut at a word boundary.
  */
 export function cleanCitationSnippet(raw: string, max: number = SNIPPET_MAX_CHARS): string {
-  const lines = dropNonProseLines(raw.split(/\r?\n/));
-  const text = stripInlineMarkdown(lines.map(stripLineMarkers).join(" "))
-    .replace(/\s+/g, " ")
-    .trim();
+  const text = joinProseLines(dropNonProseLines(raw.split(/\r?\n/)));
   return trimAtWord(text, max);
 }

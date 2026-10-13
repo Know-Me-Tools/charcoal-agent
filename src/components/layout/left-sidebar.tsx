@@ -13,6 +13,7 @@ import { isSiteBuild } from "@/hooks/use-site-config";
 import { isJwtConfigured } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import type { LocalThread } from "@/types";
+import { THREAD_LIST_CONTENT } from "../../../content/site/thread-list";
 
 interface LeftSidebarProps {
   className?: string;
@@ -93,6 +94,15 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
       (a, b) =>
         new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
     );
+
+  // Site build: the empty-list copy is only true when the visitor has no
+  // conversation at all. The open thread counts even while it is ephemeral
+  // (hidden from the list until its first reply), so a visitor reading or
+  // streaming an answer is never told there are no conversations.
+  const hasNoConversation = Object.keys(threads).length === 0 && activeThreadId === null;
+  const showEmptyState = siteBuild
+    ? visibleThreads.length === 0 && hasNoConversation
+    : visibleThreads.length === 0;
 
   const handleNewThread = () => {
     const id = crypto.randomUUID();
@@ -208,13 +218,13 @@ export function LeftSidebar({ className }: LeftSidebarProps) {
 
       {/* Thread list */}
       <div className="flex-1 overflow-y-auto px-1.5" style={{ minHeight: 0 }}>
-        {visibleThreads.length === 0 ? (
+        {showEmptyState ? (
           <div className="px-3 py-8 text-center">
             <p className="font-mono text-xs text-ember-text">
-              {"// No threads yet"}
+              {siteBuild ? THREAD_LIST_CONTENT.emptyLabel : "// No threads yet"}
             </p>
             <p className="mt-1 font-body text-xs text-muted-foreground">
-              Start a new thread to begin
+              {siteBuild ? THREAD_LIST_CONTENT.emptyHint : "Start a new thread to begin"}
             </p>
           </div>
         ) : (

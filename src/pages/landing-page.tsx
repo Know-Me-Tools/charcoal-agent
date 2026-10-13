@@ -5,10 +5,21 @@ import { KnowMeLockup } from "@/components/brand";
 import { EMBER_CTA } from "@/components/site/ember-cta";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
+import { isSiteBuild } from "@/hooks/use-site-config";
 import { cn } from "@/lib/utils";
 import { useChatIntentStore } from "@/stores/chat-intent-store";
 import { useThreadRegistryStore } from "@/stores/thread-registry-store";
 import { LANDING_CONTENT } from "../../content/site/landing";
+import { SITE_LANDING_CONTENT, type SiteLandingContent } from "../../content/site/landing-site";
+
+/**
+ * The public site build has its own front page copy: the app landing's
+ * skills, "Open app" and desktop claims describe the app, not the site
+ * (integration gate 08, B1). The app build keeps `LANDING_CONTENT`.
+ */
+function landingContent(): SiteLandingContent {
+	return isSiteBuild() ? SITE_LANDING_CONTENT : LANDING_CONTENT;
+}
 
 /**
  * Splits the approved headline into the two-line, one-ember-word shape the
@@ -39,7 +50,8 @@ export default function LandingPage() {
 	const registerThread = useThreadRegistryStore((s) => s.registerThread);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-	const { line1, line2Lead, emberWord } = splitHeadline(LANDING_CONTENT.headline);
+	const content = landingContent();
+	const { line1, line2Lead, emberWord } = splitHeadline(content.headline);
 
 	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
@@ -76,7 +88,7 @@ export default function LandingPage() {
 					<div className="mx-auto w-full max-w-6xl px-4 pt-10 pb-12 sm:px-6 md:px-8 md:pt-16 md:pb-20 lg:grid lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-end lg:gap-12 lg:px-12 lg:pt-24 lg:pb-24">
 						<div className="md:max-w-2xl lg:max-w-none">
 							<KnowMeLockup variant="hero" />
-							<p className="section-label mt-8 md:mt-12">{LANDING_CONTENT.eyebrow}</p>
+							<p className="section-label mt-8 md:mt-12">{content.eyebrow}</p>
 							<h1
 								id="hero-heading"
 								className="mt-3 font-display text-[2rem] font-bold leading-[1.05] tracking-[-0.035em] text-fg md:text-[3.25rem] lg:text-[3.5rem] xl:text-[4rem]"
@@ -88,7 +100,7 @@ export default function LandingPage() {
 								</span>
 							</h1>
 							<p className="mt-4 max-w-[58ch] font-body text-base font-normal leading-[1.7] text-fg-secondary md:mt-6 md:text-[1.0625rem]">
-								{LANDING_CONTENT.valueLine}
+								{content.valueLine}
 							</p>
 						</div>
 
@@ -102,13 +114,13 @@ export default function LandingPage() {
 									value={message}
 									onChange={(event) => setMessage(event.target.value)}
 									onKeyDown={handleKeyDown}
-									placeholder={LANDING_CONTENT.composer.placeholder}
-									aria-label={LANDING_CONTENT.composer.placeholder}
+									placeholder={content.composer.placeholder}
+									aria-label={content.composer.placeholder}
 									className="block max-h-[7.5rem] min-h-14 w-full field-sizing-content resize-none bg-transparent px-3 py-2.5 font-body text-base leading-relaxed text-fg caret-ember outline-none placeholder:text-faint lg:min-h-24"
 								/>
 								<div className="mt-1 flex items-center justify-end">
 									<button type="submit" className={cn(EMBER_CTA, "h-10 px-4")}>
-										{LANDING_CONTENT.composer.sendLabel}
+										{content.composer.sendLabel}
 										<ArrowRight className="size-4" aria-hidden="true" />
 									</button>
 								</div>
@@ -117,7 +129,7 @@ export default function LandingPage() {
 					</div>
 				</section>
 
-				{LANDING_CONTENT.sections.map((section, index) => (
+				{content.sections.map((section, index) => (
 					<section
 						key={section.id}
 						aria-labelledby={`${section.id}-heading`}
@@ -137,6 +149,21 @@ export default function LandingPage() {
 							</div>
 							<div className="mt-6 lg:mt-0">
 								<div className="space-y-4">
+									{section.link && (
+										<p className="max-w-[62ch] font-body text-base leading-[1.7] text-fg">
+											{section.link.lead}{" "}
+											<a
+												href={section.link.href}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="rounded-sm font-semibold text-ember-text underline-offset-2 hover:underline focus-cue"
+											>
+												{section.link.label}
+												<span className="sr-only"> {section.link.opensInNewTab}</span>
+											</a>
+											{section.link.trail}
+										</p>
+									)}
 									{section.body.map((paragraph) => (
 										<p
 											key={paragraph}

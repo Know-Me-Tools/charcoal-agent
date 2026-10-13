@@ -6,7 +6,7 @@ import { useThreadCitations, type ThreadCitation } from "@/hooks/use-thread-cita
 import { useUi } from "@/hooks/use-ui";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { sourceDisplayName } from "@/components/layout/source-display-name";
+import { citationDisplayName } from "@/features/chat/citation-text";
 import { isAllowedLink } from "@/lib/link-policy/is-allowed-link";
 import { ABOUT_PANEL_CONTENT } from "../../../content/site/about-panel";
 
@@ -38,7 +38,7 @@ function SourceItem({ citation, index }: { citation: ThreadCitation; index: numb
         <span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
           <span className="font-mono text-xs font-semibold text-cyan-text">{index}</span>
           <span className="min-w-0 font-ui text-sm font-semibold text-fg wrap-anywhere">
-            {sourceDisplayName(citation.source)}
+            {citationDisplayName(citation.source)}
           </span>
           {isLinkAllowed && <ExternalLinkIcon className="size-3.5 shrink-0 text-cyan-text" aria-hidden="true" />}
         </span>

@@ -59,16 +59,36 @@ describe("AboutSourcesPanel", () => {
     const items = within(sources).getAllByRole("listitem");
     expect(items).toHaveLength(2);
 
-    const link = within(items[0]).getByRole("link", { name: /The boss/ });
+    const link = within(items[0]).getByRole("link", { name: /The Boss/ });
     expect(link).toHaveAttribute("href", "https://know-me.tools/the-boss");
     expect(link).toHaveAttribute("target", "_blank");
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
 
     expect(within(items[1]).queryByRole("link")).toBeNull();
-    expect(items[1]).toHaveTextContent("Faq");
+    expect(items[1]).toHaveTextContent("FAQ");
     expect(items[1]).toHaveTextContent("https://evil.example/faq");
 
     expect(sources).not.toHaveTextContent("Elsewhere");
+  });
+
+  // Integration gate 08, S2b: the panel and the in-message Sources block
+  // named one source two ways. Both now use `citationDisplayName`.
+  it.each([
+    ["knowme-platforms-and-status.0123456789ab.md", "KnowMe platforms and status"],
+    ["the-boss-overview_3f9a2c1d7e4b.md", "The Boss overview"],
+    ["Products/universal agent runtime", "Universal Agent Runtime"],
+  ])("names %s exactly as the citation cards do (%s)", (source, expected) => {
+    useChatMessageStore.setState({
+      messagesByThread: {
+        [THREAD_ID]: [assistant("m1", [{ type: "citation", source, content: "snip", url: undefined }])],
+      },
+    });
+
+    renderInThread(<AboutSourcesPanel />);
+    const sources = screen.getByRole("list", { name: ABOUT_PANEL_CONTENT.sources.heading });
+    const [item] = within(sources).getAllByRole("listitem");
+    expect(within(item).getByText(expected)).toBeInTheDocument();
+    expect(item).not.toHaveTextContent(/[0-9a-f]{12}|\/|\.md/);
   });
 
   it("explains the empty Sources list before any citation arrives", () => {
