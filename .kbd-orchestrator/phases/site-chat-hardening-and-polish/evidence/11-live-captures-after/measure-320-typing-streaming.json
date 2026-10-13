@@ -1,0 +1,106 @@
+{
+ "idle_empty": {
+  "innerHeight": 700,
+  "form": {
+   "top": 441,
+   "h": 121
+  },
+  "disclosure": {
+   "top": 570,
+   "h": 32,
+   "bottom": 602
+  },
+  "tabbar": {
+   "top": 644,
+   "h": 56
+  },
+  "chromeHeight": 259
+ },
+ "typing": {
+  "innerHeight": 700,
+  "form": {
+   "top": 497,
+   "h": 121
+  },
+  "disclosure": {
+   "top": 626,
+   "h": 32,
+   "bottom": 658
+  },
+  "tabbar": null,
+  "chromeHeight": 203
+ },
+ "typing_targets": {
+  "Open threads": {
+   "w": 44,
+   "h": 44,
+   "vis": true
+  },
+  "About and sources": {
+   "w": 44,
+   "h": 44,
+   "vis": true
+  },
+  "Switch to dark theme": {
+   "w": 44,
+   "h": 44,
+   "vis": true
+  },
+  "Send message": {
+   "w": 44,
+   "h": 44,
+   "vis": true
+  }
+ },
+ "streaming": {
+  "innerHeight": 700,
+  "form": {
+   "top": 497,
+   "h": 121
+  },
+  "disclosure": {
+   "top": 626,
+   "h": 32,
+   "bottom": 658
+  },
+  "tabbar": null,
+  "chromeHeight": 203
+ },
+ "streaming_targets": {
+  "Open threads": {
+   "w": 44,
+   "h": 44,
+   "vis": true
+  },
+  "About and sources": {
+   "w": 44,
+   "h": 44,
+   "vis": true
+  },
+  "Switch to dark theme": {
+   "w": 44,
+   "h": 44,
+   "vis": true
+  },
+  "Stop generating": {
+   "w": 44,
+   "h": 44,
+   "vis": true
+  }
+ },
+ "reading_text": null,
+ "after": {
+  "innerHeight": 700,
+  "form": {
+   "top": 496.75,
+   "h": 121
+  },
+  "disclosure": {
+   "top": 625.75,
+   "h": 32,
+   "bottom": 657.75
+  },
+  "tabbar": null,
+  "chromeHeight": 203
+ }
+}
