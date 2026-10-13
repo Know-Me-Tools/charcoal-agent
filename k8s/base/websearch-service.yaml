@@ -1,0 +1,22 @@
+# In-cluster address of the web-search MCP wrapper, used only by UAR
+# (uar-mcp-configmap.yaml: http://site-websearch:8080/mcp). No HTTPRoute
+# exposes it.
+apiVersion: v1
+kind: Service
+metadata:
+  name: site-websearch
+  namespace: knowme
+  labels:
+    app.kubernetes.io/name: site-websearch
+    app.kubernetes.io/component: tool
+    app.kubernetes.io/part-of: knowme-site
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: site-websearch
+    app.kubernetes.io/component: tool
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+      protocol: TCP

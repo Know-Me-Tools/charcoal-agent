@@ -75,6 +75,52 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  # ── NEW JOB (site-web-search 16.2 / 16.5.1) ─────────────────────────────────
+  # Tests and builds the web-search MCP wrapper (websearch/) and pushes
+  # ghcr.io/know-me-tools/site-websearch. Build only: the deploy job does NOT
+  # set this image's digest. k8s/base/websearch-deployment.yaml pins it by
+  # hand (a deliberate bump, like the UAR pin) from this job's output digest.
+  # The tests use a fake upstream and never reach Firecrawl.
+  websearch-image:
+    name: Build and push websearch image
+    needs: verify
+    # The wrapper's Dockerfile has never been built in CI. Until it has, a failure
+    # here must not turn a site deploy red; remove this line once it has passed.
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      digest: ${{ steps.push.outputs.digest }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Test the wrapper (Rust 1.98.1, versions.toml "rust")
+        run: |
+          set -euo pipefail
+          rustup toolchain install 1.98.1 --profile minimal
+          cargo +1.98.1 test --locked --manifest-path websearch/Cargo.toml
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: push
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: websearch
+          file: websearch/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/know-me-tools/site-websearch:${{ github.sha }}
+            ghcr.io/know-me-tools/site-websearch:main
+          cache-from: type=gha,scope=websearch
+          cache-to: type=gha,mode=max,scope=websearch
+      - name: Report the digest to pin
+        run: echo "site-websearch digest ${{ steps.push.outputs.digest }} (pin in k8s/base/websearch-deployment.yaml)"
+
   deploy:
     name: Deploy to knowme
     needs: image

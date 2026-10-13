@@ -26,6 +26,37 @@
 #       a domain verified in Resend (default site-alerts@prometheusags.ai).
 #
 # Requires: kubectl, gh, openssl, htpasswd, jq.
+#
+# Web search (OpenSpec change site-web-search, task 16.1.2). NOT automated by
+# this script: the Firecrawl key is the operator's and no agent or CI job
+# handles it. Before the site-websearch rollout (Train C) the operator
+# creates, in namespace knowme:
+#
+#   Secret              Key                  Value
+#   websearch-firecrawl FIRECRAWL_API_KEY    a dedicated Firecrawl API key for
+#                                            this site only (OD-4), mounted
+#                                            only into site-websearch
+#   uar-secrets         WEBSEARCH_MCP_AUTH   `Bearer <token>`, token from
+#                                            `openssl rand -hex 32`; read by
+#                                            UAR (mcp.json secret_ref) and by
+#                                            site-websearch, same value
+#
+# Values never go on a command line or into the shell history; read them
+# into a 0600 env file the way create_secret does, for example:
+#   kubectl --context know-me -n knowme create secret generic websearch-firecrawl \
+#     --from-env-file=<0600 file holding FIRECRAWL_API_KEY=...>
+#   tmp="$(mktemp)"; chmod 600 "$tmp"
+#   printf '{"stringData":{"WEBSEARCH_MCP_AUTH":"Bearer %s"}}' "$(openssl rand -hex 32)" >"$tmp"
+#   kubectl --context know-me -n knowme patch secret uar-secrets --type merge \
+#     --patch-file "$tmp"; rm -f "$tmp"
+# After the uar-secrets patch, restart both so each reads the same value:
+# site-websearch first (UAR skips an MCP server it cannot reach at start-up),
+# then UAR. Rotation: patch the value, bump `credential_revision` in
+# k8s/base/uar-mcp-configmap.yaml, restart both. Set any monthly credit limit
+# the Firecrawl plan offers on that key. After the first CI push of
+# ghcr.io/know-me-tools/site-websearch, make that GHCR package public (new
+# packages start private and the namespace has no imagePullSecrets), then pin
+# its digest in k8s/base/websearch-deployment.yaml.
 set -euo pipefail
 
 CONTEXT="${KNOWME_CONTEXT:-know-me}"
