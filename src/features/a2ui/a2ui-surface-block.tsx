@@ -9,6 +9,7 @@ import {
 import { isSiteBuild } from "@/hooks/use-site-config";
 import { AI_SURFACE_CAPTION } from "../../../content/site/ai-disclosure";
 import { PASSIVE_A2UI_COMPONENTS, parseA2uiArtifactContent } from "./carrier-adapter";
+import { cleanAnswerCardSources } from "./answer-card-source";
 import { createKnowmeA2uiCatalogs } from "./catalog";
 
 const FAILURE_COPY = "This interface could not be displayed.";
@@ -31,7 +32,7 @@ function prepare(content: string, passiveOnly: boolean): Prepared {
       catalogs: createKnowmeA2uiCatalogs(),
       actionPolicy: createDenyAllA2uiActionPolicy(),
     });
-    runtime.processMessages(parsed.messages);
+    runtime.processMessages(cleanAnswerCardSources(parsed.messages));
     return { ok: true, runtime };
   } catch {
     return { ok: false };
