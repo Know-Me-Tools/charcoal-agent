@@ -178,5 +178,29 @@
       "Node 22"
     ],
     "critical": true
+  },
+  {
+    "question": "Who makes the Universal Agent Runtime?",
+    "expect_file": "prometheus-and-its-products.md",
+    "expect_contains": [
+      "Prometheus AGS"
+    ],
+    "critical": false
+  },
+  {
+    "question": "Is the Surreal Memory Server MIT licensed?",
+    "expect_file": "prometheus-and-its-products.md",
+    "expect_contains": [
+      "MIT"
+    ],
+    "critical": false
+  },
+  {
+    "question": "What is Prometheus?",
+    "expect_file": "prometheus-and-its-products.md",
+    "expect_contains": [
+      "server-side AI platform"
+    ],
+    "critical": false
   }
 ]

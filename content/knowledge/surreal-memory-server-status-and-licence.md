@@ -20,6 +20,7 @@ Source: Surreal Memory Server README, retrieved 2026-10-13.
 
 ## Surreal Memory Server licence
 
-The Surreal Memory Server is MIT licensed. The owners state it is MIT licensed; a LICENSE file has been proposed in the repository. Its library package manifest already declares MIT.
+The Surreal Memory Server is MIT licensed (LICENSE file in the repository), with Prometheus AGS as copyright holder. Its library package manifest also declares MIT.
 
+Source: Surreal Memory Server LICENSE, retrieved 2026-10-13.
 Source: surreal-memory library package manifest, retrieved 2026-10-13.

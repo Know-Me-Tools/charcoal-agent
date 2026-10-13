@@ -9,8 +9,9 @@ Source: Surreal Memory Server source publication note, 2026-10-05, retrieved 202
 
 ## Is the Surreal Memory Server free?
 
-The Surreal Memory Server is free to use under the MIT licence. The owners state it is MIT licensed; a LICENSE file has been proposed in the repository. Its library package manifest already declares MIT.
+The Surreal Memory Server is free to use under the MIT licence: it is MIT licensed (LICENSE file in the repository). Its library package manifest also declares MIT.
 
+Source: Surreal Memory Server LICENSE, retrieved 2026-10-13.
 Source: surreal-memory library package manifest, retrieved 2026-10-13.
 
 ## Does the Surreal Memory Server need a cloud account?

@@ -24,9 +24,10 @@ Source: Prometheus Skills Mini maintenance and platform limits, retrieved 2026-1
 
 ## Prometheus skill packages licences
 
-The full Prometheus Skill Pack is MIT licensed and has a LICENSE file. Prometheus Skills Mini is MIT licensed, as its package manifest and README say. The owners state it is MIT licensed; a LICENSE file has been proposed in the repository. Skills imported into either package keep their own licences.
+The full Prometheus Skill Pack is MIT licensed and has a LICENSE file. Prometheus Skills Mini is MIT licensed (LICENSE file in the repository). Its package manifest and README also say MIT. Skills imported into either package keep their own licences.
 
 Source: Prometheus Skill Pack LICENSE, retrieved 2026-10-13.
+Source: Prometheus Skills Mini LICENSE, retrieved 2026-10-13.
 Source: Prometheus Skills Mini package manifest, retrieved 2026-10-13.
 Source: Prometheus Skills Mini README, retrieved 2026-10-13.
 Source: Prometheus Skill Pack README, retrieved 2026-10-13.

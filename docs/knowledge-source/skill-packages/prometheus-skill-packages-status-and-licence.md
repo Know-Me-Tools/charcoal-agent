@@ -1,7 +1,7 @@
 ---
 type: Concept
 title: Prometheus skill packages status and licence
-description: Release status, platform acceptance, skill counts and licences of the full Prometheus Skill Pack (MIT, LICENSE file present) and Prometheus Skills Mini (MIT, a LICENSE file has been proposed in its repository).
+description: Release status, platform acceptance, skill counts and licences of the full Prometheus Skill Pack (MIT, LICENSE file present) and Prometheus Skills Mini (MIT, LICENSE file present).
 status: draft
 generated:
   by: km-content-creator/opus
@@ -43,6 +43,10 @@ sources:
     resource: https://github.com/Prometheus-AGS/prometheus-skills-mini/blob/main/docs/maintenance.md
     title: Prometheus Skills Mini maintenance and platform limits
     last_modified: "2026-10-13T01:28:18+00:00"
+  - id: mini-license
+    resource: https://github.com/Prometheus-AGS/prometheus-skills-mini/blob/main/LICENSE
+    title: Prometheus Skills Mini LICENSE
+    last_modified: "2026-10-13T08:21:34+00:00"
 ---
 
 # Prometheus skill packages status and licence
@@ -61,4 +65,4 @@ Mini's `package.json` gives version 1.12.1; treat that as the source version, no
 
 ## Prometheus skill packages licences
 
-The full Prometheus Skill Pack is MIT licensed and has a LICENSE file.[^full-license] Prometheus Skills Mini is MIT licensed, as its package manifest and README say.[^mini-package][^mini-readme] The owners state it is MIT licensed; a LICENSE file has been proposed in the repository. Skills imported into either package keep their own licences.[^full-readme][^mini-readme]
+The full Prometheus Skill Pack is MIT licensed and has a LICENSE file.[^full-license] Prometheus Skills Mini is MIT licensed (LICENSE file in the repository).[^mini-license] Its package manifest and README also say MIT.[^mini-package][^mini-readme] Skills imported into either package keep their own licences.[^full-readme][^mini-readme]
