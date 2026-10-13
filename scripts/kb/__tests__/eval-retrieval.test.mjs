@@ -1,7 +1,21 @@
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { test } from "node:test";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { run } from "../eval-retrieval.mjs";
+
+// The two FR-8 questions, copied from the committed question set so these tests
+// keep working when more questions are added to docs/knowledge-source/eval.
+const COMMITTED = JSON.parse(
+  readFileSync(new URL("../../../docs/knowledge-source/eval/questions.json", import.meta.url), "utf8"),
+);
+const FR8 = (Array.isArray(COMMITTED) ? COMMITTED : COMMITTED.questions).filter(
+  (q) => q.expect_file === "ipfs-sync-for-obsidian.md" || q.expect_file === "the-boss.md",
+);
+const QUESTIONS_FILE = join(mkdtempSync(join(tmpdir(), "kb-eval-")), "questions.json");
+writeFileSync(QUESTIONS_FILE, JSON.stringify(Array.isArray(COMMITTED) ? FR8 : { ...COMMITTED, questions: FR8 }));
 
 const KB = "kb-test";
 // Not a credential: a stub value assembled at runtime.
@@ -61,7 +75,7 @@ async function evaluate(mode) {
   const s = await stub(mode);
   const lines = [];
   try {
-    const code = await run(["--retry-delay-ms", "0"], s.env, { log: (l) => lines.push(l) });
+    const code = await run(["--questions", QUESTIONS_FILE, "--retry-delay-ms", "0"], s.env, { log: (l) => lines.push(l) });
     return { code, text: lines.join("\n"), requests: s.requests };
   } finally {
     s.server.close();
