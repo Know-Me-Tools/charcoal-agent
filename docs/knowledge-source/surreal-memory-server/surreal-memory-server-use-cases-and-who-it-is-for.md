@@ -5,7 +5,7 @@ description: Documented uses of the Surreal Memory Server and the people it is b
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-12T00:00:00+00:00"
+  at: "2026-10-13T00:05:39+00:00"
 tags:
   - surreal-memory-server
   - use-cases
@@ -13,27 +13,27 @@ sources:
   - id: sms-intro
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/website/docs/intro.md
     title: Surreal Memory Server documentation introduction
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: sms-readme
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/README.md
     title: Surreal Memory Server README
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: uar-memory
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/MEMORY_SYSTEM.md
     title: Universal Agent Runtime memory system
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: bossfang-agents
     resource: https://github.com/GQAdonis/librefang/blob/main/AGENTS.md
     title: BossFang AGENTS.md, fork additions
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: full-readme
     resource: https://github.com/Prometheus-AGS/prometheus-skill-system/blob/main/README.md
     title: Prometheus Skill Pack README
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: mini-readme
     resource: https://github.com/Prometheus-AGS/prometheus-skills-mini/blob/main/README.md
     title: Prometheus Skills Mini README
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
 ---
 
 # Surreal Memory Server use cases and who it is for

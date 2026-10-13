@@ -5,7 +5,7 @@ description: The documented ways to run UAR, native service, container, Kubernet
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-12T00:00:00+00:00"
+  at: "2026-10-13T00:05:39+00:00"
 tags:
   - universal-agent-runtime
   - deployment
@@ -13,15 +13,15 @@ sources:
   - id: uar-readme
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/README.md
     title: Universal Agent Runtime README
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: uar-deploy
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/DEPLOYMENT.md
     title: Universal Agent Runtime production deployment guide
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: uar-matrix
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/product-support-matrix.md
     title: Universal Agent Runtime product support matrix
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
 ---
 
 # Universal Agent Runtime deployment

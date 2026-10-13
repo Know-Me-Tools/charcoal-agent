@@ -5,7 +5,7 @@ description: What BossFang is, where it comes from, and how it relates to the Un
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-12T00:00:00+00:00"
+  at: "2026-10-13T00:05:39+00:00"
 tags:
   - bossfang
   - overview
@@ -13,15 +13,19 @@ sources:
   - id: bf-agents
     resource: https://github.com/GQAdonis/librefang/blob/main/AGENTS.md
     title: BossFang AGENTS.md, product identity and fork additions
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: bf-uar
     resource: https://github.com/GQAdonis/librefang/blob/main/docs/bossfang-uar-connections.md
     title: BossFang connects to UAR
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
+  - id: bf-releases
+    resource: https://github.com/GQAdonis/librefang/releases
+    title: BossFang fork releases page
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: bf-license
     resource: https://github.com/GQAdonis/librefang/blob/main/LICENSE
     title: BossFang repository LICENSE
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
 ---
 
 # BossFang overview
@@ -36,11 +40,15 @@ BossFang's code starts from LibreFang and is merged with upstream LibreFang chan
 
 ## BossFang and the Universal Agent Runtime
 
-BossFang does not bundle, install, start, stop or supervise the Universal Agent Runtime. It connects to a runtime instance that already exists, which can be one The Boss manages, and sends new agent runs to the instance currently selected.[^bf-uar]
+BossFang does not bundle, install, start, stop or supervise the Universal Agent Runtime. As implemented in source, not yet built or tested, it connects to a runtime instance that already exists, which can be one The Boss manages, and sends new agent runs to the instance currently selected.[^bf-uar]
 
 ## BossFang and the Surreal Memory Server
 
 BossFang's memory uses the Surreal Memory Server library with an embedded database, so it does not need a separate SurrealDB service.[^bf-agents]
+
+## Where to get BossFang
+
+BossFang's source is public at https://github.com/GQAdonis/librefang, the BossFang fork of LibreFang.[^bf-agents] Its releases page carries native payloads built for The Boss, several marked pre-release, whose notes say release acceptance is tracked separately.[^bf-releases] No end-user BossFang release or tested install path is established here.
 
 ## More about BossFang
 

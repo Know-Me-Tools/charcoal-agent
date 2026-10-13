@@ -5,7 +5,7 @@ description: BossFang's status as recorded in its own feature ledger, the known 
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-12T00:00:00+00:00"
+  at: "2026-10-13T00:05:39+00:00"
 tags:
   - bossfang
   - status
@@ -14,15 +14,23 @@ sources:
   - id: bf-ledger
     resource: https://github.com/GQAdonis/librefang/blob/main/docs/bossfang/feature-ledger.md
     title: BossFang feature ledger
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: bf-uar
     resource: https://github.com/GQAdonis/librefang/blob/main/docs/bossfang-uar-connections.md
     title: BossFang connects to UAR
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
+  - id: bf-releases
+    resource: https://github.com/GQAdonis/librefang/releases
+    title: BossFang fork releases page
+    last_modified: "2026-10-13T00:05:39+00:00"
+  - id: bf-readme
+    resource: https://github.com/GQAdonis/librefang/blob/main/README.md
+    title: BossFang repository README
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: bf-license
     resource: https://github.com/GQAdonis/librefang/blob/main/LICENSE
     title: BossFang repository LICENSE
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
 ---
 
 # BossFang status and licence
@@ -41,7 +49,11 @@ The current connection design, where BossFang connects to an existing runtime an
 
 ## BossFang releases
 
-This knowledge base does not state a BossFang release or install command. The repository README's install and package sections are inherited from upstream LibreFang, and the ledger records that the BossFang binary name is not settled.[^bf-ledger]
+The BossFang fork's releases page carries native BossFang payloads built for The Boss's integrated desktop app: 14 entries when checked on 2026-10-13, named like "BossFang sidecar" or "BossFang payload" with a source commit, several marked pre-release. Their notes say application operation and release acceptance are tracked separately.[^bf-releases] No end-user BossFang release or tested install path is established here.
+
+## Installing BossFang
+
+The README mixes upstream LibreFang package channels with fork-specific steps, such as an install script and a Cargo install from the fork.[^bf-readme] The ledger records that the BossFang binary name is not settled.[^bf-ledger] This knowledge base therefore gives no install command.
 
 ## BossFang licence
 

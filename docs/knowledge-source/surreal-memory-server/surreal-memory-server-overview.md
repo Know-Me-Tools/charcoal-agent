@@ -5,7 +5,7 @@ description: What the Surreal Memory Server is, what it stores, and which KnowMe
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-12T00:00:00+00:00"
+  at: "2026-10-13T00:05:39+00:00"
 tags:
   - surreal-memory-server
   - overview
@@ -13,19 +13,19 @@ sources:
   - id: sms-readme
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/README.md
     title: Surreal Memory Server README
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: sms-intro
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/website/docs/intro.md
     title: Surreal Memory Server documentation introduction
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: uar-memory
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/MEMORY_SYSTEM.md
     title: Universal Agent Runtime memory system
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: bossfang-agents
     resource: https://github.com/GQAdonis/librefang/blob/main/AGENTS.md
     title: BossFang AGENTS.md, fork additions
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
 ---
 
 # Surreal Memory Server overview
@@ -44,7 +44,11 @@ The project ships two things from one workspace: a server binary that MCP client
 
 ## Which products use the Surreal Memory Server
 
-The Universal Agent Runtime's optional memory system is built on it.[^uar-memory] BossFang uses it for memory, with an embedded database so no separate SurrealDB service is needed.[^bossfang-agents] The server's README notes that The Boss uses a dedicated database user for memory.[^sms-readme]
+The Universal Agent Runtime's optional memory system is built on it.[^uar-memory] BossFang uses it for memory, with an embedded database so no separate SurrealDB service is needed.[^bossfang-agents]
+
+## Where to get the Surreal Memory Server
+
+The Surreal Memory Server's source is public at https://github.com/Prometheus-AGS/surreal-memory-server. Its README builds it with `cargo build --release` and runs it as a native local service pointed at your SurrealDB.[^sms-readme] Its source was published for review and is not a tested release; see its status and licence.
 
 ## More about the Surreal Memory Server
 

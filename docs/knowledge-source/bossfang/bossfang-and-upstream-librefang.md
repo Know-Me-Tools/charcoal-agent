@@ -5,7 +5,7 @@ description: Which parts of BossFang are BossFang-specific and which are inherit
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-12T00:00:00+00:00"
+  at: "2026-10-13T00:05:39+00:00"
 tags:
   - bossfang
   - librefang
@@ -14,11 +14,11 @@ sources:
   - id: bf-agents
     resource: https://github.com/GQAdonis/librefang/blob/main/AGENTS.md
     title: BossFang AGENTS.md, product identity and fork additions
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: bf-ledger
     resource: https://github.com/GQAdonis/librefang/blob/main/docs/bossfang/feature-ledger.md
     title: BossFang feature ledger
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
 ---
 
 # BossFang and upstream LibreFang
@@ -29,7 +29,7 @@ The agent operating system itself comes from LibreFang: the kernel that runs age
 
 ## BossFang-specific storage
 
-BossFang makes SurrealDB its default operational store, embedded on disk or reached as a remote server, where upstream uses SQLite. SQLite stays as a fallback, and a command imports existing SQLite data into SurrealDB.[^bf-ledger] Its configuration store in SurrealDB records only the names of environment variables for secrets, never secret values.[^bf-ledger]
+BossFang makes SurrealDB its default operational store, embedded on disk or reached as a remote server, where upstream uses SQLite. SQLite stays as a fallback, and a command imports existing SQLite data into SurrealDB, though the ledger notes the importer covers only some tables.[^bf-ledger] Its configuration store in SurrealDB records only the names of environment variables for secrets, never secret values.[^bf-ledger]
 
 ## BossFang-specific memory and model access
 

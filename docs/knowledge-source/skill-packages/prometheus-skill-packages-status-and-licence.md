@@ -1,11 +1,11 @@
 ---
 type: Concept
 title: Prometheus skill packages status and licence
-description: Release status, platform acceptance, skill counts and licences of the full Prometheus Skill Pack and Prometheus Skills Mini.
+description: Release status, platform acceptance, skill counts and licences of the full Prometheus Skill Pack (MIT, LICENSE file present) and Prometheus Skills Mini (MIT per its manifest and README, no LICENSE file yet).
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-12T00:00:00+00:00"
+  at: "2026-10-13T00:05:39+00:00"
 tags:
   - skill-packages
   - status
@@ -14,31 +14,35 @@ sources:
   - id: full-readme
     resource: https://github.com/Prometheus-AGS/prometheus-skill-system/blob/main/README.md
     title: Prometheus Skill Pack README
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: full-license
     resource: https://github.com/Prometheus-AGS/prometheus-skill-system/blob/main/LICENSE
     title: Prometheus Skill Pack LICENSE
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
+  - id: full-system
+    resource: https://github.com/Prometheus-AGS/prometheus-skill-system/blob/main/skill-system.json
+    title: Prometheus Skill Pack skill-system manifest
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: full-skills
     resource: https://github.com/Prometheus-AGS/prometheus-skill-system/blob/main/SKILLS.md
     title: Prometheus Skill Pack skill catalog
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: mini-readme
     resource: https://github.com/Prometheus-AGS/prometheus-skills-mini/blob/main/README.md
     title: Prometheus Skills Mini README
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: mini-package
     resource: https://github.com/Prometheus-AGS/prometheus-skills-mini/blob/main/package.json
     title: Prometheus Skills Mini package manifest
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: mini-publication
     resource: https://github.com/Prometheus-AGS/prometheus-skills-mini/blob/main/docs/source-publication-20261005.md
     title: Prometheus Skills Mini source publication note, 2026-10-05
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: mini-maintenance
     resource: https://github.com/Prometheus-AGS/prometheus-skills-mini/blob/main/docs/maintenance.md
     title: Prometheus Skills Mini maintenance and platform limits
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
 ---
 
 # Prometheus skill packages status and licence
@@ -49,12 +53,12 @@ See each package's own skill index. The full pack's catalog is `SKILLS.md` and i
 
 ## Full Prometheus Skill Pack status
 
-Its README does not select a release. Support depends on the release, the host machine and the entry point, and a successful install does not prove that every requested service works.[^full-readme]
+The full pack's `skill-system.json` gives release version 1.12.2; treat that as the source version, not a tested release.[^full-system] Its README does not select a release. Support depends on the release, the host machine and the entry point, and a successful install does not prove that every requested service works.[^full-readme]
 
 ## Prometheus Skills Mini status
 
-Mini's source and documentation were published for review on 2026-10-05. The note says this is a source publication, not a release, and that an earlier release integration did not pass as a whole.[^mini-publication] Its source targets Windows, macOS and Linux with Node 22 or later; acceptance on real installed coding assistants is still pending on each of the three.[^mini-maintenance]
+Mini's `package.json` gives version 1.12.1; treat that as the source version, not a tested release.[^mini-package] Mini's source and documentation were published for review on 2026-10-05. The note says this is a source publication, not a release, and that an earlier release integration did not pass as a whole.[^mini-publication] Its source targets Windows, macOS and Linux with Node 22 or later; acceptance on real installed coding assistants is still pending on each of the three.[^mini-maintenance]
 
 ## Prometheus skill packages licences
 
-The full pack is MIT licensed and has a LICENSE file.[^full-license] Mini is MIT licensed according to its package manifest and README; its repository does not yet contain a LICENSE file.[^mini-package][^mini-readme] Skills imported into either package keep their own licences.[^full-readme][^mini-readme]
+The full Prometheus Skill Pack is MIT licensed and has a LICENSE file.[^full-license] For Prometheus Skills Mini, its package manifest and README say MIT, but no LICENSE file is in the repository yet, so check the repository before relying on that.[^mini-package][^mini-readme] Skills imported into either package keep their own licences.[^full-readme][^mini-readme]

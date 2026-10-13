@@ -2,49 +2,116 @@
   {
     "question": "What version of IPFS Sync for Obsidian is available, and what version of Obsidian does it need?",
     "expect_file": "ipfs-sync-for-obsidian.md",
-    "expect_contains": ["v0.2.0", "Obsidian 1.12.3"],
+    "expect_contains": [
+      "v0.2.0",
+      "Obsidian 1.12.3"
+    ],
     "critical": true
   },
   {
     "question": "What platforms does The Boss support?",
     "expect_file": "the-boss.md",
-    "expect_contains": ["Windows", "macOS"],
+    "expect_contains": [
+      "Windows",
+      "macOS"
+    ],
     "critical": true
   },
   {
     "question": "What is KnowMe?",
     "expect_file": "knowme-overview.md",
-    "expect_contains": ["personal AI platform"],
+    "expect_contains": [
+      "personal AI platform"
+    ],
     "critical": true
   },
   {
     "question": "Is KnowMe available to download?",
     "expect_file": "faq.md",
-    "expect_contains": ["publicly released"],
+    "expect_contains": [
+      "publicly released"
+    ],
     "critical": true
   },
   {
     "question": "Does the KnowMe agent on this site send my messages to a model provider?",
     "expect_file": "faq.md",
-    "expect_contains": ["Alibaba Cloud"],
+    "expect_contains": [
+      "Alibaba Cloud"
+    ],
     "critical": true
   },
   {
     "question": "What is The Boss?",
     "expect_file": "faq.md",
-    "expect_contains": ["desktop workspace"],
+    "expect_contains": [
+      "desktop workspace"
+    ],
     "critical": true
   },
   {
     "question": "Is The Boss free?",
     "expect_file": "faq.md",
-    "expect_contains": ["free"],
+    "expect_contains": [
+      "free"
+    ],
     "critical": true
   },
   {
     "question": "Who is KnowMe AI, LLC?",
     "expect_file": "company.md",
-    "expect_contains": ["KnowMe AI, LLC"],
+    "expect_contains": [
+      "KnowMe AI, LLC"
+    ],
+    "critical": true
+  },
+  {
+    "question": "What is the Universal Agent Runtime?",
+    "expect_file": "universal-agent-runtime-overview.md",
+    "expect_contains": [
+      "Universal Agent Runtime"
+    ],
+    "critical": true
+  },
+  {
+    "question": "What licence does the Universal Agent Runtime use?",
+    "expect_file": "universal-agent-runtime-status-and-licence.md",
+    "expect_contains": [
+      "MIT"
+    ],
+    "critical": true
+  },
+  {
+    "question": "What licence does the Surreal Memory Server use?",
+    "expect_file": "surreal-memory-server-status-and-licence.md",
+    "expect_contains": [
+      "MIT",
+      "LICENSE file"
+    ],
+    "critical": true
+  },
+  {
+    "question": "What is the Surreal Memory Server?",
+    "expect_file": "surreal-memory-server-overview.md",
+    "expect_contains": [
+      "SurrealDB"
+    ],
+    "critical": true
+  },
+  {
+    "question": "What is BossFang?",
+    "expect_file": "bossfang-overview.md",
+    "expect_contains": [
+      "LibreFang"
+    ],
+    "critical": true
+  },
+  {
+    "question": "What is the difference between the full and mini Prometheus skill packages?",
+    "expect_file": "prometheus-skill-packages-choosing-full-or-mini.md",
+    "expect_contains": [
+      "Node 22"
+    ],
     "critical": true
   }
 ]

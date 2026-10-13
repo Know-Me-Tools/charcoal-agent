@@ -5,7 +5,7 @@ description: Visitor questions about BossFang, answered from its own repository 
 status: draft
 generated:
   by: km-content-creator/opus
-  at: "2026-10-12T00:00:00+00:00"
+  at: "2026-10-13T00:05:39+00:00"
 tags:
   - bossfang
   - faq
@@ -13,19 +13,27 @@ sources:
   - id: bf-agents
     resource: https://github.com/GQAdonis/librefang/blob/main/AGENTS.md
     title: BossFang AGENTS.md, product identity and fork additions
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: bf-ledger
     resource: https://github.com/GQAdonis/librefang/blob/main/docs/bossfang/feature-ledger.md
     title: BossFang feature ledger
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: bf-uar
     resource: https://github.com/GQAdonis/librefang/blob/main/docs/bossfang-uar-connections.md
     title: BossFang connects to UAR
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
+  - id: bf-releases
+    resource: https://github.com/GQAdonis/librefang/releases
+    title: BossFang fork releases page
+    last_modified: "2026-10-13T00:05:39+00:00"
+  - id: bf-readme
+    resource: https://github.com/GQAdonis/librefang/blob/main/README.md
+    title: BossFang repository README
+    last_modified: "2026-10-13T00:05:39+00:00"
   - id: bf-license
     resource: https://github.com/GQAdonis/librefang/blob/main/LICENSE
     title: BossFang repository LICENSE
-    last_modified: "2026-10-12T00:00:00+00:00"
+    last_modified: "2026-10-13T00:05:39+00:00"
 ---
 
 # BossFang questions
@@ -48,8 +56,8 @@ BossFang keeps LibreFang's agent operating system and changes storage to Surreal
 
 ## How is BossFang different from the Universal Agent Runtime?
 
-BossFang manages agents, channels and a dashboard. The Universal Agent Runtime is a separate service that BossFang connects to for model access and governed runs; BossFang never starts or stops it.[^bf-uar]
+BossFang manages agents, channels and a dashboard. The Universal Agent Runtime is a separate service that BossFang connects to for model access and governed runs; BossFang never starts or stops it. That connection is implemented in source but not yet built or tested.[^bf-uar]
 
 ## How do I install BossFang?
 
-This knowledge base does not give an install command yet. The README's install sections are inherited from upstream LibreFang, and BossFang's own feature ledger records that its binary naming is not settled.[^bf-ledger]
+Install steps exist in the fork's README, but they mix upstream LibreFang package channels with fork-specific scripts, and BossFang's feature ledger records that its binary name is not settled.[^bf-readme][^bf-ledger] The fork's releases are native payloads built for The Boss, and their notes say release acceptance is tracked separately.[^bf-releases] No tested end-user install path is established, so this knowledge base gives no command.
