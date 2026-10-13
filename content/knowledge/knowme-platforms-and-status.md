@@ -4,11 +4,11 @@ KnowMe is being built for macOS, Windows, Linux, iOS and Android from one codeba
 
 ## KnowMe on desktop (macOS, Windows and Linux)
 
-KnowMe's desktop app is built with Tauri and React. It runs in KnowMe AI, LLC's development builds but is not yet available for download on macOS, Windows or Linux. The downloadable desktop app from KnowMe AI, LLC today is The Boss.
+KnowMe's desktop app is built with Tauri and React. Development builds have run on macOS; Windows and Linux are build targets. No KnowMe desktop build is available for download. The downloadable desktop app from KnowMe AI, LLC today is The Boss.
 
-## KnowMe on mobile (iOS and Android)
+## KnowMe on phones (iOS and Android)
 
-KnowMe's mobile app is built with Flutter. KnowMe AI, LLC has installed and run development builds on a current Android phone, but there is no public release for iOS or Android, and no date has been announced.
+KnowMe's phone app is built with Flutter. KnowMe AI, LLC has installed and run an Android development build on a current Android phone, but there is no public release for iOS or Android, and no date has been announced.
 
 ## One KnowMe app, one workflow
 
@@ -16,4 +16,4 @@ KnowMe's long-term design is one application with the same workflow on phone, ta
 
 ## How KnowMe relates to The Boss
 
-The Boss is KnowMe AI, LLC's free, open-source desktop workspace for macOS and Windows, available now. It packages the Universal Agent Runtime, the same agent runtime KnowMe is built on. If you want something to install today, start with The Boss.
+The Boss is KnowMe AI, LLC's free, open-source desktop workspace for macOS and Windows, available now. It is not an edition of KnowMe and is not built on KnowMe; the two share the Universal Agent Runtime, which The Boss packages and KnowMe is built on. If you want something to install today, start with The Boss.

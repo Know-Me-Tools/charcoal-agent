@@ -10,5 +10,41 @@
     "expect_file": "the-boss.md",
     "expect_contains": ["Windows", "macOS"],
     "critical": true
+  },
+  {
+    "question": "What is KnowMe?",
+    "expect_file": "knowme-overview.md",
+    "expect_contains": ["personal AI platform"],
+    "critical": true
+  },
+  {
+    "question": "Is KnowMe available to download?",
+    "expect_file": "faq.md",
+    "expect_contains": ["publicly released"],
+    "critical": true
+  },
+  {
+    "question": "Does the KnowMe agent on this site send my messages to a model provider?",
+    "expect_file": "faq.md",
+    "expect_contains": ["Alibaba Cloud"],
+    "critical": true
+  },
+  {
+    "question": "What is The Boss?",
+    "expect_file": "the-boss.md",
+    "expect_contains": ["desktop workspace"],
+    "critical": true
+  },
+  {
+    "question": "Is The Boss free?",
+    "expect_file": "faq.md",
+    "expect_contains": ["free"],
+    "critical": true
+  },
+  {
+    "question": "Who is KnowMe AI, LLC?",
+    "expect_file": "company.md",
+    "expect_contains": ["KnowMe AI, LLC"],
+    "critical": true
   }
 ]
