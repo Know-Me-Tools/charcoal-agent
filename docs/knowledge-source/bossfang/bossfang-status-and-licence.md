@@ -35,6 +35,10 @@ sources:
 
 # BossFang status and licence
 
+## Who makes BossFang and what licence it uses
+
+Prometheus AGS makes BossFang, a fork of the open-source LibreFang project.[^bf-readme] BossFang is MIT licensed, with copyright held by the LibreFang contributors because it is a fork.[^bf-license]
+
 ## How BossFang tracks its own status
 
 BossFang keeps a feature ledger of every BossFang-only feature with a status: GREEN means shipped with an automated guard, PARTIAL means shipped with an incomplete guard or known debt, DEFERRED means a gap left open on purpose, and DRIFT means the documentation and the code disagree.[^bf-ledger] Most rows are GREEN or PARTIAL.[^bf-ledger]
