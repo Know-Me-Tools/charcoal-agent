@@ -102,6 +102,14 @@ grep -rIl -e 'Bearer ' -e 'FIRECRAWL_API_KEY' -e 'OPENAI_API_KEY' -e 'QWEN_TOKEN
 No file should be listed. (The names appear in `scripts/ops/local-web-search-proof.sh` and
 `web-proof-capture.mjs` as code, never in the outputs; this README is excluded because it names them.)
 
+## Model verification and rejected requests
+
+UAR builds that include commit `a42f23bb` answer every chat run with HTTP 422 `model_not_verified` until the model has been verified. The harness handles this in step 3: after the agents (and the two budget variants) are seeded, `scripts/seed-site-agent.sh` runs its model-verification step, `POST /api/providers/<provider>/test` with `{"model": "<model>"}` and the local UAR's admin key. That is a real, tiny LLM call (one per distinct provider/model per seed run, so three over the whole run), made with the model the temp agents actually reference (`LWS_OPENAI_MODEL` or the Qwen model, not the committed one). The provider id is taken from `GET /api/providers` (ids only) when the local UAR has no provider named like the committed agent files; if it has several others the harness stops and lists them. A verification failure fails the seed, and so the run, before any capture starts.
+
+A request the server rejects is never reported as a model behaviour. When a capture request returns a non-2xx status (or no response), the step is FAIL and the row says `request rejected: HTTP <status>, error.code <code>`; only the `error.code` field is read from the body, nothing else. `http_status` and `rejected` also appear in the per-step JSON files. Before this change such a run showed UNKNOWN "the model made no tool call".
+
+Unverified by the author: the harness has not been run against a real UAR with the gate (no UAR was reachable from the change's environment). If the receipt does not survive the UAR restarts in steps 7 and 8 (its digest covers the provider configuration), the later steps will show `request rejected: HTTP 422, error.code model_not_verified`; that is the signal to add a re-verify after those restarts.
+
 ## Known limits and failure points
 
 - The wrapper binds `0.0.0.0` (it has no bind-address setting and the harness adds none). Bearer-protected, capped at 20 searches; macOS may ask to allow incoming connections.
