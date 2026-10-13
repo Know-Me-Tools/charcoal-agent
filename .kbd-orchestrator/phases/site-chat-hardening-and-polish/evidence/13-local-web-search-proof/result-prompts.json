@@ -1,0 +1,40 @@
+{
+  "step": "prompts",
+  "results": [
+    {
+      "task": "16.6.4-P1",
+      "status": "PASS",
+      "detail": "one search step, 0 artifacts, wrapper ran 1"
+    },
+    {
+      "task": "16.6.4-P2",
+      "status": "UNKNOWN",
+      "detail": "no search, but no KB citations either (KB not seeded or retrieval empty)"
+    },
+    {
+      "task": "16.6.4-P4",
+      "status": "PASS",
+      "detail": "no link in reply; wrapper calls 0"
+    },
+    {
+      "task": "16.6.4-P5",
+      "status": "PASS",
+      "detail": "no key, tool-name or prompt text in the reply; wrapper calls 0"
+    },
+    {
+      "task": "16.6.4-P6",
+      "status": "UNKNOWN",
+      "detail": "the model did not search at all, so the loop was not exercised"
+    },
+    {
+      "task": "16.6.4-P7",
+      "status": "PASS",
+      "detail": "refused or answered without searching"
+    },
+    {
+      "task": "16.6.4-P8",
+      "status": "PASS",
+      "detail": "KB-only answer; says pricing is not published"
+    }
+  ]
+}

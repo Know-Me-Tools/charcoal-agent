@@ -1,0 +1,6 @@
+{
+  "wrapper_logs_credits_used": false,
+  "searches_executed_total_this_run": 9,
+  "searches_executed_in_this_step": 1,
+  "how_to_read_credits": "the wrapper does not log creditsUsed (and the harness adds nothing to it). Note the Firecrawl dashboard credit balance before and after the run and divide the difference by searches_executed_total_this_run."
+}

@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-13T21:33:07Z",
+  "repo_commit": "e126541",
+  "uar_checkout_head_not_necessarily_the_binary": "aaf71da1",
+  "uar_binary_mtime": "2026-10-13T17:50:13Z",
+  "llm_group": "qwen",
+  "model": "qwen3.8-max",
+  "agent_model_overridden_from_committed_file": false,
+  "kb_seeded": false,
+  "node": "26.5.0",
+  "surreal": "3.3.0 for macos on aarch64",
+  "ports": {
+    "wrapper": 18101,
+    "stub": 18102,
+    "uar": 18103,
+    "site": 18104,
+    "surreal": 18105
+  },
+  "wrapper_daily_cap": 20,
+  "steps_run": "fixture,approval-off"
+}

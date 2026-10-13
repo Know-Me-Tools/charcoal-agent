@@ -1,0 +1,15 @@
+{
+  "step": "direct",
+  "results": [
+    {
+      "task": "16.6.1",
+      "status": "PASS",
+      "detail": "tool name [\"websearch__search\"]; result fields captured; public stream clean"
+    },
+    {
+      "task": "16.6.2-A",
+      "status": "PASS",
+      "detail": "patched image with preapproved_tools: approval_required events 0, agui.done 1, finished in 19390 ms, tool calls 1"
+    }
+  ]
+}

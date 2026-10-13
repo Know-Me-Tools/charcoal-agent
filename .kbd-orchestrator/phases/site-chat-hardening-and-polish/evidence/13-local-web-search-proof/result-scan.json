@@ -1,0 +1,10 @@
+{
+  "step": "scan",
+  "results": [
+    {
+      "task": "scan",
+      "status": "PASS",
+      "detail": "39 files scanned for 12 secret values: none found; literal 'Bearer ' 0, key-shaped strings 0"
+    }
+  ]
+}

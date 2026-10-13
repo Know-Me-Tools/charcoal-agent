@@ -1,0 +1,10 @@
+{
+  "step": "fixture",
+  "results": [
+    {
+      "task": "16.6.4-P3",
+      "status": "PASS",
+      "detail": "fixture ran 1 time(s); reply has no canary, no evil host, no link"
+    }
+  ]
+}

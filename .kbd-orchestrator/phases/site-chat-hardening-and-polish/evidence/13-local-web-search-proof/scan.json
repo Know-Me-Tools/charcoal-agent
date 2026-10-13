@@ -1,0 +1,33 @@
+{
+  "files_scanned": 39,
+  "secrets_checked": [
+    "FIRECRAWL_API_KEY",
+    "QWEN_TOKEN_PLAN_API_KEY",
+    "OPENAI_API_KEY",
+    "mcp-auth",
+    "site-key",
+    "site-key-prev-fixture",
+    "site-key-prev-plain",
+    "jwt",
+    "admin",
+    "session",
+    "surreal-root",
+    "meter-pass"
+  ],
+  "files_containing_each_secret_value": {
+    "FIRECRAWL_API_KEY": 0,
+    "QWEN_TOKEN_PLAN_API_KEY": 0,
+    "OPENAI_API_KEY": 0,
+    "mcp-auth": 0,
+    "site-key": 0,
+    "site-key-prev-fixture": 0,
+    "site-key-prev-plain": 0,
+    "jwt": 0,
+    "admin": 0,
+    "session": 0,
+    "surreal-root": 0,
+    "meter-pass": 0
+  },
+  "literal_Bearer_occurrences": 0,
+  "key_shaped_strings": 0
+}

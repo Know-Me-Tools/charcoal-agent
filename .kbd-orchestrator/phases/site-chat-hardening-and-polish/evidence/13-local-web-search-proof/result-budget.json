@@ -1,0 +1,10 @@
+{
+  "step": "budget",
+  "results": [
+    {
+      "task": "16.6.3",
+      "status": "PASS",
+      "detail": "control ran 3; with budget 1 the wrapper executed 1, started 2, denied events 1: max_tool_calls_per_turn is honoured from extensions.budgets"
+    }
+  ]
+}
