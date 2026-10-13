@@ -1,18 +1,18 @@
 {
   "title": "Answer card",
-  "description": "A short sourced answer card. Use it for a factual reply: set data.title (a few words), data.answer (plain text, no angle brackets) and data.source (the knowledge base source).",
+  "description": "A short header for a factual answer; the reply text carries the full answer and its citations. Set data.title (a few words), data.summary (one sentence of plain text, no angle brackets, not the full answer) and data.source (the knowledge base source's name).",
   "enabled": true,
   "template": {
     "version": "v0.9.1",
     "catalog_id": "urn:uar:a2ui:catalog:1",
     "components": [
       { "id": "root", "component": "Card", "child": "body" },
-      { "id": "body", "component": "Column", "children": ["title", "rule", "answer", "source"] },
+      { "id": "body", "component": "Column", "children": ["title", "rule", "summary", "source"] },
       { "id": "title", "component": "Text", "variant": "h3", "text": { "path": "/title" } },
       { "id": "rule", "component": "Divider" },
-      { "id": "answer", "component": "Text", "variant": "body", "text": { "path": "/answer" } },
+      { "id": "summary", "component": "Text", "variant": "body", "text": { "path": "/summary" } },
       { "id": "source", "component": "Text", "variant": "caption", "text": { "path": "/source" } }
     ],
-    "default_data": { "title": "Answer", "answer": "", "source": "" }
+    "default_data": { "title": "Answer", "summary": "", "source": "" }
   }
 }
