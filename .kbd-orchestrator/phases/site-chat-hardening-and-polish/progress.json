@@ -2,16 +2,16 @@
   "schemaVersion": "2",
   "generatedBy": "kbd-runtime",
   "projectionContractVersion": 2,
-  "sourceRevision": 1879,
-  "derivedRevision": 1879,
+  "sourceRevision": 1890,
+  "derivedRevision": 1890,
   "frontier": {
-    "a0967547-26fc-4329-94ba-3da3d5e790a5": 1879
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 1890
   },
   "conflictCount": 0,
   "phase": "site-chat-hardening-and-polish",
   "phaseId": "site-chat-hardening-and-polish",
   "parentPhase": null,
-  "last_updated": "2026-10-12T23:05:33.141006Z",
+  "last_updated": "2026-10-12T23:38:33.611104Z",
   "last_updated_by": "kbd-runtime",
   "changes_total": 15,
   "changes_completed": 1,
@@ -76,9 +76,9 @@
       "status": "PENDING",
       "implementation_status": "PENDING",
       "tasks_total": 4,
-      "tasks_done": 0,
-      "last_task_completed": null,
-      "next_task_pending": "Run `teach-impeccable` from `src/styles/tokens.css`, `content/brand`, the brand guide and `content/site/*`; commit the design context.",
+      "tasks_done": 1,
+      "last_task_completed": "Run `teach-impeccable` from `src/styles/tokens.css`, `content/brand`, the brand guide and `content/site/*`; commit the design context.",
+      "next_task_pending": "Capture the live site at 320/768/1024/1440 × light/dark (landing, empty thread, answered thread with card and sources, panel open) and look at each image.",
       "blockers": []
     },
     {
@@ -197,8 +197,8 @@
       "status": "PENDING",
       "implementation_status": "PENDING",
       "tasks_total": 5,
-      "tasks_done": 0,
-      "last_task_completed": null,
+      "tasks_done": 1,
+      "last_task_completed": "Firecrawl research by the main thread; each fetched page is logged to `evidence/` with URL, retrieval date and the excerpt relied on.",
       "next_task_pending": "Research plan: categories (always-on cloud agents including OpenAI dots; local-first and sovereign assistants; agent runtimes; agent memory systems; desktop agent clients; prior-au",
       "blockers": []
     },
