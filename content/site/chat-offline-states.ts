@@ -1,7 +1,7 @@
 /**
- * DRAFT copy — pending operator approval, recorded in
- * `docs/content/reviews/site-chat-offline-states.md`. Do not treat as
- * final; see that file before changing or shipping this text.
+ * Operator-approved 2026-10-13, recorded in
+ * `docs/content/reviews/site-chat-offline-states.md`. See that file before
+ * changing this text.
  *
  * Covers the agent-offline notice (FR-27), the 429 rate-limit message
  * (FR-28), and the "Blocked by policy" tool-call label (FR-11 — a short,

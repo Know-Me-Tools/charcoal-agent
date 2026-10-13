@@ -1,7 +1,6 @@
 /**
- * DRAFT copy — pending the operator and the content officer. Do not treat as
- * final; a review record for this piece belongs in
- * `docs/content/reviews/site-thread-list.md` before it ships.
+ * Operator-approved 2026-10-13, recorded in
+ * `docs/content/reviews/site-thread-list.md`. Change this text only with a new review record.
  *
  * The site sidebar's thread list when the visitor has no conversation at all
  * (integration gate 08, S1). It replaces the app's "// No threads yet / Start

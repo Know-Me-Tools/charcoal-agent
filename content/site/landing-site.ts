@@ -1,7 +1,6 @@
 /**
- * DRAFT copy — pending the operator and the content officer. Do not treat as
- * final; a review record for this piece belongs in
- * `docs/content/reviews/site-landing.md` before it ships.
+ * Operator-approved 2026-10-13, recorded in
+ * `docs/content/reviews/site-landing.md`. Change this text only with a new review record.
  *
  * The public site's front page (integration gate 08, B1). It replaces the app
  * landing (`landing.ts`) on the site build, whose "Skills you can attach",
