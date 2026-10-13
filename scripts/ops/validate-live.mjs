@@ -68,7 +68,10 @@ const ALLOWED_KEYS = {
   "agui.cancelled": { top: ["kind", "usage"], nested: { usage: ["input_tokens", "output_tokens", "total_tokens"] } },
   "agui.citation.added": { top: ["kind", "phase", "citation"], nested: { citation: ["url", "title", "snippet", "index"] } },
   "agui.rag_citations": { top: ["kind", "phase", "citations"], items: { citations: ["document_name", "snippet", "marker"] } },
-  "agui.tool_call.denied": { top: ["kind", "phase", "reason", "id", "name", "call_index"] },
+  // The only public tool-step frame (server/src/domain/agui_steps.rs). The old
+  // agui.tool_call.denied frame leaked the real tool id and name and is gone, so it
+  // is deliberately not allowed here: seeing it again is a regression.
+  "agui.step": { top: ["kind", "phase", "index", "label"] },
   "agui.artifact": { top: ["artifact_type", "content", "artifact_id", "title"] },
   "agui.state.patch": { top: ["kind", "patch"], items: { patch: ["op", "path", "from", "value"] } },
 };
