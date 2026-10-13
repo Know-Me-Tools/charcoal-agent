@@ -16,9 +16,11 @@
 #                     and the name must be `know-me` (the know-me LKE cluster), so this can
 #                     never reach another cluster.
 #   --web             also verify the web-search agent's model (uar/agents/knowme-site-web.json).
-#   --smoke           after verifying, send ONE tiny chat request through the port-forward to the
-#                     site agent and report the HTTP status and whether agui.done arrived. The
-#                     answer text is never printed. This is a real LLM call.
+#   --smoke           after verifying, send ONE tiny chat request (stream_mode "dual", as the site
+#                     proxy does) through the port-forward to the site agent. Passes only on a
+#                     complete direct stream: HTTP 2xx, at least one agui.message.delta, agui.done,
+#                     no agui.error, closing `data: [DONE]`. Reports the HTTP status and event-name
+#                     counts only; the answer text is never printed. This is a real LLM call.
 #   --dry-run         print the plan and the resolved context, ports and agent files, then exit.
 #                     Runs no kubectl and no curl.
 #
@@ -105,6 +107,56 @@ free_port() {
   printf '%s' "$p"
 }
 
+# ── Smoke stream check ──────────────────────────────────────────────────────
+# A direct UAR stream in stream_mode "dual" (src/server.rs api_chat_completion) is a series of
+# `event: agui.*` / `event: runtime.*` frames interleaved with unnamed OpenAI chunk frames. A
+# complete run ends: agui.done (with usage) -> runtime.run -> final chunk -> `data: [DONE]`.
+# A failed run emits agui.error and then ALSO ends with `data: [DONE]`, so [DONE] alone is not
+# success; a run is complete only with agui.done, at least one agui.message.delta, no agui.error
+# and a closing [DONE]. Only event names and counts are ever reported, never answer text.
+smoke_event_counts() { # sse-file -> "name xN, ..." (or "none")
+  local out
+  out="$(grep -E '^event:' "$1" 2>/dev/null | sed -E 's/^event: *//; s/\r$//' | sort | uniq -c |
+    awk '{printf "%s%s x%s", sep, $2, $1; sep=", "}')" || true
+  printf '%s' "${out:-none}"
+}
+smoke_count() { # sse-file extended-regex -> number of matching lines
+  local n
+  n="$(tr -d '\r' <"$1" 2>/dev/null | grep -cE "$2")" || true
+  printf '%s' "${n:-0}"
+}
+smoke_failure() { # sse-file http-status -> prints the reason and returns 1 when NOT a complete stream
+  local f="$1" status="$2" last errs frames
+  if [[ "$status" != 2?? ]]; then
+    printf 'non-2xx response (error.code: %s)' "$(jq -r '.error.code // "none"' "$f" 2>/dev/null || echo none)"
+    return 1
+  fi
+  if [[ ! -s "$f" ]]; then
+    printf 'empty stream (HTTP %s with no body)' "$status"
+    return 1
+  fi
+  errs="$(smoke_count "$f" '^event: *agui\.error$')"
+  frames="$(smoke_count "$f" '^data: *\{"error"')"
+  if [[ "$errs" -gt 0 || "$frames" -gt 0 ]]; then
+    printf 'the stream carried an error event (agui.error x%s, error frames x%s; error.code: %s)' "$errs" "$frames" \
+      "$(tr -d '\r' <"$f" | awk '/^event: *agui\.error$/ {g=1; next} g && /^data:/ {sub(/^data: */, ""); print; exit}' | jq -r '.code // "none"' 2>/dev/null || echo none)"
+    return 1
+  fi
+  if [[ "$(smoke_count "$f" '^event: *agui\.message\.delta$')" -eq 0 ]]; then
+    printf 'no agui.message.delta: the stream carried no answer'
+    return 1
+  fi
+  if [[ "$(smoke_count "$f" '^event: *agui\.done$')" -eq 0 ]]; then
+    printf 'no agui.done: the stream ended before the run finished (truncated)'
+    return 1
+  fi
+  last="$(tr -d '\r' <"$f" | grep -E '^data:' | tail -n 1)" || true
+  if [[ "$last" != 'data: [DONE]' ]]; then
+    printf 'no closing [DONE] marker: the stream was cut after agui.done (truncated)'
+    return 1
+  fi
+}
+
 if [[ "$DRY_RUN" == 1 ]]; then
   cat <<EOF
 [verify-site-models] DRY RUN (no kubectl, no curl is run)
@@ -116,7 +168,7 @@ if [[ "$DRY_RUN" == 1 ]]; then
   gate token url    $SITE_GATE_TOKEN_URL
   agent files       $SITE_AGENT_FILE$([[ "$WITH_WEB" == 1 ]] && printf ', %s' "$WEB_AGENT_FILE")
   verification      SEED_MODE=verify scripts/seed-site-agent.sh (POST /api/providers/<provider>/test per distinct provider/model)
-  smoke chat        $([[ "$SMOKE" == 1 ]] && echo "yes: one request to /api/chat/completion, agent $(jq -r '.id' "$SITE_AGENT_FILE")" || echo "no (pass --smoke)")
+  smoke chat        $([[ "$SMOKE" == 1 ]] && echo "yes: one request (stream_mode dual) to /api/chat/completion, agent $(jq -r '.id' "$SITE_AGENT_FILE")" || echo "no (pass --smoke)")
 EOF
   exit 0
 fi
@@ -203,12 +255,18 @@ if [[ "$SMOKE" == 1 ]]; then
   unset token body
   session="$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen)"
   log "smoke: one chat request to agent $agent_id"
+  # stream_mode "dual" is what the site proxy pins (server/src/domain/chat_request.rs). UAR's
+  # default, "openai", emits only OpenAI chunk frames and no `event: agui.*` frames at all, so
+  # without it a healthy run can never show agui.done.
+  curl_rc=0
   status="$(curl -sS -o "$WORK/chat.sse" -w '%{http_code}' --max-time 90 -X POST "$UAR_BASE/api/chat/completion" \
     -H "@$WORK/chat-auth" -H "X-UAR-Session-ID: $session" -H 'Content-Type: application/json' \
-    --data-binary "$(jq -nc --arg a "$agent_id" '{agent_id:$a, message:"Reply with the single word: ok", stream:true, memory_enabled:false}')")" || status=000
-  if grep -q '^event: *agui.done' "$WORK/chat.sse" 2>/dev/null; then done_seen=yes; else done_seen=no; fi
-  log "smoke: HTTP $status, agui.done: $done_seen"
-  [[ "$status" == 2?? && "$done_seen" == yes ]] || die "smoke chat failed: HTTP $status, agui.done $done_seen (error.code: $(jq -r '.error.code // "none"' "$WORK/chat.sse" 2>/dev/null || echo none))"
+    --data-binary "$(jq -nc --arg a "$agent_id" '{agent_id:$a, message:"Reply with the single word: ok", stream:true, stream_mode:"dual", memory_enabled:false}')")" || curl_rc=$?
+  status="${status:-000}"
+  [[ "$curl_rc" == 0 ]] || log "smoke: curl exit $curl_rc (a stream cut by the 90 s limit or a dropped connection counts as truncated)"
+  failure="$(smoke_failure "$WORK/chat.sse" "$status")" || true
+  log "smoke: HTTP $status, events seen: $(smoke_event_counts "$WORK/chat.sse")"
+  [[ -z "$failure" ]] || die "smoke chat failed: HTTP $status, $failure"
   log "smoke chat: PASS"
 fi
 log "done"
