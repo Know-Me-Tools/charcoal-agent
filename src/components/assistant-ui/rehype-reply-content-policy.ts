@@ -1,4 +1,5 @@
 import type { Element, ElementContent, Root, RootContent, Text } from "hast";
+import { policyForVideo } from "./rehype-reply-video-policy";
 import { isCitedWebUrl } from "@/lib/link-policy/cited-web-url";
 import {
   isAllowedReplyImage,
@@ -16,6 +17,7 @@ import {
  *     fires a request the moment it renders.
  *   - `<source srcset>` (inside `<picture>`, allowed by the default schema)
  *     is dropped unless every candidate passes the same image rule.
+ *   - `<video>` is rebuilt from an allowlist by `rehype-reply-video-policy`.
  *   - `<a href>` stays a link only for the explicit reviewed destinations
  *     (and same-page anchors such as footnotes); an allowed external link
  *     opens in a new tab with `noopener noreferrer`. Any other link becomes
@@ -42,6 +44,10 @@ export function rehypeReplyContentPolicy(options: ReplyContentPolicyOptions = {}
 }
 
 function applyPolicy(node: Element, cited: ReadonlySet<string>): ElementContent[] {
+  // A video is rebuilt from its original children (its sources need their
+  // `src` and `type`), so it never goes through the generic child pass.
+  if (node.tagName === "video") return policyForVideo(node);
+
   const children = node.children.flatMap((child) =>
     child.type === "element" ? applyPolicy(child, cited) : [child],
   );
@@ -49,8 +55,14 @@ function applyPolicy(node: Element, cited: ReadonlySet<string>): ElementContent[
   switch (node.tagName) {
     case "img":
       return policyForImage(node);
-    case "source":
-      return isAllowedSrcSet(node.properties.srcSet) ? [{ ...node, children }] : [];
+    case "source": {
+      // `src`/`type` are for `<video>` only (policyForVideo reads them from the
+      // original tree); a picture `<source>` keeps just its checked srcset.
+      const { src: _src, type: _type, ...rest } = node.properties;
+      return isAllowedSrcSet(node.properties.srcSet)
+        ? [{ ...node, properties: rest, children }]
+        : [];
+    }
     case "a":
       return policyForLink(node, children, cited);
     default:

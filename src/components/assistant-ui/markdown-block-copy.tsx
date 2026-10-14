@@ -1,7 +1,7 @@
-import { createContext, useContext, useRef, useState, type FC, type ReactNode, type HTMLAttributes, type ImgHTMLAttributes, type TableHTMLAttributes } from "react";
+import { createContext, useContext, useRef, useState, type FC, type ReactNode, type HTMLAttributes, type ImgHTMLAttributes, type TableHTMLAttributes, type VideoHTMLAttributes, Children, isValidElement } from "react";
 import { CopyButton } from "@/components/common/copy-button";
 import { selectElementText } from "@/hooks/use-copy-to-clipboard";
-import { mathBlockText, tableBlockText } from "@/features/blocks/block-text";
+import { mathBlockText, tableBlockText, videoBlockText } from "@/features/blocks/block-text";
 import { cn } from "@/lib/utils";
 import { BLOCK_COPY_CONTENT } from "../../../content/site/block-copy";
 
@@ -140,6 +140,37 @@ export const MarkdownImage: FC<ImgHTMLAttributes<HTMLImageElement>> = ({ classNa
             text={url}
             write={async (value) => setMode(await copyImage(value))}
           />
+        </span>
+      )}
+    </span>
+  );
+};
+
+/** The first `<source src>` among a video's children (the policy keeps only checked ones). */
+function firstSourceUrl(children: ReactNode): string {
+  for (const child of Children.toArray(children)) {
+    if (!isValidElement<{ src?: unknown }>(child)) continue;
+    if (typeof child.props.src === "string") return videoBlockText(child.props.src);
+  }
+  return "";
+}
+
+/**
+ * A reply video (already rebuilt and checked by the reply policy: own-host
+ * sources, controls, preload none) with a Copy video link button, unless it
+ * is inside a link.
+ */
+export const MarkdownVideo: FC<VideoHTMLAttributes<HTMLVideoElement>> = ({ className, children, ...props }) => {
+  const inAnchor = useContext(InAnchorContext);
+  const url = inAnchor ? "" : firstSourceUrl(children);
+  return (
+    <span className="relative my-3 inline-block max-w-full align-top">
+      <video className={cn("h-auto max-w-full rounded-lg bg-muted-surface", className)} {...props}>
+        {children}
+      </video>
+      {url !== "" && (
+        <span className="absolute end-2 top-2 rounded-sm bg-surface">
+          <CopyButton label={BLOCK_COPY_CONTENT.copyVideoLink} text={url} />
         </span>
       )}
     </span>

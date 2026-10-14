@@ -47,12 +47,20 @@ import { defaultSchema, type Options as SanitizeSchema } from "rehype-sanitize";
  */
 export const MARKDOWN_SANITIZE_SCHEMA: SanitizeSchema = {
   ...defaultSchema,
+  // Own-host video (change app-block-copy-and-media-blocks 3.5). The sanitizer
+  // only lets the elements and attribute NAMES through; `rehypeReplyContentPolicy`
+  // then rebuilds every video from an allowlist and checks each destination.
+  // `audio`, `iframe`, `embed`, `object` stay stripped (not in the default).
+  tagNames: [...(defaultSchema.tagNames ?? []), "video"],
   attributes: {
     ...defaultSchema.attributes,
+    video: ["controls", "preload", "width", "height", "poster", "src"],
+    source: [...(defaultSchema.attributes?.source ?? []), "src", "type"],
     code: [["className", /^language-./, "math-inline", "math-display"]],
   },
   protocols: {
     ...defaultSchema.protocols,
     href: ["http", "https", "mailto"],
+    poster: ["https"],
   },
 };

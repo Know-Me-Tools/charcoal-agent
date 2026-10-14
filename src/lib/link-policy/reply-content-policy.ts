@@ -71,3 +71,15 @@ export function isAllowedReplyImage(src: string): boolean {
   if (!parsed) return false;
   return parsed.hostname === OWN_IMAGE_HOST;
 }
+
+/**
+ * Whether a video source in a chat message may load: the same rule as images
+ * (https on exactly the own host, or same-origin), because the CSP
+ * `media-src 'self'` covers exactly that and no subdomain.
+ */
+export function isAllowedReplyVideoSrc(src: string): boolean {
+  return isAllowedReplyImage(src);
+}
+
+/** The only media types a reply video source may declare. */
+export const ALLOWED_REPLY_VIDEO_TYPES: ReadonlySet<string> = new Set(["video/mp4", "video/webm"]);

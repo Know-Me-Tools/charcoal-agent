@@ -13,7 +13,7 @@ import { HtmlArtifactCard } from "@/features/artifacts/html-artifact-card";
 import { SvgBlock } from "@/features/artifacts/svg-block";
 import { ShikiCodeBlock } from "@/features/artifacts/shiki-code-block";
 import { useThrottledValue } from "@/hooks/use-throttled-value";
-import { AnchorScope, MarkdownImage, MarkdownSpan, MarkdownTable } from "./markdown-block-copy";
+import { AnchorScope, MarkdownImage, MarkdownSpan, MarkdownTable, MarkdownVideo } from "./markdown-block-copy";
 import { findOpenFence, StreamingFenceContext } from "./streaming-fence";
 import {
   buildMarkdownRehypePlugins,
@@ -265,6 +265,7 @@ const enhancedComponents = memoizeMarkdownComponents({
     />
   ),
   img: MarkdownImage,
+  video: MarkdownVideo,
   span: MarkdownSpan,
 
   // Code

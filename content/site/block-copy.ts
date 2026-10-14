@@ -38,6 +38,8 @@ export interface BlockCopyContent {
 	copiedImage: string;
 	/** Success text when only the image URL was copied (no image clipboard support). */
 	copiedImageLink: string;
+	/** Accessible name of the copy button on a video in a reply (copies its link). */
+	copyVideoLink: string;
 	/** Accessible name of the copy button on an A2UI card frame. */
 	copyCard: string;
 	/** Accessible name of the copy button on an SVG block. */
@@ -70,6 +72,7 @@ export const BLOCK_COPY_CONTENT: BlockCopyContent = {
 	copyImage: "Copy image",
 	copiedImage: "Copied image",
 	copiedImageLink: "Copied image link",
+	copyVideoLink: "Copy video link",
 	copyCard: "Copy card",
 	copySvgSource: "Copy SVG source",
 	svgTitle: "SVG",
