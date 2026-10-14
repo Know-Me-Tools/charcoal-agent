@@ -27,9 +27,23 @@ function byteLength(text: string): number {
 	return new TextEncoder().encode(text).length;
 }
 
-/** The only way the SVG reaches the DOM: an image source, which cannot run scripts or load resources. */
-function toDataUrl(source: string): string {
-	return `data:${SVG_MIME};charset=utf-8,${encodeURIComponent(source.trim())}`;
+/** Lone surrogates are not valid text and make `encodeURIComponent` throw; replace them with U+FFFD. */
+function wellFormed(text: string): string {
+	const native = (text as string & { toWellFormed?: () => string }).toWellFormed;
+	if (typeof native === "function") return native.call(text);
+	return text.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, "\uFFFD");
+}
+
+/**
+ * The only way the SVG reaches the DOM: an image source, which cannot run scripts or load resources.
+ * Total: returns null when encoding fails, so the caller shows the source view instead of throwing.
+ */
+function toDataUrl(source: string): string | null {
+	try {
+		return `data:${SVG_MIME};charset=utf-8,${encodeURIComponent(wellFormed(source).trim())}`;
+	} catch {
+		return null;
+	}
 }
 
 function downloadSvg(source: string): void {
@@ -60,7 +74,8 @@ export const SvgBlock: FC<SvgBlockProps> = ({ source, className }) => {
 	}
 
 	const tooLarge = byteLength(source) > SVG_SIZE_CAP_BYTES;
-	const sourceOnly = tooLarge || showSource;
+	const dataUrl = tooLarge ? null : toDataUrl(source);
+	const sourceOnly = tooLarge || showSource || dataUrl === null;
 
 	const handleSelectFallback = () => {
 		setShowSource(true);
@@ -126,7 +141,7 @@ export const SvgBlock: FC<SvgBlockProps> = ({ source, className }) => {
 			) : (
 				<div className="flex justify-center overflow-x-auto bg-surface p-4">
 					<img
-						src={toDataUrl(source)}
+						src={dataUrl ?? undefined}
 						alt={BLOCK_COPY_CONTENT.svgAlt}
 						className="h-auto max-w-full"
 						style={{ height: "auto", maxWidth: "100%" }}

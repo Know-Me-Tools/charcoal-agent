@@ -121,3 +121,59 @@ describe("SvgBlock fallback", () => {
 		expect(screen.getByRole("region", { name: /code/i })).toBeTruthy();
 	});
 });
+
+describe("SvgBlock with a lone surrogate (security review L2)", () => {
+	const HIGH = '<svg xmlns="http://www.w3.org/2000/svg"><text>\ud800</text></svg>';
+	const LOW = '<svg xmlns="http://www.w3.org/2000/svg"><text>\udc00</text></svg>';
+
+	it.each([
+		["high", HIGH],
+		["low", LOW],
+	])("does not throw for a lone %s surrogate and still previews", (_name, source) => {
+		const { container } = render(<SvgBlock source={source} />);
+		const src = container.querySelector("img")?.getAttribute("src") ?? "";
+		expect(src.startsWith("data:image/svg+xml")).toBe(true);
+		expect(decodeURIComponent(src.slice(src.indexOf(",") + 1))).toContain("�");
+	});
+
+	it.each([
+		["high", HIGH],
+		["low", LOW],
+	])("copies the original source for a lone %s surrogate", async (_name, source) => {
+		const writeText = vi.fn().mockResolvedValue(undefined);
+		stubClipboard({ writeText });
+		render(<SvgBlock source={source} />);
+		await act(async () => {
+			fireEvent.click(screen.getByRole("button", { name: "Copy SVG source" }));
+		});
+		expect(writeText).toHaveBeenCalledWith(source);
+	});
+
+	it("shows the source view instead of throwing when encoding fails for any reason", () => {
+		const spy = vi.spyOn(globalThis, "encodeURIComponent").mockImplementation(() => {
+			throw new URIError("URI malformed");
+		});
+		try {
+			const { container } = render(<SvgBlock source={SAFE} />);
+			expect(container.querySelector("img")).toBeNull();
+			expect(screen.getByRole("button", { name: "Copy SVG source" })).toBeTruthy();
+			expect(screen.getByRole("region", { name: /code/i })).toBeTruthy();
+		} finally {
+			spy.mockRestore();
+		}
+	});
+
+	it("replaces lone surrogates by hand when toWellFormed is unavailable", () => {
+		const original = Object.getOwnPropertyDescriptor(String.prototype, "toWellFormed");
+		Object.defineProperty(String.prototype, "toWellFormed", { configurable: true, value: undefined });
+		try {
+			for (const source of [HIGH, LOW]) {
+				const { container, unmount } = render(<SvgBlock source={source} />);
+				expect(container.querySelector("img")).not.toBeNull();
+				unmount();
+			}
+		} finally {
+			if (original) Object.defineProperty(String.prototype, "toWellFormed", original);
+		}
+	});
+});
