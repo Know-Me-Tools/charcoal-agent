@@ -248,4 +248,15 @@ describe("tableBlockText copies only what is visibly rendered (security review M
 		const table = tableFromHtml("<tr><th>k</th></tr><tr><td>a<details><summary></summary>SECRET</details></td></tr>");
 		expect(tableBlockTsv(table)).toBe("k\na");
 	});
+
+	it("skips app copy controls and emits image alt or URL and the video source URL (L1)", () => {
+		const table = tableFromHtml(
+			'<tr><th>k</th><th>v</th></tr><tr><td>a</td><td><img alt="cat" src="/c.png"><span data-copy-control=""><button aria-label="Copy image">Copy</button></span></td></tr>' +
+				'<tr><td>b</td><td><img alt="" src="/d.png"></td></tr>' +
+				'<tr><td>c</td><td><video><source src="/v.mp4"><source src="/w.webm"></video><span data-copy-control=""><button>Copy video link</button></span></td></tr>',
+		);
+		expect(tableBlockText(table)).toBe(
+			["| k | v |", "| --- | --- |", "| a | cat |", "| b | /d.png |", "| c | /v.mp4 |"].join("\n"),
+		);
+	});
 });

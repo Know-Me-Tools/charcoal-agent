@@ -50,7 +50,7 @@ const DisplayMath: FC<HTMLAttributes<HTMLSpanElement>> = ({ className, children,
   return (
     <span ref={ref} className={cn(className, "relative block")} {...props}>
       {children}
-      <span className="absolute end-0 top-0">
+      <span className="absolute end-0 top-0" data-copy-control="">
         <CopyButton
           label={BLOCK_COPY_CONTENT.copyMath}
           text={() => readTex(ref.current)}
@@ -133,7 +133,7 @@ export const MarkdownImage: FC<ImgHTMLAttributes<HTMLImageElement>> = ({ classNa
         {...props}
       />
       {url !== "" && (
-        <span className="absolute end-2 top-2 rounded-sm bg-surface">
+        <span className="absolute end-2 top-2 rounded-sm bg-surface" data-copy-control="">
           <CopyButton
             label={BLOCK_COPY_CONTENT.copyImage}
             copiedLabel={mode === "image" ? BLOCK_COPY_CONTENT.copiedImage : BLOCK_COPY_CONTENT.copiedImageLink}
@@ -169,7 +169,7 @@ export const MarkdownVideo: FC<VideoHTMLAttributes<HTMLVideoElement>> = ({ class
         {children}
       </video>
       {url !== "" && (
-        <span className="absolute end-2 top-2 rounded-sm bg-surface">
+        <span className="absolute end-2 top-2 rounded-sm bg-surface" data-copy-control="">
           <CopyButton label={BLOCK_COPY_CONTENT.copyVideoLink} text={url} />
         </span>
       )}

@@ -61,6 +61,9 @@ interface TableParts {
 /** Elements that are never rendered by construction, or whose text is not shown (ruby annotations). */
 const NEVER_VISIBLE_TAGS = new Set(["script", "style", "template", "rp", "rt"]);
 
+/** Set on the app-rendered Copy buttons so table copy never reads their labels as cell text. */
+export const COPY_CONTROL_ATTR = "data-copy-control";
+
 /** True when the visitor cannot see the element's content. */
 function isHidden(el: Element): boolean {
 	if (NEVER_VISIBLE_TAGS.has(el.tagName.toLowerCase())) return true;
@@ -72,9 +75,15 @@ function visibleText(node: Node): string {
 	if (node.nodeType === 3) return node.textContent ?? "";
 	if (node.nodeType !== 1) return "";
 	const el = node as Element;
-	if (isHidden(el)) return "";
+	if (isHidden(el) || el.hasAttribute(COPY_CONTROL_ATTR)) return "";
+	const tag = el.tagName.toLowerCase();
+	if (tag === "img") return el.getAttribute("alt") || el.getAttribute("src") || "";
+	if (tag === "video") {
+		const source = el.querySelector("source[src]");
+		return source?.getAttribute("src") ?? el.getAttribute("src") ?? "";
+	}
 	const children = Array.from(el.childNodes);
-	if (el.tagName.toLowerCase() === "details" && !el.hasAttribute("open")) {
+	if (tag === "details" && !el.hasAttribute("open")) {
 		return children
 			.filter((child) => child.nodeType === 1 && (child as Element).tagName.toLowerCase() === "summary")
 			.map(visibleText)

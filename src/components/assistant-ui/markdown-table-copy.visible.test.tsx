@@ -39,4 +39,25 @@ describe("table copy through the real chain", () => {
     expect(out).toContain("| install | visible |");
     expect(out).toContain("| ruby | a |");
   });
+
+  it("copies an image cell as its alt text, with no button label (L1)", async () => {
+    const out = await copied("| k | v |\n|---|---|\n| pic | ![A cat](/a.png) |\n");
+    expect(out).toContain("| pic | A cat |");
+    expect(out).not.toContain("Copy image");
+  });
+
+  it("copies an image cell with empty alt as its URL (L1)", async () => {
+    const out = await copied("| k | v |\n|---|---|\n| pic | ![](/a.png) |\n");
+    expect(out).toContain("| pic | /a.png |");
+    expect(out).not.toContain("Copy image");
+  });
+
+  it("copies a video cell as its first source URL, with no button label (L1)", async () => {
+    const out = await copied(
+      '| k | v |\n|---|---|\n| vid | <video><source src="/a.mp4" type="video/mp4"><source src="/b.webm" type="video/webm"></video> |\n',
+    );
+    expect(out).toContain("| vid | /a.mp4 |");
+    expect(out).not.toContain("Copy video link");
+    expect(out).not.toContain("/b.webm");
+  });
 });
