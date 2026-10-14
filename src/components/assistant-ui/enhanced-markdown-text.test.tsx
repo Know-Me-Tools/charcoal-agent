@@ -297,3 +297,25 @@ describe("EnhancedCodeBlock — routing by sanitized language class", () => {
 		expect(screen.getByTestId("mermaid-block")).toBeInTheDocument();
 	});
 });
+
+describe("EnhancedCodeBlock — svg fences", () => {
+	const SHORT = '<svg xmlns="http://www.w3.org/2000/svg"><rect/></svg>';
+	const LONG = `<svg xmlns="http://www.w3.org/2000/svg"><!--${"x".repeat(200)}--><rect/></svg>`;
+
+	it("routes a short svg fence to the SVG block, not plain code", () => {
+		renderFencedCodeBlock("language-svg", SHORT);
+		expect(screen.getByRole("img", { name: "SVG diagram" })).toBeInTheDocument();
+		expect(screen.queryByTestId("shiki-code-block")).toBeNull();
+	});
+
+	it("routes a long svg fence to the SVG block, never the HTML artifact card", () => {
+		const { container } = renderFencedCodeBlock("language-svg", LONG);
+		expect(screen.getByRole("img", { name: "SVG diagram" })).toBeInTheDocument();
+		expect(container.querySelector("iframe")).toBeNull();
+	});
+
+	it("keeps a short html fence as plain code", () => {
+		renderFencedCodeBlock("language-html", "<p>hi</p>");
+		expect(screen.getByTestId("shiki-code-block")).toHaveAttribute("data-language", "html");
+	});
+});

@@ -5,7 +5,7 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildMarkdownRehypePlugins } from "./markdown-rehype-plugins";
-import { MarkdownImage, MarkdownSpan, MarkdownTable } from "./markdown-block-copy";
+import { AnchorScope, MarkdownImage, MarkdownSpan, MarkdownTable } from "./markdown-block-copy";
 
 const PLUGINS = buildMarkdownRehypePlugins(rehypeKatex);
 
@@ -14,7 +14,16 @@ function renderMarkdown(markdown: string) {
     <ReactMarkdown
       remarkPlugins={[remarkGfm, remarkMath]}
       rehypePlugins={PLUGINS}
-      components={{ table: MarkdownTable, span: MarkdownSpan, img: MarkdownImage }}
+      components={{
+        table: MarkdownTable,
+        span: MarkdownSpan,
+        img: MarkdownImage,
+        a: ({ node: _node, ...props }) => (
+          <AnchorScope>
+            <a {...props} />
+          </AnchorScope>
+        ),
+      }}
     >
       {markdown}
     </ReactMarkdown>,
@@ -106,6 +115,13 @@ describe("image copy", () => {
     await click("Copy image");
     expect(writeText).toHaveBeenCalledWith("https://know-me.tools/p.png");
     expect(screen.getAllByRole("status").some((s) => s.textContent === "Copied image link")).toBe(true);
+  });
+
+  it("renders no button inside an anchor for a linked image", () => {
+    renderMarkdown(`[![alt](${SRC})](https://know-me.tools/page)`);
+    expect(document.querySelector("a img")).not.toBeNull();
+    expect(document.querySelectorAll("a button")).toHaveLength(0);
+    expect(screen.queryByRole("button", { name: "Copy image" })).toBeNull();
   });
 
   it("gives no button to an image the reply policy removed", () => {

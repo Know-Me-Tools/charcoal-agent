@@ -47,6 +47,8 @@ interface ShikiCodeBlockProps {
   code: string;
   language?: string;
   showLineNumbers?: boolean;
+  /** Hide the header Copy button when the surrounding block already has one. */
+  hideCopy?: boolean;
   /** Margin only — callers must not pass sizing or outline overrides (design spec §7.7). */
   className?: string;
 }
@@ -55,6 +57,7 @@ export const ShikiCodeBlock: FC<ShikiCodeBlockProps> = ({
   code,
   language = "text",
   showLineNumbers = false,
+  hideCopy = false,
   className,
 }) => {
   const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null);
@@ -110,12 +113,14 @@ export const ShikiCodeBlock: FC<ShikiCodeBlockProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between gap-2 bg-raised px-3 py-1.5">
         <span className="font-mono text-xs text-fg-secondary lowercase">{language}</span>
-        <CopyButton
-          variant="labeled"
-          text={codeBlockText(code)}
-          label={BLOCK_COPY_CONTENT.copyCode}
-          selectFallback={handleSelectFallback}
-        />
+        {!hideCopy && (
+          <CopyButton
+            variant="labeled"
+            text={codeBlockText(code)}
+            label={BLOCK_COPY_CONTENT.copyCode}
+            selectFallback={handleSelectFallback}
+          />
+        )}
       </div>
 
       {/* Code — the Shiki theme's own background is always overridden by bg-code. */}

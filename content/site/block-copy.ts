@@ -40,6 +40,22 @@ export interface BlockCopyContent {
 	copiedImageLink: string;
 	/** Accessible name of the copy button on an A2UI card frame. */
 	copyCard: string;
+	/** Accessible name of the copy button on an SVG block. */
+	copySvgSource: string;
+	/** Header title of an SVG block. */
+	svgTitle: string;
+	/** Toggle label: show the drawing. */
+	svgPreview: string;
+	/** Toggle label: show the SVG source. */
+	svgSource: string;
+	/** Visible label of the SVG download button. */
+	svgDownload: string;
+	/** Accessible name of the SVG download button. */
+	svgDownloadLabel: string;
+	/** Alt text of the rendered SVG image. */
+	svgAlt: string;
+	/** One-line note shown instead of the drawing when the SVG is over the size cap. */
+	svgTooLarge: string;
 }
 
 export const BLOCK_COPY_CONTENT: BlockCopyContent = {
@@ -55,4 +71,12 @@ export const BLOCK_COPY_CONTENT: BlockCopyContent = {
 	copiedImage: "Copied image",
 	copiedImageLink: "Copied image link",
 	copyCard: "Copy card",
+	copySvgSource: "Copy SVG source",
+	svgTitle: "SVG",
+	svgPreview: "Preview",
+	svgSource: "Source",
+	svgDownload: "Download",
+	svgDownloadLabel: "Download SVG",
+	svgAlt: "SVG diagram",
+	svgTooLarge: "This SVG is too large to preview, so only its source is shown.",
 };

@@ -1,4 +1,4 @@
-import { useRef, useState, type FC, type HTMLAttributes, type ImgHTMLAttributes, type TableHTMLAttributes } from "react";
+import { createContext, useContext, useRef, useState, type FC, type ReactNode, type HTMLAttributes, type ImgHTMLAttributes, type TableHTMLAttributes } from "react";
 import { CopyButton } from "@/components/common/copy-button";
 import { selectElementText } from "@/hooks/use-copy-to-clipboard";
 import { mathBlockText, tableBlockText } from "@/features/blocks/block-text";
@@ -107,10 +107,22 @@ async function copyImage(url: string): Promise<ImageCopyMode> {
   return "link";
 }
 
-/** A reply image (already allowed by the reply policy) with a Copy button. */
+const InAnchorContext = createContext(false);
+
+/**
+ * Wraps a markdown link so images inside it know they are linked. A button
+ * inside an anchor is invalid HTML and a keyboard and screen-reader problem,
+ * so a linked image gets no Copy button (the link is its action).
+ */
+export const AnchorScope: FC<{ children: ReactNode }> = ({ children }) => (
+  <InAnchorContext.Provider value>{children}</InAnchorContext.Provider>
+);
+
+/** A reply image (already allowed by the reply policy) with a Copy button, unless it is inside a link. */
 export const MarkdownImage: FC<ImgHTMLAttributes<HTMLImageElement>> = ({ className, src, ...props }) => {
   const [mode, setMode] = useState<ImageCopyMode>("image");
-  const url = typeof src === "string" ? src : "";
+  const inAnchor = useContext(InAnchorContext);
+  const url = typeof src === "string" && !inAnchor ? src : "";
   return (
     <span className="relative my-3 inline-block max-w-full align-top">
       <img

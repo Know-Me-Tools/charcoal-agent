@@ -10,9 +10,10 @@ import { type FC, memo, useContext, useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { MermaidBlock } from "@/features/artifacts/mermaid-block";
 import { HtmlArtifactCard } from "@/features/artifacts/html-artifact-card";
+import { SvgBlock } from "@/features/artifacts/svg-block";
 import { ShikiCodeBlock } from "@/features/artifacts/shiki-code-block";
 import { useThrottledValue } from "@/hooks/use-throttled-value";
-import { MarkdownImage, MarkdownSpan, MarkdownTable } from "./markdown-block-copy";
+import { AnchorScope, MarkdownImage, MarkdownSpan, MarkdownTable } from "./markdown-block-copy";
 import { findOpenFence, StreamingFenceContext } from "./streaming-fence";
 import {
   buildMarkdownRehypePlugins,
@@ -82,8 +83,13 @@ export const EnhancedCodeBlock: FC<
     return <MermaidBlock source={code} className="my-3" />;
   }
 
-  // HTML / SVG artifacts — only for non-trivial content
-  if ((lang === "html" || lang === "svg") && code.trim().length > 100) {
+  // SVG: always an <img> data URL, never markup (see SvgBlock)
+  if (lang === "svg") {
+    return <SvgBlock source={codeText} className="my-3" />;
+  }
+
+  // HTML artifacts — only for non-trivial content
+  if (lang === "html" && code.trim().length > 100) {
     return (
       <HtmlArtifactCard
         code={code}
@@ -179,15 +185,17 @@ const enhancedComponents = memoizeMarkdownComponents({
     />
   ),
   a: ({ className, ...props }) => (
-    <a
-      className={cn(
-        "rounded-sm text-ember-text underline underline-offset-2 wrap-anywhere hover:text-fg focus-cue",
-        className,
-      )}
-      target="_blank"
-      rel="noopener noreferrer"
-      {...props}
-    />
+    <AnchorScope>
+      <a
+        className={cn(
+          "rounded-sm text-ember-text underline underline-offset-2 wrap-anywhere hover:text-fg focus-cue",
+          className,
+        )}
+        target="_blank"
+        rel="noopener noreferrer"
+        {...props}
+      />
+    </AnchorScope>
   ),
   blockquote: ({ className, ...props }) => (
     <blockquote
