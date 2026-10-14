@@ -191,7 +191,9 @@ test("a 400-delta stream keeps mutation batches bounded and renders completely, 
   await page.evaluate(() => {
     window.__streamProbe!.t0 = performance.now();
   });
-  const composer = page.getByPlaceholder(/Ask your agent anything/i).filter({ visible: true });
+  // The accessible name is identical on the app and site builds; the
+  // placeholder text is not (site build uses its own empty-state copy).
+  const composer = page.getByLabel("Message input").filter({ visible: true });
   await composer.fill("Stream the long reply.");
   await composer.press("Enter");
 
