@@ -23,7 +23,7 @@ const HOSTILE: Properties = {
   loop: true,
   muted: true,
   playsInline: true,
-  ping: "https://evil.example/p",
+  ping: ["https://evil.example/p"],
   className: ["x"],
   style: "a:b",
   onPlay: "alert(1)",
