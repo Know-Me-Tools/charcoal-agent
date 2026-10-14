@@ -86,9 +86,9 @@ export const SvgBlock: FC<SvgBlockProps> = ({ source, className }) => {
 
 	return (
 		<div className={cn("my-3 first:mt-0 last:mb-0 min-w-0 overflow-hidden rounded-lg bg-surface", className)}>
-			<div className="flex items-center justify-between gap-2 bg-raised px-3 py-1.5">
+			<div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 bg-raised px-3 py-1.5">
 				<span className="font-ui text-xs font-semibold text-fg-secondary">{BLOCK_COPY_CONTENT.svgTitle}</span>
-				<div className="flex items-center gap-1">
+				<div className="flex flex-wrap items-center gap-1">
 					{!tooLarge && (
 						<>
 							<Button
@@ -96,7 +96,7 @@ export const SvgBlock: FC<SvgBlockProps> = ({ source, className }) => {
 								size="xs"
 								aria-pressed={!showSource}
 								onClick={() => setShowSource(false)}
-								className="font-ui font-semibold text-fg-secondary focus-cue"
+								className="font-ui font-semibold text-fg-secondary focus-cue max-md:min-h-11 max-md:px-3"
 							>
 								{BLOCK_COPY_CONTENT.svgPreview}
 							</Button>
@@ -105,7 +105,7 @@ export const SvgBlock: FC<SvgBlockProps> = ({ source, className }) => {
 								size="xs"
 								aria-pressed={showSource}
 								onClick={() => setShowSource(true)}
-								className="font-ui font-semibold text-fg-secondary focus-cue"
+								className="font-ui font-semibold text-fg-secondary focus-cue max-md:min-h-11 max-md:px-3"
 							>
 								{BLOCK_COPY_CONTENT.svgSource}
 							</Button>

@@ -333,6 +333,48 @@ test.describe("block copy: rendering safety and accessibility", () => {
   });
 });
 
+test.describe("block copy: svg block header at phone width", () => {
+  for (const theme of THEMES) {
+    test(`every control in the SVG header is fully inside the block and 44 px tall at 320px (${theme})`, async ({ page }) => {
+      await openThreadWithAllBlocks(page, 320, theme);
+      const copyButtons = page.getByRole("button", { name: "Copy SVG source", exact: true });
+      await expect(copyButtons).toHaveCount(2);
+      for (let i = 0; i < 2; i += 1) {
+        await copyButtons.nth(i).scrollIntoViewIfNeeded();
+        // The header is the copy button's grandparent row; the block is its parent.
+        const report = await copyButtons.nth(i).evaluate((copy) => {
+          const group = copy.parentElement as HTMLElement;
+          const header = group.closest("[data-svg-header]") ?? (group.parentElement as HTMLElement);
+          const block = header.parentElement as HTMLElement;
+          const box = block.getBoundingClientRect();
+          return Array.from(header.querySelectorAll("button")).map((button) => {
+            const r = button.getBoundingClientRect();
+            return {
+              name: button.getAttribute("aria-label") ?? (button.textContent ?? "").trim(),
+              left: r.left - box.left,
+              right: box.right - r.right,
+              top: r.top - box.top,
+              bottom: header.getBoundingClientRect().bottom - r.bottom,
+              height: r.height,
+              width: r.width,
+              blockWidth: box.width,
+            };
+          });
+        });
+        expect(report.length, "buttons in the SVG header").toBeGreaterThanOrEqual(4);
+        for (const control of report) {
+          expect(control.left, `${control.name} left edge inside the block`).toBeGreaterThanOrEqual(-0.5);
+          expect(control.right, `${control.name} right edge inside the block (not clipped)`).toBeGreaterThanOrEqual(-0.5);
+        }
+        for (const control of report) {
+          expect(control.height, `${control.name} touch target height`).toBeGreaterThanOrEqual(43.5);
+          expect(control.width, `${control.name} touch target width`).toBeGreaterThanOrEqual(43.5);
+        }
+      }
+    });
+  }
+});
+
 test.describe("block copy: WebKit (iPhone) click path", () => {
   test.skip(({ browserName }) => browserName !== "webkit", "WebKit-only: no clipboard readback is possible there.");
 
