@@ -3,14 +3,16 @@ import {
   unstable_memoizeMarkdownComponents as memoizeMarkdownComponents,
   useIsMarkdownCodeBlock,
 } from "@assistant-ui/react-markdown";
-import { useAuiState, useMessagePartText } from "@assistant-ui/react";
+import { TextMessagePartProvider, useAuiState, useMessagePartText } from "@assistant-ui/react";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
-import { type FC, memo, useEffect, useMemo, useState } from "react";
+import { type FC, memo, useContext, useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { MermaidBlock } from "@/features/artifacts/mermaid-block";
 import { HtmlArtifactCard } from "@/features/artifacts/html-artifact-card";
 import { ShikiCodeBlock } from "@/features/artifacts/shiki-code-block";
+import { useThrottledValue } from "@/hooks/use-throttled-value";
+import { findOpenFence, StreamingFenceContext } from "./streaming-fence";
 import {
   buildMarkdownRehypePlugins,
   MARKDOWN_REHYPE_PLUGINS_NO_MATH,
@@ -43,6 +45,7 @@ export const EnhancedCodeBlock: FC<
   React.HTMLAttributes<HTMLElement> & { "data-language"?: string }
 > = ({ children, "data-language": language, className, ...props }) => {
   const isCodeBlock = useIsMarkdownCodeBlock();
+  const streamingOpenFenceContent = useContext(StreamingFenceContext);
   const code = typeof children === "string" ? children : String(children ?? "");
   // react-markdown marks fenced code with `className="language-<lang>"`.
   const lang = language ?? /(?:^|\s)language-([\w+#-]+)/.exec(className ?? "")?.[1] ?? "";
@@ -52,6 +55,25 @@ export const EnhancedCodeBlock: FC<
       <InlineCode className={className} {...props}>
         {children}
       </InlineCode>
+    );
+  }
+
+  // While a reply streams, its final, still-open fence renders as plain
+  // preformatted text: running Shiki or Mermaid on every delta was one of the
+  // per-token costs heating phones (task 1.4). The open fence is always the
+  // document's last block and the renderer parses exactly the text the fence
+  // detector ran on (smoothing is off while streaming — see below), so its
+  // code value equals the context content once the mdast→hast convention of
+  // one trailing newline on code blocks is normalized off. The moment the
+  // closing fence arrives the content no longer matches and the block renders
+  // normally; when the stream ends the context is null, so an unterminated
+  // fence at the end of a reply still renders fully.
+  const codeText = code.endsWith("\n") ? code.slice(0, -1) : code;
+  if (streamingOpenFenceContent !== null && codeText === streamingOpenFenceContent) {
+    return (
+      <pre className="my-3 overflow-x-auto rounded-lg bg-code p-3 font-mono text-xs leading-relaxed text-fg">
+        <code>{code}</code>
+      </pre>
     );
   }
 
@@ -295,9 +317,21 @@ function useKatexPlugin(text: string): KatexRehypePlugin | null {
   return needed ? plugin : null;
 }
 
+/** Task 1.4: upper bound on how often streamed text reaches the markdown parser (10/s). */
+const STREAMING_PARSE_INTERVAL_MS = 100;
+
 const EnhancedMarkdownTextImpl = () => {
-  const { text } = useMessagePartText();
-  const katex = useKatexPlugin(text);
+  const part = useMessagePartText();
+  const text = part.text;
+  const isStreaming = part.status?.type === "running";
+  // Task 1.4: while a reply streams, hand the markdown pipeline new text at
+  // most 10 times per second instead of once per flushed delta. The
+  // `TextMessagePartProvider` below is what `MarkdownTextPrimitive` reads, so
+  // this is the text the renderer parses; the trailing throttle's final value
+  // arrives within 100 ms and, when the stream ends, `isStreaming` flips and
+  // the full text bypasses the throttle in the same render.
+  const renderedText = useThrottledValue(text, STREAMING_PARSE_INTERVAL_MS, isStreaming);
+  const katex = useKatexPlugin(renderedText);
   // The message's web citations, as a primitive so the selector is stable.
   const webHostsKey = useAuiState((s) => encodeWebCitationHosts(webCitationHostsFromParts(s.message.content)));
   // Raw HTML -> sanitizer -> reply link/image policy -> `[Wn]` markers ->
@@ -307,13 +341,34 @@ const EnhancedMarkdownTextImpl = () => {
     if (!katex && webHostsKey === "") return MARKDOWN_REHYPE_PLUGINS_NO_MATH;
     return buildMarkdownRehypePlugins(katex ?? undefined, decodeWebCitationHosts(webHostsKey));
   }, [katex, webHostsKey]);
+  // An open fence is always the document's last block; `EnhancedCodeBlock`
+  // matches this content against its code value and renders that one block
+  // as plain text until the closing fence arrives.
+  const openFenceContent = useMemo(
+    () => (isStreaming ? (findOpenFence(renderedText)?.content ?? null) : null),
+    [isStreaming, renderedText],
+  );
   return (
-    <MarkdownTextPrimitive
-      remarkPlugins={[remarkGfm, remarkMath]}
-      rehypePlugins={rehypePlugins}
-      className="aui-md max-w-none wrap-break-word text-fg data-[status=running]:**:after:text-cyan"
-      components={enhancedComponents}
-    />
+    <TextMessagePartProvider text={renderedText} isRunning={isStreaming}>
+      <StreamingFenceContext.Provider value={openFenceContent}>
+        <MarkdownTextPrimitive
+          remarkPlugins={[remarkGfm, remarkMath]}
+          rehypePlugins={rehypePlugins}
+          className="aui-md max-w-none wrap-break-word text-fg data-[status=running]:**:after:text-cyan"
+          components={enhancedComponents}
+          // While streaming, the typewriter smoothing is off: it parses
+          // progressively revealed prefixes that lag the throttled text, so a
+          // fence already closed in the stream would still look open on screen
+          // and the fence gate could not hold. With smoothing off the parser
+          // sees exactly the throttled text the fence detector ran on, the
+          // 100 ms throttle supersedes the reveal as the parse-rate bound, and
+          // the `data-status` indicator is unaffected (the provider still
+          // reports the part as running). At stream end the full text commits
+          // immediately, so the final rendered result is identical.
+          smooth={!isStreaming}
+        />
+      </StreamingFenceContext.Provider>
+    </TextMessagePartProvider>
   );
 };
 
