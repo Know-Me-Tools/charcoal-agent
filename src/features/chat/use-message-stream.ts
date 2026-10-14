@@ -6,6 +6,10 @@ import { buildUrl, buildHeaders } from "@/lib/api-client";
 import { getSiteAgentId } from "@/hooks/use-site-config";
 import { webSearchRequestField } from "@/stores/web-search-preference-store";
 import { dispatchAguiEvent } from "./agui-event-handlers";
+import {
+  buildStreamFailureLogEntry,
+  buildVisibilityChangeLogEntry,
+} from "./stream-failure-log";
 
 const UAR_PATH = "/api/chat/completion";
 
@@ -191,6 +195,23 @@ export function useMessageStream() {
       const threadAgent = useThreadRegistryStore.getState().threads[threadId];
       const agentId = getSiteAgentId() ?? payload.agent_id ?? threadAgent?.agentId;
 
+      // Console-only diagnostics for stream deaths (observed on iOS Safari;
+      // no telemetry, no network). The field set is fixed in
+      // stream-failure-log.ts — never message text, prompts, URLs or ids.
+      // The visibility listener lives exactly as long as this stream.
+      const streamStartedAtMs = Date.now();
+      let receivedBytes = 0;
+      const onVisibilityChange = () => {
+        console.warn(
+          buildVisibilityChangeLogEntry({
+            state: document.visibilityState,
+            startedAtMs: streamStartedAtMs,
+            nowMs: Date.now(),
+          }),
+        );
+      };
+      document.addEventListener("visibilitychange", onVisibilityChange);
+
       try {
         const res = await fetch(buildUrl(UAR_PATH), {
           method: "POST",
@@ -262,6 +283,7 @@ export function useMessageStream() {
           const { done, value } = await reader.read();
           if (done) break;
 
+          receivedBytes += value.byteLength;
           buffer += decoder.decode(value, { stream: true });
 
           // SSE blocks are delimited by double newlines
@@ -320,14 +342,34 @@ export function useMessageStream() {
           callbacks?.onComplete?.();
         } else {
           const error = new Error("The connection closed before the agent replied.");
+          console.warn(
+            buildStreamFailureLogEntry({
+              error,
+              visibilityState: document.visibilityState,
+              startedAtMs: streamStartedAtMs,
+              nowMs: Date.now(),
+              receivedBytes,
+            }),
+          );
           useChatMessageStore.getState().setStreamError(threadId, error.message);
           callbacks?.onError?.(error);
         }
       } catch (err) {
         if ((err as Error).name === "AbortError") return;
         const error = err instanceof Error ? err : new Error("Stream failed");
+        console.warn(
+          buildStreamFailureLogEntry({
+            error,
+            visibilityState: document.visibilityState,
+            startedAtMs: streamStartedAtMs,
+            nowMs: Date.now(),
+            receivedBytes,
+          }),
+        );
         useChatMessageStore.getState().setStreamError(threadId, error.message);
         callbacks?.onError?.(error);
+      } finally {
+        document.removeEventListener("visibilitychange", onVisibilityChange);
       }
     },
     [cancelStream],
