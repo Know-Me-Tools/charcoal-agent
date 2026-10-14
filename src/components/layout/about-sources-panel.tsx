@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { citationDisplayName, citationMarkerLabel } from "@/features/chat/citation-text";
 import { isAllowedLink } from "@/lib/link-policy/is-allowed-link";
+import { EXTERNAL_LINK_PROPS, normalizeHttpsUrl } from "@/lib/link-policy/cited-web-url";
 import { ABOUT_PANEL_CONTENT } from "../../../content/site/about-panel";
 import { WEB_SEARCH_CONTENT } from "../../../content/site/web-search";
 
@@ -27,11 +28,14 @@ const SECTION_HEADING = "font-display text-sm font-semibold text-fg";
 
 function SourceItem({ citation }: { citation: ThreadCitation }) {
   const { url } = citation;
-  // Same rule as the citation cards (FR-16): the URL comes from the model's
-  // stream, so only an allowlisted destination is clickable; any other
-  // destination stays visible as text.
-  const isLinkAllowed = !!url && isAllowedLink(url);
   const isWeb = citation.origin === "web";
+  // Same rule as the citation cards (FR-16): a knowledge-base URL is clickable
+  // only when allowlisted, otherwise its destination stays visible as text. A
+  // web source's URL is minted by the server (https, no userinfo), so it is a
+  // link, and its destination is shown inside the link.
+  const webHref = isWeb && url ? normalizeHttpsUrl(url) : null;
+  const href = webHref ?? (url && isAllowedLink(url) ? url : null);
+  const isLinkAllowed = href !== null;
 
   const body = (
     <span className="flex min-w-0 items-start gap-2">
@@ -56,6 +60,11 @@ function SourceItem({ citation }: { citation: ThreadCitation }) {
         {isWeb && citation.host && (
           <span className="font-mono text-xs break-all text-fg-secondary wrap-anywhere">{citation.host}</span>
         )}
+        {webHref !== null && (
+          <span className="font-mono text-xs break-all text-cyan-text underline underline-offset-2 wrap-anywhere">
+            {webHref}
+          </span>
+        )}
         {url && !isLinkAllowed && (
           <span className="font-mono text-xs break-all text-fg-secondary wrap-anywhere">{url}</span>
         )}
@@ -67,9 +76,8 @@ function SourceItem({ citation }: { citation: ThreadCitation }) {
     <li>
       {isLinkAllowed ? (
         <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
+          href={href}
+          {...EXTERNAL_LINK_PROPS}
           className="block rounded-lg bg-cyan-soft px-3 py-2 transition-hover hover:bg-hover focus-cue"
         >
           {body}

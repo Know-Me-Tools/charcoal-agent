@@ -1,16 +1,18 @@
 /**
- * site-web-search 16.8.2: `[Wn]` in the reply resolves to its web citation;
- * an unresolved `[Wn]` stays plain text; an attacker link or image in the
- * same reply stays text (the reply policy still runs).
+ * site-web-search 16.8.2: `[Wn]` in the reply resolves to its web citation
+ * and, from the operator's request of 2026-10-14, is a link to the citation's
+ * server-minted URL that opens in a new tab; an unresolved `[Wn]` stays plain
+ * text; an attacker link or image in the same reply stays text (the reply
+ * policy still runs), except a link to one of the message's own sources.
  */
 import { renderToStaticMarkup } from "react-dom/server";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { describe, expect, it } from "vitest";
 import { buildMarkdownRehypePlugins } from "./markdown-rehype-plugins";
-import { webCitationHostsFromParts } from "./web-citation-markers";
+import { webCitationHostsFromParts, type WebCitationHosts } from "./web-citation-markers";
 
-function render(markdown: string, hosts: ReadonlyMap<number, string>): string {
+function render(markdown: string, hosts: WebCitationHosts): string {
   return renderToStaticMarkup(
     <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={buildMarkdownRehypePlugins(undefined, hosts)}>
       {markdown}
@@ -18,9 +20,10 @@ function render(markdown: string, hosts: ReadonlyMap<number, string>): string {
   );
 }
 
-const HOSTS = new Map([
-  [1, "example.org"],
-  [2, "docs.example.net"],
+const HOSTS: WebCitationHosts = new Map([
+  [1, { host: "example.org", url: "https://example.org/rust" }],
+  [2, { host: "docs.example.net", url: "https://docs.example.net/a?b=1" }],
+  [3, { host: "nourl.example" }],
 ]);
 
 describe("[Wn] markers in the reply", () => {
@@ -29,6 +32,26 @@ describe("[Wn] markers in the reply", () => {
     expect(html).toContain('data-web-marker="1"');
     expect(html).toContain("Web source from example.org");
     expect(html).toContain("[W1]");
+  });
+
+  it("makes a resolved marker a link to the citation URL, in a new tab, with no referrer", () => {
+    const html = render("Rust 1.9 shipped [W1].", HOSTS);
+    expect(html).toContain('<a href="https://example.org/rust"');
+    expect(html).toContain('target="_blank"');
+    expect(html).toContain('rel="noopener noreferrer"');
+    expect(html).toContain('aria-label="Source W1, example.org, opens in a new tab"');
+  });
+
+  it("keeps a marker without a usable URL a non-interactive span", () => {
+    const html = render("Claim [W3].", HOSTS);
+    expect(html).toContain('data-web-marker="3"');
+    expect(html).not.toContain("<a ");
+  });
+
+  it("never takes the link from the reply text: a markdown link in the marker is not followed", () => {
+    const html = render("See [[W1]](https://evil.example/x).", HOSTS);
+    expect(html).not.toContain("https://evil.example/x\"");
+    expect(html).toContain('href="https://example.org/rust"');
   });
 
   it("leaves an unresolved [W4] as plain text, not an element", () => {
@@ -63,9 +86,16 @@ describe("[Wn] markers in the reply", () => {
       HOSTS,
     );
     expect(html).toContain('data-web-marker="1"');
-    expect(html).not.toContain("<a ");
+    expect(html).not.toContain('href="https://evil.example');
     expect(html).not.toContain("<img");
     expect(html).toContain("https://evil.example/x");
+  });
+
+  it("makes a model-written link to one of the message's own sources clickable", () => {
+    const html = render("See [the post](https://example.org/rust) and [other](https://evil.example/x).", HOSTS);
+    expect(html).toContain('<a href="https://example.org/rust"');
+    expect(html).toContain('rel="noopener noreferrer"');
+    expect(html).not.toContain('href="https://evil.example');
   });
 });
 
@@ -78,13 +108,34 @@ describe("webCitationHostsFromParts", () => {
         toolName: "__citations__",
         args: {
           citations: [
-            { source: "a", index: 1, origin: "web", host: "example.org" },
+            { source: "a", index: 1, origin: "web", host: "example.org", url: "https://example.org/rust" },
             { source: "b", index: 2 },
             { source: "c", index: 3, origin: "web" },
           ],
         },
       },
     ]);
-    expect([...hosts]).toEqual([[1, "example.org"]]);
+    expect([...hosts]).toEqual([[1, { host: "example.org", url: "https://example.org/rust" }]]);
+  });
+
+  it("drops a URL that is not a plain https URL, keeping the host", () => {
+    const hosts = webCitationHostsFromParts([
+      {
+        type: "tool-call",
+        toolName: "__citations__",
+        args: {
+          citations: [
+            { index: 1, origin: "web", host: "a.example", url: "javascript:alert(1)" },
+            { index: 2, origin: "web", host: "b.example", url: "http://b.example/x" },
+            { index: 3, origin: "web", host: "c.example", url: "https://user:pw@c.example/x" },
+          ],
+        },
+      },
+    ]);
+    expect([...hosts]).toEqual([
+      [1, { host: "a.example" }],
+      [2, { host: "b.example" }],
+      [3, { host: "c.example" }],
+    ]);
   });
 });

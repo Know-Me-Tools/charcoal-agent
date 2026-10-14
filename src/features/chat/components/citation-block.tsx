@@ -2,6 +2,7 @@ import { useId, useState, type FC } from "react";
 import { ChevronDownIcon, ExternalLinkIcon, BookOpenIcon, GlobeIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isAllowedLink } from "@/lib/link-policy/is-allowed-link";
+import { EXTERNAL_LINK_PROPS, normalizeHttpsUrl } from "@/lib/link-policy/cited-web-url";
 import { citationDisplayName, cleanCitationSnippet, citationMarkerLabel } from "@/features/chat/citation-text";
 import { WEB_SEARCH_CONTENT } from "../../../../content/site/web-search";
 
@@ -35,11 +36,13 @@ export const CitationBlock: FC<CitationBlockProps> = ({
   const isWeb = origin === "web";
   const [expanded, setExpanded] = useState(false);
   const excerptId = useId();
-  // The URL comes from the model's stream, so it is untrusted: only a
-  // corpus or site-owned destination renders as a link (FR-16,
-  // site-citation-link-allowlist). Anything else still shows the full
-  // destination, as plain text, instead of hiding it behind the source name.
-  const isLinkAllowed = !!url && isAllowedLink(url);
+  // A knowledge-base URL is untrusted: only a corpus or site-owned
+  // destination renders as a link (FR-16, site-citation-link-allowlist), and
+  // anything else shows the full destination as plain text. A web source's URL
+  // is minted by the server (https, no userinfo), so it is a link too
+  // (operator request 2026-10-14), with the destination always visible.
+  const webHref = isWeb && url ? normalizeHttpsUrl(url) : null;
+  const isLinkAllowed = webHref !== null || (!!url && isAllowedLink(url));
   // Cleaned at render so persisted citations read the same as new ones.
   const name = citationDisplayName(source);
   // A web source never shows an excerpt: its snippet is text the page's
@@ -79,9 +82,8 @@ export const CitationBlock: FC<CitationBlockProps> = ({
         )}
         {isLinkAllowed ? (
           <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={webHref ?? url}
+            {...EXTERNAL_LINK_PROPS}
             className="flex min-w-0 flex-1 rounded-sm transition-hover hover:bg-hover focus-cue"
           >
             {title}
@@ -110,6 +112,18 @@ export const CitationBlock: FC<CitationBlockProps> = ({
       )}
       {isWeb && host && (
         <p className="mt-1 pl-[1.375rem] font-mono text-xs break-all text-fg-secondary wrap-anywhere">{host}</p>
+      )}
+      {webHref !== null && (
+        <p className="mt-1 pl-[1.375rem] font-mono text-xs break-all wrap-anywhere">
+          <a
+            href={webHref}
+            {...EXTERNAL_LINK_PROPS}
+            className="rounded-sm text-cyan-text underline underline-offset-2 transition-hover hover:bg-hover focus-cue"
+          >
+            {webHref}
+            <span className="sr-only"> (opens in a new tab)</span>
+          </a>
+        </p>
       )}
       {url && !isLinkAllowed && (
         <p className="mt-1 pl-[1.375rem] font-mono text-xs break-all text-fg-secondary wrap-anywhere">

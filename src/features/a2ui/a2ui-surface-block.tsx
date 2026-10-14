@@ -1,4 +1,5 @@
 import { useMemo, type FC, type ReactNode } from "react";
+import { useParams } from "react-router-dom";
 import {
   PrometheusA2uiProvider,
   PrometheusA2uiSurfaces,
@@ -7,10 +8,13 @@ import {
   type PrometheusA2uiRuntime,
 } from "@prometheus-ags/a2ui-react";
 import { isSiteBuild } from "@/hooks/use-site-config";
+import { useThreadCitations } from "@/hooks/use-thread-citations";
+import { toCitedUrlSet } from "@/lib/link-policy/cited-web-url";
 import { AI_SURFACE_CAPTION } from "../../../content/site/ai-disclosure";
 import { PASSIVE_A2UI_COMPONENTS, parseA2uiArtifactContent } from "./carrier-adapter";
 import { cleanAnswerCardSources } from "./answer-card-source";
 import { createKnowmeA2uiCatalogs } from "./catalog";
+import { CitedUrlsProvider } from "./cited-urls";
 
 const FAILURE_COPY = "This interface could not be displayed.";
 
@@ -76,6 +80,13 @@ export const A2uiSurfaceBlock: FC<A2uiSurfaceBlockProps> = ({
   passiveOnly = isSiteBuild(),
 }) => {
   const prepared = useMemo(() => prepare(content, passiveOnly), [content, passiveOnly]);
+  // The thread's web citation URLs: the only URLs a card shows as links.
+  const { id: threadId } = useParams<{ id: string }>();
+  const citations = useThreadCitations(threadId);
+  const citedUrls = useMemo(
+    () => toCitedUrlSet(citations.filter((c) => c.origin === "web").map((c) => c.url)),
+    [citations],
+  );
 
   if (!prepared.ok) {
     return (
@@ -94,9 +105,11 @@ export const A2uiSurfaceBlock: FC<A2uiSurfaceBlockProps> = ({
         data-testid="a2ui-surface"
         className="max-w-full overflow-x-auto"
       >
-        <PrometheusA2uiProvider runtime={prepared.runtime}>
-          <PrometheusA2uiSurfaces />
-        </PrometheusA2uiProvider>
+        <CitedUrlsProvider value={citedUrls}>
+          <PrometheusA2uiProvider runtime={prepared.runtime}>
+            <PrometheusA2uiSurfaces />
+          </PrometheusA2uiProvider>
+        </CitedUrlsProvider>
       </section>
     </SurfaceFrame>
   );

@@ -13,12 +13,15 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { A2UI_BASIC_CATALOG_ID, UAR_A2UI_CATALOG_ID } from "./carrier-adapter";
+import { LinkedText } from "./cited-urls-context";
 
 /**
  * The nine components UAR's validator allows (`src/uar/a2ui/protocol.rs`),
  * implemented with the KnowMe shadcn primitives under the Flat 2.0 tokens: no
  * borders, shadows or gradients. Text is plain text, never Markdown, so a model
- * cannot inject links or HTML through a surface.
+ * cannot inject links or HTML through a surface. The one exception is a URL
+ * that is a server-minted web citation of the thread (`LinkedText`): it shows
+ * as a link, every other URL stays text.
  *
  * The schemas come from the official components (`api` argument), so the
  * property names and bindings are exactly the pinned A2UI 0.12.0 ones.
@@ -80,12 +83,24 @@ const Text = createPrometheusA2uiComponent(
     const variant = props.variant ?? "body";
     if (variant in HEADING_CLASS) {
       const Tag = variant as "h1" | "h2" | "h3" | "h4" | "h5";
-      return <Tag className={cn("text-fg", HEADING_CLASS[variant])}>{text}</Tag>;
+      return (
+        <Tag className={cn("text-fg", HEADING_CLASS[variant])}>
+          <LinkedText text={text} />
+        </Tag>
+      );
     }
     if (variant === "caption") {
-      return <p className="text-xs text-faint">{text}</p>;
+      return (
+        <p className="text-xs text-faint">
+          <LinkedText text={text} />
+        </p>
+      );
     }
-    return <p className="text-sm leading-relaxed text-fg">{text}</p>;
+    return (
+      <p className="text-sm leading-relaxed text-fg">
+        <LinkedText text={text} />
+      </p>
+    );
   },
 );
 
