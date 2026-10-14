@@ -20,6 +20,11 @@
 //!   image attachments; `data:` is the only image source the HTML preview
 //!   frame's own meta CSP allows (`preview-document.ts`), and a `srcdoc`
 //!   frame's meta can only tighten this inherited policy, never widen it.
+//! - `media-src 'self'`: own-host video in chat replies (change
+//!   app-block-copy-and-media-blocks 3.5). Stated explicitly rather than left
+//!   to `default-src`, so widening or removing it is a visible change. The
+//!   client's reply policy only emits videos on the own host or same-origin,
+//!   which is exactly what `'self'` allows; no `data:` or `blob:` here.
 //! - `connect-src 'self'`: the client calls its own origin only.
 
 use std::fmt::Write as _;
@@ -107,6 +112,7 @@ pub fn policy(script_hashes: &[String]) -> String {
         "style-src 'self' 'unsafe-inline'".to_owned(),
         "img-src 'self' data: blob:".to_owned(),
         "font-src 'self' data:".to_owned(),
+        "media-src 'self'".to_owned(),
         "connect-src 'self'".to_owned(),
         "object-src 'none'".to_owned(),
         "base-uri 'self'".to_owned(),

@@ -246,6 +246,18 @@ async fn enforcing_csp_should_pin_each_directive() {
             .to_owned()
     };
     assert_eq!(directive("img-src"), "img-src 'self' data: blob:");
+    // The SVG preview (SvgBlock) renders a data:image/svg+xml URL in an <img>,
+    // and attachment previews use blob: object URLs. Removing data: or blob:
+    // from img-src would silently break them, so each is pinned on its own.
+    let img = directive("img-src");
+    for source in ["'self'", "data:", "blob:"] {
+        assert!(
+            img.split(' ').any(|token| token == source),
+            "img-src must contain {source} (SVG preview, attachments): {img}"
+        );
+    }
+    // Own-host video in replies (reply policy allows only own host/same origin).
+    assert_eq!(directive("media-src"), "media-src 'self'");
     assert_eq!(directive("connect-src"), "connect-src 'self'");
     assert_eq!(directive("frame-ancestors"), "frame-ancestors 'self'");
     assert_eq!(directive("object-src"), "object-src 'none'");
