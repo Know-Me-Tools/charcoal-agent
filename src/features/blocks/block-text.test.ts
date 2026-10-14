@@ -48,8 +48,17 @@ describe("codeBlockText", () => {
 });
 
 describe("mermaidBlockText", () => {
-	it("returns the source unchanged", () => {
-		expect(mermaidBlockText("flowchart LR\n  A --> B\n")).toBe("flowchart LR\n  A --> B\n");
+	// Deliberately changed (task 3.10): this used to assert the trailing newline
+	// was preserved; the e2e clipboard readback showed every other block copy
+	// has none, so Mermaid now trims exactly one, like codeBlockText.
+	it("trims exactly one trailing newline (LF or CRLF), like the code copy", () => {
+		expect(mermaidBlockText("flowchart LR\n  A --> B\n")).toBe("flowchart LR\n  A --> B");
+		expect(mermaidBlockText("flowchart LR\r\n  A --> B\r\n")).toBe("flowchart LR\r\n  A --> B");
+		expect(mermaidBlockText("flowchart LR\n  A --> B\n\n")).toBe("flowchart LR\n  A --> B\n");
+	});
+
+	it("keeps a source without a trailing newline unchanged", () => {
+		expect(mermaidBlockText("graph LR\n  Plan --> Build")).toBe("graph LR\n  Plan --> Build");
 	});
 
 	it("returns an empty string for empty or nullish input", () => {

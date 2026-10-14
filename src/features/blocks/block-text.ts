@@ -28,9 +28,13 @@ export function codeBlockText(code: string | null | undefined): string {
 	return asText(code).replace(/\r?\n$/, "");
 }
 
-/** A Mermaid diagram: the Mermaid source, which is its canonical form. */
+/**
+ * A Mermaid diagram: the Mermaid source, which is its canonical form, with
+ * one trailing newline trimmed (`\n` or `\r\n`) exactly like `codeBlockText`,
+ * so every block's copy ends the same way.
+ */
 export function mermaidBlockText(source: string | null | undefined): string {
-	return asText(source);
+	return asText(source).replace(/\r?\n$/, "");
 }
 
 /** An SVG block: the SVG source. */
