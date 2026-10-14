@@ -8,6 +8,7 @@ import {
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
 import { CopyButton } from "@/components/common/copy-button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { codeBlockText } from "@/features/blocks/block-text";
 import { selectElementText } from "@/hooks/use-copy-to-clipboard";
 import { isSiteBuild } from "@/hooks/use-site-config";
 import { cn } from "@/lib/utils";
@@ -106,7 +107,7 @@ export const HtmlArtifactCard: FC<HtmlArtifactCardProps> = ({
         {segmentedToggle}
 
         <CopyButton
-          text={code}
+          text={codeBlockText(code)}
           label={BLOCK_COPY_CONTENT.copyCode}
           selectFallback={handleSelectFallback(inDialog)}
         />

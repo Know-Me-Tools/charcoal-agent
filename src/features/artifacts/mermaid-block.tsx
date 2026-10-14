@@ -11,6 +11,7 @@ import {
 import { CopyButton } from "@/components/common/copy-button";
 import { Button } from "@/components/ui/button";
 import { ShikiCodeBlock } from "@/features/artifacts/shiki-code-block";
+import { mermaidBlockText } from "@/features/blocks/block-text";
 import { selectElementText } from "@/hooks/use-copy-to-clipboard";
 import { useUiStore } from "@/stores/ui-store";
 import { cn } from "@/lib/utils";
@@ -169,7 +170,7 @@ const MermaidRenderer: FC<MermaidBlockProps> = ({ source, className }) => {
 	const copyButton = (
 		<CopyButton
 			variant="labeled"
-			text={source}
+			text={mermaidBlockText(source)}
 			label={BLOCK_COPY_CONTENT.copyDiagramSource}
 			selectFallback={handleSelectFallback}
 		/>

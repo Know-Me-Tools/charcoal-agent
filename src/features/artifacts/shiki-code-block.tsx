@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FC } from "react";
 import type { Highlighter } from "shiki";
 import { CopyButton } from "@/components/common/copy-button";
+import { codeBlockText } from "@/features/blocks/block-text";
 import { selectElementText } from "@/hooks/use-copy-to-clipboard";
 import { cn } from "@/lib/utils";
 import { useUiStore } from "@/stores/ui-store";
@@ -111,7 +112,7 @@ export const ShikiCodeBlock: FC<ShikiCodeBlockProps> = ({
         <span className="font-mono text-xs text-fg-secondary lowercase">{language}</span>
         <CopyButton
           variant="labeled"
-          text={code}
+          text={codeBlockText(code)}
           label={BLOCK_COPY_CONTENT.copyCode}
           selectFallback={handleSelectFallback}
         />

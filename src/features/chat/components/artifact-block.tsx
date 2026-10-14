@@ -12,6 +12,7 @@ import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button
 import { CopyButton } from "@/components/common/copy-button";
 import { MermaidBlock } from "@/features/artifacts/mermaid-block";
 import { ShikiCodeBlock } from "@/features/artifacts/shiki-code-block";
+import { codeBlockText, mermaidBlockText } from "@/features/blocks/block-text";
 import { selectElementText } from "@/hooks/use-copy-to-clipboard";
 import { cn } from "@/lib/utils";
 import { BLOCK_COPY_CONTENT } from "../../../../content/site/block-copy";
@@ -89,6 +90,16 @@ export const ArtifactBlock: FC<ArtifactBlockProps> = ({
   const preview = content.slice(0, 300);
   const isTruncated = content.length > 300;
 
+  // The card's Copy shares the block-text definitions (task 3.2): a Mermaid
+  // artifact copies its diagram source, a code artifact its raw code. Prose
+  // artifacts have no block-text function in this task's scope and keep the
+  // content verbatim.
+  const copyText = isMermaidArtifact
+    ? mermaidBlockText(content)
+    : isCodeArtifact
+      ? codeBlockText(content)
+      : content;
+
   // On a failed copy, expand the card (the collapsed preview is truncated)
   // and select the full content for a manual copy. A Mermaid artifact copies
   // its diagram source, which only the embedded MermaidBlock's own Copy can
@@ -128,7 +139,7 @@ export const ArtifactBlock: FC<ArtifactBlockProps> = ({
 
         <div className="flex shrink-0 items-center gap-1">
           <CopyButton
-            text={content}
+            text={copyText}
             label={BLOCK_COPY_CONTENT.copyArtifact}
             selectFallback={handleSelectFallback}
           />
