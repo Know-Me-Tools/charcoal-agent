@@ -76,6 +76,9 @@ export function isAllowedReplyImage(src: string): boolean {
  * Whether a video source in a chat message may load: the same rule as images
  * (https on exactly the own host, or same-origin), because the CSP
  * `media-src 'self'` covers exactly that and no subdomain.
+ *
+ * Known limitation (L4): any same-origin path is accepted, including `/api/`.
+ * Backlogged, see docs/security/reviews/block-copy-and-media-blocks.md.
  */
 export function isAllowedReplyVideoSrc(src: string): boolean {
   return isAllowedReplyImage(src);
