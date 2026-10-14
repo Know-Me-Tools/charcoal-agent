@@ -5,6 +5,7 @@ import { KnowMeLockup } from "@/components/brand";
 import { EMBER_CTA } from "@/components/site/ember-cta";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
+import { WebSearchToggle } from "@/components/assistant-ui/web-search-toggle";
 import { isSiteBuild } from "@/hooks/use-site-config";
 import { prefetchThreadRoutes } from "@/lib/route-chunks";
 import { cn } from "@/lib/utils";
@@ -128,7 +129,11 @@ export default function LandingPage() {
 									aria-label={content.composer.placeholder}
 									className="block max-h-[7.5rem] min-h-14 w-full field-sizing-content resize-none bg-transparent px-3 py-2.5 font-body text-base leading-relaxed text-fg caret-ember outline-none placeholder:text-faint lg:min-h-24"
 								/>
-								<div className="mt-1 flex items-center justify-end">
+								{/* The same choice as in the thread composer (one shared preference),
+								    so a visitor can search the web from the first question. It renders
+								    nothing unless web search is enabled for this build. */}
+								<div className="mt-1 flex items-center justify-between gap-2">
+									<WebSearchToggle />
 									<button type="submit" className={cn(EMBER_CTA, "h-10 px-4")}>
 										{content.composer.sendLabel}
 										<ArrowRight className="size-4" aria-hidden="true" />
