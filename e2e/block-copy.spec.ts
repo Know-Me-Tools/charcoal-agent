@@ -25,11 +25,13 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./support/test";
 import { seedTheme } from "./support/page-helpers";
 import { FIXTURE_THREAD_ID, THEMES, waitForAppReady } from "./support/routes";
-import { FIXTURE_IMAGE_PNG_BASE64, TITLE_RESPONSE, toSseBody, type SseEvent } from "./fixtures/sse";
+import { TITLE_RESPONSE, toSseBody, type SseEvent } from "./fixtures/sse";
 import { AI_SURFACE_CAPTION } from "../content/site/ai-disclosure";
 
 const rid = "req-block-copy-e2e";
 const CAPTURE_DIR = path.resolve("docs/qa/block-copy-captures");
+/** A realistic 600 by 300 px image: a 1 by 1 pixel stub hides placement defects. */
+const OWN_IMAGE_PNG = fs.readFileSync(path.resolve("e2e/fixtures/block-copy-600x300.png"));
 
 const CODE = "export function double(n: number): number {\n  return n * 2;\n}";
 const MERMAID = "graph LR\n  Plan --> Build --> Review";
@@ -116,7 +118,7 @@ async function openThreadWithAllBlocks(page: Page, width: number, theme: (typeof
   await page.setViewportSize({ width, height: 900 });
   // The own-host image cannot load offline, so the stub stands in for the origin.
   await page.route(OWN_IMAGE_URL, (route) =>
-    route.fulfill({ status: 200, contentType: "image/png", body: Buffer.from(FIXTURE_IMAGE_PNG_BASE64, "base64") }),
+    route.fulfill({ status: 200, contentType: "image/png", body: OWN_IMAGE_PNG }),
   );
   await page.route("**/api/chat/completion", async (route) => {
     const body = route.request().postDataJSON() as { stream?: boolean } | null;
@@ -333,6 +335,26 @@ test.describe("block copy: rendering safety and accessibility", () => {
   });
 });
 
+test.describe("block copy: image copy button placement", () => {
+  for (const width of [320, 768, 1024, 1440] as const) {
+    test(`the image Copy button sits on the image's top-right corner at ${width}px`, async ({ page }) => {
+      await openThreadWithAllBlocks(page, width, "light");
+      const image = page.locator('[data-role="assistant"] img[alt="Own-host swatch"]');
+      await image.scrollIntoViewIfNeeded();
+      await expect.poll(() => image.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(600);
+      const button = page.getByRole("button", { name: "Copy image", exact: true });
+      const imageBox = (await image.boundingBox())!;
+      const buttonBox = (await button.boundingBox())!;
+      const edge = 16;
+      expect(buttonBox.x, "button left of image right edge").toBeLessThan(imageBox.x + imageBox.width);
+      expect(buttonBox.x + buttonBox.width, "button right edge within the image").toBeLessThanOrEqual(imageBox.x + imageBox.width + 0.5);
+      expect(imageBox.x + imageBox.width - (buttonBox.x + buttonBox.width), "gap to the image's right edge").toBeLessThanOrEqual(edge);
+      expect(buttonBox.y - imageBox.y, "gap to the image's top edge").toBeGreaterThanOrEqual(-0.5);
+      expect(buttonBox.y - imageBox.y, "gap to the image's top edge").toBeLessThanOrEqual(edge);
+    });
+  }
+});
+
 test.describe("block copy: svg block header at phone width", () => {
   for (const theme of THEMES) {
     test(`every control in the SVG header is fully inside the block and 44 px tall at 320px (${theme})`, async ({ page }) => {
@@ -396,7 +418,7 @@ test.describe("block copy: captures", () => {
   test.skip(({ browserName }) => browserName !== "chromium", "Captures are Chromium-only.");
 
   for (const theme of THEMES) {
-    for (const width of [320, 1440] as const) {
+    for (const width of [320, 768, 1024, 1440] as const) {
       test(`captures the thread with every block at ${width}px in the ${theme} theme`, async ({ page }) => {
         await openThreadWithAllBlocks(page, width, theme);
         await expandToScrollableContent(page);
