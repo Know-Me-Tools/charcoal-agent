@@ -62,8 +62,7 @@ export const EnhancedCodeBlock: FC<
   // preformatted text: running Shiki or Mermaid on every delta was one of the
   // per-token costs heating phones (task 1.4). The open fence is always the
   // document's last block and the renderer parses exactly the text the fence
-  // detector ran on (smoothing is off while streaming — see below), so its
-  // code value equals the context content once the mdast→hast convention of
+  // detector ran on (smoothing is always off — see below), so its code value equals the context content once the mdast→hast convention of
   // one trailing newline on code blocks is normalized off. The moment the
   // closing fence arrives the content no longer matches and the block renders
   // normally; when the stream ends the context is null, so an unterminated
@@ -356,16 +355,22 @@ const EnhancedMarkdownTextImpl = () => {
           rehypePlugins={rehypePlugins}
           className="aui-md max-w-none wrap-break-word text-fg data-[status=running]:**:after:text-cyan"
           components={enhancedComponents}
-          // While streaming, the typewriter smoothing is off: it parses
-          // progressively revealed prefixes that lag the throttled text, so a
-          // fence already closed in the stream would still look open on screen
-          // and the fence gate could not hold. With smoothing off the parser
-          // sees exactly the throttled text the fence detector ran on, the
-          // 100 ms throttle supersedes the reveal as the parse-rate bound, and
-          // the `data-status` indicator is unaffected (the provider still
-          // reports the part as running). At stream end the full text commits
+          // Smoothing is off for good (task 1.10). While streaming it was
+          // already off: the reveal parses progressively revealed prefixes
+          // that lag the throttled text, so a fence already closed in the
+          // stream would still look open on screen and the fence gate could
+          // not hold. Flipping it back on at stream end buys nothing — the
+          // full text already renders — and the off-to-on flip re-entered the
+          // smoothing path with an empty reveal buffer, a transition a
+          // reviewer could not rule out as painting one empty frame; it also
+          // ran the primitive's per-character reveal animation for no visible
+          // benefit. With smoothing always off the parser sees exactly the
+          // throttled text the fence detector ran on, the 100 ms throttle
+          // supersedes the reveal as the parse-rate bound, and the
+          // `data-status` indicator is unaffected (the provider still reports
+          // the part as running). At stream end the full text commits
           // immediately, so the final rendered result is identical.
-          smooth={!isStreaming}
+          smooth={false}
         />
       </StreamingFenceContext.Provider>
     </TextMessagePartProvider>
