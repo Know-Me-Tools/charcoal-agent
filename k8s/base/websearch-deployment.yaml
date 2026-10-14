@@ -4,21 +4,18 @@
 # (websearch-networkpolicy.yaml). It is the only holder of the Firecrawl API
 # key. Distroless image, non-root UID 65532, read-only root filesystem.
 #
-# IMAGE: the digest below is a PLACEHOLDER (all zeros), not a real image. No
-# site-websearch image has been built yet. The "Build and push websearch
-# image" job in .github/workflows/site.yml publishes
-# ghcr.io/know-me-tools/site-websearch on each main build; replace the zeros
-# with that run's digest (a deliberate bump, like the UAR pin) before the
-# Train C rollout (task 16.5.5). Until then a pod from this manifest sits in
-# ImagePullBackOff and touches nothing else: UAR skips an MCP server it
-# cannot reach and keeps serving, and the site agent does not select the
-# tool until uar/agents/knowme-site.json changes (task 16.3.2).
+# IMAGE: pinned by digest to the index published by the "Build and push
+# websearch image" job of .github/workflows/site.yml, Deploy site run
+# 38452962361 (commit 7ef169c), 2026-10-13. The digest is the multi-platform
+# index that ghcr.io/know-me-tools/site-websearch:main resolves to (read from
+# the registry and from the job's `digest` output; they agree). It holds a
+# linux/amd64 image manifest and its attestation manifest. Bump it
+# deliberately, like the UAR pin, from a later run of that job.
 #
 # Pull access: GHCR creates a new package private, and this namespace has no
-# imagePullSecrets. After the first push the operator must make the
-# site-websearch package public (as knowme-web is pulled without a secret)
-# or add a pull secret; otherwise the pinned image still fails with
-# ImagePullBackOff (401/403), which is easy to misread as "not pinned yet".
+# imagePullSecrets. The site-websearch package was made public (visibility
+# checked 2026-10-14), as knowme-web is pulled without a secret. If it is
+# ever made private again the pod fails with ImagePullBackOff (401/403).
 #
 # Secrets (created by the operator, never in this repo; see
 # scripts/ops/bootstrap-site.sh, "web search"):
@@ -71,8 +68,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: site-websearch
-          # PLACEHOLDER digest, see the comment at the top of this file.
-          image: ghcr.io/know-me-tools/site-websearch@sha256:0000000000000000000000000000000000000000000000000000000000000000
+          image: ghcr.io/know-me-tools/site-websearch@sha256:ac3a75c48c13e71a40cefd31c66db8e63930e2f6fd2b9d7d551b6d7dfacbc86c
           securityContext:
             runAsNonRoot: true
             runAsUser: 65532

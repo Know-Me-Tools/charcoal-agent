@@ -13,15 +13,18 @@
 # `credential_revision` is an opaque, non-secret label: change it whenever
 # the operator rotates that Secret value.
 #
-# PLACEHOLDER — `preapproved_tools`: the per-server, administrator-set
-# declaration that the named tools need no human approval (OD-3, task
-# 16.1.3). The upstream UAR change that introduces it is NOT merged and its
-# field name is NOT final; `preapproved_tools` is a stand-in. Rename it to
-# whatever that PR settles on when the UAR image digest is bumped (16.5.3).
-# On the currently pinned UAR image the field is unknown; McpServerEntry is
-# an untagged serde enum without deny_unknown_fields, so it is ignored
-# (read from UAR src/mcp/config.rs, not run), and the tool stays
-# approval-gated (design.md 1.2).
+# `preapproved_tools`: the per-server, administrator-set list of tools that
+# need no human approval (OD-3, task 16.1.3). It is UAR's field, merged as
+# Prometheus-AGS/universal-agent-runtime#381 and present in the UAR image
+# pinned in uar-deployment.yaml (commit 3e6af7c4). Names are the server's own
+# tool names (`search`), not the provider name (`websearch__search`). The
+# local proof showed a pre-approved turn needs no approver (19 s, 1 tool call).
+#
+# IMPORTANT, first start only: after UAR's first start with a persistent
+# database, the stored copy of this server definition wins over this file
+# (UAR src/uar/admin/mcp.rs:220-223). Editing the url, `preapproved_tools` or
+# `credential_revision` here later does NOT take effect; the entry must be
+# right before the first start that sees it. See docs/ops/web-search-activation.md.
 #
 # Credential-free: no key, token or URL with a credential appears here.
 apiVersion: v1
