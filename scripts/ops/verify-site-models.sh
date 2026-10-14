@@ -190,7 +190,8 @@ kc() { "$KUBECTL" --context "$CONTEXT" -n "$NAMESPACE" "$@"; }
 
 # ── 1. Preflight ────────────────────────────────────────────────────────────
 log "kubectl context: $CONTEXT, namespace: $NAMESPACE"
-"$KUBECTL" config get-contexts -o name | grep -qxF -- "$CONTEXT" || die "kubectl has no context named '$CONTEXT'"
+contexts="$("$KUBECTL" config get-contexts -o name)" || die "kubectl config get-contexts failed"
+grep -qxF -- "$CONTEXT" <<<"$contexts" || die "kubectl has no context named '$CONTEXT'"
 kc get svc uar >/dev/null 2>&1 || die "svc/uar not found in namespace $NAMESPACE on context $CONTEXT"
 for s in "$ADMIN_KEY_SECRET" "$GATE_SECRET"; do
   kc get secret "$s" >/dev/null 2>&1 || die "Secret $s not readable in namespace $NAMESPACE (needs operator credentials)"
