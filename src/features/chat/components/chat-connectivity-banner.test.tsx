@@ -46,6 +46,22 @@ describe("ChatConnectivityBanner", () => {
     expect(link).toHaveAttribute("href", "/");
   });
 
+  it("shows the budget notice, not the offline one, with status role and a link home", () => {
+    useThreadRegistryStore.setState({ activeThreadId: THREAD });
+    useChatConnectivityStore.getState().setBudgetExhausted(THREAD);
+
+    renderBanner();
+
+    const c = CHAT_OFFLINE_STATES_CONTENT.budgetExhaustedNotice;
+    expect(screen.getByText(c.heading)).toBeInTheDocument();
+    expect(screen.getByText(c.body)).toBeInTheDocument();
+    expect(
+      screen.queryByText(CHAT_OFFLINE_STATES_CONTENT.offlineNotice.heading),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: c.ctaLabel })).toHaveAttribute("href", "/");
+  });
+
   it("shows the rate-limit message with the wait time when Retry-After was supplied (FR-28)", () => {
     useThreadRegistryStore.setState({ activeThreadId: THREAD });
     useChatConnectivityStore.getState().setRateLimited(THREAD, 30);

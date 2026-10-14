@@ -15,6 +15,16 @@ export interface ChatOfflineStatesContent {
     body: string;
     ctaLabel: string;
   };
+  /**
+   * DRAFT, pending operator approval (not covered by the approval above).
+   * Shown when the site's spend ceiling is reached (`budget_exhausted`). It
+   * names no period because the response does not say which one ran out.
+   */
+  budgetExhaustedNotice: {
+    heading: string;
+    body: string;
+    ctaLabel: string;
+  };
   rateLimited: {
     /** `seconds` is always a positive integer here; callers never pass 0. */
     withWait: (seconds: number) => string;
@@ -26,6 +36,12 @@ export const CHAT_OFFLINE_STATES_CONTENT: ChatOfflineStatesContent = {
   offlineNotice: {
     heading: "The agent is offline right now.",
     body: "It can't reply at the moment. You can still look around until it's back.",
+    ctaLabel: "Read about the products",
+  },
+  // DRAFT, pending operator approval.
+  budgetExhaustedNotice: {
+    heading: "Chat has reached its limit for now.",
+    body: "This site caps how much chat it serves. The limit resets by itself, so please try again later. You can still read about the products.",
     ctaLabel: "Read about the products",
   },
   rateLimited: {

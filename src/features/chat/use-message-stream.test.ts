@@ -280,7 +280,6 @@ describe("useMessageStream — offline and rate-limited classification", () => {
     ["upstream_unavailable", 502],
     ["upstream_timeout", 504],
     ["upstream_error", 502],
-    ["budget_exhausted", 503],
     ["meter_unavailable", 503],
     ["kill_switch_on", 503],
   ] as const)(
@@ -311,6 +310,116 @@ describe("useMessageStream — offline and rate-limited classification", () => {
       expect(streaming?.isStreaming).toBe(false);
     },
   );
+
+  describe("budget_exhausted (spend limit, not offline)", () => {
+    const prior = {
+      id: "m-prior-failed",
+      role: "assistant" as const,
+      status: "failed" as const,
+    };
+
+    async function send(thread: string) {
+      const { result } = renderHook(() => useMessageStream());
+      await act(async () => {
+        await result.current.startStream(thread, { message: "Plan my week" });
+      });
+    }
+
+    it("503 budget_exhausted sets the budget-exhausted state, not offline, and creates no assistant message", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        jsonErrorResponse(503, "budget_exhausted", "budget exhausted"),
+      );
+      useChatMessageStore.getState().clearThread(OFFLINE_THREAD);
+      useChatMessageStore.getState().initThread(OFFLINE_THREAD, []);
+      useChatConnectivityStore.getState().clear(OFFLINE_THREAD);
+
+      await send(OFFLINE_THREAD);
+
+      expect(
+        selectChatConnectivity(OFFLINE_THREAD)(useChatConnectivityStore.getState()),
+      ).toEqual({ kind: "budget-exhausted" });
+      const messages = useChatMessageStore.getState().messagesByThread[OFFLINE_THREAD] ?? [];
+      expect(messages.some((m) => m.role === "assistant")).toBe(false);
+    });
+
+    it.each([
+      ["kill_switch_on 503", 503, { error: "kill_switch_on", message: "kill switch on" }],
+      ["upstream_error 502", 502, { error: "upstream_error", message: "upstream error" }],
+      ["unknown-code 503", 503, { error: "something_else", message: "x" }],
+    ])("%s still shows offline", async (_n, status, body) => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response(JSON.stringify(body), {
+          status,
+          headers: { "content-type": "application/json" },
+        }),
+      );
+      useChatMessageStore.getState().clearThread(OFFLINE_THREAD);
+      useChatMessageStore.getState().initThread(OFFLINE_THREAD, []);
+      useChatConnectivityStore.getState().clear(OFFLINE_THREAD);
+
+      await send(OFFLINE_THREAD);
+
+      expect(
+        selectChatConnectivity(OFFLINE_THREAD)(useChatConnectivityStore.getState()),
+      ).toEqual({ kind: "offline" });
+    });
+
+    it.each([
+      ["empty body", ""],
+      ["non-JSON body", "<html>Bad Gateway</html>"],
+      ["JSON without an error code", "{}"],
+    ])("a 503 with a %s falls back to offline", async (_n, raw) => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response(raw, { status: 503, headers: { "content-type": "application/json" } }),
+      );
+      useChatMessageStore.getState().clearThread(OFFLINE_THREAD);
+      useChatMessageStore.getState().initThread(OFFLINE_THREAD, []);
+      useChatConnectivityStore.getState().clear(OFFLINE_THREAD);
+
+      await send(OFFLINE_THREAD);
+
+      expect(
+        selectChatConnectivity(OFFLINE_THREAD)(useChatConnectivityStore.getState()),
+      ).toEqual({ kind: "offline" });
+    });
+
+    it("429 is unchanged", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        jsonErrorResponse(429, "rate_limited", "rate limited", { "Retry-After": "7" }),
+      );
+      useChatMessageStore.getState().clearThread(OFFLINE_THREAD);
+      useChatMessageStore.getState().initThread(OFFLINE_THREAD, []);
+      useChatConnectivityStore.getState().clear(OFFLINE_THREAD);
+
+      await send(OFFLINE_THREAD);
+
+      expect(
+        selectChatConnectivity(OFFLINE_THREAD)(useChatConnectivityStore.getState()),
+      ).toEqual({ kind: "rate-limited", retryAfterSeconds: 7 });
+    });
+
+    it("leaves an earlier failed message untouched", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        jsonErrorResponse(503, "budget_exhausted", "budget exhausted"),
+      );
+      useChatMessageStore.getState().clearThread(OFFLINE_THREAD);
+      useChatMessageStore.getState().initThread(OFFLINE_THREAD, [
+        {
+          ...prior,
+          content: [],
+          createdAt: new Date().toISOString(),
+          metadata: {},
+        } as never,
+      ]);
+      useChatConnectivityStore.getState().clear(OFFLINE_THREAD);
+
+      await send(OFFLINE_THREAD);
+
+      const messages = useChatMessageStore.getState().messagesByThread[OFFLINE_THREAD] ?? [];
+      const old = messages.find((m) => m.id === prior.id);
+      expect(old?.status).toBe("failed");
+    });
+  });
 
   it("sets rate-limited connectivity with the Retry-After seconds when supplied", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
