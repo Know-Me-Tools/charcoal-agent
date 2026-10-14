@@ -1,7 +1,8 @@
 /**
  * site-web-search 16.8.2: web sources in the Sources block. Label, marker
  * `W{n}` and host are always visible; the URL is text unless `isAllowedLink`
- * admits it (D-3).
+ * admits it (D-3). A web source has no excerpt (operator decision
+ * 2026-10-13).
  */
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
@@ -52,11 +53,26 @@ describe("CitationList: web sources", () => {
     expect(items[1]).toHaveTextContent("W1");
   });
 
-  it("cuts the web excerpt at 160 characters and strips markdown", () => {
-    render(<CitationList citations={[{ ...web, content: `**Bold** ${"word ".repeat(80)}` }]} />);
-    fireEvent.click(screen.getByRole("button", { name: "Show excerpt" }));
-    const text = screen.getByText(/^Bold word/).textContent ?? "";
-    expect(text.length).toBeLessThanOrEqual(161);
-    expect(text).not.toContain("**");
+  it("never offers an excerpt for a web source, even one persisted with snippet text by an older server", () => {
+    // `web.content` carries text: what a citation stored before the
+    // no-snippet decision (2026-10-13) holds in PGlite.
+    render(<CitationList citations={[web]} />);
+    expect(screen.queryByRole("button", { name: "Show excerpt" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    const item = screen.getByRole("list", { name: "Sources" }).querySelector(":scope > li")!;
+    expect(item).not.toHaveTextContent("latest stable release");
+    expect(item).toHaveTextContent("Web");
+    expect(item).toHaveTextContent("W1");
+    expect(item).toHaveTextContent("Rust 1.9 released");
+    expect(item).toHaveTextContent("example.org");
+  });
+
+  it("keeps the excerpt control on a KB card beside a web card", () => {
+    render(<CitationList citations={[{ source: "faq.md", content: "The Boss is an agent.", index: 1 }, web]} />);
+    const toggles = screen.getAllByRole("button", { name: "Show excerpt" });
+    expect(toggles).toHaveLength(1);
+    fireEvent.click(toggles[0]);
+    expect(screen.getByText("The Boss is an agent.")).toBeInTheDocument();
+    expect(screen.queryByText(/latest stable release/)).not.toBeInTheDocument();
   });
 });

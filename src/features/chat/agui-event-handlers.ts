@@ -76,7 +76,9 @@ interface AguiToolResult {
 }
 /**
  * Web sources, minted by the site proxy (site-web-search design section 4).
- * Only these item fields are read; anything else on the frame is ignored.
+ * Only these item fields are read; anything else on the frame is ignored,
+ * including a `snippet` from an older server: a web result's snippet is text
+ * the page's author wrote and is never shown (operator decision 2026-10-13).
  */
 interface AguiWebCitations {
   kind: "web_citations";
@@ -87,7 +89,6 @@ interface AguiWebCitations {
     title?: unknown;
     host?: unknown;
     url?: unknown;
-    snippet?: unknown;
   }>;
 }
 
@@ -338,7 +339,8 @@ export const AGUI_EVENT_HANDLERS: Readonly<Record<string, Handler>> = {
       const url = typeof c.url === "string" && c.url !== "" ? c.url : undefined;
       store().addCitation(ctx.threadId, {
         source: title ?? host ?? "Web source",
-        content: typeof c.snippet === "string" ? c.snippet : "",
+        // No excerpt for a web source, whatever the frame carries.
+        content: "",
         url,
         index: c.marker,
         origin: "web",

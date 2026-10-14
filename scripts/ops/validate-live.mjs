@@ -28,7 +28,8 @@
 // expect them; a web-sourced answer needs a web citation; every [Wn] in the
 // reply needs a matching `agui.web_citations` item; at most one search step;
 // exactly one `agui.web_citations` frame, after the search step has finished
-// and before `agui.done`. Preamble text before the frame is fine: the proxy
+// and before `agui.done`; no web citation item may carry a `snippet` (only
+// origin, marker, title, host and url). Preamble text before the frame is fine: the proxy
 // mints the frame when the search result arrives, and the client resolves [Wn]
 // markers reactively and places Sources after the answer.
 //
@@ -125,7 +126,9 @@ const ALLOWED_KEYS = {
   // Web sources, minted by the site proxy (site-web-search design section 4).
   "agui.web_citations": {
     top: ["kind", "phase", "citations"],
-    items: { citations: ["origin", "marker", "title", "host", "url", "snippet"] },
+    // No `snippet`: a web result's snippet is text the page's author wrote
+    // (operator decision 2026-10-13); checkWebItem names it when it appears.
+    items: { citations: ["origin", "marker", "title", "host", "url"] },
   },
   // The only public tool-step frame (server/src/domain/agui_steps.rs). The old
   // agui.tool_call.denied frame leaked the real tool id and name and is gone, so it
@@ -143,7 +146,6 @@ const PASSIVE_COMPONENTS = new Set(["Card", "Column", "Row", "Text", "Divider"])
 const BANNED_WORDS = /provider_event|attempt_manifest|effective_run_policy|turn_manifest|runtime\.|websearch|WebSearch|firecrawl|Firecrawl/;
 const WEB_MARKER = /\[W(\d+)\]/g;
 const WEB_MAX_ITEMS = 5;
-const WEB_SNIPPET_MAX = 240;
 const WEB_TITLE_MAX = 120;
 
 export function parseArgs(argv) {
@@ -245,7 +247,11 @@ function checkWebItem(item, problems) {
   }
   if (typeof item.host !== "string" || item.host === "") problems.push("agui.web_citations: item host is empty");
   if (typeof item.title === "string" && item.title.length > WEB_TITLE_MAX) problems.push(`agui.web_citations: title longer than ${WEB_TITLE_MAX} characters`);
-  if (typeof item.snippet === "string" && item.snippet.length > WEB_SNIPPET_MAX) problems.push(`agui.web_citations: snippet longer than ${WEB_SNIPPET_MAX} characters`);
+  if (Object.hasOwn(item, "snippet")) {
+    problems.push(
+      `agui.web_citations: item ${item.marker} carries a snippet; a web citation must be title, host and url only (a snippet is text the result page's author wrote)`,
+    );
+  }
 }
 
 /**

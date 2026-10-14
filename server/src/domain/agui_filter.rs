@@ -36,7 +36,8 @@
 //! Also derived: `agui.web_citations` ([`WEB_CITATIONS_EVENT`]), minted by the
 //! step tracker from the first successful web-search tool result of a
 //! response (see `crate::domain::web_citations`). It carries only sanitized
-//! `origin`, `marker`, `title`, `host`, `url` and `snippet`. An upstream frame
+//! `origin`, `marker`, `title`, `host` and `url`; never a result snippet,
+//! which the page's author controls (operator decision 2026-10-13). An upstream frame
 //! with that name is dropped; it is not in [`ALLOWED_EVENTS`].
 //!
 //! The outbound set is therefore [`ALLOWED_EVENTS`], [`ARTIFACT_EVENT`],
@@ -1535,13 +1536,15 @@ mod tests {
 
     const WEB_QUERY: &str = "SENTINEL_web_query_w3";
     const WEB_RAW: &str = "SENTINEL_raw_markdown_w4";
+    /// A result snippet: upstream for the model only, never public.
+    const WEB_SNIPPET: &str = "SENTINEL_snippet_w5";
 
     /// The site wrapper's output for two results, with fields that must
     /// never reach a visitor.
     fn web_wrapper() -> Value {
         json!({
             "results": [
-                { "n": 1, "title": "One", "url": "https://one.example/a", "snippet": "first",
+                { "n": 1, "title": "One", "url": "https://one.example/a", "snippet": WEB_SNIPPET,
                   "score": 0.91, "markdown": WEB_RAW },
                 { "n": 2, "title": "Two", "url": "https://two.example/b", "snippet": "second" }
             ],
@@ -1583,9 +1586,9 @@ mod tests {
     fn expected_web_citations() -> Value {
         json!({ "kind": "web_citations", "phase": "added", "citations": [
             { "origin": "web", "marker": 1, "title": "One", "host": "one.example",
-              "url": "https://one.example/a", "snippet": "first" },
+              "url": "https://one.example/a" },
             { "origin": "web", "marker": 2, "title": "Two", "host": "two.example",
-              "url": "https://two.example/b", "snippet": "second" }
+              "url": "https://two.example/b" }
         ]})
     }
 
@@ -1714,6 +1717,9 @@ mod tests {
             for leak in [
                 WEB_QUERY,
                 WEB_RAW,
+                WEB_SNIPPET,
+                "snippet",
+                "second",
                 LEAK_ID,
                 LEAK_REQUEST,
                 "SENTINEL",
