@@ -28,6 +28,18 @@ export interface BlockCopyContent {
 	copyDiagramSource: string;
 	/** Accessible name of the copy button on an artifact card. */
 	copyArtifact: string;
+	/** Accessible name of the copy button on a table in a reply. */
+	copyTable: string;
+	/** Accessible name of the copy button on a display-math block. */
+	copyMath: string;
+	/** Accessible name of the copy button on an image in a reply. */
+	copyImage: string;
+	/** Success text when the image itself went to the clipboard (PNG). */
+	copiedImage: string;
+	/** Success text when only the image URL was copied (no image clipboard support). */
+	copiedImageLink: string;
+	/** Accessible name of the copy button on an A2UI card frame. */
+	copyCard: string;
 }
 
 export const BLOCK_COPY_CONTENT: BlockCopyContent = {
@@ -37,4 +49,10 @@ export const BLOCK_COPY_CONTENT: BlockCopyContent = {
 	copyCode: "Copy code",
 	copyDiagramSource: "Copy diagram source",
 	copyArtifact: "Copy content",
+	copyTable: "Copy table",
+	copyMath: "Copy math",
+	copyImage: "Copy image",
+	copiedImage: "Copied image",
+	copiedImageLink: "Copied image link",
+	copyCard: "Copy card",
 };

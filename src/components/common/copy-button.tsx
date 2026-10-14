@@ -1,13 +1,20 @@
 import { AlertTriangleIcon, CheckIcon, CopyIcon } from "lucide-react";
 import type { FC } from "react";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
-import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
+import { useCopyToClipboard, type ClipboardWriter } from "@/hooks/use-copy-to-clipboard";
 import { cn } from "@/lib/utils";
 import { BLOCK_COPY_CONTENT } from "../../../content/site/block-copy";
 
 export interface CopyButtonProps {
 	/** The exact text placed on the clipboard (the block's data, not DOM text). */
-	text: string;
+	text: string | (() => string);
+	/**
+	 * Replaces the plain-text clipboard write (an image copy). Resolves on
+	 * success, throws on failure; a throw shows "Couldn't copy".
+	 */
+	write?: ClipboardWriter;
+	/** Overrides the "Copied" state text, e.g. "Copied image link". */
+	copiedLabel?: string;
 	/** Accessible name, naming the block: "Copy code", "Copy diagram source", ... */
 	label: string;
 	/**
@@ -38,12 +45,12 @@ export interface CopyButtonProps {
  *   live region announces it. No animation beyond the shared hover
  *   transition; a real `<button>`, so Enter and Space activate it.
  */
-export const CopyButton: FC<CopyButtonProps> = ({ text, label, selectFallback, variant = "icon", className }) => {
+export const CopyButton: FC<CopyButtonProps> = ({ text, write, copiedLabel, label, selectFallback, variant = "icon", className }) => {
 	const { status, copy } = useCopyToClipboard({ selectFallback });
 
 	const stateText =
 		status === "copied"
-			? BLOCK_COPY_CONTENT.copied
+			? (copiedLabel ?? BLOCK_COPY_CONTENT.copied)
 			: status === "failed"
 				? BLOCK_COPY_CONTENT.copyFailed
 				: "";
@@ -72,7 +79,7 @@ export const CopyButton: FC<CopyButtonProps> = ({ text, label, selectFallback, v
 					type="button"
 					aria-label={label}
 					onClick={() => {
-						void copy(text);
+						void copy(typeof text === "function" ? text() : text, write);
 					}}
 					className={cn(
 						"inline-flex h-8 items-center gap-1 rounded-sm px-2 font-ui text-xs font-semibold text-fg-secondary transition-hover hover:bg-hover hover:text-fg focus-cue max-md:min-h-11 max-md:px-3",
@@ -94,7 +101,7 @@ export const CopyButton: FC<CopyButtonProps> = ({ text, label, selectFallback, v
 				tooltip={status === "idle" ? label : stateText}
 				aria-label={label}
 				onClick={() => {
-					void copy(text);
+					void copy(typeof text === "function" ? text() : text, write);
 				}}
 				className={cn("max-md:size-11", className)}
 			>

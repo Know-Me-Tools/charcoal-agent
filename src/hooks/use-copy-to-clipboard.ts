@@ -16,8 +16,14 @@ export interface UseCopyToClipboardOptions {
 export interface UseCopyToClipboardResult {
 	status: CopyStatus;
 	/** Copies `text`. Never rejects: every failure lands in `status: "failed"`. */
-	copy: (text: string) => Promise<void>;
+	copy: (text: string, write?: ClipboardWriter) => Promise<void>;
 }
+
+/**
+ * Replaces the default `navigator.clipboard.writeText`, for a block whose copy
+ * is not plain text (an image). It resolves on success and throws on failure.
+ */
+export type ClipboardWriter = (text: string) => Promise<void>;
 
 export const COPY_RESET_DELAY_MS = 2500;
 
@@ -53,12 +59,15 @@ export function useCopyToClipboard(options: UseCopyToClipboardOptions = {}): Use
 	useEffect(() => clearResetTimer, [clearResetTimer]);
 
 	const copy = useCallback(
-		async (text: string): Promise<void> => {
+		async (text: string, write?: ClipboardWriter): Promise<void> => {
 			clearResetTimer();
 			let succeeded = false;
 			try {
 				const clipboard = typeof navigator === "undefined" ? undefined : navigator.clipboard;
-				if (clipboard && typeof clipboard.writeText === "function") {
+				if (write) {
+					await write(text);
+					succeeded = true;
+				} else if (clipboard && typeof clipboard.writeText === "function") {
 					await clipboard.writeText(text);
 					succeeded = true;
 				}

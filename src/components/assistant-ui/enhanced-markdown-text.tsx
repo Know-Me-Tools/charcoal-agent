@@ -12,6 +12,7 @@ import { MermaidBlock } from "@/features/artifacts/mermaid-block";
 import { HtmlArtifactCard } from "@/features/artifacts/html-artifact-card";
 import { ShikiCodeBlock } from "@/features/artifacts/shiki-code-block";
 import { useThrottledValue } from "@/hooks/use-throttled-value";
+import { MarkdownImage, MarkdownSpan, MarkdownTable } from "./markdown-block-copy";
 import { findOpenFence, StreamingFenceContext } from "./streaming-fence";
 import {
   buildMarkdownRehypePlugins,
@@ -219,19 +220,7 @@ const enhancedComponents = memoizeMarkdownComponents({
   ),
 
   // Tables
-  table: ({ className, ...props }) => (
-    <div
-      className="my-3 overflow-x-auto rounded-lg bg-surface focus-cue"
-      tabIndex={0}
-      role="region"
-      aria-label="Table"
-    >
-      <table
-        className={cn("w-full border-separate border-spacing-0 text-sm", className)}
-        {...props}
-      />
-    </div>
-  ),
+  table: MarkdownTable,
   th: ({ className, ...props }) => (
     <th
       className={cn(
@@ -267,14 +256,8 @@ const enhancedComponents = memoizeMarkdownComponents({
       {...props}
     />
   ),
-  img: ({ className, ...props }) => (
-    <img
-      className={cn("my-3 h-auto max-w-full rounded-lg bg-muted-surface", className)}
-      loading="lazy"
-      decoding="async"
-      {...props}
-    />
-  ),
+  img: MarkdownImage,
+  span: MarkdownSpan,
 
   // Code
   pre: ({ className, ...props }) => (
