@@ -98,7 +98,7 @@ describe("A2uiSurfaceBlock card copy", () => {
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
     render(<A2uiSurfaceBlock content={CARD} passiveOnly />);
     await screen.findByText("A desktop workspace.");
-    const button = screen.getByRole("button", { name: "Copy card" });
+    const button = screen.getByRole("button", { name: "Copy card text" });
     // The button is in the frame, outside the model's surface section.
     expect(screen.getByTestId("a2ui-surface").contains(button)).toBe(false);
     expect(screen.getByTestId("a2ui-surface-frame").contains(button)).toBe(true);

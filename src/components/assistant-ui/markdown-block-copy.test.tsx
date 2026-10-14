@@ -66,7 +66,7 @@ describe("math copy", () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     stubClipboard({ writeText });
     renderMarkdown("$$\nx^2 + y^2\n$$");
-    await click("Copy math");
+    await click("Copy math source");
     expect(writeText).toHaveBeenCalledWith("x^2 + y^2");
   });
 

@@ -104,9 +104,9 @@ const COPY_TARGETS = [
   { label: "Copy SVG source", nth: 0, expected: SVG_HARMLESS },
   { label: "Copy SVG source", nth: 1, expected: SVG_HOSTILE },
   { label: "Copy table", nth: 0, expected: TABLE_MD },
-  { label: "Copy math", nth: 0, expected: MATH_TEX },
+  { label: "Copy math source", nth: 0, expected: MATH_TEX },
   { label: "Copy video link", nth: 0, expected: OWN_VIDEO_URL },
-  { label: "Copy card", nth: 0, expected: CARD_TEXT },
+  { label: "Copy card text", nth: 0, expected: CARD_TEXT },
 ] as const;
 
 const COPY_STATE = /^(Copied|Copied image|Copied image link|Couldn't copy)$/;
@@ -138,10 +138,10 @@ async function openThreadWithAllBlocks(page: Page, width: number, theme: (typeof
   await expect(page.getByRole("button", { name: "Copy diagram source" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Copy SVG source" })).toHaveCount(2);
   await expect(page.getByRole("button", { name: "Copy table" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Copy math" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy math source" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Copy image", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Copy video link" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Copy card" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy card text" })).toBeVisible();
   await expect(page.getByText("Rendering diagram")).toHaveCount(0);
   await page.evaluate(() => document.fonts.ready);
 }
@@ -194,8 +194,8 @@ test.describe("block copy: clipboard contents (Chromium)", () => {
   test("the card copy ends with the AI caption", async ({ page, context }) => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     await openThreadWithAllBlocks(page, 1440, "dark");
-    await page.getByRole("button", { name: "Copy card" }).click();
-    await expect.poll(() => copyState(page, "Copy card", 0)).toMatch(/^Copied/);
+    await page.getByRole("button", { name: "Copy card text" }).click();
+    await expect.poll(() => copyState(page, "Copy card text", 0)).toMatch(/^Copied/);
     const copied = await page.evaluate(() => navigator.clipboard.readText());
     expect(copied.endsWith("AI-generated · check important details")).toBe(true);
     expect(copied.endsWith(AI_SURFACE_CAPTION)).toBe(true);
