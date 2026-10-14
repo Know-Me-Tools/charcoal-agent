@@ -2,6 +2,13 @@ import type { PGlite } from "@electric-sql/pglite";
 import type { ContentBlock, RichMessage } from "@/types/chat-content";
 import type { LocalThread } from "@/types";
 
+/**
+ * The single source of truth for where PGlite stores its data.
+ * `src/lib/db/purge.ts` derives the IndexedDB database name from this URL,
+ * so the corruption purge deletes the database this actually opens.
+ */
+export const PGDATA_URL = "idb://charcoal-db";
+
 // ---------------------------------------------------------------------------
 // Module-level singleton — set once by DbProvider, consumed by stores
 // ---------------------------------------------------------------------------
@@ -175,7 +182,7 @@ export class CharcoalDb {
     // Loaded here, not at module scope, so the PGlite runtime stays out of the
     // entry chunk. Open already awaits the wasm, so the wait is unchanged.
     const { PGlite: PGliteCtor } = await import("@electric-sql/pglite");
-    const db = new PGliteCtor("idb://charcoal-db");
+    const db = new PGliteCtor(PGDATA_URL);
     const instance = new CharcoalDb(db);
     await instance.runMigrations(onStatus);
     await instance.migrateFromLocalStorage(onStatus);

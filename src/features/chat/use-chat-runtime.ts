@@ -257,6 +257,33 @@ export function richMessageToThreadMessageLike(msg: RichMessage): ThreadMessageL
   };
 }
 
+/**
+ * Per-message memo around richMessageToThreadMessageLike. The converter's
+ * output depends only on the message object itself, and immer's structural
+ * sharing in chat-message-store keeps an unchanged message object identical
+ * across store updates — so a WeakMap keyed by the message rebuilds only the
+ * messages whose objects actually changed (during a stream flush: just the
+ * streaming one) instead of the whole thread. WeakMap keys are collected
+ * once a cleared thread's message objects are dropped.
+ *
+ * The delegate is injectable so tests can count real conversions.
+ */
+export function createMemoizedConverter(
+  convert: (msg: RichMessage) => ThreadMessageLike = richMessageToThreadMessageLike,
+): (msg: RichMessage) => ThreadMessageLike {
+  const cache = new WeakMap<RichMessage, ThreadMessageLike>();
+  return (msg) => {
+    const cached = cache.get(msg);
+    if (cached) return cached;
+    const converted = convert(msg);
+    cache.set(msg, converted);
+    return converted;
+  };
+}
+
+/** Shared memoized converter used by the runtime hook below. */
+const memoizedRichMessageToThreadMessageLike = createMemoizedConverter();
+
 /** Extract the plain text from all text blocks of a message. */
 function extractText(msg: RichMessage): string {
   return msg.content
@@ -479,9 +506,11 @@ export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {
   }, [threadId]); // run once on mount — intentionally omit changing deps
 
   // Memoize so useExternalStoreRuntime's getSnapshot sees a stable reference
-  // when messages haven't changed (prevents the "infinite loop" warning).
+  // when messages haven't changed (prevents the "infinite loop" warning). The
+  // per-message memoized converter rebuilds only the messages whose objects
+  // changed since the last pass (the streaming message while a reply streams).
   const threadMessageLikes = useMemo(
-    () => messages.map(richMessageToThreadMessageLike),
+    () => messages.map(memoizedRichMessageToThreadMessageLike),
     [messages],
   );
 

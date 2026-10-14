@@ -14,6 +14,7 @@ import {
   type CancelledUsage,
   type SubagentStatus,
 } from "@/features/chat/render-registry/pseudo-parts";
+import type { DeltaCoalescer } from "@/features/chat/delta-coalescer";
 
 // ─── AG-UI event shapes (from UAR src/uar/api/sse.rs) ─────────────────────────
 
@@ -237,6 +238,15 @@ export interface AguiDispatchContext {
   /** Streaming tool-call argument fragments, keyed by tool_call_id. */
   pendingArgs: Map<string, string>;
   callbacks?: { onComplete?: () => void; onError?: (error: Error) => void };
+  /**
+   * When present (the normal stream path), text/thinking deltas are buffered
+   * and committed in batches instead of one store write per token. The
+   * dispatcher flushes it before running any non-delta handler, so buffered
+   * text always lands before a following step/citation/artifact/terminal
+   * event. Absent in direct-dispatch tests: deltas then write through
+   * synchronously, as before.
+   */
+  deltas?: DeltaCoalescer;
   /** Defaults to the app's default registry; tests may pass their own. */
   registry?: RenderRegistry;
 }
@@ -289,13 +299,19 @@ export const AGUI_EVENT_HANDLERS: Readonly<Record<string, Handler>> = {
 
   "agui.message.delta": (p, ctx) => {
     const e = p as AguiMessageDelta;
-    if (e.delta?.text) store().appendTextDelta(ctx.threadId, ctx.runId, e.delta.text);
+    if (e.delta?.text) {
+      if (ctx.deltas) ctx.deltas.push("text", e.delta.text);
+      else store().appendTextDelta(ctx.threadId, ctx.runId, e.delta.text);
+    }
     return "continue";
   },
 
   "agui.thinking.delta": (p, ctx) => {
     const e = p as AguiThinkingDelta | AguiReasoningDelta;
-    if (e.delta?.text) store().appendThinkingDelta(ctx.threadId, ctx.runId, e.delta.text);
+    if (e.delta?.text) {
+      if (ctx.deltas) ctx.deltas.push("thinking", e.delta.text);
+      else store().appendThinkingDelta(ctx.threadId, ctx.runId, e.delta.text);
+    }
     return "continue";
   },
 
@@ -601,6 +617,13 @@ function handlerFor(event: string): Handler | undefined {
   return event.startsWith("agui.subagent.") ? AGUI_EVENT_HANDLERS["agui.subagent.*"] : undefined;
 }
 
+/** Events whose handlers buffer text instead of committing immediately. */
+const DELTA_EVENTS: ReadonlySet<string> = new Set([
+  "agui.message.delta",
+  "agui.thinking.delta",
+  "agui.reasoning.delta",
+]);
+
 /**
  * Routes one named SSE event (`agui.*`, `runtime.*`, ...) through the render
  * registry, then to its handler. Hidden and unknown events are dropped before
@@ -620,5 +643,10 @@ export function dispatchAguiEvent(event: string, data: string, ctx: AguiDispatch
   } catch {
     return "continue";
   }
+  // Ordering guarantee: any buffered text precedes this event in the stream,
+  // so it must reach the store first — including terminal handlers
+  // (agui.done / agui.error / agui.cancelled), which is also the
+  // flush-on-done/error path.
+  if (!DELTA_EVENTS.has(event)) ctx.deltas?.flush();
   return handler(payload, ctx, event);
 }

@@ -6,8 +6,37 @@ import { buildUrl, buildHeaders } from "@/lib/api-client";
 import { getSiteAgentId } from "@/hooks/use-site-config";
 import { webSearchRequestField } from "@/stores/web-search-preference-store";
 import { dispatchAguiEvent } from "./agui-event-handlers";
+import {
+  createDeltaCoalescer,
+  type DeltaCoalescer,
+  type DeltaCoalescerSchedulers,
+} from "./delta-coalescer";
+import {
+  buildStreamFailureLogEntry,
+  buildVisibilityChangeLogEntry,
+} from "./stream-failure-log";
 
 const UAR_PATH = "/api/chat/completion";
+
+/**
+ * Browser schedulers for the delta coalescer: one commit per animation frame
+ * while visible; a 50 ms timer while hidden (rAF is suspended in a
+ * backgrounded tab). The 16 ms timeout fallback covers environments without
+ * requestAnimationFrame (e.g. jsdom without pretendToBeVisual).
+ */
+const deltaCoalescerSchedulers: DeltaCoalescerSchedulers = {
+  requestFrame: (cb) =>
+    typeof requestAnimationFrame === "function"
+      ? requestAnimationFrame(cb)
+      : (setTimeout(cb, 16) as unknown as number),
+  cancelFrame: (handle) =>
+    typeof cancelAnimationFrame === "function"
+      ? cancelAnimationFrame(handle)
+      : clearTimeout(handle),
+  setTimer: (cb, ms) => setTimeout(cb, ms),
+  clearTimer: (handle) => clearTimeout(handle as Parameters<typeof clearTimeout>[0]),
+  isHidden: () => document.hidden,
+};
 
 export interface UarChatPayload {
   message: string;
@@ -135,8 +164,13 @@ function classifyResponseFailure(
 
 export function useMessageStream() {
   const abortRef = useRef<AbortController | null>(null);
+  const deltasRef = useRef<DeltaCoalescer | null>(null);
 
   const cancelStream = useCallback(() => {
+    // Flush BEFORE aborting, while the run is still the active one: the
+    // caller's follow-up (onCancel's cancelled block + finishStream, or a
+    // retry's new stream) must see every token already received.
+    deltasRef.current?.flush();
     abortRef.current?.abort();
     abortRef.current = null;
   }, []);
@@ -190,6 +224,55 @@ export function useMessageStream() {
       // non-proxied UAR in dev/tests).
       const threadAgent = useThreadRegistryStore.getState().threads[threadId];
       const agentId = getSiteAgentId() ?? payload.agent_id ?? threadAgent?.agentId;
+
+      // Console-only diagnostics for stream deaths (observed on iOS Safari;
+      // no telemetry, no network). The field set is fixed in
+      // stream-failure-log.ts — never message text, prompts, URLs or ids.
+      // The visibility listener lives exactly as long as this stream.
+      const streamStartedAtMs = Date.now();
+      let receivedBytes = 0;
+
+      // Text/thinking deltas are buffered and committed in batches (at most
+      // one store commit per frame; one per 50 ms while hidden). The
+      // dispatcher flushes the buffer before any non-text event, and the
+      // terminal paths below flush before done/error/abort handling, so
+      // order and content are preserved exactly.
+      const coalescer = createDeltaCoalescer((segments) => {
+        const state = useChatMessageStore.getState();
+        const streaming = state.streamingByThread[threadId];
+        // Drop leftovers of a superseded run: the active run id has moved
+        // on, or the message these deltas belonged to was deleted
+        // (retry/regenerate removes the old reply before restarting).
+        // Committing here would resurrect a zombie streaming message.
+        if (!streaming?.isStreaming || streaming.runId !== runId) return;
+        if (
+          streaming.streamingMessageId &&
+          !state.messagesByThread[threadId]?.some(
+            (m) => m.id === streaming.streamingMessageId,
+          )
+        ) {
+          return;
+        }
+        for (const segment of segments) {
+          if (segment.kind === "text") state.appendTextDelta(threadId, runId, segment.text);
+          else state.appendThinkingDelta(threadId, runId, segment.text);
+        }
+      }, deltaCoalescerSchedulers);
+      deltasRef.current = coalescer;
+
+      const onVisibilityChange = () => {
+        // rAF does not run while hidden: move a pending flush to the timer
+        // path (and back) so backgrounded streams still commit bounded-rate.
+        coalescer.reschedule();
+        console.warn(
+          buildVisibilityChangeLogEntry({
+            state: document.visibilityState,
+            startedAtMs: streamStartedAtMs,
+            nowMs: Date.now(),
+          }),
+        );
+      };
+      document.addEventListener("visibilitychange", onVisibilityChange);
 
       try {
         const res = await fetch(buildUrl(UAR_PATH), {
@@ -262,6 +345,7 @@ export function useMessageStream() {
           const { done, value } = await reader.read();
           if (done) break;
 
+          receivedBytes += value.byteLength;
           buffer += decoder.decode(value, { stream: true });
 
           // SSE blocks are delimited by double newlines
@@ -285,6 +369,7 @@ export function useMessageStream() {
                 runId,
                 pendingArgs,
                 callbacks,
+                deltas: coalescer,
               });
               if (outcome === "stop") return;
               continue;
@@ -295,6 +380,7 @@ export function useMessageStream() {
             // Only watch for [DONE] as a safety-net terminator.
             if (event === "message") {
               if (data === "[DONE]") {
+                coalescer.flush();
                 useChatMessageStore.getState().finishStream(threadId);
                 callbacks?.onComplete?.();
                 return;
@@ -304,7 +390,13 @@ export function useMessageStream() {
           }
         }
 
-        // Reader exhausted without agui.done / [DONE]. `streamingMessageId`
+        // Reader exhausted without agui.done / [DONE]. Flush first: with
+        // buffered deltas, text received so far has not necessarily reached
+        // the store yet, and the graceful-finish check below keys on the
+        // streaming message the first committed delta creates.
+        coalescer.flush();
+        //
+        // `streamingMessageId`
         // is set only once a block that actually creates the assistant
         // message has been handled — a text/thinking delta, tool call,
         // citation, skill activation, etc. (getOrCreateStreamingMessage /
@@ -320,14 +412,42 @@ export function useMessageStream() {
           callbacks?.onComplete?.();
         } else {
           const error = new Error("The connection closed before the agent replied.");
+          console.warn(
+            buildStreamFailureLogEntry({
+              error,
+              visibilityState: document.visibilityState,
+              startedAtMs: streamStartedAtMs,
+              nowMs: Date.now(),
+              receivedBytes,
+            }),
+          );
           useChatMessageStore.getState().setStreamError(threadId, error.message);
           callbacks?.onError?.(error);
         }
       } catch (err) {
+        // Flush before error handling so the error block lands after any
+        // buffered text. On abort the buffer is normally empty already —
+        // cancelStream flushes before aborting; this is the safeguard.
+        coalescer.flush();
         if ((err as Error).name === "AbortError") return;
         const error = err instanceof Error ? err : new Error("Stream failed");
+        console.warn(
+          buildStreamFailureLogEntry({
+            error,
+            visibilityState: document.visibilityState,
+            startedAtMs: streamStartedAtMs,
+            nowMs: Date.now(),
+            receivedBytes,
+          }),
+        );
         useChatMessageStore.getState().setStreamError(threadId, error.message);
         callbacks?.onError?.(error);
+      } finally {
+        // No flush may fire after the stream has ended — a late commit would
+        // hit the next run (or a finished one) for this thread.
+        coalescer.cancelPending();
+        if (deltasRef.current === coalescer) deltasRef.current = null;
+        document.removeEventListener("visibilitychange", onVisibilityChange);
       }
     },
     [cancelStream],

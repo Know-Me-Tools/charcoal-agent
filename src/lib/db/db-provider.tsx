@@ -1,8 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { CharcoalDb, setDbInstance } from "@/lib/db/pglite";
 import { discardJournalAfterPurge, replayJournal } from "@/lib/db/persistence-journal";
-
-const DB_NAME = "/charcoal-db";
+import { purgeDatabase } from "@/lib/db/purge";
 
 // ---------------------------------------------------------------------------
 // Context
@@ -22,18 +21,6 @@ const DbContext = createContext<DbContextValue>({ ready: false, db: null });
 function isCorruptionError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err);
   return msg.includes("Invalid FS bundle size") || msg.includes("bundle size");
-}
-
-/** Delete the PGLite IndexedDB and return once complete (or after timeout). */
-function purgeDatabase(): Promise<void> {
-  return new Promise((resolve) => {
-    const req = indexedDB.deleteDatabase(DB_NAME);
-    req.onsuccess = () => resolve();
-    req.onerror = () => resolve(); // best-effort; proceed regardless
-    req.onblocked = () => resolve();
-    // Fallback in case the event never fires
-    setTimeout(resolve, 2000);
-  });
 }
 
 // ---------------------------------------------------------------------------
@@ -87,7 +74,18 @@ export function DbProvider({ children }: DbProviderProps) {
           // Stale / corrupt PGLite bundle — wipe and retry once.
           console.warn("[CharcoalDb] Corrupt database detected; purging and retrying…", err);
           setStatus("Recovering database…");
-          await purgeDatabase();
+          try {
+            await purgeDatabase();
+          } catch (purgeErr: unknown) {
+            // The wipe itself failed — most often because another tab holds
+            // the database open. Retrying would queue behind the pending
+            // delete forever, so fail visibly instead.
+            if (cancelled) return;
+            const purgeMsg = purgeErr instanceof Error ? purgeErr.message : String(purgeErr);
+            console.error("[CharcoalDb] Failed to purge database:", purgeErr);
+            setError(purgeMsg);
+            return;
+          }
           return init(true);
         }
 
