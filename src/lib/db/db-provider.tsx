@@ -1,8 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { CharcoalDb, setDbInstance } from "@/lib/db/pglite";
 import { discardJournalAfterPurge, replayJournal } from "@/lib/db/persistence-journal";
-
-const DB_NAME = "/charcoal-db";
+import { purgeDatabase } from "@/lib/db/purge";
 
 // ---------------------------------------------------------------------------
 // Context
@@ -22,18 +21,6 @@ const DbContext = createContext<DbContextValue>({ ready: false, db: null });
 function isCorruptionError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err);
   return msg.includes("Invalid FS bundle size") || msg.includes("bundle size");
-}
-
-/** Delete the PGLite IndexedDB and return once complete (or after timeout). */
-function purgeDatabase(): Promise<void> {
-  return new Promise((resolve) => {
-    const req = indexedDB.deleteDatabase(DB_NAME);
-    req.onsuccess = () => resolve();
-    req.onerror = () => resolve(); // best-effort; proceed regardless
-    req.onblocked = () => resolve();
-    // Fallback in case the event never fires
-    setTimeout(resolve, 2000);
-  });
 }
 
 // ---------------------------------------------------------------------------
