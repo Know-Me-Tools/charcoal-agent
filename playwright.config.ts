@@ -26,7 +26,17 @@ export default defineConfig({
     trace: "retain-on-failure",
     contextOptions: { reducedMotion: "reduce" },
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"], channel: browserChannel() } }],
+  projects: [
+    { name: "chromium", use: { ...devices["Desktop Chrome"], channel: browserChannel() } },
+    {
+      // Task 1.7 (app-mobile-stream-reliability-and-heat): the long-stream
+      // measurement only — the rest of the suite stays on Chromium. WebKit
+      // has no Long Tasks API, so the spec counts rAF gaps instead.
+      name: "webkit-iphone",
+      testMatch: "stream-load.spec.ts",
+      use: { ...devices["iPhone 14"] },
+    },
+  ],
   webServer: {
     command: `npx vite --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}`,
