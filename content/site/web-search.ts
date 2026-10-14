@@ -1,8 +1,9 @@
 /**
- * DRAFT, pending the operator's approval of the privacy wording (OD-7 of the
- * `site-web-search` change). Nothing here is approved; every visitor-facing
- * string of the web-search toggle and the web-source label lives in this one
- * file so approval means editing this file only. Proposed text follows
+ * Operator-approved 2026-10-14 as written, recorded in
+ * `docs/content/reviews/site-web-search.md` (this closes OD-7 of the
+ * `site-web-search` change). Every visitor-facing string of the web-search
+ * toggle and the web-source label lives in this one file. Change this text
+ * only with a new review record. Text follows
  * `openspec/changes/site-web-search/design.md` section 8.
  *
  * Web search is OFF by default. The visitor turns it on with a toggle in the

@@ -16,8 +16,8 @@ export interface ChatOfflineStatesContent {
     ctaLabel: string;
   };
   /**
-   * DRAFT, pending operator approval (not covered by the approval above).
-   * Shown when the site's spend ceiling is reached (`budget_exhausted`). It
+   * Operator-approved 2026-10-14 as written (see the review record,
+   * `docs/content/reviews/site-chat-offline-states.md`). Shown when the site's spend ceiling is reached (`budget_exhausted`). It
    * names no period because the response does not say which one ran out.
    */
   budgetExhaustedNotice: {
@@ -38,7 +38,7 @@ export const CHAT_OFFLINE_STATES_CONTENT: ChatOfflineStatesContent = {
     body: "It can't reply at the moment. You can still look around until it's back.",
     ctaLabel: "Read about the products",
   },
-  // DRAFT, pending operator approval.
+  // Operator-approved 2026-10-14 as written.
   budgetExhaustedNotice: {
     heading: "Chat has reached its limit for now.",
     body: "This site caps how much chat it serves. The limit resets by itself, so please try again later. You can still read about the products.",
