@@ -96,6 +96,15 @@ spec:
               value: site
             - name: SITE_METER_DB
               value: meter
+            # The daily token ceiling (site-spend-ceiling D-3). The code default
+            # is 1,000,000, about 62 turns a day at the 16,000-token
+            # reservation; the operator doubled it on 2026-10-14 after the day
+            # counter ran out ("budget_exhausted"). The monthly ceiling stays
+            # at its default of 20,000,000 (SITE_METER_MONTHLY_TOKENS), which
+            # now binds after about 10 days at the daily maximum. Read at
+            # start-up: a change needs a rollout of this deployment.
+            - name: SITE_METER_DAILY_TOKENS
+              value: "2000000"
             - name: SITE_METER_USER
               valueFrom:
                 secretKeyRef:
