@@ -53,7 +53,7 @@ const REPLY = [
   `\`\`\`svg\n${SVG_HARMLESS}\n\`\`\`\n\n`,
   `\`\`\`svg\n${SVG_HOSTILE}\n\`\`\`\n\n`,
   `${TABLE_MD}\n\n`,
-  `$$${MATH_TEX}$$\n\n`,
+  `$$\n${MATH_TEX}\n$$\n\n`,
   `![Own-host swatch](${OWN_IMAGE_URL})\n\n`,
   `<video controls><source src="${OWN_VIDEO_URL}" type="video/mp4"></video>\n\n`,
   "That is every block.",
@@ -277,7 +277,22 @@ test.describe("block copy: rendering safety and accessibility", () => {
       await openThreadWithAllBlocks(page, 1440, theme);
       const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
       await testInfo.attach(`axe-${theme}`, { body: JSON.stringify(results.violations, null, 2), contentType: "application/json" });
-      const summary = results.violations.map(
+      // Same policy as e2e/a11y.spec.ts: a logotype has no contrast requirement
+      // (WCAG 1.4.3), so the wordmark's ember "Me" is left out of color-contrast only.
+      const violations = [];
+      for (const violation of results.violations) {
+        if (violation.id !== "color-contrast") {
+          violations.push(violation);
+          continue;
+        }
+        const inLogotype = await page.evaluate(
+          (selectors) => selectors.map((s) => document.querySelector(s)?.closest("[data-slot='knowme-wordmark']") != null),
+          violation.nodes.map((n) => String(n.target[0])),
+        );
+        const nodes = violation.nodes.filter((_, i) => !inLogotype[i]);
+        if (nodes.length > 0) violations.push({ ...violation, nodes });
+      }
+      const summary = violations.map(
         (v) => `${v.id} (${v.impact}) x${v.nodes.length}: ${v.nodes.map((n) => n.target.join(" ")).slice(0, 3).join(" | ")}`,
       );
       expect(summary, `axe violations in the ${theme} theme`).toEqual([]);
@@ -285,7 +300,10 @@ test.describe("block copy: rendering safety and accessibility", () => {
   }
 
   test("keyboard: Tab reaches every Copy button and Enter activates it", async ({ page, context, browserName }) => {
-    if (browserName === "chromium") await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    // WebKit on iOS does not Tab to buttons without a keyboard-access setting; the
+    // Tab walk is only meaningful where Tab focuses buttons (Chromium).
+    test.skip(browserName !== "chromium", "Tab-to-button is not the WebKit/iPhone keyboard model.");
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     const pageErrors: string[] = [];
     page.on("pageerror", (error) => pageErrors.push(error.message));
     await openThreadWithAllBlocks(page, 1440, "light");
