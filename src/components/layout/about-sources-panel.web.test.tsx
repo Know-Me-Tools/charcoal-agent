@@ -24,7 +24,7 @@ beforeEach(() => {
 });
 
 describe("AboutSourcesPanel: web sources", () => {
-  it("labels a web source Web with W{n} and its host, the URL as text and no anchor", () => {
+  it("labels a web source Web with W{n} and its host, with the URL as a link and visible text", () => {
     useChatMessageStore.setState({
       messagesByThread: {
         [THREAD_ID]: [
@@ -61,7 +61,11 @@ describe("AboutSourcesPanel: web sources", () => {
     expect(items[1]).toHaveTextContent("Rust 1.9 released");
     expect(items[1]).toHaveTextContent("example.org");
     expect(items[1]).toHaveTextContent("https://example.org/rust");
-    expect(within(items[1]).queryByRole("link")).toBeNull();
+    const link = within(items[1]).getByRole("link");
+    expect(link).toHaveAttribute("href", "https://example.org/rust");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    expect(within(items[0]).queryByRole("link")).toBeNull();
   });
 
   it("shows no excerpt for a web source persisted with snippet text by an older server", () => {

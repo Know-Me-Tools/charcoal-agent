@@ -4,6 +4,7 @@ import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import { MARKDOWN_SANITIZE_SCHEMA } from "./markdown-sanitize-schema";
 import { rehypeReplyContentPolicy } from "./rehype-reply-content-policy";
+import { toCitedUrlSet } from "@/lib/link-policy/cited-web-url";
 import { rehypeWebMarkers, type WebCitationHosts } from "./web-citation-markers";
 
 type RehypePlugins = NonNullable<ComponentProps<typeof MarkdownTextPrimitive>["rehypePlugins"]>;
@@ -17,7 +18,9 @@ type RehypePlugins = NonNullable<ComponentProps<typeof MarkdownTextPrimitive>["r
  * the sanitizer cleans that (and everything else) second, the reply link and
  * image policy checks destinations on the cleaned tree third, the web marker
  * step marks the `[Wn]` that resolve fourth (it adds only a plain span, after
- * the policy so nothing it makes is policed away or can become a link), and
+ * the policy so nothing it makes is policed away; its link, when a citation
+ * has a server-minted URL, is built from that frame and never from the reply
+ * text), and
  * only then does rehypeKatex generate its own trusted KaTeX markup —
  * sanitizing after KaTeX would strip the very markup it just built.
  */
@@ -29,8 +32,9 @@ export type KatexRehypePlugin = RehypePlugins[number];
  * `markdown-katex.ts` has been loaded. Without it the chain is the same minus
  * the final step (math renders as plain code until KaTeX arrives).
  *
- * `webCitations` maps the message's web citation markers to their hosts; with
- * none, `[Wn]` stays plain text.
+ * `webCitations` maps the message's web citation markers to their host and
+ * URL; with none, `[Wn]` stays plain text, and the reply link policy gets the
+ * message's cited URLs so a link to one of its own sources is clickable.
  */
 export function buildMarkdownRehypePlugins(
   rehypeKatex?: KatexRehypePlugin,
@@ -39,12 +43,18 @@ export function buildMarkdownRehypePlugins(
   return [
     rehypeRaw,
     [rehypeSanitize, MARKDOWN_SANITIZE_SCHEMA],
-    rehypeReplyContentPolicy,
+    ...(webCitations && webCitations.size > 0
+      ? [[rehypeReplyContentPolicy, { citedUrls: citedUrlsOf(webCitations) }] as RehypePlugins[number]]
+      : [rehypeReplyContentPolicy]),
     ...(webCitations && webCitations.size > 0
       ? [[rehypeWebMarkers, { hosts: webCitations }] as RehypePlugins[number]]
       : []),
     ...(rehypeKatex ? [[rehypeKatex, { strict: false }] as RehypePlugins[number]] : []),
   ];
+}
+
+function citedUrlsOf(webCitations: WebCitationHosts): ReadonlySet<string> {
+  return toCitedUrlSet([...webCitations.values()].map((ref) => ref.url));
 }
 
 /** The chain without KaTeX; a stable reference for messages with no math. */

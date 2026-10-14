@@ -103,11 +103,32 @@ test("the toggle is off by default, sends web_search only when on, and a web tur
   await expect(sources).toContainText(WEB_TITLE);
   await expect(sources).toContainText(WEB_HOST);
   await expect(sources).toContainText(WEB_URL);
-  await expect(sources.locator("a")).toHaveCount(0);
+  // The title and the visible URL are links to the cited page, in a new tab.
+  const sourceLinks = sources.locator("a");
+  await expect(sourceLinks).toHaveCount(2);
+  for (const href of await sourceLinks.evaluateAll((els) => els.map((el) => el.getAttribute("href")))) {
+    expect(href).toBe(WEB_URL);
+  }
+  await expect(sourceLinks.first()).toHaveAttribute("target", "_blank");
+  await expect(sourceLinks.first()).toHaveAttribute("rel", "noopener noreferrer");
 
   // [W1] resolves in the reply; the unmatched [W4] stays plain text.
   const reply = page.locator('[data-role="assistant"]').last();
   await expect(reply.locator('[data-web-marker="1"]')).toHaveCount(1);
+  // [W1] is a link to the cited page and opens in a new tab.
+  const marker = reply.locator('a[data-web-marker="1"]');
+  await expect(marker).toHaveAttribute("href", WEB_URL);
+  await expect(marker).toHaveAttribute("target", "_blank");
+  // The cited page is stubbed so the test needs no network.
+  await page.context().route("https://example.org/**", (route) =>
+    route.fulfill({ status: 200, contentType: "text/html", body: "<title>cited</title>" }),
+  );
+  const popupPromise = page.waitForEvent("popup");
+  await marker.click();
+  const popup = await popupPromise;
+  await popup.waitForLoadState();
+  expect(popup.url()).toBe(WEB_URL);
+  await popup.close();
   await expect(reply.locator('[data-web-marker="4"]')).toHaveCount(0);
   await expect(reply).toContainText("[W4]");
 

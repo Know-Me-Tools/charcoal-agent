@@ -1,4 +1,5 @@
 import type { Element, ElementContent, Root, RootContent, Text } from "hast";
+import { isCitedWebUrl } from "@/lib/link-policy/cited-web-url";
 import {
   isAllowedReplyImage,
   isAllowedReplyLink,
@@ -21,18 +22,28 @@ import {
  *     its own text followed by the destination in parentheses, the way
  *     citation cards show a non-allowlisted URL, and is shown once when the
  *     text already is the destination (autolinked URLs and emails).
+ *   - A link to a URL in `citedUrls` (the message's own web citations, minted
+ *     by the server) is also allowed: the model cannot make an arbitrary
+ *     destination clickable, but it can link a source the search returned.
  */
-export function rehypeReplyContentPolicy() {
+export interface ReplyContentPolicyOptions {
+  citedUrls?: ReadonlySet<string>;
+}
+
+const NO_CITED_URLS: ReadonlySet<string> = new Set();
+
+export function rehypeReplyContentPolicy(options: ReplyContentPolicyOptions = {}) {
+  const cited = options.citedUrls ?? NO_CITED_URLS;
   return (tree: Root) => {
     tree.children = tree.children.flatMap<RootContent>((node) =>
-      node.type === "element" ? applyPolicy(node) : [node],
+      node.type === "element" ? applyPolicy(node, cited) : [node],
     );
   };
 }
 
-function applyPolicy(node: Element): ElementContent[] {
+function applyPolicy(node: Element, cited: ReadonlySet<string>): ElementContent[] {
   const children = node.children.flatMap((child) =>
-    child.type === "element" ? applyPolicy(child) : [child],
+    child.type === "element" ? applyPolicy(child, cited) : [child],
   );
 
   switch (node.tagName) {
@@ -41,7 +52,7 @@ function applyPolicy(node: Element): ElementContent[] {
     case "source":
       return isAllowedSrcSet(node.properties.srcSet) ? [{ ...node, children }] : [];
     case "a":
-      return policyForLink(node, children);
+      return policyForLink(node, children, cited);
     default:
       return [{ ...node, children }];
   }
@@ -64,11 +75,15 @@ function isAllowedSrcSet(srcSet: unknown): boolean {
   });
 }
 
-function policyForLink(node: Element, children: ElementContent[]): ElementContent[] {
+function policyForLink(
+  node: Element,
+  children: ElementContent[],
+  cited: ReadonlySet<string>,
+): ElementContent[] {
   const href = node.properties.href;
   if (typeof href !== "string") return [{ ...node, children }];
 
-  if (isAllowedReplyLink(href)) {
+  if (isAllowedReplyLink(href) || isCitedWebUrl(href, cited)) {
     if (isSameOriginRelative(href)) return [{ ...node, children }];
     return [
       {

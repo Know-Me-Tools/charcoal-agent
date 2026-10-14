@@ -1,8 +1,9 @@
 /**
  * site-web-search 16.8.2: web sources in the Sources block. Label, marker
- * `W{n}` and host are always visible; the URL is text unless `isAllowedLink`
- * admits it (D-3). A web source has no excerpt (operator decision
- * 2026-10-13).
+ * `W{n}` and host are always visible. A web source's URL is minted by the
+ * server, so the title and the visible URL are links (operator request
+ * 2026-10-14); a knowledge-base URL stays text unless `isAllowedLink` admits
+ * it (D-3). A web source has no excerpt (operator decision 2026-10-13).
  */
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
@@ -33,16 +34,36 @@ describe("CitationList: web sources", () => {
     expect(item).toHaveTextContent("example.org");
   });
 
-  it("shows the full URL as text and renders no anchor when the link is not allowed", () => {
+  it("makes the title and the visible URL links that open in a new tab, destination shown as text", () => {
     render(<CitationList citations={[web]} />);
-    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    const links = screen.getAllByRole("link");
+    expect(links).toHaveLength(2);
+    for (const link of links) {
+      expect(link).toHaveAttribute("href", "https://example.org/rust");
+      expect(link).toHaveAttribute("target", "_blank");
+      expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    }
     expect(screen.getByText("https://example.org/rust")).toBeInTheDocument();
+    expect(screen.getByText("example.org")).toBeInTheDocument();
   });
 
-  it("makes the title a link only when isAllowedLink admits it, and still shows the host", () => {
-    render(<CitationList citations={[{ ...web, url: "https://allowed.example/doc", host: "allowed.example" }]} />);
+  it("renders no anchor for a web source whose URL is not plain https", () => {
+    render(<CitationList citations={[{ ...web, url: "http://example.org/rust" }, { ...web, index: 2, url: "javascript:alert(1)" }]} />);
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
+
+  it("keeps a knowledge-base URL text unless isAllowedLink admits it", () => {
+    render(
+      <CitationList
+        citations={[
+          { source: "faq.md", content: "", index: 1, url: "https://elsewhere.example/doc" },
+          { source: "guide.md", content: "", index: 2, url: "https://allowed.example/doc" },
+        ]}
+      />,
+    );
+    expect(screen.getAllByRole("link")).toHaveLength(1);
     expect(screen.getByRole("link")).toHaveAttribute("href", "https://allowed.example/doc");
-    expect(screen.getByText("allowed.example")).toBeInTheDocument();
+    expect(screen.getByText("https://elsewhere.example/doc")).toBeInTheDocument();
   });
 
   it("keeps a KB card unchanged beside a web card: [n] for KB, W{n} for web", () => {
