@@ -57,6 +57,18 @@ describe("landing page on the site build", () => {
 		expect(screen.getByText(SITE_LANDING_CONTENT.valueLine)).toBeInTheDocument();
 	});
 
+	it("offers the web-search toggle in the first composer only when web search is enabled", () => {
+		vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+		vi.stubEnv("VITE_SITE_WEB_SEARCH", "");
+		const { unmount } = renderLanding();
+		expect(screen.queryByRole("button", { name: /search the web/i })).toBeNull();
+		unmount();
+		vi.stubEnv("VITE_SITE_WEB_SEARCH", "1");
+		renderLanding();
+		const toggle = screen.getByRole("button", { name: /search the web/i });
+		expect(toggle).toHaveAttribute("aria-pressed", "false");
+	});
+
 	it("keeps the composer, with the site placeholder", () => {
 		vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
 		renderLanding();
