@@ -73,6 +73,7 @@ jobs:
           platforms: linux/amd64
           build-args: |
             VITE_SITE_AGENT_ID=knowme-site
+            VITE_SITE_WEB_SEARCH=1
           push: true
           tags: |
             ${{ env.IMAGE }}:${{ github.sha }}
