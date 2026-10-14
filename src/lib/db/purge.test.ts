@@ -1,7 +1,7 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { IdbFs, type PGlite } from "@electric-sql/pglite";
 import { PGDATA_URL } from "@/lib/db/pglite";
-import { purgeDatabase } from "@/lib/db/purge";
+import { PURGE_BLOCKED_MESSAGE, purgeDatabase } from "@/lib/db/purge";
 
 type EmscriptenMod = Parameters<
   NonNullable<
@@ -56,6 +56,7 @@ function makeFakeIndexedDB() {
 }
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllGlobals();
 });
 
@@ -72,5 +73,82 @@ describe("purgeDatabase", () => {
     const expectedName = await libraryIndexedDbName(dataDir);
     expect(expectedName).not.toBe("");
     expect(deletedNames).toEqual([expectedName]);
+  });
+});
+
+type FakeDeleteRequest = {
+  onsuccess: (() => void) | null;
+  onerror: (() => void) | null;
+  onblocked: (() => void) | null;
+  error: Error | null;
+};
+
+/** Fake indexedDB whose delete requests the test drives by hand. */
+function makeControllableFakeIndexedDB() {
+  const requests: FakeDeleteRequest[] = [];
+  const fake = {
+    deleteDatabase(_name: string) {
+      const request: FakeDeleteRequest = {
+        onsuccess: null,
+        onerror: null,
+        onblocked: null,
+        error: null,
+      };
+      requests.push(request);
+      return request;
+    },
+  };
+  return { fake, requests };
+}
+
+describe("purgeDatabase blocked handling", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  it("resolves when the delete succeeds", async () => {
+    const { fake, requests } = makeControllableFakeIndexedDB();
+    vi.stubGlobal("indexedDB", fake);
+
+    const promise = purgeDatabase();
+    requests[0].onsuccess?.();
+
+    await expect(promise).resolves.toBeUndefined();
+  });
+
+  it("resolves when the delete is blocked but succeeds within 3 seconds", async () => {
+    const { fake, requests } = makeControllableFakeIndexedDB();
+    vi.stubGlobal("indexedDB", fake);
+
+    const promise = purgeDatabase();
+    requests[0].onblocked?.();
+    vi.advanceTimersByTime(2999);
+    requests[0].onsuccess?.();
+
+    await expect(promise).resolves.toBeUndefined();
+  });
+
+  it("rejects with a clear message when the delete stays blocked for over 3 seconds", async () => {
+    const { fake, requests } = makeControllableFakeIndexedDB();
+    vi.stubGlobal("indexedDB", fake);
+
+    const promise = purgeDatabase();
+    const assertion = expect(promise).rejects.toThrow(PURGE_BLOCKED_MESSAGE);
+    requests[0].onblocked?.();
+    vi.advanceTimersByTime(3001);
+
+    await assertion;
+  });
+
+  it("rejects when the delete reports an error", async () => {
+    const { fake, requests } = makeControllableFakeIndexedDB();
+    vi.stubGlobal("indexedDB", fake);
+
+    const promise = purgeDatabase();
+    const assertion = expect(promise).rejects.toThrow("delete failed");
+    requests[0].error = new Error("delete failed");
+    requests[0].onerror?.();
+
+    await assertion;
   });
 });

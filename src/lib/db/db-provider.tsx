@@ -74,7 +74,18 @@ export function DbProvider({ children }: DbProviderProps) {
           // Stale / corrupt PGLite bundle — wipe and retry once.
           console.warn("[CharcoalDb] Corrupt database detected; purging and retrying…", err);
           setStatus("Recovering database…");
-          await purgeDatabase();
+          try {
+            await purgeDatabase();
+          } catch (purgeErr: unknown) {
+            // The wipe itself failed — most often because another tab holds
+            // the database open. Retrying would queue behind the pending
+            // delete forever, so fail visibly instead.
+            if (cancelled) return;
+            const purgeMsg = purgeErr instanceof Error ? purgeErr.message : String(purgeErr);
+            console.error("[CharcoalDb] Failed to purge database:", purgeErr);
+            setError(purgeMsg);
+            return;
+          }
           return init(true);
         }
 

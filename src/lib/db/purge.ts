@@ -22,14 +22,47 @@ export function pgliteIdbName(): string {
   return `/pglite/${dataDir}`;
 }
 
-/** Delete the PGLite IndexedDB and return once complete (or after timeout). */
+/** Shown when another tab or a still-open connection holds the database. */
+export const PURGE_BLOCKED_MESSAGE =
+  "The local database is open in another tab. Close other KnowMe tabs and reload.";
+
+const PURGE_BLOCKED_TIMEOUT_MS = 3000;
+
+/**
+ * Delete the PGLite IndexedDB and return once the delete completes.
+ *
+ * A delete blocked by another open connection (typically a second KnowMe
+ * tab) never fires `onsuccess`; the caller's retry open would queue behind
+ * the pending delete and the app would sit on its start-up spinner forever.
+ * A delete that stays blocked for more than `PURGE_BLOCKED_TIMEOUT_MS`
+ * therefore rejects with `PURGE_BLOCKED_MESSAGE` so the caller can fail
+ * visibly, while a delete that succeeds after a shorter block still
+ * resolves.
+ */
 export function purgeDatabase(): Promise<void> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const req = indexedDB.deleteDatabase(pgliteIdbName());
-    req.onsuccess = () => resolve();
-    req.onerror = () => resolve(); // best-effort; proceed regardless
-    req.onblocked = () => resolve();
-    // Fallback in case the event never fires
-    setTimeout(resolve, 2000);
+    let blockedTimer: ReturnType<typeof setTimeout> | undefined;
+    const cancelBlockedTimer = () => {
+      if (blockedTimer !== undefined) clearTimeout(blockedTimer);
+    };
+    req.onsuccess = () => {
+      cancelBlockedTimer();
+      resolve();
+    };
+    req.onerror = () => {
+      cancelBlockedTimer();
+      reject(
+        req.error instanceof Error
+          ? req.error
+          : new Error(`Failed to delete the local database: ${String(req.error)}`),
+      );
+    };
+    req.onblocked = () => {
+      if (blockedTimer !== undefined) return;
+      blockedTimer = setTimeout(() => {
+        reject(new Error(PURGE_BLOCKED_MESSAGE));
+      }, PURGE_BLOCKED_TIMEOUT_MS);
+    };
   });
 }
