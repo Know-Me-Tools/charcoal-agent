@@ -84,7 +84,13 @@ export const EnhancedThread: FC<EnhancedThreadProps> = ({
 			<ThreadPrimitive.Viewport
 				turnAnchor="top"
 				className={cn(
-					"aui-thread-viewport relative flex flex-1 flex-col overflow-x-hidden overflow-y-scroll scroll-smooth px-4 pt-6",
+					// No `scroll-smooth` here: the viewport auto-scrolls on every
+					// streamed flush, and a CSS smooth scroll restarts its
+					// animation per flush (iOS heat/stuck-reply findings, change
+					// app-mobile-stream-reliability-and-heat task 1.5). The
+					// visitor's own scroll-to-bottom stays smooth via the
+					// explicit `behavior="smooth"` on ThreadScrollToBottom below.
+					"aui-thread-viewport relative flex flex-1 flex-col overflow-x-hidden overflow-y-scroll px-4 pt-6",
 					// Critique P1-2: anchored scrolls land above the footer, not under it.
 					siteBuild && "scroll-pb-(--thread-footer-h)",
 				)}
@@ -302,7 +308,9 @@ const SCROLL_TO_BOTTOM_BASE =
 	"z-10 size-9 self-center rounded-full bg-raised text-fg-secondary hover:bg-hover hover:text-fg";
 
 export const ThreadScrollToBottom: FC = () => (
-	<ThreadPrimitive.ScrollToBottom asChild>
+	// Smooth stays here, on the visitor's deliberate action only, so the
+	// viewport itself can keep `scroll-behavior: auto` for streaming.
+	<ThreadPrimitive.ScrollToBottom asChild behavior="smooth">
 		<TooltipIconButton
 			tooltip="Scroll to bottom"
 			variant="ghost"
