@@ -58,9 +58,34 @@ interface TableParts {
 	body: string[][];
 }
 
-/** Cell text: whitespace runs (including newlines) collapse to one space. */
+/** Elements that are never rendered by construction, or whose text is not shown (ruby annotations). */
+const NEVER_VISIBLE_TAGS = new Set(["script", "style", "template", "rp", "rt"]);
+
+/** True when the visitor cannot see the element's content. */
+function isHidden(el: Element): boolean {
+	if (NEVER_VISIBLE_TAGS.has(el.tagName.toLowerCase())) return true;
+	return el.hasAttribute("hidden") || el.getAttribute("aria-hidden") === "true";
+}
+
+/** The text a visitor sees in a node: no hidden content, no collapsed `<details>` body. */
+function visibleText(node: Node): string {
+	if (node.nodeType === 3) return node.textContent ?? "";
+	if (node.nodeType !== 1) return "";
+	const el = node as Element;
+	if (isHidden(el)) return "";
+	const children = Array.from(el.childNodes);
+	if (el.tagName.toLowerCase() === "details" && !el.hasAttribute("open")) {
+		return children
+			.filter((child) => child.nodeType === 1 && (child as Element).tagName.toLowerCase() === "summary")
+			.map(visibleText)
+			.join("");
+	}
+	return children.map(visibleText).join("");
+}
+
+/** Cell text: only what is visibly rendered; whitespace runs (including newlines) collapse to one space. */
 function cellText(cell: Element): string {
-	return (cell.textContent ?? "").replace(/\s+/g, " ").trim();
+	return visibleText(cell).replace(/\s+/g, " ").trim();
 }
 
 function rowText(row: HTMLTableRowElement): string[] {

