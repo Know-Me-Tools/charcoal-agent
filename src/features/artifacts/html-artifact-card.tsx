@@ -1,16 +1,17 @@
 import { useId, useMemo, useRef, useState, type FC } from "react";
 import {
-  CheckIcon,
   Code2Icon,
-  CopyIcon,
   EyeIcon,
   Maximize2Icon,
   Minimize2Icon,
 } from "lucide-react";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
+import { CopyButton } from "@/components/common/copy-button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { selectElementText } from "@/hooks/use-copy-to-clipboard";
 import { isSiteBuild } from "@/hooks/use-site-config";
 import { cn } from "@/lib/utils";
+import { BLOCK_COPY_CONTENT } from "../../../content/site/block-copy";
 import { PREVIEW_NOTE_CONTENT } from "../../../content/site/preview-note";
 import { toPreviewDocument } from "./preview-document";
 import { hasPreviewScripts } from "./preview-scripts";
@@ -32,9 +33,10 @@ export const HtmlArtifactCard: FC<HtmlArtifactCardProps> = ({
   className,
 }) => {
   const [view, setView] = useState<ViewMode>("preview");
-  const [isCopied, setIsCopied] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const fullScreenButtonRef = useRef<HTMLButtonElement>(null);
+  const inlineCodeWrapRef = useRef<HTMLDivElement>(null);
+  const dialogCodeWrapRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   // The isolating CSP meta goes into the document both frames load.
   const previewDocument = useMemo(() => toPreviewDocument(code), [code]);
@@ -45,10 +47,14 @@ export const HtmlArtifactCard: FC<HtmlArtifactCardProps> = ({
   const noteId = useId();
   const dialogNoteId = useId();
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(code).then(() => {
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2500);
+  // The copied text is the source; on a failed copy, reveal the code view
+  // (if the preview is showing) and select it for a manual copy. Each toolbar
+  // instance (inline / full-screen dialog) selects inside its own container.
+  const handleSelectFallback = (inDialog: boolean) => () => {
+    setView("code");
+    requestAnimationFrame(() => {
+      const wrap = inDialog ? dialogCodeWrapRef.current : inlineCodeWrapRef.current;
+      selectElementText(wrap?.querySelector("[data-copy-region]"));
     });
   };
 
@@ -99,13 +105,11 @@ export const HtmlArtifactCard: FC<HtmlArtifactCardProps> = ({
 
         {segmentedToggle}
 
-        <TooltipIconButton tooltip={isCopied ? "Copied" : "Copy code"} onClick={handleCopy}>
-          {isCopied ? (
-            <CheckIcon className="size-3.5 text-success-text" aria-hidden="true" />
-          ) : (
-            <CopyIcon className="size-3.5" aria-hidden="true" />
-          )}
-        </TooltipIconButton>
+        <CopyButton
+          text={code}
+          label={BLOCK_COPY_CONTENT.copyCode}
+          selectFallback={handleSelectFallback(inDialog)}
+        />
 
         <TooltipIconButton
           ref={inDialog ? undefined : fullScreenButtonRef}
@@ -142,7 +146,7 @@ export const HtmlArtifactCard: FC<HtmlArtifactCardProps> = ({
           )}
         </div>
       ) : (
-        <div className="max-h-96 overflow-y-auto">
+        <div className="max-h-96 overflow-y-auto" ref={inlineCodeWrapRef}>
           <ShikiCodeBlock code={code} language={language} />
         </div>
       )}
@@ -175,7 +179,7 @@ export const HtmlArtifactCard: FC<HtmlArtifactCardProps> = ({
               />
             </div>
           ) : (
-            <div className="min-h-0 flex-1 overflow-y-auto">
+            <div className="min-h-0 flex-1 overflow-y-auto" ref={dialogCodeWrapRef}>
               <ShikiCodeBlock code={code} language={language} />
             </div>
           )}

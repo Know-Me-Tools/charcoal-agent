@@ -1,19 +1,20 @@
 import type { FC } from "react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   BoxIcon,
-  CheckIcon,
   ChevronDownIcon,
-  CopyIcon,
   FileTextIcon,
   HourglassIcon,
   ImageIcon,
   MessageSquarePlusIcon,
 } from "lucide-react";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
+import { CopyButton } from "@/components/common/copy-button";
 import { MermaidBlock } from "@/features/artifacts/mermaid-block";
 import { ShikiCodeBlock } from "@/features/artifacts/shiki-code-block";
+import { selectElementText } from "@/hooks/use-copy-to-clipboard";
 import { cn } from "@/lib/utils";
+import { BLOCK_COPY_CONTENT } from "../../../../content/site/block-copy";
 
 // ─── Artifact Type Icon ────────────────────────────────────────────────────────
 
@@ -76,7 +77,7 @@ export const ArtifactBlock: FC<ArtifactBlockProps> = ({
   isInputRequest,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   const resolvedLang = language ?? CODE_LANGUAGES[artifactType] ?? "text";
   // A Mermaid diagram is routed by language, independent of artifactType (the
@@ -88,14 +89,21 @@ export const ArtifactBlock: FC<ArtifactBlockProps> = ({
   const preview = content.slice(0, 300);
   const isTruncated = content.length > 300;
 
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(content);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
+  // On a failed copy, expand the card (the collapsed preview is truncated)
+  // and select the full content for a manual copy. A Mermaid artifact copies
+  // its diagram source, which only the embedded MermaidBlock's own Copy can
+  // select — there the visible "Couldn't copy" state is the whole fallback.
+  const handleSelectFallback = isMermaidArtifact
+    ? undefined
+    : () => {
+        setIsExpanded(true);
+        requestAnimationFrame(() => {
+          selectElementText(rootRef.current?.querySelector("[data-copy-region]"));
+        });
+      };
 
   return (
-    <div className="my-3 first:mt-0 last:mb-0 min-w-0 overflow-hidden rounded-lg bg-surface">
+    <div ref={rootRef} className="my-3 first:mt-0 last:mb-0 min-w-0 overflow-hidden rounded-lg bg-surface">
       {/* Header */}
       <div className="flex items-start gap-2 bg-raised px-3 py-2">
         <ArtifactTypeIcon
@@ -119,9 +127,11 @@ export const ArtifactBlock: FC<ArtifactBlockProps> = ({
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
-          <TooltipIconButton tooltip="Copy content" onClick={handleCopy}>
-            <CopyGlyph copied={copied} />
-          </TooltipIconButton>
+          <CopyButton
+            text={content}
+            label={BLOCK_COPY_CONTENT.copyArtifact}
+            selectFallback={handleSelectFallback}
+          />
 
           {/*
             A Mermaid artifact renders its diagram in full below (no preview
@@ -152,7 +162,10 @@ export const ArtifactBlock: FC<ArtifactBlockProps> = ({
           {isCodeArtifact ? (
             <ShikiCodeBlock code={content} language={resolvedLang} />
           ) : (
-            <p className="whitespace-pre-wrap font-body text-sm leading-relaxed text-fg-secondary wrap-break-word">
+            <p
+              data-copy-region
+              className="whitespace-pre-wrap font-body text-sm leading-relaxed text-fg-secondary wrap-break-word"
+            >
               {content}
             </p>
           )}
@@ -186,14 +199,6 @@ export const ArtifactBlock: FC<ArtifactBlockProps> = ({
 };
 
 // Small inline glyphs kept local so the icon-only buttons above stay declarative.
-function CopyGlyph({ copied }: { copied: boolean }) {
-  return copied ? (
-    <CheckIcon className="size-3.5 text-success-text" aria-hidden="true" />
-  ) : (
-    <CopyIcon className="size-3.5" aria-hidden="true" />
-  );
-}
-
 function ChevronGlyph({ expanded }: { expanded: boolean }) {
   return (
     <ChevronDownIcon
