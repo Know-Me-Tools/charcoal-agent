@@ -2,7 +2,9 @@ import { ArrowRight, Moon, Sun } from "lucide-react";
 import { Link } from "react-router-dom";
 import { KnowMeLockup } from "@/components/brand";
 import { isSiteBuild } from "@/hooks/use-site-config";
+import { useHasSavedChats } from "@/hooks/use-has-saved-chats";
 import { useUi } from "@/hooks/use-ui";
+import { HISTORY_LINK_CONTENT } from "../../../content/site/history-link";
 import { LANDING_CONTENT } from "../../../content/site/landing";
 
 /**
@@ -15,6 +17,7 @@ import { LANDING_CONTENT } from "../../../content/site/landing";
 export function SiteHeader() {
 	const { theme, setTheme } = useUi();
 	const isDark = theme === "dark";
+	const hasSavedChats = useHasSavedChats();
 
 	return (
 		<>
@@ -47,13 +50,23 @@ export function SiteHeader() {
 						</button>
 						{/* No "Open app" on the public site build: there is no app to open
 						    there, and the front page composer starts the conversation
-						    (integration gate 08, B1). */}
+						    (integration gate 08, B1). A visitor who already has saved
+						    conversations in this browser gets a link to them. */}
 						{!isSiteBuild() && (
 							<Link
 								to="/threads"
 								className="inline-flex h-11 items-center gap-1.5 rounded-lg px-3 font-ui text-sm font-semibold text-fg transition-hover hover:bg-hover focus-cue sm:px-4"
 							>
 								{LANDING_CONTENT.nav.openAppLabel}
+								<ArrowRight className="hidden size-4 sm:block" aria-hidden="true" />
+							</Link>
+						)}
+						{isSiteBuild() && hasSavedChats && (
+							<Link
+								to="/threads"
+								className="inline-flex h-11 items-center gap-1.5 rounded-lg px-3 font-ui text-sm font-semibold text-fg transition-hover hover:bg-hover focus-cue sm:px-4"
+							>
+								{HISTORY_LINK_CONTENT.label}
 								<ArrowRight className="hidden size-4 sm:block" aria-hidden="true" />
 							</Link>
 						)}
