@@ -289,3 +289,23 @@ Delivery: each change ships as a ready PR to `main`. These are client changes, s
 "Client-side" makes the export private, not the conversation. The visitor's messages were sent to a cloud language model to be answered, and the product must not let the export button imply otherwise. The privacy line is limited to what is true: the file is made here and not uploaded. A test makes that sentence checkable, and without that test the line should not ship.
 
 The second risk is that OKF consumers are tolerant by design (unknown `type` values are accepted), so a `Conversation` bundle will load almost anywhere and still retrieve badly: dialogue is a poor retrieval unit, and nothing in the format fixes that. The export gives a visitor a faithful, well-formed record. Whether a given knowledge base makes good use of it is outside this product.
+
+## 15. Amendment 2026-10-15: mobile save flow and stream reliability
+
+This section records what was built and what production showed, so the next change (the zip bundle) starts from facts.
+
+### 15.1 Mobile save flow as built (change `app-chat-export-okf-single`, PR #110)
+
+- The file is built when the Export menu opens, from the in-memory chat snapshot, not from PGlite. Building at open must be synchronous, and the database write queue can lag right after a reply. iOS Safari drops the user gesture after an `await`, so the tap that saves must start the share or download call before any `await`.
+- Save order: `navigator.share({files})` when `navigator.canShare({files})` accepts the file; otherwise an anchor download with a Blob URL revoked after 60 s; otherwise a read-only, select-all text area in a dialog. "Copy as Markdown" is a separate action. A cancelled share (`AbortError`) is silent.
+- Below 768 px the menu is a bottom sheet with 44 px targets. The trigger stays enabled while the actions are disabled, so the reason can be read on touch.
+- Privacy proof: a Playwright test records every request from just before the click to the end of the save, share or copy and asserts none. A mutation check (a `fetch` added to the save handler) makes it fail.
+- Not verified at the time of writing: a real iOS share sheet, Android, WebKit and Firefox. Task 4.8 holds these, and the operator records the device results.
+- The bundle (change 5) must not reuse the build-at-open rule for a large zip. Build it in two steps, Prepare then Save, on touch devices.
+
+### 15.2 Stream reliability findings (changes 1 and 3, and production, 2026-10-14 and 15)
+
+- Client work shipped in PR #103: text deltas are coalesced to one store commit per animation frame (50 ms while the page is hidden), message conversion is memoized per message, markdown during streaming is throttled with an unclosed-fence gate, auto-scroll is no longer smooth, and a blocked IndexedDB delete rejects after 3 s instead of hanging.
+- Production finding: replies were ending with "The reply stopped before it finished." about 62 s after the request, with no text and no error line in the UAR logs. Cause, read from the UAR source: `llm.timeout_secs` defaults to 60 and is a total deadline that also cuts a stream still producing output. Setting `UAR_LLM__TIMEOUT_SECS=240` (PR #111) did not change it for the site agents, because per-provider resolution in `ProviderRegistry::resolve_to_llm_config` builds its config from `LlmConfig::default()`, so the timeout reverts to 60 s per model call. A fix in UAR is in progress.
+- Consequence for export: a reply cut by this timeout is stored as a failed message. The serializer marks it "stopped" and still exports the text received.
+- Consequence for resume (change 2, `site-stream-resume`): the decision gate there should consider this server-side cause before the iOS page-hidden cause. A resume path does not help a stream the server itself ends at 60 s.
