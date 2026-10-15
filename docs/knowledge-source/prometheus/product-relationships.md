@@ -80,7 +80,22 @@ sources:
 
 # Product relationships
 
-This file lists how the products on this site relate, one relationship per line, each as the knowledge base already states it. The eight things are KnowMe AI, LLC, KnowMe, The Boss, IPFS Sync for Obsidian, the Universal Agent Runtime, BossFang, the Surreal Memory Server and the Prometheus skill packages. KnowMe has not been publicly released, so statements about KnowMe describe how it is built or designed. A pair that is not listed here has no stated relationship; see the last section.
+## How the products relate, in short: who makes what
+
+- KnowMe AI, LLC makes KnowMe, The Boss and IPFS Sync for Obsidian.
+- Prometheus AGS makes the Universal Agent Runtime, BossFang, the Surreal Memory Server and the Prometheus skill packages.
+- KnowMe and The Boss are built on the Universal Agent Runtime. KnowMe has not been publicly released, so statements about KnowMe describe how it is built or designed. The Boss is available now.
+- IPFS Sync for Obsidian has no stated relationship to the other products beyond having the same maker as KnowMe and The Boss.
+
+## How the products relate, in short: connections between them
+
+- The Boss bundles the Universal Agent Runtime and BossFang, and works with the Surreal Memory Server over MCP as a separate service. The Boss is built on the open-source Cherry Studio client.
+- BossFang connects to the Universal Agent Runtime as a client and sends agent runs to it. BossFang uses the Surreal Memory Server library for its memory.
+- The Universal Agent Runtime's optional memory system is built on the Surreal Memory Server library.
+- The Prometheus skill packages list the Surreal Memory Server as their optional durable memory service.
+- The Boss is not an edition of KnowMe and is not built on KnowMe. KnowMe and The Boss share the Universal Agent Runtime.
+
+The sections below give each relationship in full, with the file it comes from. A pair that is not listed has no stated relationship.
 
 ## Who makes the products in this relationship map
 
@@ -157,13 +172,12 @@ This file lists how the products on this site relate, one relationship per line,
 
 - The full Prometheus Skill Pack and Prometheus Skills Mini share skill names and can hide each other, so they should not be installed in the same home directory.[^mini-readme] Stated in prometheus-skill-packages-faq.md and prometheus-skill-packages-choosing-full-or-mini.md.
 
-## What the knowledge base does not state about product relationships
+## Pairs with no stated relationship
 
-These relationships are not stated anywhere in the knowledge base. Say "not stated" instead of drawing or implying a link.
+Say "not stated" for these instead of drawing a link:
 
-- Not stated: any relationship between IPFS Sync for Obsidian and KnowMe, The Boss, the Universal Agent Runtime, BossFang, the Surreal Memory Server or the Prometheus skill packages. The only stated link is that KnowMe AI, LLC makes IPFS Sync for Obsidian, KnowMe and The Boss.
-- Not stated: any relationship between the Prometheus skill packages and KnowMe, the Universal Agent Runtime or BossFang.
-- Not stated: whether KnowMe or The Boss is built on the Prometheus skill packages. The parts named as the base for KnowMe and The Boss are the Universal Agent Runtime, BossFang and the Surreal Memory Server.
-- Not stated: how KnowMe AI, LLC and Prometheus AGS are related as companies. The knowledge base says only which products each makes and that KnowMe AI, LLC builds KnowMe and The Boss on Prometheus AGS parts.
-- Not stated: any relationship between The Boss and IPFS Sync for Obsidian.
-- Not stated: whether KnowMe will bundle, include or depend on BossFang or the Surreal Memory Server beyond the design intent and MCP connection listed above. KnowMe has not been publicly released.
+- IPFS Sync for Obsidian and any of the other products.
+- The Prometheus skill packages and KnowMe, the Universal Agent Runtime or BossFang.
+- Whether KnowMe or The Boss is built on the Prometheus skill packages.
+- How KnowMe AI, LLC and Prometheus AGS are related as companies.
+- Whether KnowMe will bundle or depend on BossFang or the Surreal Memory Server, beyond the design intent and MCP connection listed above.
