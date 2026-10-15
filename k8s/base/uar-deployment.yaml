@@ -1,4 +1,13 @@
 # UAR — no PVC: persistence is the remote SurrealDB, not the embedded store.
+# 2026-10-15 (fix/uar-pin-v1-1-0): pinned to UAR v1.1.0 (tag v1.1.0, source
+# d815ef72), index digest sha256:064f5004fb3ba76506abce5cf81285b2a8aa3e54fa5a22e2c2bfc97b1211e43b
+# (linux/amd64 manifest 94f78a7e...). It carries the per-provider llm.timeout_secs
+# fix (UAR #384), so UAR_LLM__TIMEOUT_SECS in uar-configmap.yaml reaches the site
+# agents; the previous pin cut every model call at 60 s. Do NOT pin the `:main`
+# build 0bd48ae6 (the #384 merge): it broke chat on 2026-10-15 (see #114).
+# Rollback: kubectl --context know-me -n knowme rollout undo deploy/uar, or the
+# previous digest sha256:7dc13eb3dab415a2c9dbd6989fdbdcc1ed4745c24a2dcb10912e2330a198fcf5
+# (:main, 3e6af7c4). The paragraphs below describe that previous pin.
 # Image pinned by digest (ci-supply-chain-pins): the `main` image built by
 # Prometheus-AGS/universal-agent-runtime's "Build and Publish Images" run 38435095046
 # for commit 3e6af7c4 (merge of #381), manifest published 2026-10-13 17:57 UTC.
@@ -68,7 +77,7 @@ spec:
           # provider configuration and credential revision, so re-verify after any
           # provider edit or API key rotation. Builds before a42f23bb (the 2cc9a182
           # pin this replaced) have no gate, so the step only matters from this pin on.
-          image: ghcr.io/prometheus-ags/universal-agent-runtime:main@sha256:7dc13eb3dab415a2c9dbd6989fdbdcc1ed4745c24a2dcb10912e2330a198fcf5
+          image: ghcr.io/prometheus-ags/universal-agent-runtime:1.1.0@sha256:064f5004fb3ba76506abce5cf81285b2a8aa3e54fa5a22e2c2bfc97b1211e43b
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
