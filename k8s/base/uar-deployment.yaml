@@ -1,4 +1,11 @@
 # UAR — no PVC: persistence is the remote SurrealDB, not the embedded store.
+# 2026-10-15 (fix/uar-pin-llm-timeout): pinned to the `main` image built by the
+# "Build and Publish Images" run for Prometheus-AGS/universal-agent-runtime#384
+# (merge 76f2ad30, fix d86a9347): per-provider resolution inherits llm.timeout_secs
+# and llm.max_retries, so UAR_LLM__TIMEOUT_SECS (uar-configmap.yaml) applies to the
+# site agents; before, every model call was cut at 60 s. Digest read from the live
+# registry (`:main`). Rollback is the previous digest below (7dc13eb, 3e6af7c4).
+# The paragraph below describes that previous pin.
 # Image pinned by digest (ci-supply-chain-pins): the `main` image built by
 # Prometheus-AGS/universal-agent-runtime's "Build and Publish Images" run 38435095046
 # for commit 3e6af7c4 (merge of #381), manifest published 2026-10-13 17:57 UTC.
@@ -68,7 +75,7 @@ spec:
           # provider configuration and credential revision, so re-verify after any
           # provider edit or API key rotation. Builds before a42f23bb (the 2cc9a182
           # pin this replaced) have no gate, so the step only matters from this pin on.
-          image: ghcr.io/prometheus-ags/universal-agent-runtime:main@sha256:7dc13eb3dab415a2c9dbd6989fdbdcc1ed4745c24a2dcb10912e2330a198fcf5
+          image: ghcr.io/prometheus-ags/universal-agent-runtime:main@sha256:0bd48ae6b26c3363063a8068a007f2cdfd9979c7b248b923cbe46c6e90d248f9
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
