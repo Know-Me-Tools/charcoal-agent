@@ -39,6 +39,7 @@ import {
 	UserMessageAttachments,
 } from "@/components/assistant-ui/attachment";
 import { EnhancedMarkdownText } from "@/components/assistant-ui/enhanced-markdown-text";
+import { CopyButton } from "@/components/common/copy-button";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
 import { WebSearchToggle } from "@/components/assistant-ui/web-search-toggle";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -51,6 +52,7 @@ import { cn } from "@/lib/utils";
 import { KnowMeMark } from "@/components/brand";
 import { usePersistenceStatus } from "@/hooks/use-persistence-status";
 import { AI_DISCLOSURE_CONTENT } from "../../../content/site/ai-disclosure";
+import { BLOCK_COPY_CONTENT } from "../../../content/site/block-copy";
 import { EMPTY_STATE_CONTENT } from "../../../content/site/empty-state";
 import { isSiteBuild } from "@/hooks/use-site-config";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -486,9 +488,9 @@ const ComposerActionBar: FC<ComposerProps> = ({ promptCachingEnabled, onTogglePr
 
 // ─── User Message ─────────────────────────────────────────────────────────────
 
-const UserMessage: FC = () => (
+export const UserMessage: FC = () => (
 	<MessagePrimitive.Root
-		className="fade-in slide-in-from-bottom-1 mx-auto flex w-full max-w-(--thread-max-width) animate-in flex-col items-end px-0 pt-6 pb-2 duration-150 first:pt-0 @md:px-4"
+		className="group/user fade-in slide-in-from-bottom-1 mx-auto flex w-full max-w-(--thread-max-width) animate-in flex-col items-end px-0 pt-6 pb-2 duration-150 first:pt-0 @md:px-4"
 		data-role="user"
 	>
 		<UserMessageAttachments />
@@ -512,18 +514,39 @@ const UserMessage: FC = () => (
 	</MessagePrimitive.Root>
 );
 
-const UserActionBar: FC = () => (
-	<ActionBarPrimitive.Root
-		hideWhenRunning
-		autohide="not-last"
-		className="flex shrink-0 flex-col items-end pt-1"
-	>
-		<ActionBarPrimitive.Edit asChild>
-			<TooltipIconButton tooltip="Edit">
-				<PencilIcon />
-			</TooltipIconButton>
-		</ActionBarPrimitive.Edit>
-	</ActionBarPrimitive.Root>
+/** The visitor's own text: the text parts as typed, never the sr-only "You:" label. */
+function userMessageText(parts: ReadonlyArray<{ type: string; text?: string }>): string {
+	return parts.map((part) => (part.type === "text" ? (part.text ?? "") : "")).join("");
+}
+
+/**
+ * Copy sits outside the Edit bar's `autohide="not-last"`, which hides the bar
+ * until hover and so would never show on touch. On hover-capable pointers it
+ * stays quiet until the message is hovered or focused; everywhere else it is
+ * always visible. Keyboard focus reveals it either way.
+ */
+const UserCopyButton: FC = () => {
+	const content = useAuiState((s) => s.message.content);
+	return (
+		<CopyButton
+			text={() => userMessageText(content)}
+			label={BLOCK_COPY_CONTENT.copy}
+			className="transition-hover focus-within:opacity-100 focus-visible:opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/user:opacity-100 [@media(hover:hover)]:group-focus-within/user:opacity-100"
+		/>
+	);
+};
+
+export const UserActionBar: FC = () => (
+	<div className="flex shrink-0 flex-col items-end pt-1">
+		<UserCopyButton />
+		<ActionBarPrimitive.Root hideWhenRunning autohide="not-last" className="flex flex-col items-end">
+			<ActionBarPrimitive.Edit asChild>
+				<TooltipIconButton tooltip="Edit">
+					<PencilIcon />
+				</TooltipIconButton>
+			</ActionBarPrimitive.Edit>
+		</ActionBarPrimitive.Root>
+	</div>
 );
 
 // ─── Assistant Message ────────────────────────────────────────────────────────
