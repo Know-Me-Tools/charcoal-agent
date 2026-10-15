@@ -1,0 +1,17 @@
+# Review record: product relationships concept and diagram prompt
+
+- **Piece:** `docs/knowledge-source/prometheus/product-relationships.md` (built to `content/knowledge/product-relationships.md`), and the system-prompt edit in `uar/agents/knowme-site.json` and `uar/agents/knowme-site-web.json`. Four eval questions added to `docs/knowledge-source/eval/questions.json`.
+- **Why:** a visitor asked the concierge for a diagram of how all the products relate. It answered that it could only give a text reply, then that it did not know how the products relate. The relationships exist in the knowledge base only as short sentences spread across about six files. The new concept collects them in one place, one relationship per line, and lists which product pairs have no stated relationship. The prompt now tells the model that fenced code, Mermaid and SVG are allowed and that a diagram may show only stated relationships.
+- **Claims checked against the knowledge base:** every bullet names the file it came from. No claim was added that those files do not make.
+- **Planned and shipped:** KnowMe statements stay "built on" or "design intent", because KnowMe is not released. The BossFang connection to the Universal Agent Runtime keeps "implemented in source, not yet built or tested". The BossFang and Surreal Memory Server memory gap keeps the feature-ledger wording. The Boss bundling is present tense, because The Boss is available now.
+- **Claims register:** `marketing/strategy/claims-register.md` does not exist in this repository, so no claim was checked against it. No pricing, compliance, certification or performance claim is involved.
+- **Points for the operator:**
+  1. "KnowMe AI, LLC's Universal Agent Runtime" in `company.md` and `knowme-privacy.md` conflicts with the D-10 attribution (Prometheus AGS makes it). The new file follows D-10; the two older files are not changed here.
+  2. Whether KnowMe and The Boss are built on the skill packages is ambiguous in `prometheus-and-its-products.md` and `company.md`. The new file lists it as "not stated" and names only the Universal Agent Runtime, BossFang and the Surreal Memory Server as the base.
+  3. How KnowMe AI, LLC and Prometheus AGS are related as companies is not stated anywhere and stays that way.
+  4. One line mentions Cherry Studio (outside the eight things) so "what does The Boss build on" has an answer in this file.
+  5. The prompt keeps the "planned" rule for diagram edges. That line was added beyond the plan's list.
+  6. The prompt now allows SVG in replies. The page draws SVG as an inert image (no scripts run, nothing external loads), reviewed in PR #104.
+- **Voice:** short, concrete, one relationship per line, no hype, no exclamation marks.
+- **Editorial pre-review (km-chief-content-officer, AI pre-review, 2026-10-15):** APPROVE WITH EDITS, edits applied in the draft: each bullet names both products in full so a chunk stands alone; the older "BossFang supervises the runtime" note sits beside the current design, as `universal-agent-runtime-overview.md` has it. A human has not signed off.
+- **Operator approval: PENDING (not yet given).** The concept file and the prompt edit must not be seeded until the operator records name, date and the approved commit hash here.
