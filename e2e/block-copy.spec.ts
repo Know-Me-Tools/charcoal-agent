@@ -113,7 +113,12 @@ const COPY_TARGETS = [
 
 const COPY_STATE = /^(Copied|Copied image|Copied image link|Couldn't copy)$/;
 
-async function openThreadWithAllBlocks(page: Page, width: number, theme: (typeof THEMES)[number]): Promise<void> {
+async function openThreadWithAllBlocks(
+  page: Page,
+  width: number,
+  theme: (typeof THEMES)[number],
+  message = "Show me every block.",
+): Promise<void> {
   await seedTheme(page, theme);
   await page.setViewportSize({ width, height: 900 });
   // The own-host image cannot load offline, so the stub stands in for the origin.
@@ -131,7 +136,7 @@ async function openThreadWithAllBlocks(page: Page, width: number, theme: (typeof
   await waitForAppReady(page);
   const composer = page.getByLabel("Message input").filter({ visible: true });
   await expect(composer).toBeVisible();
-  await composer.fill("Show me every block.");
+  await composer.fill(message);
   await composer.press("Enter");
 
   await expect(page.getByText("That is every block.").first()).toBeAttached();
@@ -333,6 +338,56 @@ test.describe("block copy: rendering safety and accessibility", () => {
     expect([...reached].sort(), "Copy buttons reached by Tab, each activated with Enter").toEqual([...wanted].sort());
     expect(pageErrors).toEqual([]);
   });
+});
+
+const USER_TYPED = "**Compare** these _two_ plans:\n\n- plan A\n- plan B";
+
+test.describe("block copy: user message", () => {
+  test("the user bubble's Copy button puts exactly the typed text on the clipboard", async ({ page, context, browserName }) => {
+    test.skip(browserName !== "chromium", "Clipboard readback needs clipboard-read, which only Chromium grants.");
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await openThreadWithAllBlocks(page, 1440, "light", USER_TYPED);
+    const user = page.locator('[data-role="user"]').first();
+    await expect(user).toContainText("plan B");
+    await page.evaluate(() => navigator.clipboard.writeText("sentinel-before-click"));
+    const button = user.getByRole("button", { name: "Copy", exact: true });
+    await button.click();
+    await expect(user.getByRole("status").filter({ hasText: "Copied" })).toHaveCount(1);
+    const copied = await page.evaluate(() => navigator.clipboard.readText());
+    expect(copied).toBe(USER_TYPED);
+    expect(copied).not.toContain("You:");
+  });
+
+  for (const theme of THEMES) {
+    test(`the user bubble's Copy button is visible on a touch layout and 44 px at 320px (${theme})`, async ({ page }) => {
+      await openThreadWithAllBlocks(page, 320, theme, USER_TYPED);
+      const user = page.locator('[data-role="user"]').first();
+      const button = user.getByRole("button", { name: "Copy", exact: true });
+      await button.scrollIntoViewIfNeeded();
+      const box = (await button.boundingBox())!;
+      expect(box.height, "touch target height").toBeGreaterThanOrEqual(43.5);
+      expect(box.width, "touch target width").toBeGreaterThanOrEqual(43.5);
+      const viewport = page.viewportSize()!;
+      expect(box.x, "left edge on screen").toBeGreaterThanOrEqual(-0.5);
+      expect(box.x + box.width, "right edge on screen").toBeLessThanOrEqual(viewport.width + 0.5);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow, "no page-level horizontal scroll").toBeLessThanOrEqual(0);
+    });
+  }
+
+  for (const theme of THEMES) {
+    for (const width of [320, 1440] as const) {
+      test(`captures the user bubble at ${width}px in the ${theme} theme`, async ({ page, browserName }) => {
+        test.skip(browserName !== "chromium" || !process.env.USER_COPY_CAPTURE_DIR, "Captures are Chromium-only and need USER_COPY_CAPTURE_DIR.");
+        const dir = process.env.USER_COPY_CAPTURE_DIR as string;
+        fs.mkdirSync(dir, { recursive: true });
+        await openThreadWithAllBlocks(page, width, theme, USER_TYPED);
+        const user = page.locator('[data-role="user"]').first();
+        await user.hover();
+        await user.screenshot({ path: path.join(dir, `user-copy__${width}__${theme}.png`) });
+      });
+    }
+  }
 });
 
 test.describe("block copy: image copy button placement", () => {
