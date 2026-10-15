@@ -1,5 +1,9 @@
 # Update Log
 
+## 2026-10-15
+
+* **Product relationships**: Added `prometheus/product-relationships.md`, which collects every relationship between the eight products that the existing files already state, one per line, and lists the pairs with no stated relationship. A visitor asking for a diagram of how the products relate got "I don't know" because those statements sit in about six files. Four non-critical eval questions added.
+
 ## 2026-10-13
 
 * **Makers and licences, short answers**: Added `prometheus/prometheus-and-its-products.md`, one short, standalone section per visitor question (who makes each product, each licence, where to get them), because the maker and licence facts were not retrieved from inside longer sections. Surreal Memory Server and Prometheus Skills Mini LICENSE files are now merged (Prometheus-AGS/surreal-memory-server#50, Prometheus-AGS/prometheus-skills-mini#58), so their status, FAQ and index text now states MIT with a LICENSE file instead of the proposed-file clause. Three non-critical eval questions added.

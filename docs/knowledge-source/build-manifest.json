@@ -163,6 +163,10 @@
     {
       "source": "prometheus/prometheus-and-its-products.md",
       "output": "prometheus-and-its-products.md"
+    },
+    {
+      "source": "prometheus/product-relationships.md",
+      "output": "product-relationships.md"
     }
   ]
 }

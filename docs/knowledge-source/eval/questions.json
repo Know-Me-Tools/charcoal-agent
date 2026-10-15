@@ -237,5 +237,29 @@
     "expect_file": "faq.md",
     "critical": false,
     "expect_contains": "not been announced"
+  },
+  {
+    "question": "How do the KnowMe AI, LLC products relate to each other?",
+    "expect_file": "product-relationships.md",
+    "critical": false,
+    "expect_contains": "Universal Agent Runtime"
+  },
+  {
+    "question": "What does The Boss build on?",
+    "expect_file": "product-relationships.md",
+    "critical": false,
+    "expect_contains": "Cherry Studio"
+  },
+  {
+    "question": "How does KnowMe relate to the Universal Agent Runtime?",
+    "expect_file": "product-relationships.md",
+    "critical": false,
+    "expect_contains": "KnowMe is built on the Universal Agent Runtime"
+  },
+  {
+    "question": "How do IPFS Sync for Obsidian and the Prometheus skill packages relate to the other products?",
+    "expect_file": "product-relationships.md",
+    "critical": false,
+    "expect_contains": "Not stated"
   }
 ]
