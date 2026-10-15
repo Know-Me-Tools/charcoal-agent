@@ -11,6 +11,7 @@ import { isSiteBuild } from "@/hooks/use-site-config";
 import { ABOUT_PANEL_CONTENT } from "../../../content/site/about-panel";
 import { getNavDestinations, isDestinationActive } from "@/components/layout/nav-destinations";
 import { cn } from "@/lib/utils";
+import { ExportMenu } from "@/features/export/export-menu";
 
 const ICON_BUTTON_BASE =
   "flex size-8 items-center justify-center rounded-md text-muted-foreground transition-hover hover:bg-hover hover:text-foreground focus-cue";
@@ -25,6 +26,7 @@ export function Topbar() {
   const isMobile = useIsMobile();
   const isWide = useMediaQuery(WIDE_LAYOUT_QUERY);
   const isThreadView = pathname.startsWith("/threads/");
+  const threadId = /^\/threads\/([^/]+)/.exec(pathname)?.[1] ?? null;
   const showSidebar = pathname.startsWith("/threads") || pathname === "/";
   const nextTheme = theme === "dark" ? "light" : "dark";
   const siteBuild = isSiteBuild();
@@ -76,6 +78,8 @@ export function Topbar() {
         >
           {theme === "dark" ? <Sun size={16} aria-hidden="true" /> : <Moon size={16} aria-hidden="true" />}
         </button>
+
+        {threadId && <ExportMenu threadId={threadId} triggerClassName={cn(ICON_BUTTON, "shrink-0 max-md:size-11")} />}
 
         {isThreadView && siteBuild && (
           <button
