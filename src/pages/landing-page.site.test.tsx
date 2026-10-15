@@ -11,6 +11,9 @@ import { AI_DISCLOSURE_CONTENT } from "../../content/site/ai-disclosure";
 import { APPROVED_TAGLINES } from "../../content/brand/taglines";
 import { LANDING_CONTENT } from "../../content/site/landing";
 import { SITE_LANDING_CONTENT } from "../../content/site/landing-site";
+import { HISTORY_LINK_CONTENT } from "../../content/site/history-link";
+import { useThreadRegistryStore } from "@/stores/thread-registry-store";
+import type { LocalThread } from "@/types";
 import LandingPage from "./landing-page";
 
 const SITE_AGENT = "knowme-site";
@@ -34,8 +37,42 @@ function collectStrings(value: unknown): string[] {
 	return [];
 }
 
+function thread(id: string, isEphemeral: boolean): LocalThread {
+	return {
+		id,
+		title: "t",
+		isEphemeral,
+		createdAt: "2026-10-01T00:00:00.000Z",
+		updatedAt: "2026-10-01T00:00:00.000Z",
+	} as LocalThread;
+}
+
 afterEach(() => {
 	vi.unstubAllEnvs();
+	useThreadRegistryStore.setState({ threads: {}, hydrated: false });
+});
+
+describe("history link on the site build", () => {
+	it("is hidden when this browser has no saved conversation", () => {
+		vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+		renderLanding();
+		expect(screen.queryByRole("link", { name: HISTORY_LINK_CONTENT.label })).toBeNull();
+	});
+
+	it("is hidden when the only thread is still ephemeral", () => {
+		vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+		useThreadRegistryStore.setState({ threads: { a: thread("a", true) }, hydrated: true });
+		renderLanding();
+		expect(screen.queryByRole("link", { name: HISTORY_LINK_CONTENT.label })).toBeNull();
+	});
+
+	it("links to the conversation list when a saved conversation exists", () => {
+		vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+		useThreadRegistryStore.setState({ threads: { a: thread("a", false) }, hydrated: true });
+		renderLanding();
+		const link = screen.getByRole("link", { name: HISTORY_LINK_CONTENT.label });
+		expect(link.getAttribute("href")).toBe("/threads");
+	});
 });
 
 describe("landing page on the site build", () => {
