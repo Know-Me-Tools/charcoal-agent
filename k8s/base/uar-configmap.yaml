@@ -37,6 +37,12 @@ data:
   UAR_LLM__MODEL: "openai/qwen3.8-max"
   # Token Plan endpoint (verified live, HTTP 200, 2026-09-30).
   UAR_LLM__BASE_URL: "https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1"
+  # UAR's liter-llm client defaults to a 60 s TOTAL timeout (llm.timeout_secs,
+  # src/config.rs), reqwest-style: it also cuts a stream that is still producing
+  # output. Replies that take longer than that (long answers, SVG, a slow first
+  # token from the reasoning model) ended with agui.error and no log line. 240 s
+  # stays under the gateway route's 300 s request timeout (httproutes.yaml).
+  UAR_LLM__TIMEOUT_SECS: "240"
 
   # DashScope text-embedding-v4, 1024 dims.
   UAR_LLM__EMBEDDING__BACKEND: "openai"
