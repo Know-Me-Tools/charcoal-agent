@@ -34,7 +34,8 @@ export default defineConfig({
       // has no Long Tasks API, so the spec counts rAF gaps instead.
       name: "webkit-iphone",
       // Task 3.8 (app-block-copy-and-media-blocks): the block-copy click path.
-      testMatch: ["stream-load.spec.ts", "block-copy.spec.ts"],
+      // Task 4.4 (app-chat-export-okf-single): the Export tap path.
+      testMatch: ["stream-load.spec.ts", "block-copy.spec.ts", "chat-export.spec.ts"],
       use: { ...devices["iPhone 14"] },
     },
   ],

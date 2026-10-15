@@ -36,11 +36,14 @@ function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
   )
 }
 
-type SheetSide = "left" | "right"
+type SheetSide = "left" | "right" | "bottom"
 
 const SIDE_CLASSES: Record<SheetSide, string> = {
   left: "inset-y-0 left-0 data-open:slide-in-from-left data-closed:slide-out-to-left",
   right: "inset-y-0 right-0 data-open:slide-in-from-right data-closed:slide-out-to-right",
+  // Bottom sheet: full width, as tall as its content up to 85% of the viewport.
+  bottom:
+    "inset-x-0 bottom-0 h-auto max-h-[85dvh] w-auto max-w-none rounded-t-xl data-open:slide-in-from-bottom data-closed:slide-out-to-bottom",
 }
 
 function SheetContent({
