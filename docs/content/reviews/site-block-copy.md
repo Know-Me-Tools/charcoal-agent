@@ -27,4 +27,4 @@
 - **Open points for the operator:**
   - The strings file header says every visitor-facing string of the Copy control lives in it, which holds for Copy but not for the Mermaid "Diagram"/"Source" labels and the table region label. Decide whether to move them.
   - The Mermaid artifact card gives no next step after "Couldn't copy" (the source cannot be selected from the card); a short line such as "Couldn't copy. Open Source to select it." is possible. A design question, not a blocker.
-- **Operator approval: PENDING (not yet given).** The strings are not approved and must not reach production until the operator records name, date and git hash here.
+- **Operator approval: given by merge, not by explicit wording.** Travis James merged PR #104 (merge commit `e203327`, 2026-10-15) after the PR body asked for approval of the 21 strings as drafted, including the two applied officer edits. The merge is recorded as approval of the strings as written. The three optional officer edits (items 3 to 5) were not applied. If the operator wants any of them, it is a follow-up wording change.
