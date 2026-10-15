@@ -1,4 +1,4 @@
-import { AlertTriangleIcon, CheckIcon, CopyIcon, Loader2Icon, RefreshCwIcon } from "lucide-react";
+import { AlertTriangleIcon, Loader2Icon, RefreshCwIcon } from "lucide-react";
 import {
 	Component,
 	type ErrorInfo,
@@ -8,10 +8,14 @@ import {
 	useRef,
 	useState,
 } from "react";
+import { CopyButton } from "@/components/common/copy-button";
 import { Button } from "@/components/ui/button";
 import { ShikiCodeBlock } from "@/features/artifacts/shiki-code-block";
+import { mermaidBlockText } from "@/features/blocks/block-text";
+import { selectElementText } from "@/hooks/use-copy-to-clipboard";
 import { useUiStore } from "@/stores/ui-store";
 import { cn } from "@/lib/utils";
+import { BLOCK_COPY_CONTENT } from "../../../content/site/block-copy";
 
 // Lazy mermaid import
 let mermaidModule: typeof import("mermaid").default | null = null;
@@ -120,9 +124,9 @@ let mermaidIdCounter = 0;
 
 const MermaidRenderer: FC<MermaidBlockProps> = ({ source, className }) => {
 	const containerRef = useRef<HTMLDivElement>(null);
+	const sourceWrapRef = useRef<HTMLDivElement>(null);
 	const [svg, setSvg] = useState<string | null>(null);
 	const [hasError, setHasError] = useState(false);
-	const [isCopied, setIsCopied] = useState(false);
 	const [showSource, setShowSource] = useState(false);
 	const idRef = useRef(`mermaid-${++mermaidIdCounter}`);
 	// Re-render when the theme changes so the diagram follows the tokens.
@@ -154,26 +158,22 @@ const MermaidRenderer: FC<MermaidBlockProps> = ({ source, className }) => {
 		};
 	}, [source, theme]);
 
-	const handleCopy = () => {
-		navigator.clipboard.writeText(source).then(() => {
-			setIsCopied(true);
-			setTimeout(() => setIsCopied(false), 2500);
+	// The copied text is the Mermaid source; on a failed copy, reveal the
+	// source view (if the diagram is showing) and select it for a manual copy.
+	const handleSelectFallback = () => {
+		setShowSource(true);
+		requestAnimationFrame(() => {
+			selectElementText(sourceWrapRef.current?.querySelector("[data-copy-region]"));
 		});
 	};
 
 	const copyButton = (
-		<button
-			type="button"
-			onClick={handleCopy}
-			className="inline-flex items-center gap-1 rounded-sm px-2 py-1 font-ui text-xs font-semibold text-fg-secondary transition-hover hover:bg-hover hover:text-fg focus-cue"
-		>
-			{isCopied ? (
-				<CheckIcon className="size-3.5" aria-hidden="true" />
-			) : (
-				<CopyIcon className="size-3.5" aria-hidden="true" />
-			)}
-			<span>{isCopied ? "Copied" : "Copy"}</span>
-		</button>
+		<CopyButton
+			variant="labeled"
+			text={mermaidBlockText(source)}
+			label={BLOCK_COPY_CONTENT.copyDiagramSource}
+			selectFallback={handleSelectFallback}
+		/>
 	);
 
 	if (hasError) {
@@ -183,7 +183,7 @@ const MermaidRenderer: FC<MermaidBlockProps> = ({ source, className }) => {
 					<span className="font-ui text-xs font-semibold text-fg-secondary">Diagram</span>
 					{copyButton}
 				</div>
-				<div className="p-3">
+				<div className="p-3" ref={sourceWrapRef}>
 					<div className="mb-3 flex items-center gap-2 rounded-md bg-danger-soft px-3 py-2 font-ui text-sm font-semibold text-danger-text">
 						<AlertTriangleIcon className="size-4 shrink-0" aria-hidden="true" />
 						<span>{RENDER_FAILED_LABEL}</span>
@@ -214,7 +214,7 @@ const MermaidRenderer: FC<MermaidBlockProps> = ({ source, className }) => {
 
 			{/* Render area */}
 			{showSource ? (
-				<div className="p-3">
+				<div className="p-3" ref={sourceWrapRef}>
 					<ShikiCodeBlock code={source} language="text" />
 				</div>
 			) : (

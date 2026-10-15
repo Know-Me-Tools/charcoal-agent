@@ -1,4 +1,4 @@
-import { useMemo, type FC, type ReactNode } from "react";
+import { useMemo, useRef, type FC, type ReactNode } from "react";
 import { useParams } from "react-router-dom";
 import {
   PrometheusA2uiProvider,
@@ -7,10 +7,14 @@ import {
   createPrometheusA2uiRuntime,
   type PrometheusA2uiRuntime,
 } from "@prometheus-ags/a2ui-react";
+import { CopyButton } from "@/components/common/copy-button";
+import { cardBlockText } from "@/features/blocks/block-text";
+import { selectElementText } from "@/hooks/use-copy-to-clipboard";
 import { isSiteBuild } from "@/hooks/use-site-config";
 import { useThreadCitations } from "@/hooks/use-thread-citations";
 import { toCitedUrlSet } from "@/lib/link-policy/cited-web-url";
 import { AI_SURFACE_CAPTION } from "../../../content/site/ai-disclosure";
+import { BLOCK_COPY_CONTENT } from "../../../content/site/block-copy";
 import { PASSIVE_A2UI_COMPONENTS, parseA2uiArtifactContent } from "./carrier-adapter";
 import { cleanAnswerCardSources } from "./answer-card-source";
 import { createKnowmeA2uiCatalogs } from "./catalog";
@@ -62,17 +66,59 @@ export interface A2uiSurfaceBlockProps {
  * no way to set attributes, and its `Text` caption variant is a different,
  * unmarked style, so model output can neither fill nor imitate this slot.
  */
-const SurfaceFrame: FC<{ children: ReactNode }> = ({ children }) => (
-  <div data-testid="a2ui-surface-frame" className="my-2 flex min-w-0 max-w-[65ch] flex-col gap-1">
-    {children}
-    <p
-      data-ai-caption=""
-      className="rounded-md bg-cyan-soft px-3 py-1 font-mono text-xs uppercase tracking-[0.06em] text-cyan-text"
-    >
-      {AI_SURFACE_CAPTION}
-    </p>
-  </div>
-);
+/**
+ * The lines of text a rendered card shows, read from the surface element: each
+ * element that owns text contributes one line, in document order, repeats
+ * dropped. Mapped to the title (first line), the summary (the lines between)
+ * and the source (the last line of three or more) for `cardBlockText`.
+ */
+function readCardText(surface: Element | null): string {
+  const lines: string[] = [];
+  surface?.querySelectorAll("*").forEach((el) => {
+    const own = Array.from(el.childNodes)
+      .filter((n) => n.nodeType === Node.TEXT_NODE)
+      .map((n) => n.textContent ?? "")
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (own !== "" && !lines.includes(own)) lines.push(own);
+  });
+  const [title, ...rest] = lines;
+  const source = rest.length >= 2 ? rest[rest.length - 1] : undefined;
+  const summary = (source === undefined ? rest : rest.slice(0, -1)).join("\n");
+  return cardBlockText({ title, summary, source });
+}
+
+/**
+ * The Copy button lives here, in the app-rendered frame beside the caption,
+ * never in the model's surface: model output cannot set, hide or relabel it,
+ * and it is a plain app button outside the passive-only component set. It is
+ * shown only for a surface that parsed (`copyable`).
+ */
+const SurfaceFrame: FC<{ children: ReactNode; copyable?: boolean }> = ({ children, copyable = false }) => {
+  const frameRef = useRef<HTMLDivElement>(null);
+  const surface = () => frameRef.current?.querySelector('[data-testid="a2ui-surface"]') ?? null;
+  return (
+    <div ref={frameRef} data-testid="a2ui-surface-frame" className="my-2 flex min-w-0 max-w-[65ch] flex-col gap-1">
+      {children}
+      <div className="flex items-center gap-1">
+        <p
+          data-ai-caption=""
+          className="min-w-0 flex-1 rounded-md bg-cyan-soft px-3 py-1 font-mono text-xs uppercase tracking-[0.06em] text-cyan-text"
+        >
+          {AI_SURFACE_CAPTION}
+        </p>
+        {copyable && (
+          <CopyButton
+            label={BLOCK_COPY_CONTENT.copyCard}
+            text={() => readCardText(surface())}
+            selectFallback={() => selectElementText(surface())}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
 
 export const A2uiSurfaceBlock: FC<A2uiSurfaceBlockProps> = ({
   content,
@@ -99,7 +145,7 @@ export const A2uiSurfaceBlock: FC<A2uiSurfaceBlockProps> = ({
   }
 
   return (
-    <SurfaceFrame>
+    <SurfaceFrame copyable>
       <section
         aria-label={title || "Interactive content"}
         data-testid="a2ui-surface"

@@ -1,9 +1,12 @@
-import { useState, useEffect, type FC } from "react";
+import { useEffect, useRef, useState, type FC } from "react";
 import type { Highlighter } from "shiki";
-import { CheckIcon, CopyIcon } from "lucide-react";
+import { CopyButton } from "@/components/common/copy-button";
+import { codeBlockText } from "@/features/blocks/block-text";
+import { selectElementText } from "@/hooks/use-copy-to-clipboard";
 import { cn } from "@/lib/utils";
 import { useUiStore } from "@/stores/ui-store";
 import { SYNTAX_THEMES, SYNTAX_COLOR_REPLACEMENTS } from "@/styles/syntax-theme";
+import { BLOCK_COPY_CONTENT } from "../../../content/site/block-copy";
 
 // Lazy singleton highlighter
 let highlighterPromise: Promise<Highlighter> | null = null;
@@ -44,6 +47,8 @@ interface ShikiCodeBlockProps {
   code: string;
   language?: string;
   showLineNumbers?: boolean;
+  /** Hide the header Copy button when the surrounding block already has one. */
+  hideCopy?: boolean;
   /** Margin only — callers must not pass sizing or outline overrides (design spec §7.7). */
   className?: string;
 }
@@ -52,10 +57,11 @@ export const ShikiCodeBlock: FC<ShikiCodeBlockProps> = ({
   code,
   language = "text",
   showLineNumbers = false,
+  hideCopy = false,
   className,
 }) => {
   const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null);
-  const [isCopied, setIsCopied] = useState(false);
+  const codeRegionRef = useRef<HTMLDivElement>(null);
 
   // Re-highlight when the theme changes.
   const theme = useUiStore((s) => s.theme);
@@ -98,11 +104,8 @@ export const ShikiCodeBlock: FC<ShikiCodeBlockProps> = ({
     };
   }, [code, language, showLineNumbers, theme]);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(code).then(() => {
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2500);
-    });
+  const handleSelectFallback = () => {
+    selectElementText(codeRegionRef.current);
   };
 
   return (
@@ -110,25 +113,23 @@ export const ShikiCodeBlock: FC<ShikiCodeBlockProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between gap-2 bg-raised px-3 py-1.5">
         <span className="font-mono text-xs text-fg-secondary lowercase">{language}</span>
-        <button
-          type="button"
-          onClick={handleCopy}
-          className="inline-flex items-center gap-1 rounded-sm px-2 py-1 font-ui text-xs font-semibold text-fg-secondary transition-hover hover:bg-hover hover:text-fg focus-cue"
-        >
-          {isCopied ? (
-            <CheckIcon className="size-3.5" aria-hidden="true" />
-          ) : (
-            <CopyIcon className="size-3.5" aria-hidden="true" />
-          )}
-          <span aria-live="polite">{isCopied ? "Copied" : "Copy"}</span>
-        </button>
+        {!hideCopy && (
+          <CopyButton
+            variant="labeled"
+            text={codeBlockText(code)}
+            label={BLOCK_COPY_CONTENT.copyCode}
+            selectFallback={handleSelectFallback}
+          />
+        )}
       </div>
 
       {/* Code — the Shiki theme's own background is always overridden by bg-code. */}
       <div
+        ref={codeRegionRef}
         tabIndex={0}
         role="region"
         aria-label={`${language} code`}
+        data-copy-region
         className={cn(
           "overflow-x-auto bg-code p-3 font-mono text-xs leading-relaxed text-fg focus-cue [&_pre]:bg-transparent! [&_pre]:p-0!",
           showLineNumbers &&

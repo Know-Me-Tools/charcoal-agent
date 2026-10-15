@@ -37,3 +37,15 @@ describe("isAllowedReplyImage", () => {
     expect(isAllowedReplyImage("https://know-me.tools.evil.example/a.png")).toBe(false);
   });
 });
+
+describe("isAllowedReplyVideoSrc", () => {
+  it("follows the image rule: own host or same-origin only", async () => {
+    const { isAllowedReplyVideoSrc, ALLOWED_REPLY_VIDEO_TYPES } = await import("./reply-content-policy");
+    expect(isAllowedReplyVideoSrc("https://know-me.tools/a.mp4")).toBe(true);
+    expect(isAllowedReplyVideoSrc("/a.webm")).toBe(true);
+    expect(isAllowedReplyVideoSrc("https://cdn.know-me.tools/a.mp4")).toBe(false);
+    expect(isAllowedReplyVideoSrc("http://know-me.tools/a.mp4")).toBe(false);
+    expect(isAllowedReplyVideoSrc("javascript:alert(1)")).toBe(false);
+    expect([...ALLOWED_REPLY_VIDEO_TYPES].sort()).toEqual(["video/mp4", "video/webm"]);
+  });
+});

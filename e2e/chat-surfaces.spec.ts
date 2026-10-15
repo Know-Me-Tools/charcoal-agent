@@ -891,12 +891,12 @@ test('Mermaid: the "Source" toggle reveals the source, and a Copy control exists
   await expect(title).toBeAttached();
   const card = title.locator("xpath=..");
 
-  const sourceToggle = card.getByRole("button", { name: "Source" });
+  const sourceToggle = card.getByRole("button", { name: "Source", exact: true });
   await expect(sourceToggle).toBeVisible();
   await expect(sourceToggle).toHaveAttribute("aria-pressed", "false");
-  await expect(card.getByRole("button", { name: /^Copy$/ })).toBeVisible();
+  await expect(card.getByRole("button", { name: "Copy diagram source", exact: true })).toBeVisible();
 
   await sourceToggle.click();
   await expect(card.getByText(/graph LR/)).toBeVisible();
-  await expect(card.getByRole("button", { name: "Diagram" })).toHaveAttribute("aria-pressed", "true");
+  await expect(card.getByRole("button", { name: "Diagram", exact: true })).toHaveAttribute("aria-pressed", "true");
 });

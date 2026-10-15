@@ -140,6 +140,7 @@ describe("Flat 2.0 application shell", () => {
 const CHAT_FIXED_FILES = [
   "src/components/assistant-ui/enhanced-thread.tsx",
   "src/components/assistant-ui/enhanced-markdown-text.tsx",
+  "src/components/assistant-ui/markdown-block-copy.tsx",
   "src/components/assistant-ui/tooltip-icon-button.tsx",
   "src/components/assistant-ui/attachment.tsx",
 ];
@@ -374,12 +375,12 @@ describe("Flat 2.0 repo-wide (brand-fidelity-audit)", () => {
   const REPO_WIDE_ALLOWLIST: AllowlistEntry[] = [
     // ── table-layout properties, not borders (design.md decision 3, verbatim) ──
     {
-      file: "src/components/assistant-ui/enhanced-markdown-text.tsx",
+      file: "src/components/assistant-ui/markdown-block-copy.tsx",
       match: "border: border-separate",
       reason: "table layout property, not a border (design.md decision 3)",
     },
     {
-      file: "src/components/assistant-ui/enhanced-markdown-text.tsx",
+      file: "src/components/assistant-ui/markdown-block-copy.tsx",
       match: "border: border-spacing-0",
       reason: "table layout property, not a border (design.md decision 3)",
     },

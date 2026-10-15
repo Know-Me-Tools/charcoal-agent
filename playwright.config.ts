@@ -33,7 +33,8 @@ export default defineConfig({
       // measurement only — the rest of the suite stays on Chromium. WebKit
       // has no Long Tasks API, so the spec counts rAF gaps instead.
       name: "webkit-iphone",
-      testMatch: "stream-load.spec.ts",
+      // Task 3.8 (app-block-copy-and-media-blocks): the block-copy click path.
+      testMatch: ["stream-load.spec.ts", "block-copy.spec.ts"],
       use: { ...devices["iPhone 14"] },
     },
   ],

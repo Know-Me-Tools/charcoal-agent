@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { A2uiSurfaceBlock } from "./a2ui-surface-block";
+import { AI_SURFACE_CAPTION } from "../../../content/site/ai-disclosure";
 
 /**
  * The surface UAR emitted in the carrier spike (evidence 13, primary capture),
@@ -78,5 +79,39 @@ describe("A2uiSurfaceBlock on the public site", () => {
     expect(await screen.findByText("A desktop workspace.")).toBeTruthy();
     expect(screen.getByText("What is The Boss?")).toBeTruthy();
     expect(screen.queryByTestId("a2ui-surface-error")).toBeNull();
+  });
+});
+
+describe("A2uiSurfaceBlock card copy", () => {
+  const CARD = [
+    '{"version":"v0.9.1","createSurface":{"surfaceId":"c","catalogId":"urn:uar:a2ui:catalog:1"}}',
+    '{"version":"v0.9.1","updateComponents":{"surfaceId":"c","components":[{"id":"root","component":"Card","child":"body"},{"id":"body","component":"Column","children":["title","answer"]},{"id":"title","component":"Text","variant":"h3","text":{"path":"/title"}},{"id":"answer","component":"Text","variant":"body","text":{"path":"/answer"}}]}}',
+    '{"version":"v0.9.1","updateDataModel":{"surfaceId":"c","path":"/","value":{"title":"What is The Boss?","answer":"A desktop workspace."}}}',
+  ].join("\n");
+
+  afterEach(() => {
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: undefined });
+  });
+
+  it("copies the card text with the fixed AI caption, from a button in the app frame", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+    render(<A2uiSurfaceBlock content={CARD} passiveOnly />);
+    await screen.findByText("A desktop workspace.");
+    const button = screen.getByRole("button", { name: "Copy card text" });
+    // The button is in the frame, outside the model's surface section.
+    expect(screen.getByTestId("a2ui-surface").contains(button)).toBe(false);
+    expect(screen.getByTestId("a2ui-surface-frame").contains(button)).toBe(true);
+    await userEvent.click(button);
+    expect(writeText).toHaveBeenCalledOnce();
+    const copied = writeText.mock.calls[0][0] as string;
+    expect(copied).toContain("What is The Boss?");
+    expect(copied).toContain("A desktop workspace.");
+    expect(copied.endsWith(AI_SURFACE_CAPTION)).toBe(true);
+  });
+
+  it("shows no copy button when the surface failed to display", () => {
+    render(<A2uiSurfaceBlock content="{not json" />);
+    expect(screen.queryByRole("button")).toBeNull();
   });
 });
