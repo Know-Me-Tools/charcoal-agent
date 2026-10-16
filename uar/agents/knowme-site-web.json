@@ -101,7 +101,6 @@
       "tool_approval": "auto"
     },
     "budgets": {
-      "max_tokens_per_turn": 16000,
       "max_tool_calls_per_turn": 2
     }
   }
