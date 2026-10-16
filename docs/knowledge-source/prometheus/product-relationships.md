@@ -80,22 +80,11 @@ sources:
 
 # Product relationships
 
-## How the products relate, in short: who makes what
+## Product map
 
-- KnowMe AI, LLC makes KnowMe, The Boss and IPFS Sync for Obsidian.
-- Prometheus AGS makes the Universal Agent Runtime, BossFang, the Surreal Memory Server and the Prometheus skill packages.
-- KnowMe and The Boss are built on the Universal Agent Runtime. KnowMe has not been publicly released, so statements about KnowMe describe how it is built or designed. The Boss is available now.
-- IPFS Sync for Obsidian has no stated relationship to the other products beyond having the same maker as KnowMe and The Boss.
+Makers: KnowMe AI, LLC makes KnowMe, The Boss and IPFS Sync for Obsidian. Prometheus AGS makes the Universal Agent Runtime, BossFang, the Surreal Memory Server and the Prometheus skill packages.
 
-## How the products relate, in short: connections between them
-
-- The Boss bundles the Universal Agent Runtime and BossFang, and works with the Surreal Memory Server over MCP as a separate service. The Boss is built on the open-source Cherry Studio client.
-- BossFang connects to the Universal Agent Runtime as a client and sends agent runs to it. BossFang uses the Surreal Memory Server library for its memory.
-- The Universal Agent Runtime's optional memory system is built on the Surreal Memory Server library.
-- The Prometheus skill packages list the Surreal Memory Server as their optional durable memory service.
-- The Boss is not an edition of KnowMe and is not built on KnowMe. KnowMe and The Boss share the Universal Agent Runtime.
-
-The sections below give each relationship in full, with the file it comes from. A pair that is not listed has no stated relationship.
+Links: KnowMe and The Boss are built on the Universal Agent Runtime. The Boss bundles the Universal Agent Runtime and BossFang, works with the Surreal Memory Server over MCP, and is built on Cherry Studio. BossFang is a client of the Universal Agent Runtime and uses the Surreal Memory Server library. The Universal Agent Runtime's optional memory uses the Surreal Memory Server library. The skill packages list the Surreal Memory Server as optional memory. IPFS Sync for Obsidian has no stated link to the others.
 
 ## Who makes the products in this relationship map
 
