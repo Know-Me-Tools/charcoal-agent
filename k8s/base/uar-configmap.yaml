@@ -29,6 +29,17 @@ data:
   UAR_PERSISTENCE__SURREAL_AUTH_LEVEL: "root"
   UAR_PERSISTENCE__SURREAL_NS: "uar"
   UAR_PERSISTENCE__SURREAL_DB: "uar"
+  # UAR v1.1.0 treats a remote SurrealDB as non-durable unless the operator
+  # attests it (src/uar/persistence/providers/surreal.rs: durable_instances =
+  # local_durable || (remote && UAR_REMOTE_SURREAL_DURABILITY_ATTESTED == "1")).
+  # Without it, any agent with a configured token budget (knowme-site has
+  # extensions.budgets.max_tokens_per_turn) fails every run with "Run model
+  # binding failed" (durable_accounting_unsupported), and durable ingestion is
+  # off (KB uploads answer 503). The attestation is true here: surrealdb runs
+  # `rocksdb:/data/database.db` on the retained 20Gi PVC surrealdb-data
+  # (k8s/base/surrealdb-statefulset.yaml, storage class linode-block-storage-retain).
+  # If that volume is ever replaced by emptyDir, remove this line first.
+  UAR_REMOTE_SURREAL_DURABILITY_ATTESTED: "1"
 
   # Qwen Token Plan chat model. UAR_LLM__MODEL keeps the "provider/model"
   # shape only for liter-llm's registry bookkeeping; once UAR_LLM__BASE_URL
