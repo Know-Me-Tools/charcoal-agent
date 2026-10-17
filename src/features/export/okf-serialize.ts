@@ -34,6 +34,12 @@ export interface ExportInput {
 export interface OkfExport {
 	filename: string;
 	markdown: string;
+	/** Scrubbed title, as written in the document. Used by the bundle index. */
+	title: string;
+	/** Scrubbed one-line description, as written in the document. */
+	description: string;
+	/** UTC date (yyyy-mm-dd) of the first exported message, or null when no message has a valid time. */
+	startedOn: string | null;
 }
 
 const DESCRIPTION_MAX_CHARS = 160;
@@ -58,9 +64,10 @@ function messageTextOf(message: RichMessage): string {
 }
 
 /** First sentence of the first question, at most 160 characters. No model call. */
-function describe(messages: readonly RichMessage[]): string {
+function describe(messages: readonly RichMessage[], scrub: Scrub): string {
 	const first = messages.find((m) => m.role === "user");
-	const text = first ? oneLine(messageTextOf(first)) : "";
+	// Scrub before truncating, so an id cut in half by the length limit cannot survive as a fragment.
+	const text = first ? scrub(oneLine(messageTextOf(first))) : "";
 	if (text === "") return OKF_STRINGS.fallbackDescription;
 	const sentence = /^.*?[.?!](?=\s|$)/.exec(text)?.[0] ?? text;
 	return sentence.length <= DESCRIPTION_MAX_CHARS ? sentence : `${sentence.slice(0, DESCRIPTION_MAX_CHARS - 1).trimEnd()}…`;
@@ -218,10 +225,11 @@ export function serializeConversation(input: ExportInput): OkfExport | null {
 		return [`## ${heading(message.role)}`, ...(at ? [`_${at}_`] : []), body].join("\n\n");
 	});
 
+	const description = describe(input.messages, scrub);
 	const frontmatter = writeFrontmatter({
 		type: OKF_STRINGS.conceptType,
 		title,
-		description: describe(input.messages),
+		description,
 		status: "stable",
 		generatedBy: `${input.producer}/${OKF_EXPORT_FORMAT_VERSION}`,
 		generatedAt: exportedAt,
@@ -237,5 +245,8 @@ export function serializeConversation(input: ExportInput): OkfExport | null {
 	return {
 		filename: conversationFilename(title, input.exportedAt),
 		markdown: `${scrub(document).trimEnd()}\n`,
+		title,
+		description,
+		startedOn: stamps.length > 0 ? stamps[0].slice(0, 10) : null,
 	};
 }

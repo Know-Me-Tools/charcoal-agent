@@ -51,6 +51,24 @@ export interface ChatExportContent {
 	fallbackClose: string;
 	/** Accessible name of the close button on the mobile sheet. */
 	closeLabel: string;
+	/** All conversations, step one: builds the zip. Names the file, not the browser route. */
+	prepareAll: string;
+	/** Disabled label while the zip is being built. `{done}` and `{total}` are replaced. */
+	preparingAll: string;
+	/** Line shown when the zip is built. `{count}` and `{size}` are replaced; reads right for one. */
+	readyNote: string;
+	/** All conversations, step two: the button whose tap hands over the file. */
+	saveAll: string;
+	/** Visible reason when no saved conversation has anything to export. */
+	bundleEmpty: string;
+	/** Shown when the export is large. */
+	bundleLarge: string;
+	/** Shown when preparing failed. */
+	prepareFailed: string;
+	/** Status after the zip was handed to the share sheet or downloaded. */
+	savedAll: string;
+	/** Status when every save route failed for the zip. */
+	saveFailedAll: string;
 }
 
 export const CHAT_EXPORT_CONTENT: ChatExportContent = {
@@ -70,4 +88,13 @@ export const CHAT_EXPORT_CONTENT: ChatExportContent = {
 	fallbackTextLabel: "Conversation as Markdown",
 	fallbackClose: "Close",
 	closeLabel: "Close export menu",
+	prepareAll: "Prepare all conversations (.zip)",
+	preparingAll: "Preparing: {done} of {total}",
+	readyNote: "Conversations ready: {count}, {size}.",
+	saveAll: "Save zip file",
+	bundleEmpty: "No saved conversations to export.",
+	bundleLarge: "This is a large export. Saving may take a while.",
+	prepareFailed: "Could not prepare the zip file.",
+	savedAll: "Zip file saved.",
+	saveFailedAll: "Could not save the zip file.",
 };

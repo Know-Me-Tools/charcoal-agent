@@ -3,13 +3,12 @@
  * `app-chat-export-okf-single`). A menu from 768 px up, a bottom sheet below,
  * with 44 px targets there. The privacy line sits inside, always visible.
  *
- * EXTENSION POINT: `buildActions` is the one list of actions. The bundle
- * change (`app-chat-export-okf-bundle`) adds its "All conversations (.zip)"
- * action here, and a sidebar-footer entry reuses `ExportMenu` or the same
- * list. Nothing for the bundle is shown until that change lands.
+ * `buildActions` is the one list of actions. "All conversations (.zip)" is two
+ * steps on every device: Prepare builds the zip (the menu stays open), then
+ * Save starts the share or download call synchronously inside its own tap.
  */
 import { useId, useState, type ReactNode } from "react";
-import { CopyIcon, DownloadIcon, FileDownIcon, XIcon } from "lucide-react";
+import { ArchiveIcon, CopyIcon, DownloadIcon, FileDownIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -19,6 +18,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { CHAT_EXPORT_CONTENT } from "../../../content/site/chat-export";
+import { useBundleExport, formatSize, type BundleExportState } from "./use-bundle-export";
 import { useConversationExport, type ConversationExportState } from "./use-conversation-export";
 import { browserSaveEnv, runSave } from "./save-flow";
 
@@ -30,6 +30,24 @@ interface ExportAction {
 	icon: ReactNode;
 	disabled: boolean;
 	onSelect: () => void;
+	/** Leave the menu open after the action (Prepare, so the Save button can appear). */
+	keepOpen?: boolean;
+}
+
+/** `{name}` placeholders replaced from `values`. */
+function fill(template: string, values: Record<string, string | number>): string {
+	return template.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key] ?? ""));
+}
+
+/** The line under the privacy line for the zip: ready, large, empty or failed. Null otherwise. */
+function bundleNote(state: BundleExportState): string | null {
+	if (state.kind === "ready") {
+		const ready = fill(C.readyNote, { count: state.count, size: formatSize(state.bytes) });
+		return state.large ? `${ready} ${C.bundleLarge}` : ready;
+	}
+	if (state.kind === "empty") return C.bundleEmpty;
+	if (state.kind === "failed") return C.prepareFailed;
+	return null;
 }
 
 /** The reason an action is unavailable, as visible text. Null when ready. */
@@ -50,6 +68,7 @@ export function ExportMenu({ threadId, triggerClassName }: ExportMenuProps) {
 	const [open, setOpen] = useState(false);
 	const [fallbackText, setFallbackText] = useState<string | null>(null);
 	const state = useConversationExport(threadId, open);
+	const bundle = useBundleExport(open);
 	const reasonId = useId();
 	const privacyId = useId();
 
@@ -87,7 +106,19 @@ export function ExportMenu({ threadId, triggerClassName }: ExportMenuProps) {
 		);
 	};
 
-	const actions: ExportAction[] = buildActions({ ready, save, copy });
+	// The tap on Save starts the share or download call before any await.
+	const saveAll = () => {
+		if (bundle.state.kind !== "ready") return;
+		const { file, caps } = bundle.state;
+		setOpen(false);
+		void runSave(file, caps, browserSaveEnv()).then((outcome) => {
+			if (outcome.kind === "saved") toast.success(C.savedAll);
+			else if (outcome.kind === "fallback") toast.error(C.saveFailedAll);
+		});
+	};
+
+	const actions: ExportAction[] = buildActions({ ready, save, copy, bundle, saveAll });
+	const zipNote = bundleNote(bundle.state);
 
 	const trigger = (
 		<button
@@ -110,6 +141,7 @@ export function ExportMenu({ threadId, triggerClassName }: ExportMenuProps) {
 					{reason}
 				</p>
 			)}
+			{zipNote && <p className="px-2 pb-1.5 font-ui text-xs text-fg-secondary">{zipNote}</p>}
 		</>
 	);
 
@@ -152,7 +184,7 @@ export function ExportMenu({ threadId, triggerClassName }: ExportMenuProps) {
 					<DropdownMenuContent aria-label={C.menuTitle}>
 						{notes}
 						{actions.map((a) => (
-							<DropdownMenuItem key={a.id} disabled={a.disabled} onClick={a.onSelect}>
+							<DropdownMenuItem key={a.id} disabled={a.disabled} onClick={a.onSelect} closeOnClick={!a.keepOpen}>
 								{a.icon}
 								{a.label}
 							</DropdownMenuItem>
@@ -165,10 +197,38 @@ export function ExportMenu({ threadId, triggerClassName }: ExportMenuProps) {
 	);
 }
 
-function buildActions({ ready, save, copy }: { ready: boolean; save: () => void; copy: () => void }): ExportAction[] {
+interface BuildActionsArgs {
+	ready: boolean;
+	save: () => void;
+	copy: () => void;
+	bundle: ReturnType<typeof useBundleExport>;
+	saveAll: () => void;
+}
+
+function bundleAction({ bundle, saveAll }: Pick<BuildActionsArgs, "bundle" | "saveAll">): ExportAction {
+	const icon = <ArchiveIcon aria-hidden="true" />;
+	const { state, prepare } = bundle;
+	if (state.kind === "ready") {
+		return { id: "save-all", label: C.saveAll, icon: <DownloadIcon aria-hidden="true" />, disabled: false, onSelect: saveAll };
+	}
+	if (state.kind === "preparing") {
+		return {
+			id: "prepare-all",
+			label: fill(C.preparingAll, { done: state.done, total: state.total }),
+			icon,
+			disabled: true,
+			onSelect: prepare,
+			keepOpen: true,
+		};
+	}
+	return { id: "prepare-all", label: C.prepareAll, icon, disabled: false, onSelect: prepare, keepOpen: true };
+}
+
+function buildActions({ ready, save, copy, bundle, saveAll }: BuildActionsArgs): ExportAction[] {
 	return [
 		{ id: "save", label: C.saveFile, icon: <DownloadIcon aria-hidden="true" />, disabled: !ready, onSelect: save },
 		{ id: "copy", label: C.copyMarkdown, icon: <CopyIcon aria-hidden="true" />, disabled: !ready, onSelect: copy },
+		bundleAction({ bundle, saveAll }),
 	];
 }
 
