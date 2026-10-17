@@ -64,9 +64,10 @@ function messageTextOf(message: RichMessage): string {
 }
 
 /** First sentence of the first question, at most 160 characters. No model call. */
-function describe(messages: readonly RichMessage[]): string {
+function describe(messages: readonly RichMessage[], scrub: Scrub): string {
 	const first = messages.find((m) => m.role === "user");
-	const text = first ? oneLine(messageTextOf(first)) : "";
+	// Scrub before truncating, so an id cut in half by the length limit cannot survive as a fragment.
+	const text = first ? scrub(oneLine(messageTextOf(first))) : "";
 	if (text === "") return OKF_STRINGS.fallbackDescription;
 	const sentence = /^.*?[.?!](?=\s|$)/.exec(text)?.[0] ?? text;
 	return sentence.length <= DESCRIPTION_MAX_CHARS ? sentence : `${sentence.slice(0, DESCRIPTION_MAX_CHARS - 1).trimEnd()}…`;
@@ -224,7 +225,7 @@ export function serializeConversation(input: ExportInput): OkfExport | null {
 		return [`## ${heading(message.role)}`, ...(at ? [`_${at}_`] : []), body].join("\n\n");
 	});
 
-	const description = scrub(describe(input.messages));
+	const description = describe(input.messages, scrub);
 	const frontmatter = writeFrontmatter({
 		type: OKF_STRINGS.conceptType,
 		title,

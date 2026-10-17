@@ -69,6 +69,7 @@ export function useBundleExport(open: boolean): BundleExport {
 					setState({ kind: "preparing", done: index + 1, total });
 				}
 
+				if (!alive()) return;
 				const exportedAt = new Date();
 				const bundle = buildBundle(inputs, exportedAt, isSiteBuild() ? "knowme-site" : "knowme-app");
 				if (bundle === null) {
@@ -78,6 +79,7 @@ export function useBundleExport(open: boolean): BundleExport {
 				const { zipFiles } = await import("./okf-zip");
 				const bytes = await zipFiles(bundle.files, {
 					mtime: exportedAt,
+					isCancelled: () => !alive(),
 					onProgress: (done) => {
 						if (alive()) setState({ kind: "preparing", done: threads.length + done, total });
 					},
@@ -92,11 +94,20 @@ export function useBundleExport(open: boolean): BundleExport {
 					large: bundle.bytes >= LARGE_BUNDLE_BYTES,
 					caps: detectCapabilities(file),
 				});
-			} catch {
-				if (alive()) setState({ kind: "failed" });
+			} catch (error) {
+				// An abandoned run stops quietly; anything else is a failure the menu reports.
+				if (!(error instanceof Error && error.name === "ZipCancelled") && alive()) setState({ kind: "failed" });
 			}
 		})();
 	}, []);
+
+	// Leaving the page abandons a run in flight, same as closing the menu.
+	useEffect(
+		() => () => {
+			run.current += 1;
+		},
+		[],
+	);
 
 	return { state, prepare };
 }

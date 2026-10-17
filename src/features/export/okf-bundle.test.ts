@@ -114,6 +114,20 @@ describe("buildBundle", () => {
 		expect(lines[0].match(/(?<!\\)\]\(/g)).toHaveLength(1);
 	});
 
+	it("a first question with a link, an image or HTML cannot add one to the index", () => {
+		const bundle = buildBundle(
+			[thread("Plain", "p", "[click](https://evil.example) ![](https://tracker.example/p.png) <img src=https://t/x> `code` *bold*")],
+			EXPORTED_AT,
+			"knowme-site",
+		);
+		const line = (bundle?.files.find((f) => f.path === "index.md")?.content ?? "").split("\n").find((l) => l.startsWith("* ")) ?? "";
+		const description = line.slice(line.indexOf(" - ") + 3);
+		// Every metacharacter is escaped, so no unescaped link, image, tag, code span or emphasis remains.
+		expect(description).not.toMatch(/(?<!\\)[\][()<>`*!]/);
+		expect(description).toContain("\\[click\\]\\(https://evil.example\\)");
+		expect(line.match(/(?<!\\)\]\(/g)).toHaveLength(1);
+	});
+
 	it("is valid OKF: root index has only okf_version, every concept parses with its type and ISO times", () => {
 		const bundle = buildBundle(
 			HOSTILE_TITLES.map((title, i) => thread(title, `v-${i}`, `question ${i}`)),
@@ -178,6 +192,14 @@ describe("zipFiles", () => {
 		}
 		expect(progress.map(([d]) => d)).toEqual(files.map((_, i) => i + 1));
 		expect(progress.every(([, t]) => t === files.length)).toBe(true);
+	});
+
+	it("stops with ZipCancelled as soon as the run is abandoned, without finishing the rest", async () => {
+		const many = Array.from({ length: 50 }, (_, i) => ({ path: `conversations/c-${i}.md`, content: `file ${i}` }));
+		let seen = 0;
+		const run = zipFiles(many, { mtime: EXPORTED_AT, onProgress: (d) => (seen = d), isCancelled: () => seen >= 3 });
+		await expect(run).rejects.toMatchObject({ name: "ZipCancelled" });
+		expect(seen).toBe(3);
 	});
 
 	it("gives the same bytes for the same input (the entry time is the export time)", async () => {

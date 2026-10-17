@@ -17,6 +17,16 @@ export interface ZipOptions {
 	mtime: Date;
 	/** Called after each file with the number done and the total. */
 	onProgress?: (done: number, total: number) => void;
+	/** Checked before each file; when true the run stops and the promise rejects with `ZipCancelled`. */
+	isCancelled?: () => boolean;
+}
+
+/** The run was abandoned (the menu closed). Not a failure. */
+export class ZipCancelled extends Error {
+	constructor() {
+		super("zip cancelled");
+		this.name = "ZipCancelled";
+	}
 }
 
 const nextTask = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
@@ -33,6 +43,7 @@ export async function zipFiles(files: readonly BundleFile[], options: ZipOptions
 
 	let sliceStart = performance.now();
 	for (const [index, file] of files.entries()) {
+		if (options.isCancelled?.()) throw new ZipCancelled();
 		const entry = new ZipDeflate(file.path, { level: LEVEL });
 		entry.mtime = options.mtime;
 		zip.add(entry);

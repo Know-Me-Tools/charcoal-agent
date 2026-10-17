@@ -43,9 +43,13 @@ interface Entry {
 	date: string;
 }
 
-/** `[title]` text: backslash and brackets escaped so a title cannot end the link. */
-function linkText(title: string): string {
-	return title.replace(/\\/g, "\\\\").replace(/\[/g, "\\[").replace(/\]/g, "\\]");
+/**
+ * Text that came from a conversation, made inert in a Markdown line: every
+ * Markdown and HTML metacharacter is backslash-escaped, so a title or first
+ * question cannot add a link, an image, a tag or emphasis to `index.md`.
+ */
+function inertText(text: string): string {
+	return text.replace(/[\\`*_{}[\]()<>#+!|&~]/g, "\\$&");
 }
 
 function indexMarkdown(entries: readonly Entry[]): string {
@@ -55,7 +59,7 @@ function indexMarkdown(entries: readonly Entry[]): string {
 		months.set(month, [...(months.get(month) ?? []), entry]);
 	}
 	const sections = [...months].map(([month, list]) =>
-		[`## ${month}`, ...list.map((e) => `* [${linkText(e.title)}](/${e.path}) - ${e.description}`)].join("\n"),
+		[`## ${month}`, ...list.map((e) => `* [${inertText(e.title)}](/${e.path}) - ${inertText(e.description)}`)].join("\n"),
 	);
 	return `---\nokf_version: "${OKF_VERSION}"\n---\n\n# ${OKF_STRINGS.bundleIndexTitle}\n\n${sections.join("\n\n")}\n`;
 }
