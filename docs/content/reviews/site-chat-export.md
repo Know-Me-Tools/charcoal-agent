@@ -18,4 +18,4 @@
 - **Voice:** short, concrete, no hype, no exclamation marks, sentence case.
 - **Editorial pre-review (km-chief-content-officer):** not run for these strings. A human has not signed off on the wording beyond the merge below.
 - **Operator approval: given by merge, not by explicit wording.** Travis James merged PR #110 (merge commit `d0c0744`, 2026-10-15T11:29Z) after the PR body listed the strings as drafted. The merge is recorded as approval of the strings as written, as for PR #104. If the operator wants a wording change, it is a follow-up.
-- **Open points for the operator:** `menuTitle` "Export this conversation" is now narrower than the menu, which also exports all conversations; unchanged here.
+- **Later change:** `menuTitle` "Export this conversation" became "Export" on 2026-10-17, at the operator's request, because the menu also exports all conversations (PR `fix/export-menu-title`; merge records approval).
