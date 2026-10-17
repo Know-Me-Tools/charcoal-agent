@@ -22,6 +22,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import AxeBuilder from "@axe-core/playwright";
+import { strFromU8, unzipSync } from "fflate";
 import type { BrowserContext, Page } from "@playwright/test";
 import { expect, test } from "./support/test";
 import { seedTheme } from "./support/page-helpers";
@@ -83,9 +84,18 @@ async function settleNetwork(page: Page): Promise<void> {
 }
 
 /** Records every request the context issues, from any page or worker. */
-function recordRequests(context: BrowserContext): { requests: string[]; stop: () => void } {
+function recordRequests(
+	context: BrowserContext,
+	options: { ignoreCodeLoads?: boolean } = {},
+): { requests: string[]; stop: () => void } {
 	const requests: string[] = [];
-	const onRequest = (request: { method(): string; url(): string }) => requests.push(`${request.method()} ${request.url()}`);
+	const onRequest = (request: { method(): string; url(): string; resourceType(): string }) => {
+		// Spec P-1 allows a lazily loaded zip library: app code arriving as a script
+		// of this origin carries no conversation. A fetch, XHR or beacon still counts.
+		const isCodeLoad = request.resourceType() === "script" && request.method() === "GET";
+		if (options.ignoreCodeLoads && isCodeLoad) return;
+		requests.push(`${request.method()} ${request.url()}`);
+	};
 	context.on("request", onRequest);
 	return { requests, stop: () => context.off("request", onRequest) };
 }
@@ -157,6 +167,41 @@ test.describe("export: privacy proof (zero requests)", () => {
 		expect(shared?.name).toMatch(/\.md$/);
 		expect(shared?.text).toContain(ANSWER);
 		expect(recorder.requests).toEqual([]);
+	});
+});
+
+test.describe("export: all conversations (.zip), privacy proof and content", () => {
+	test.skip(({ browserName }) => browserName !== "chromium", "Runs on Chromium; the WebKit tap path is separate.");
+
+	test("Prepare then Save makes no request, and the zip holds index, log and the conversation", async ({ page, context }) => {
+		await openFinishedThread(page, 1440, "light");
+
+		const recorder = recordRequests(context, { ignoreCodeLoads: true });
+		await page.getByRole("button", { name: "Export", exact: true }).click();
+		await page.getByRole("menuitem", { name: C.prepareAll }).click();
+		// Prepare keeps the menu open and swaps in the Save item once the zip is built.
+		const save = page.getByRole("menuitem", { name: C.saveAll });
+		await expect(save).toBeVisible({ timeout: 15_000 });
+		await expect(page.getByText(/Conversations ready: 1,/)).toBeVisible();
+		const downloadPromise = page.waitForEvent("download");
+		await save.click();
+		const download = await downloadPromise;
+		await expect(page.getByText(C.savedAll)).toBeVisible();
+		recorder.stop();
+
+		expect(download.suggestedFilename()).toMatch(/^knowme-conversations-\d{8}\.zip$/);
+		const entries = unzipSync(new Uint8Array(fs.readFileSync((await download.path()) ?? "")));
+		const names = Object.keys(entries).sort();
+		expect(names).toHaveLength(3);
+		expect(names[0]).toMatch(/^conversations\/\d{4}-\d{2}-\d{2}-[a-z0-9-]+\.md$/);
+		expect(names.slice(1)).toEqual(["index.md", "log.md"]);
+		const index = strFromU8(entries["index.md"]);
+		expect(index.startsWith('---\nokf_version: "0.2"\n---\n')).toBe(true);
+		const conversation = strFromU8(entries[names[0]]);
+		expect(conversation).toContain(QUESTION);
+		expect(conversation).toContain(ANSWER);
+		expect(conversation).not.toContain(FIXTURE_THREAD_ID);
+		expect(recorder.requests, "requests between the Export click and the finished zip download").toEqual([]);
 	});
 });
 
@@ -286,7 +331,7 @@ test.describe("export: states and fallbacks (Chromium)", () => {
 		await trigger.click();
 		const dialog = page.getByRole("dialog", { name: C.menuTitle });
 		await expect(dialog).toBeVisible();
-		for (const name of [C.saveFile, C.copyMarkdown, C.closeLabel]) {
+		for (const name of [C.saveFile, C.copyMarkdown, C.prepareAll, C.closeLabel]) {
 			const box = await dialog.getByRole("button", { name }).boundingBox();
 			expect(box?.height ?? 0, `${name} height`).toBeGreaterThanOrEqual(44);
 		}

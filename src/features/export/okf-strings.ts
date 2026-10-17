@@ -17,7 +17,16 @@ export const OKF_STRINGS = {
 	kbSourcePrefix: "KnowMe knowledge base: ",
 	webSourceFallbackPrefix: "Web source: ",
 	redacted: "[removed]",
+	bundleIndexTitle: "KnowMe conversations",
+	bundleLogTitle: "Log",
+	bundleUndated: "Undated",
 } as const;
+
+/** The one `log.md` line of an export run (OKF Creation entry). Singular for one conversation. */
+export function bundleCreationLine(count: number): string {
+	const noun = count === 1 ? "conversation" : "conversations";
+	return `**Creation** - Exported ${count} ${noun} from KnowMe in the browser. This file was not uploaded anywhere.`;
+}
 
 /** Bump when the exported shape changes. Appears in `generated.by`. */
 export const OKF_EXPORT_FORMAT_VERSION = 1;

@@ -34,6 +34,12 @@ export interface ExportInput {
 export interface OkfExport {
 	filename: string;
 	markdown: string;
+	/** Scrubbed title, as written in the document. Used by the bundle index. */
+	title: string;
+	/** Scrubbed one-line description, as written in the document. */
+	description: string;
+	/** UTC date (yyyy-mm-dd) of the first exported message, or null when no message has a valid time. */
+	startedOn: string | null;
 }
 
 const DESCRIPTION_MAX_CHARS = 160;
@@ -218,10 +224,11 @@ export function serializeConversation(input: ExportInput): OkfExport | null {
 		return [`## ${heading(message.role)}`, ...(at ? [`_${at}_`] : []), body].join("\n\n");
 	});
 
+	const description = scrub(describe(input.messages));
 	const frontmatter = writeFrontmatter({
 		type: OKF_STRINGS.conceptType,
 		title,
-		description: describe(input.messages),
+		description,
 		status: "stable",
 		generatedBy: `${input.producer}/${OKF_EXPORT_FORMAT_VERSION}`,
 		generatedAt: exportedAt,
@@ -237,5 +244,8 @@ export function serializeConversation(input: ExportInput): OkfExport | null {
 	return {
 		filename: conversationFilename(title, input.exportedAt),
 		markdown: `${scrub(document).trimEnd()}\n`,
+		title,
+		description,
+		startedOn: stamps.length > 0 ? stamps[0].slice(0, 10) : null,
 	};
 }
