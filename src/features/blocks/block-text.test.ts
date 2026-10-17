@@ -169,6 +169,15 @@ describe("tableBlockText", () => {
 	});
 });
 
+describe("tableBlockText line breaks and blocks", () => {
+	it("keeps words apart across <br>, paragraphs and list items", () => {
+		const table = tableFromHtml(
+			"<thead><tr><th>H</th></tr></thead><tbody><tr><td>a<br>b</td></tr><tr><td><p>c</p><p>d</p></td></tr><tr><td><ul><li>e</li><li>f</li></ul></td></tr></tbody>",
+		);
+		expect(tableBlockText(table)).toBe(["| H |", "| --- |", "| a b |", "| c d |", "| e f |"].join("\n"));
+	});
+});
+
 describe("tableBlockTsv", () => {
 	it("renders rows tab-separated with no delimiter row", () => {
 		const table = tableFromHtml(

@@ -100,3 +100,14 @@ describe("export leak test", () => {
 		expect(frontmatter).not.toContain("Evil\n");
 	});
 });
+
+describe("scrub keeps prose about bearer authentication", () => {
+	it("redacts a bearer token but not the words", () => {
+		const out = serializeConversation(
+			convo([ask("How does Bearer authentication work? Send Bearer abc123def456ghi789jkl0."), reply([{ type: "text", text: "Use bearer credentials." }])]),
+		);
+		expect(out?.markdown).toContain("How does Bearer authentication work?");
+		expect(out?.markdown).toContain("Use bearer credentials.");
+		expect(out?.markdown).not.toContain("abc123def456ghi789jkl0");
+	});
+});

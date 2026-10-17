@@ -84,7 +84,7 @@ describe("image copy", () => {
     const write = vi.fn().mockResolvedValue(undefined);
     stubClipboard({ write, writeText: vi.fn() });
     class FakeClipboardItem {
-      constructor(public items: Record<string, Blob>) {}
+      constructor(public items: Record<string, Promise<Blob>>) {}
     }
     vi.stubGlobal("ClipboardItem", FakeClipboardItem);
     const png = new Blob(["x"], { type: "image/png" });
@@ -92,8 +92,20 @@ describe("image copy", () => {
     renderMarkdown(`![alt](${SRC})`);
     await click("Copy image");
     expect(write).toHaveBeenCalledOnce();
-    expect((write.mock.calls[0][0][0] as FakeClipboardItem).items["image/png"]).toBe(png);
+    // The item carries the PNG as a promise, so the write can start inside the tap.
+    expect(await (write.mock.calls[0][0][0] as FakeClipboardItem).items["image/png"]).toBeInstanceOf(Blob);
     expect(screen.getAllByRole("status").some((s) => s.textContent === "Copied image")).toBe(true);
+  });
+
+  it("starts the clipboard write before the image bytes arrive (iOS drops the gesture across an await)", async () => {
+    const write = vi.fn().mockReturnValue(new Promise(() => {}));
+    stubClipboard({ write, writeText: vi.fn() });
+    vi.stubGlobal("ClipboardItem", class { constructor(public items: unknown) {} });
+    vi.stubGlobal("fetch", vi.fn().mockReturnValue(new Promise(() => {}))); // bytes never arrive
+    renderMarkdown(`![alt](${SRC})`);
+    fireEvent.click(screen.getByRole("button", { name: "Copy image" }));
+    // No await between the click and this line: the write must already have been called.
+    expect(write).toHaveBeenCalledOnce();
   });
 
   it("copies the URL and says so when ClipboardItem is unsupported", async () => {
@@ -108,8 +120,12 @@ describe("image copy", () => {
 
   it("falls back to the URL when the image bytes cannot be read", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
-    stubClipboard({ write: vi.fn(), writeText });
-    vi.stubGlobal("ClipboardItem", class {});
+    // A real clipboard rejects the write when the item's promise rejects; the fake does the same.
+    const write = vi.fn(async (items: Array<{ items: Record<string, Promise<Blob>> }>) => {
+      await items[0].items["image/png"];
+    });
+    stubClipboard({ write, writeText });
+    vi.stubGlobal("ClipboardItem", class { constructor(public items: Record<string, Promise<Blob>>) {} });
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("cors")));
     render(<MarkdownImage src="https://know-me.tools/p.png" alt="p" />);
     await click("Copy image");

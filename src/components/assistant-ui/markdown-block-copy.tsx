@@ -93,9 +93,15 @@ async function copyImage(url: string): Promise<ImageCopyMode> {
   const clipboard = typeof navigator === "undefined" ? undefined : navigator.clipboard;
   if (clipboard && typeof clipboard.write === "function" && typeof ClipboardItem !== "undefined") {
     try {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`image fetch ${response.status}`);
-      const png = await toPngBlob(await response.blob());
+      // The write starts synchronously, inside the tap, with the PNG as a promise: iOS Safari drops
+      // the user gesture across an `await`, so the bytes are fetched and encoded while it is pending.
+      const png = fetch(url)
+        .then((response) => {
+          if (!response.ok) throw new Error(`image fetch ${response.status}`);
+          return response.blob();
+        })
+        .then(toPngBlob);
+      png.catch(() => {}); // the write below reports a failure; this only stops an unhandled rejection
       await clipboard.write([new ClipboardItem({ "image/png": png })]);
       return "image";
     } catch {
