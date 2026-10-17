@@ -1,0 +1,21 @@
+# Review record: Export menu strings (single conversation)
+
+- **Piece:** the 16 strings of `content/site/chat-export.ts` -> `CHAT_EXPORT_CONTENT` that shipped with PR #110, task 4.5 of change `app-chat-export-okf-single`, phase `chat-export-and-block-copy`. The nine strings added later for the zip are in `site-chat-export-bundle.md`. This record is written after the fact: PR #110 merged on 2026-10-15 without one.
+- **Strings:**
+  - Menu: "Export" (button), "Export this conversation" (title), "Close export menu".
+  - Privacy line, always visible in the menu: "Made in this browser. The export makes no network request."
+  - Actions: "Save as Markdown file (.md)", "Copy as Markdown".
+  - Reasons: "Export is available when the reply has finished.", "Nothing to export yet."
+  - Statuses: "Conversation saved.", "Markdown copied.", "Could not save the file. Copy the text below instead.", "Could not copy. Select the text and copy it yourself."
+  - Text fallback: "Copy the conversation", "Select all of the text below, then copy it.", "Conversation as Markdown", "Close".
+  - In the exported file (`src/features/export/okf-strings.ts`): "Exported from KnowMe in the browser. This file was not uploaded anywhere."
+- **Claims checked against the system:**
+  - "Made in this browser": the file is built in the page from the open conversation; no server, model or third-party call (`use-conversation-export.ts`, `okf-serialize.ts`).
+  - "The export makes no network request": backed by `e2e/chat-export.spec.ts`, which records every request from the Export click to the finished download, share or clipboard write and asserts none; a temporary `fetch` in the save handler made it fail (PR #110). Chromium only; WebKit, Firefox and a real device are not verified (task 4.8).
+  - The line says nothing about what happens to the file afterwards and does not call the conversation private (spec 9.1). The conversation was already sent to a cloud model to be answered; this is not claimed otherwise.
+  - "Save as Markdown file (.md)" names the file, not the route (share sheet, download or text fallback).
+  - "Export is available when the reply has finished": the actions are disabled while a reply streams (`selectIsStreaming`).
+- **Voice:** short, concrete, no hype, no exclamation marks, sentence case.
+- **Editorial pre-review (km-chief-content-officer):** not run for these strings. A human has not signed off on the wording beyond the merge below.
+- **Operator approval: given by merge, not by explicit wording.** Travis James merged PR #110 (merge commit `d0c0744`, 2026-10-15T11:29Z) after the PR body listed the strings as drafted. The merge is recorded as approval of the strings as written, as for PR #104. If the operator wants a wording change, it is a follow-up.
+- **Open points for the operator:** `menuTitle` "Export this conversation" is now narrower than the menu, which also exports all conversations; unchanged here.
