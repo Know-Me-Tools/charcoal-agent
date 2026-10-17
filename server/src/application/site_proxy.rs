@@ -20,7 +20,9 @@ use axum::http::{HeaderMap, HeaderValue, Method};
 use axum::response::Response;
 
 use crate::application::meter::{Meter, TurnTracker};
-use crate::application::public_stream::{UpstreamTap, filter_internal_artifacts};
+use crate::application::public_stream::{
+    KEEP_ALIVE_AFTER, UpstreamTap, filter_internal_artifacts, with_keep_alive,
+};
 use crate::domain::chat_request::{ChatRequestError, SiteAgents, build_site_chat_request};
 use crate::domain::forwarding::{SESSION_HEADER, upstream_request_headers};
 use crate::domain::meter::Outcome;
@@ -176,7 +178,10 @@ impl SiteProxy {
         let (parts, body) = response.into_parts();
         let filtered =
             filter_internal_artifacts(body.into_data_stream(), self.tap.clone(), Some(tracker));
-        Ok(Response::from_parts(parts, Body::from_stream(filtered)))
+        Ok(Response::from_parts(
+            parts,
+            Body::from_stream(with_keep_alive(filtered, KEEP_ALIVE_AFTER)),
+        ))
     }
 }
 
