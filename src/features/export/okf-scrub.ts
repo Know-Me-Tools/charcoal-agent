@@ -9,8 +9,9 @@ import { OKF_STRINGS } from "./okf-strings";
 
 const MIN_ID_LENGTH = 8;
 
+/** A bearer token has digits and is long; the words in "Bearer authentication" are prose and stay. */
 const PATTERNS: readonly RegExp[] = [
-	/\bBearer\s+[A-Za-z0-9._~+/=-]{8,}/gi,
+	/\bBearer\s+(?=[A-Za-z0-9._~+/=-]*\d)[A-Za-z0-9._~+/=-]{16,}/gi,
 	/\bX-UAR-Session-ID\s*[:=]\s*\S+/gi,
 	/\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}/g,
 	/\bhttps?:\/\/(?:localhost|127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|[\w.-]+\.(?:svc|internal|cluster\.local|local))(?::\d+)?[^\s)<>"]*/gi,

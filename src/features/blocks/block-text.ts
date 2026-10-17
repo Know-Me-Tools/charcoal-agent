@@ -65,6 +65,9 @@ interface TableParts {
 /** Elements that are never rendered by construction, or whose text is not shown (ruby annotations). */
 const NEVER_VISIBLE_TAGS = new Set(["script", "style", "template", "rp", "rt"]);
 
+/** Elements whose edges separate words in what the visitor sees. */
+const BLOCK_BOUNDARY_TAGS = new Set(["br", "p", "li", "div", "ul", "ol", "blockquote", "pre", "h1", "h2", "h3", "h4", "h5", "h6"]);
+
 /** Set on the app-rendered Copy buttons so table copy never reads their labels as cell text. */
 export const COPY_CONTROL_ATTR = "data-copy-control";
 
@@ -93,7 +96,9 @@ function visibleText(node: Node): string {
 			.map(visibleText)
 			.join("");
 	}
-	return children.map(visibleText).join("");
+	const text = children.map(visibleText).join("");
+	// A line break or block boundary is a word boundary on screen; cell text collapses the spaces later.
+	return BLOCK_BOUNDARY_TAGS.has(tag) ? ` ${text} ` : text;
 }
 
 /** Cell text: only what is visibly rendered; whitespace runs (including newlines) collapse to one space. */

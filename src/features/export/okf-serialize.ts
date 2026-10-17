@@ -10,6 +10,7 @@ import { normalizeHttpsUrl } from "@/lib/link-policy/cited-web-url";
 import { citationDisplayName } from "@/features/chat/citation-text";
 import { artifactMarkdown, BLOCK_DISPOSITION, imageMarkdown, rewriteMarkers } from "./okf-blocks";
 import { conversationFilename } from "./okf-filename";
+import { neutralizeReplyText } from "./okf-inert";
 import { oneLine, writeFrontmatter, type OkfSource } from "./okf-frontmatter";
 import { buildScrub, type Scrub } from "./okf-scrub";
 import { OKF_EXPORT_FORMAT_VERSION, OKF_STRINGS } from "./okf-strings";
@@ -160,7 +161,7 @@ function renderMessage(message: RichMessage, registry: SourceRegistry): string |
 	const pieces: string[] = [];
 	let run = "";
 	const flush = (): void => {
-		if (run.trim() !== "") pieces.push(isAssistant ? rewriteMarkers(run.trim(), web, kb) : run.trim());
+		if (run.trim() !== "") pieces.push(isAssistant ? rewriteMarkers(neutralizeReplyText(run.trim()), web, kb) : run.trim());
 		run = "";
 	};
 	for (const block of message.content) {

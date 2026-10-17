@@ -4,6 +4,7 @@ import { CopyButton } from "@/components/common/copy-button";
 import { Button } from "@/components/ui/button";
 import { ShikiCodeBlock } from "@/features/artifacts/shiki-code-block";
 import { svgBlockText } from "@/features/blocks/block-text";
+import { sanitizeSvgForDownload } from "@/features/blocks/svg-download";
 import { selectElementText } from "@/hooks/use-copy-to-clipboard";
 import { cn } from "@/lib/utils";
 import { BLOCK_COPY_CONTENT } from "../../../content/site/block-copy";
@@ -47,7 +48,7 @@ function toDataUrl(source: string): string | null {
 }
 
 function downloadSvg(source: string): void {
-	const url = URL.createObjectURL(new Blob([source], { type: SVG_MIME }));
+	const url = URL.createObjectURL(new Blob([sanitizeSvgForDownload(source)], { type: SVG_MIME }));
 	const anchor = document.createElement("a");
 	anchor.href = url;
 	anchor.download = DOWNLOAD_FILE_NAME;

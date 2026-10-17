@@ -130,7 +130,8 @@ describe("serializeConversation goldens, one per block type", () => {
 		const md = render([text("See `a[1]` and [9] and [1](https://x.test).\n\n```\n[1]\n```\n[1]"), { type: "citation", source: "faq", content: "", index: 1 }]);
 		expect(md).toContain("`a[1]`");
 		expect(md).toContain("[9]");
-		expect(md).toContain("[1](https://x.test)");
-		expect(md).toContain("```\n[1]\n```\n[^K1]");
+		// `[1](link)` is a link, not a citation marker: it is not rewritten to a footnote. x.test is not a
+		// destination the page links, so the file carries its text and the destination in a code span.
+		expect(md).toContain("1 (`https://x.test`)");		expect(md).toContain("```\n[1]\n```\n[^K1]");
 	});
 });
