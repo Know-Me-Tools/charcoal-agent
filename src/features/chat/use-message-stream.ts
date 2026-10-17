@@ -3,7 +3,7 @@ import { useChatMessageStore } from "@/stores/chat-message-store";
 import { useChatConnectivityStore } from "@/stores/chat-connectivity-store";
 import { useThreadRegistryStore } from "@/stores/thread-registry-store";
 import { buildUrl, buildHeaders } from "@/lib/api-client";
-import { getSiteAgentId } from "@/hooks/use-site-config";
+import { getSiteAgentId, isSiteBuild } from "@/hooks/use-site-config";
 import { webSearchRequestField } from "@/stores/web-search-preference-store";
 import { dispatchAguiEvent } from "./agui-event-handlers";
 import {
@@ -15,6 +15,7 @@ import {
   buildStreamFailureLogEntry,
   buildVisibilityChangeLogEntry,
 } from "./stream-failure-log";
+import { startStallWatchdog, type StallWatchdog } from "./stream-stall-watchdog";
 
 const UAR_PATH = "/api/chat/completion";
 
@@ -260,7 +261,21 @@ export function useMessageStream() {
       }, deltaCoalescerSchedulers);
       deltasRef.current = coalescer;
 
+      // A connection that silently stops delivering bytes would leave the page
+      // "streaming" forever. The site's server beats every 10 s, so a long
+      // silence there is a dead connection: abort and show the error with Try
+      // again. Not used against a direct UAR, which sends no keep-alives.
+      let stalled = false;
+      const watchdog: StallWatchdog | null = isSiteBuild()
+        ? startStallWatchdog(() => {
+            stalled = true;
+            controller.abort();
+          })
+        : null;
+
       const onVisibilityChange = () => {
+        // A page that just came back from the background gets a fresh window.
+        if (document.visibilityState === "visible") watchdog?.touch();
         // rAF does not run while hidden: move a pending flush to the timer
         // path (and back) so backgrounded streams still commit bounded-rate.
         coalescer.reschedule();
@@ -346,6 +361,7 @@ export function useMessageStream() {
           if (done) break;
 
           receivedBytes += value.byteLength;
+          watchdog?.touch();
           buffer += decoder.decode(value, { stream: true });
 
           // SSE blocks are delimited by double newlines
@@ -429,8 +445,12 @@ export function useMessageStream() {
         // buffered text. On abort the buffer is normally empty already —
         // cancelStream flushes before aborting; this is the safeguard.
         coalescer.flush();
-        if ((err as Error).name === "AbortError") return;
-        const error = err instanceof Error ? err : new Error("Stream failed");
+        if ((err as Error).name === "AbortError" && !stalled) return;
+        const error = stalled
+          ? new Error("The connection stopped delivering data.")
+          : err instanceof Error
+            ? err
+            : new Error("Stream failed");
         console.warn(
           buildStreamFailureLogEntry({
             error,
@@ -445,6 +465,7 @@ export function useMessageStream() {
       } finally {
         // No flush may fire after the stream has ended — a late commit would
         // hit the next run (or a finished one) for this thread.
+        watchdog?.stop();
         coalescer.cancelPending();
         if (deltasRef.current === coalescer) deltasRef.current = null;
         document.removeEventListener("visibilitychange", onVisibilityChange);

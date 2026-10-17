@@ -121,8 +121,8 @@ describe("image copy", () => {
   it("falls back to the URL when the image bytes cannot be read", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     // A real clipboard rejects the write when the item's promise rejects; the fake does the same.
-    const write = vi.fn(async (items: Array<{ items: Record<string, Promise<Blob>> }>) => {
-      await items[0].items["image/png"];
+    const write = vi.fn(async (items: ClipboardItems) => {
+      await (items[0] as unknown as { items: Record<string, Promise<Blob>> }).items["image/png"];
     });
     stubClipboard({ write, writeText });
     vi.stubGlobal("ClipboardItem", class { constructor(public items: Record<string, Promise<Blob>>) {} });
