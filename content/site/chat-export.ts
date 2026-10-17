@@ -73,7 +73,7 @@ export interface ChatExportContent {
 
 export const CHAT_EXPORT_CONTENT: ChatExportContent = {
 	menuLabel: "Export",
-	menuTitle: "Export this conversation",
+	menuTitle: "Export",
 	privacyLine: "Made in this browser. The export makes no network request.",
 	saveFile: "Save as Markdown file (.md)",
 	copyMarkdown: "Copy as Markdown",
