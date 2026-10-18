@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-10-14T11:09:46Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "Assessed against docs/specs/chat-export-okf-and-block-copy.md: six goals, one observed defect (Shiki copy handler has no catch, so a refused clipboard write is silent). The reply allowlist widening (SVG, own-host video) is the security-critical part and ships to production on merge with no approval stop. Open for plan: hand-written zip vs a registry-verified library, image block rendering, dropdown primitive, chunk budget. Adversarial review skipped on the operator's standing instruction; no independent critic has read the assessment.",
+  "skipped": false,
+  "skipReason": null
+}

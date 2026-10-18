@@ -1,0 +1,19 @@
+{
+  "phase": "chat-export-and-block-copy",
+  "stage": "execute",
+  "dispatchedAt": "2026-10-14T12:10:04Z",
+  "backend": "openspec",
+  "builderRoute": "kimi-code/k3 over ACP (driver/kimi-acp.mjs)",
+  "selfTest": "passed 2026-10-14, exit 0",
+  "assignedChanges": [
+    "app-mobile-stream-reliability-and-heat"
+  ],
+  "pendingChanges": [
+    "site-stream-resume",
+    "app-block-copy-and-media-blocks",
+    "app-chat-export-okf-single",
+    "app-chat-export-okf-bundle"
+  ],
+  "pendingWork": "all 36 tasks pending at dispatch; first task 1.1",
+  "note": "Dispatch receipt only. Not a stage handoff; execute stays IN_PROGRESS."
+}

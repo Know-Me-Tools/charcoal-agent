@@ -1,0 +1,11 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-10-14T11:29:32Z",
+  "outputs": [
+    "plan.md"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "5 changes in 4 rounds: iOS stream reliability and heat first (production problem, bounded work plus a WebKit test; heat itself needs the operator's real-iPhone run), a resume change gated on measurement, block copy and media rules behind a security review, single OKF export with a mobile-first save flow (prebuild, share sheet, anchor download, copy fallback), then the zip bundle. Task model assignments are in plan.md (36 tasks, Claude Opus 5.5 and Sonnet 5.5 via native km-* subagents; no measured evidence in this repo). Unresolved: real iPhone and operator time, UAR resume support in the pinned image, registry check for any zip library, operator approval of visitor strings. Adversarial review skipped on the operator's standing instruction.",
+  "skipped": false,
+  "skipReason": null
+}
