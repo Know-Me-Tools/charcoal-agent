@@ -1,0 +1,131 @@
+{
+  "schemaVersion": "2",
+  "generatedBy": "kbd-runtime",
+  "projectionContractVersion": 2,
+  "sourceRevision": 2166,
+  "derivedRevision": 2166,
+  "frontier": {
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 2166
+  },
+  "conflictCount": 0,
+  "phase": "chat-export-and-block-copy",
+  "phaseId": "chat-export-and-block-copy",
+  "parentPhase": null,
+  "last_updated": "2026-10-18T02:25:36.897444Z",
+  "last_updated_by": "kbd-runtime",
+  "changes_total": 5,
+  "changes_completed": 5,
+  "implementation_total": 5,
+  "implementation_completed": 5,
+  "completion": {
+    "primaryCounter": "implementation",
+    "implementation": {
+      "completed": 5,
+      "total": 5,
+      "status": "COMPLETE"
+    },
+    "evidence": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    },
+    "certification": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    },
+    "publication": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    }
+  },
+  "completionScopes": {
+    "completion": "phase",
+    "runCompletion": "run"
+  },
+  "runCompletion": {
+    "scope": "run",
+    "runId": "complete-rebranding-20260923T223312Z",
+    "primaryCounter": "implementation",
+    "implementation": {
+      "completed": 47,
+      "total": 85,
+      "status": "IN_PROGRESS"
+    },
+    "evidence": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    },
+    "certification": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    },
+    "publication": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    }
+  },
+  "changes": [
+    {
+      "id": "app-mobile-stream-reliability-and-heat",
+      "title": "Stop the phone running hot and replies stopping on iOS Safari",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 11,
+      "tasks_done": 11,
+      "last_task_completed": "Make the stream-load spec find the composer by its accessible name so it runs on both the site and the app build",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "site-stream-resume",
+      "title": "Resume a reply interrupted by backgrounding (gated on measurement)",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 6,
+      "tasks_done": 6,
+      "last_task_completed": "Confirm the UAR resume contract (route, `x-uar-run-id`, `Last-Event-ID`) against the pinned UAR source, not memory",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "app-block-copy-and-media-blocks",
+      "title": "Per-block Copy buttons, SVG block, own-host media rules",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 10,
+      "tasks_done": 10,
+      "last_task_completed": "Fix the defects the gate's screenshots and clipboard readback found: SVG header clips Download at 320 px, Mermaid copy keeps a trailing newline, suspect image copy button placement; add a realistic im",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "app-chat-export-okf-single",
+      "title": "Export the current conversation as an OKF markdown file, mobile-first save",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 8,
+      "tasks_done": 8,
+      "last_task_completed": "Integration gate: download in Chromium, Firefox and WebKit; real-iPhone and Android checks of share, download and copy recorded by the operator",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "app-chat-export-okf-bundle",
+      "title": "Export all conversations as an OKF zip bundle",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 6,
+      "tasks_done": 6,
+      "last_task_completed": "Integration gate: export 1, 50 and 300 threads in Chromium and WebKit with long-task measurement; real-iPhone check recorded by the operator",
+      "next_task_pending": null,
+      "blockers": []
+    }
+  ],
+  "children": {},
+  "migrationStatus": null
+}
