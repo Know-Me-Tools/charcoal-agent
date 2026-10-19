@@ -79,6 +79,10 @@ async function streamChat(page: Page, events: SseEvent[]): Promise<void> {
 
 /** Saves the open chat through the Export menu and returns the file text. */
 async function saveOpenChat(page: Page): Promise<string> {
+	// Desktop Safari accepts a file in navigator.canShare, so Save would open the
+	// native share sheet and never fire a download. Report no file sharing so every
+	// engine takes the same anchor-download route this spec reads the file from.
+	await page.evaluate(() => Object.defineProperty(navigator, "canShare", { configurable: true, value: () => false }));
 	const downloadPromise = page.waitForEvent("download");
 	await page.getByRole("button", { name: "Export", exact: true }).click();
 	await page.getByRole("menuitem", { name: C.saveFile }).click();
@@ -87,8 +91,6 @@ async function saveOpenChat(page: Page): Promise<string> {
 }
 
 test.describe("export: omission line (streamed chat)", () => {
-	test.skip(({ browserName }) => browserName !== "chromium", "Chromium gate.");
-
 	test("a chat with a confirm card ends with the omission line and carries none of the card", async ({ page }) => {
 		await streamChat(page, CARD_EVENTS);
 		const text = await saveOpenChat(page);
@@ -109,7 +111,7 @@ test.describe("export: omission line (streamed chat)", () => {
 });
 
 test.describe("export: omission line (stored chat with a form card and a remote image)", () => {
-	test.skip(({ browserName }) => browserName !== "chromium" || process.env.E2E_BUILT === "1", "Needs the dev server to write the stored thread.");
+	test.skip(() => process.env.E2E_BUILT === "1", "Needs the dev server to write the stored thread.");
 
 	test("ends with one line naming both kinds and carries neither the card nor the image url", async ({ page }) => {
 		await page.setViewportSize({ width: 1440, height: 900 });

@@ -38,6 +38,18 @@ export default defineConfig({
       testMatch: ["stream-load.spec.ts", "block-copy.spec.ts", "chat-export.spec.ts"],
       use: { ...devices["iPhone 14"] },
     },
+    {
+      // Task 1.2 (qa-browser-matrix): the two specs that hold the reset notice
+      // and the export omission line, on desktop WebKit and Firefox.
+      name: "webkit",
+      testMatch: ["chat-export-omission.spec.ts", "db-reset-notice.spec.ts"],
+      use: { ...devices["Desktop Safari"] },
+    },
+    {
+      name: "firefox",
+      testMatch: ["chat-export-omission.spec.ts", "db-reset-notice.spec.ts"],
+      use: { ...devices["Desktop Firefox"] },
+    },
   ],
   webServer: {
     command: `npx vite --port ${PORT} --strictPort`,

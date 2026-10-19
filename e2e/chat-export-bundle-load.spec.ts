@@ -29,7 +29,11 @@ const PARAGRAPH = "The Universal Agent Runtime owns inference, routing and gover
 async function seedConversations(page: Page, count: number): Promise<void> {
 	await page.evaluate(
 		async ({ count: n, perThread, paragraph }) => {
-			const { getDbInstance } = await import("/src/lib/db/pglite.ts");
+			// A variable specifier keeps tsc from resolving the dev-server path; the browser imports it natively.
+			const dbModule = "/src/lib/db/pglite.ts";
+			const { getDbInstance } = (await import(/* @vite-ignore */ dbModule)) as {
+				getDbInstance: () => { upsertThread(t: object): Promise<void>; insertMessage(id: string, m: object): Promise<void> };
+			};
 			const db = getDbInstance();
 			const day = 24 * 60 * 60 * 1000;
 			const base = Date.UTC(2026, 9, 14, 12, 0, 0);
