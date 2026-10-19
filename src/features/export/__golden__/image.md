@@ -27,3 +27,5 @@ _2026-10-14T04:55:09+00:00_
 Two images.
 
 ![A diagram](https://know-me.tools/assets/diagram.png)
+
+_Left out of this file: images from other sites._
