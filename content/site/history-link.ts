@@ -1,5 +1,6 @@
 /**
- * DRAFT, pending operator approval (record in `docs/content/reviews/site-history-link.md`).
+ * DRAFT, pending operator approval (record in `docs/content/reviews/site-history-link.md`:
+ * shipped in PR #106, merged 2026-10-15; the record states what the merge proves).
  *
  * The front-page header link that takes a returning visitor to the conversations
  * stored in this browser. It is shown only when this browser holds at least one

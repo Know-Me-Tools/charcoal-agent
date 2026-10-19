@@ -1,0 +1,16 @@
+# Review record: "Your conversations" header link
+
+- **Piece:** `content/site/history-link.ts` -> `HISTORY_LINK_CONTENT.label`, introduced in commit `f1285e1` (2026-10-15T04:34:53-05:00, "feat(site): show a 'Your conversations' link on the front page when this browser has saved chats"), pull request #106 (branch `feat/site-history-link`). This record is written after the fact, in change `app-home-resume-chat`: #106 merged without one, and the strings file kept its "DRAFT, pending operator approval" comment until this change pointed it at this record. The string has not changed since `f1285e1` (`git log -- content/site/history-link.ts` shows that one commit).
+- **String:** "Your conversations".
+- **Where it appears:** the public site build's header (`src/components/site/site-header.tsx`), right of the theme toggle, as a link to `/threads` (the conversation list). Only on the site build, and only when this browser's local database holds at least one saved (non-ephemeral) conversation (`useHasSavedChats`). Not on the app build, which has its own "Open app" link to the same place. At 320 px the text wraps to two lines (stated in the PR body; seen in the screenshots of `app-home-resume-chat`).
+- **What it must not claim:**
+  - It must not say where the conversations are kept, how long, or that they are private. The About panel already says "Your conversations are stored in this browser" (`content/site/about-panel.ts`); the link adds nothing to that.
+  - It must not imply an account, a login or a sync: there is none. The conversations are this browser's.
+  - It must not be read as the way to start a new conversation; the front-page composer does that.
+- **Claims checked against the system:**
+  - "Your conversations": the link goes to the list of the conversations stored in this browser's PGlite database (`/threads`, sidebar list). `e2e/site-history-link.spec.ts` (site build, real PGlite) checks the link is absent before a conversation is saved, visible after, and that a click lands on `/threads`; and that the header has no horizontal overflow at 320 and 1440 px.
+  - Hidden when there is no saved conversation or only an unsaved draft: `src/pages/landing-page.site.test.tsx` ("history link on the site build").
+  - The word "conversations" is the same word the thread list and the About panel use.
+- **Voice:** two words, plain noun phrase, sentence case, no hype, no exclamation mark, no claim.
+- **Editorial pre-review (km-chief-content-officer):** not run for this string (the #106 PR body says so: "Content-officer pre-review has not run on this one string"). A human has not signed off on the wording beyond the merge below.
+- **Operator approval: given by merge, not by explicit wording.** The #106 PR body named the label as new visitor-facing copy that needed approval or a change before merge. Travis James (GitHub `GQAdonis`) merged #106 (merge commit `a9e5f318843fd3d466ea521739b5fc1420122167`, 2026-10-15T10:05:18Z, which is 05:05:18 -05:00). The merge is recorded as approval of the string as written, as for PR #104 and PR #110. This record does not claim more than that: no separate written approval exists in the repository, and the live site was not checked for this record. If the operator wants a wording change, it is a follow-up.

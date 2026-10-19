@@ -3,6 +3,7 @@ import { type FormEvent, type KeyboardEvent, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { KnowMeLockup } from "@/components/brand";
 import { EMBER_CTA } from "@/components/site/ember-cta";
+import { ResumeChatLink } from "@/components/site/resume-chat-link";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { WebSearchToggle } from "@/components/assistant-ui/web-search-toggle";
@@ -114,7 +115,7 @@ export default function LandingPage() {
 							</p>
 						</div>
 
-						<div className={cn("mt-8 w-full lg:mt-0 lg:max-w-none", !siteBuild && "md:max-w-xl")}>
+						<div className={cn("mt-8 w-full lg:relative lg:mt-0 lg:max-w-none", !siteBuild && "md:max-w-xl")}>
 							<form
 								onSubmit={handleSubmit}
 								className="rounded-xl bg-composer p-2 transition-hover focus-within:bg-raised has-[textarea:focus-visible]:outline-2 has-[textarea:focus-visible]:outline-offset-2 has-[textarea:focus-visible]:outline-ring"
@@ -146,6 +147,7 @@ export default function LandingPage() {
 									<p className="font-mono text-xs text-faint">{AI_DISCLOSURE_CONTENT.sensitiveDataHint}</p>
 								</div>
 							)}
+							{siteBuild && <ResumeChatLink />}
 						</div>
 					</div>
 				</section>
