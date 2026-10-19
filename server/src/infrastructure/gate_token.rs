@@ -119,7 +119,7 @@ impl<F: TokenFetcher> TokenCache<F> {
         if state
             .token
             .as_ref()
-            .is_some_and(|t| &t.authorization == rejected)
+            .is_some_and(|t| t.authorization == rejected)
         {
             state.token = None;
         }
