@@ -30,6 +30,10 @@ jobs:
       # (PyYAML, or yq) already on ubuntu-latest; installs nothing.
       - name: Check Kubernetes manifests
         run: ./scripts/check-manifests.sh
+      # ci-server-gate-on-deploy: fails if the image job stops needing the
+      # server job, or if the PR and server workflows lose their gates.
+      - name: Check CI gates
+        run: ./scripts/check-ci-gates.sh
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version-file: .nvmrc
