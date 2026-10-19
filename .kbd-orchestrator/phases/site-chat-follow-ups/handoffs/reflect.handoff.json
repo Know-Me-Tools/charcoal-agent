@@ -1,0 +1,11 @@
+{
+  "stage": "reflect",
+  "completedAt": "2026-10-19T14:35:19Z",
+  "outputs": [
+    "reflection.md"
+  ],
+  "nextStage": null,
+  "summaryForNext": "Lead delta: PR 129 turned main red because only narrow test directories were run (full suite not run), so the export omission line and the reset notice shipped one PR late via fix PR 130; the CSP cause was misread first and its first fix reverted; no cumulative adversarial review (pending_review). Corrective actions: run the CI Verify sequence before opening a PR that adds a test file; read the harness header before judging a failing test; clippy --all-targets first. Goals: device checks met on a thin report, export fixes live, ceiling unchanged by default and housekeeping partial. Next phase seed: site-ci-gates-and-chat-polish (CI step for the server crate first).",
+  "skipped": false,
+  "skipReason": null
+}

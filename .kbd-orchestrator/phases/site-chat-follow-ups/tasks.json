@@ -1,0 +1,42 @@
+{
+  "phase": "site-chat-follow-ups",
+  "note": "Coverage index for the readiness check. Ids are <change>:<task> because task ordinals repeat across changes. Source of truth for task state is the runtime ledger.",
+  "tasks": [
+    {
+      "id": "app-db-reset-notice:1.1"
+    },
+    {
+      "id": "app-db-reset-notice:1.2"
+    },
+    {
+      "id": "app-db-reset-notice:1.4"
+    },
+    {
+      "id": "app-db-reset-notice:1.5"
+    },
+    {
+      "id": "app-export-omission-note:1.1"
+    },
+    {
+      "id": "app-export-omission-note:1.3"
+    },
+    {
+      "id": "app-export-omission-note:1.4"
+    },
+    {
+      "id": "site-server-gates-green:1.1"
+    },
+    {
+      "id": "site-server-gates-green:1.2"
+    },
+    {
+      "id": "site-server-gates-green:1.3"
+    },
+    {
+      "id": "site-server-gates-green:1.4"
+    },
+    {
+      "id": "site-server-gates-green:1.5"
+    }
+  ]
+}

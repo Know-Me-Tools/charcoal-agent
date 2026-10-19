@@ -1,0 +1,21 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-10-19T12:29:50Z",
+  "outputs": [
+    "plan.md",
+    "adopted-contract.json",
+    "decision-log.md",
+    "tasks.json"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "3 changes, 18 tasks, one round (export, local database and Rust server are separate files, so they run in parallel in separate worktrees); first to execute is site-chat-follow-ups/site-server-gates-green because the CSP test failure may be a real header difference and has a stop condition. Both visitor strings need a content-officer review record and the operator's merge. The operator did not answer the four assess questions; defaults D-001 to D-003 are recorded (token ceiling unchanged). Task model assignments are in plan.md (native Sonnet 5.5, no unresolved routes). Contract adopted, digest 4091114d (amended once to make owner task ids unique). Adversarial review skipped on the standing instruction.",
+  "skipped": false,
+  "skipReason": null,
+  "identity": {
+    "projectId": "440c5818-223c-4091-8b7f-bc8083505a3c",
+    "runId": "complete-rebranding-20260923T223312Z",
+    "phaseId": "site-chat-follow-ups",
+    "planRevision": 2,
+    "contractDigest": "4091114dd84f05ae081a58957ad8342edb42aee9f9ab3667655d8445ef102c14"
+  }
+}

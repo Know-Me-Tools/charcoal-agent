@@ -1,0 +1,12 @@
+{
+  "phase": "site-chat-follow-ups",
+  "dispatchedAt": "2026-10-19T12:40:00Z",
+  "backend": "openspec",
+  "assignedChanges": [
+    {"id": "site-server-gates-green", "worktree": ".claude/worktrees/c3-gates", "branch": "fix/server-gates-green", "route": "driver, native Sonnet 5.5", "tasks": 7},
+    {"id": "app-export-omission-note", "worktree": ".claude/worktrees/c1-omission", "branch": "feat/export-omission-note", "route": "km-frontend-engineer, native Sonnet 5.5", "tasks": 5},
+    {"id": "app-db-reset-notice", "worktree": ".claude/worktrees/c2-reset", "branch": "feat/db-reset-notice", "route": "km-frontend-engineer, native Sonnet 5.5", "tasks": 6}
+  ],
+  "pendingWork": "All 18 tasks pending at dispatch. Final integration gates, cumulative review (pending_review), verify and archive remain after implementation.",
+  "readiness": "READY at dispatch, digest 4091114dd84f05ae081a58957ad8342edb42aee9f9ab3667655d8445ef102c14"
+}

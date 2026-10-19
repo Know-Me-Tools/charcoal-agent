@@ -1,0 +1,12 @@
+{
+  "stage": "execute",
+  "completedAt": "2026-10-19T14:33:34Z",
+  "outputs": [
+    "execution.md",
+    "progress.json"
+  ],
+  "nextStage": "reflect",
+  "summaryForNext": "3 of 3 changes (18 of 18 tasks) merged by the operator as PRs 127, 128, 129 plus fix PR 130; all archived with spec deltas merged; production runs the PR 130 deploy (digest 97e00ae3) and the served bundle contains both new strings; boundary packet clean, reconcile clean. Misses to lead the reflection with: CSP cause misread first and its first fix reverted; PR 129 turned main red because only narrow test directories were run (full suite not run), so 128 and 129 shipped one PR late; PR 129 first opened without its OpenSpec folder. Cumulative adversarial review not run (standing instruction): pending_review, no waiver. Not verified: WebKit, Firefox, real-device look at the two new strings, remote-image export on the built bundle, 44 px close control.",
+  "skipped": false,
+  "skipReason": null
+}

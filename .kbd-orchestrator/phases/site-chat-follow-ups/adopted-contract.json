@@ -1,0 +1,195 @@
+{
+  "contractVersion": "1",
+  "kind": "kbd.adopted-contract",
+  "identity": {
+    "projectId": "440c5818-223c-4091-8b7f-bc8083505a3c",
+    "runId": "complete-rebranding-20260923T223312Z",
+    "phaseId": "site-chat-follow-ups",
+    "planRevision": 2,
+    "contractDigest": "4091114dd84f05ae081a58957ad8342edb42aee9f9ab3667655d8445ef102c14"
+  },
+  "digestNormalization": {
+    "algorithm": "sha256",
+    "command": "jq -S -c 'del(.identity.contractDigest) | del(.identity.planRevision)' adopted-contract.json",
+    "rationale": "contractDigest is excluded to avoid self-reference; planRevision is excluded because the canonical Decision binds it.",
+    "stalenessRule": "REJECT-STALE when the digest differs from the latest non-superseded adoption decision for this contract path."
+  },
+  "adoptionSource": "Operator instruction 2026-10-18: 'go' (start site-chat-follow-ups, items 1 to 3 in the order proposed) and the standing instruction 'DO EVERYTHING!! Don't ask me unless you absolutely need to.' The three goals are in goals.md. The four plan-time defaults are decisions D-001 to D-003 and D-005 in decision-log.md and are the lead's, not the operator's.",
+  "decisionOwner": "Travis James (operator)",
+  "amendmentPolicy": "Material scope or acceptance changes require explicit operator adoption recorded as a new canonical decision with supersedes; suggestions never auto-enter task totals.",
+  "releaseClaim": {
+    "userOperation": "A visitor exports a conversation and gets a file that is complete for what they saw, or that says what is missing; a visitor whose saved chats are reset is told; the server's own lint and header tests are green on main.",
+    "supportedEnvironments": [
+      "https://know-me.tools in iOS Safari and Android (browser not stated by the operator)",
+      "desktop Chromium for automated checks",
+      "Rust server crate on the pinned toolchain, one cargo target directory"
+    ],
+    "currentCapabilities": "Export Save, Copy as Markdown, zip, image Copy and user-message Copy work on iPhone and Android (operator report 2026-10-18, summary only); A plain text conversation exports to a correct OKF file (one Android file read by the agent); Production runs the #125 image; main has no unmerged code",
+    "explicitUnknowns": [
+      "Whether a chat with a form, confirm or display artifact, or a remote image, exports with no mark of the omission today (read from code, not run)",
+      "The wording of the existing failure toast and how often the database wipe fires in production",
+      "Whether the CSP test failure on main is test drift or a real header difference",
+      "Whether the three clippy errors and the CSP failure still reproduce (carried from 2026-10-17)",
+      "Zip Prepare time on a phone and the device models used in the operator's checks",
+      "WebKit and Firefox desktop behaviour of the export"
+    ]
+  },
+  "statusVocabulary": [
+    "PASS",
+    "FAIL",
+    "BLOCKED",
+    "NOT_EXERCISED"
+  ],
+  "scenarioMatrix": [
+    {
+      "id": "EXP-1",
+      "name": "Omission line present when visible content was dropped",
+      "ownerTask": "app-export-omission-note:1.1+app-export-omission-note:1.3+app-export-omission-note:1.4",
+      "productionEntry": "Export menu in the built site app, Save or Copy as Markdown, on a chat containing a form artifact and a remote image",
+      "realCollaborators": [
+        "built site app",
+        "PGlite in the browser",
+        "Chromium download"
+      ],
+      "oracle": "The downloaded file ends with the omission line, and neither the artifact text nor the image URL appears in the file.",
+      "negativeControl": "The same run with the detection removed: the file has no omission line and the test fails.",
+      "fixtures": "A scratch Playwright profile; a seeded thread with one form artifact and one https image from another host; digest of the seed recorded in the evidence file.",
+      "evidence": "Downloaded file and its sha256, the test run output, the mutation-check output, the tsc run on the new test."
+    },
+    {
+      "id": "EXP-2",
+      "name": "No omission line for plain or hidden-only chats",
+      "ownerTask": "app-export-omission-note:1.3+app-export-omission-note:1.4",
+      "productionEntry": "Export menu in the built site app on a text-only chat and on a chat with only reasoning and step blocks besides text",
+      "realCollaborators": [
+        "built site app",
+        "PGlite in the browser"
+      ],
+      "oracle": "The downloaded file has no omission line.",
+      "negativeControl": "A chat with a dropped form artifact must produce the line (EXP-1); if both outputs are identical the oracle does not discriminate.",
+      "fixtures": "Two seeded threads in a scratch profile; seed digests in the evidence file.",
+      "evidence": "Both downloaded files and their sha256, test output."
+    },
+    {
+      "id": "DB-1",
+      "name": "Reset notice shown once after purge-and-reopen",
+      "ownerTask": "app-db-reset-notice:1.1+app-db-reset-notice:1.2+app-db-reset-notice:1.4+app-db-reset-notice:1.5",
+      "productionEntry": "Built site app opened against a database that throws a 'bundle size' error on open (method from task 1.1)",
+      "realCollaborators": [
+        "built site app",
+        "IndexedDB in Chromium",
+        "PGlite"
+      ],
+      "oracle": "One notice is visible after load, the chat list is empty, and the app is usable.",
+      "negativeControl": "The same run with the notice removed: no notice and the test fails.",
+      "fixtures": "A scratch browser profile with the broken database from task 1.1; its construction recorded. If task 1.1 finds no honest method, this scenario is marked BLOCKED with the reason, not passed on a mock.",
+      "evidence": "Screenshot read by the agent, the test output, the mutation-check output."
+    },
+    {
+      "id": "DB-2",
+      "name": "No notice on a normal start or on reload after a reset",
+      "ownerTask": "app-db-reset-notice:1.4+app-db-reset-notice:1.5",
+      "productionEntry": "Built site app in a fresh profile, then reload after DB-1",
+      "realCollaborators": [
+        "built site app",
+        "IndexedDB in Chromium"
+      ],
+      "oracle": "No reset notice is visible on a normal start or on the reload that follows a reset.",
+      "negativeControl": "DB-1 must show the notice in the same harness; if neither shows it the harness is not seeing notices.",
+      "fixtures": "Fresh scratch profile; the profile from DB-1.",
+      "evidence": "Screenshots read by the agent, test output."
+    },
+    {
+      "id": "SRV-1",
+      "name": "Clippy with warnings denied is clean on the server crate",
+      "ownerTask": "site-server-gates-green:1.1+site-server-gates-green:1.3+site-server-gates-green:1.5",
+      "productionEntry": "cargo clippy for the server crate with warnings denied, in a clean worktree of the change branch",
+      "realCollaborators": [
+        "pinned Rust toolchain",
+        "the server crate and its dependencies"
+      ],
+      "oracle": "Exit code 0 and no errors reported.",
+      "negativeControl": "The same command on clean origin/main before the fix reports the errors recorded in task 1.1.",
+      "fixtures": "Clean worktree off origin/main at 7eb995d for the baseline; the change branch for the fix.",
+      "evidence": "Both command outputs, exit codes, commit hashes."
+    },
+    {
+      "id": "SRV-2",
+      "name": "Header test asserts the Content-Security-Policy the server sends",
+      "ownerTask": "site-server-gates-green:1.2+site-server-gates-green:1.4+site-server-gates-green:1.5",
+      "productionEntry": "The server test suite, including server/tests/meter_and_headers.rs, in a clean worktree of the change branch",
+      "realCollaborators": [
+        "the real server router in the test",
+        "the live response header read with curl -sI for comparison"
+      ],
+      "oracle": "The suite passes, and the expected header in the test equals the header the server code sends.",
+      "negativeControl": "Changing the server header by one directive makes the test fail.",
+      "fixtures": "Clean worktree of the change branch; the live header captured read-only at the time of task 1.2.",
+      "evidence": "Test output, the live header text, the negative-control output."
+    }
+  ],
+  "functionalScope": [
+    "Export ends with one omission line when a visible block was dropped",
+    "One reset notice, once, after a purge-and-reopen succeeds",
+    "Server clippy clean with warnings denied; header test asserts the header the server sends",
+    "Probe edits committed or discarded; stale worktrees listed with the operator's removal command"
+  ],
+  "resilienceScope": {
+    "policy": "Adopted requirements never defer via budget overflow (exhaustion means checkpoint and BLOCKED). Only never-adopted optional items may defer.",
+    "deferredOptional": [
+      "Smaller export review items (console.warn on tab switch, aria-describedby, ')' escaping, same-origin media L4)",
+      "Reply-speed progress cue",
+      "Export description taking an abandoned first message",
+      "Monthly token ceiling change (decision D-001: no change)"
+    ]
+  },
+  "exclusions": [
+    "Any change to the PGlite purge-and-reopen recovery itself",
+    "Exporting or copying chats before a wipe",
+    "Changing the kill switch, the ConfigMap site-chat-kill-switch or SITE_CHAT_KILL_SWITCH_EXPECTED",
+    "Reading credential values",
+    "The agent removing worktrees (operator command)",
+    "Changing the production Content-Security-Policy header without the operator's agreement"
+  ],
+  "requiredSafetyChecks": [
+    "Export zero-network-request proof and leak test stay green, each with a mutation check",
+    "No identifier, thread id, token or URL from a dropped block appears in the omission line",
+    "A CSP header found weaker than intended stops the work and is reported to the operator",
+    "Single-writer cargo discipline: one cargo invocation at a time in one target directory",
+    "New visitor strings carry a content-officer pre-review and a review record before the PR is opened"
+  ],
+  "budgets": {
+    "timeMinutes": 600,
+    "toolCalls": 600,
+    "repairAttempts": 3,
+    "noProgressLimit": 3,
+    "tokenBudget": "UNKNOWN",
+    "tokenFallback": "toolCalls ceiling",
+    "exhaustion": "Checkpoint and mark BLOCKED; never skip or downgrade a required safety check."
+  },
+  "evidenceInvalidation": "Evidence is keyed to the commit and fixture digest it ran against. A later commit to files a scenario touches invalidates that scenario's evidence only; other scenarios keep theirs; history is preserved; no blanket re-review.",
+  "workerRoutes": {
+    "agent": "Claude Code native subagents (km-frontend-engineer, km-rust-engineer, km-chief-content-officer read-only)",
+    "model": "claude-sonnet-5-5",
+    "billing": "native session; no external billing route",
+    "reviewRoundsMax": 0,
+    "subagents": "Native km-* subagents only; no external worker; adversarial review skipped on the operator's standing instruction."
+  },
+  "boundaryPacket": {
+    "postImplementationOnly": true,
+    "singleRun": true,
+    "commands": [
+      "curl -sI https://know-me.tools",
+      "kubectl --context know-me -n knowme get deploy knowme-web -o jsonpath='{.spec.template.spec.containers[*].image}'",
+      "kbd-apply reconcile site-chat-follow-ups"
+    ],
+    "expectedEffects": "Read-only. The live Content-Security-Policy equals the one the header test asserts; the deployed digest differs from the #125 image and matches the last merged change; reconcile reports clean.",
+    "requiredApprovals": "None for the reads. The operator merges each PR; merges deploy and are not run by the agent.",
+    "receipts": "Output of the three commands in evidence/<date>/boundary-packet.md.",
+    "cleanup": "None.",
+    "stopConditions": "A CSP header weaker than intended; an export that carries an identifier; reconcile reporting drift."
+  },
+  "status": {
+    "implementationComplete": false
+  }
+}
