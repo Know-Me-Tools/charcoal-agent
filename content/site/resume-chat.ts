@@ -13,5 +13,5 @@ export interface ResumeChatContent {
 }
 
 export const RESUME_CHAT_CONTENT: ResumeChatContent = {
-	label: "Continue your last conversation",
+	label: "Continue your conversation",
 };
