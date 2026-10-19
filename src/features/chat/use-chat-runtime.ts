@@ -297,6 +297,51 @@ export interface ChatRuntimeOptions {
   promptCachingEnabled?: boolean;
 }
 
+/**
+ * Longest a send waits for the thread registry to hydrate. Hydration is one
+ * local read; on a cold start it finished 100 to 500 ms after the composer
+ * appeared, at 1x, 4x and 6x CPU throttle. 2 s is four times the slowest of
+ * those, still short enough that a stuck read does not feel like a dead send.
+ * Past it the send goes ahead as it always did (without registering early).
+ */
+const HYDRATION_WAIT_CAP_MS = 2000;
+
+/**
+ * Makes sure a thread the registry does not know yet has its row enqueued
+ * before the first message of the thread is. The write queue runs in enqueue
+ * order and a message row needs its thread row (messages_thread_id_fkey), so
+ * a send that registered the thread late would write the message first and
+ * fail. Returns undefined when nothing needs waiting for: a known thread (the
+ * landing page, "New thread" and the threads page register before sending) or
+ * an already hydrated registry. Never registers before hydration: the id may
+ * be a stored thread, and registering it would overwrite that row as
+ * ephemeral.
+ */
+function ensureThreadRegistered(threadId: string): Promise<void> | undefined {
+  const registerIfUnknown = () => {
+    const { hydrated, threads, registerThread } = useThreadRegistryStore.getState();
+    if (hydrated && !threads[threadId]) registerThread(threadId);
+  };
+  const { hydrated, threads } = useThreadRegistryStore.getState();
+  if (threads[threadId]) return undefined;
+  if (hydrated) {
+    registerIfUnknown();
+    return undefined;
+  }
+  return new Promise<void>((resolve) => {
+    const done = () => {
+      clearTimeout(timer);
+      unsubscribe();
+      registerIfUnknown();
+      resolve();
+    };
+    const timer = setTimeout(done, HYDRATION_WAIT_CAP_MS);
+    const unsubscribe = useThreadRegistryStore.subscribe((s) => {
+      if (s.hydrated) done();
+    });
+  });
+}
+
 export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {}) {
   const consumePendingPrompt = useChatIntentStore((s) => s.consumePendingPrompt);
   const { startStream, cancelStream } = useMessageStream();
@@ -374,6 +419,10 @@ export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {
 
       // biome-ignore lint/suspicious/noExplicitAny: text part type is not narrowed by the library
       const userText = (textPart as any).text as string; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+      // A thread the registry does not know yet gets its row enqueued before
+      // this message's writes.
+      await ensureThreadRegistered(threadId);
 
       // Include agent_id if this thread has one associated
       const thread = useThreadRegistryStore.getState().threads[threadId];
@@ -488,20 +537,23 @@ export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {
     if (!pending) return;
 
     initialMessageSent.current = true;
-    const threadForPending = useThreadRegistryStore.getState().threads[threadId];
-    void startStream(
-      threadId,
-      {
-        message: pending,
-        agent_id: threadForPending?.agentId,
-        prompt_caching_enabled: options.promptCachingEnabled,
-      },
-      {
-        onComplete: () => {
-          void afterStreamComplete(pending);
+    void (async () => {
+      await ensureThreadRegistered(threadId);
+      const threadForPending = useThreadRegistryStore.getState().threads[threadId];
+      await startStream(
+        threadId,
+        {
+          message: pending,
+          agent_id: threadForPending?.agentId,
+          prompt_caching_enabled: options.promptCachingEnabled,
         },
-      },
-    );
+        {
+          onComplete: () => {
+            void afterStreamComplete(pending);
+          },
+        },
+      );
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [threadId]); // run once on mount — intentionally omit changing deps
 
