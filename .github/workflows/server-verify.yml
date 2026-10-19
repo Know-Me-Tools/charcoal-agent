@@ -1,0 +1,39 @@
+name: Server verify
+
+# Reusable: clippy and tests for the Axum server crate (server/). Called by
+# pr-verify.yml. The Rust version comes from versions.toml ("rust").
+# KNOWME_WEB_DIST_DIR points build.rs and the tests at the checked-in fixture
+# bundle, so no Node install or web build is needed.
+
+on:
+  workflow_call: {}
+
+permissions:
+  contents: read
+
+jobs:
+  server:
+    name: Server
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Install Rust (versions.toml "rust")
+        run: |
+          set -euo pipefail
+          RUST="$(sed -n 's/^"rust" = "\(.*\)"$/\1/p' versions.toml)"
+          if [ -z "$RUST" ]; then
+            echo "::error::versions.toml has no \"rust\" pin" >&2
+            exit 1
+          fi
+          rustup toolchain install "$RUST" --profile minimal --component clippy
+          echo "RUST=$RUST" >> "$GITHUB_ENV"
+      - name: Clippy
+        working-directory: server
+        env:
+          KNOWME_WEB_DIST_DIR: ${{ github.workspace }}/server/tests/fixtures/web
+        run: cargo +"$RUST" clippy --all-targets --locked -- -D warnings
+      - name: Test
+        working-directory: server
+        env:
+          KNOWME_WEB_DIST_DIR: ${{ github.workspace }}/server/tests/fixtures/web
+        run: cargo +"$RUST" test --locked
