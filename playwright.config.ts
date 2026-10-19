@@ -42,12 +42,12 @@ export default defineConfig({
       // Task 1.2 (qa-browser-matrix): the two specs that hold the reset notice
       // and the export omission line, on desktop WebKit and Firefox.
       name: "webkit",
-      testMatch: ["chat-export-omission.spec.ts", "db-reset-notice.spec.ts"],
+      testMatch: ["chat-export-omission.spec.ts", "db-reset-notice.spec.ts", "first-send-order.spec.ts"],
       use: { ...devices["Desktop Safari"] },
     },
     {
       name: "firefox",
-      testMatch: ["chat-export-omission.spec.ts", "db-reset-notice.spec.ts"],
+      testMatch: ["chat-export-omission.spec.ts", "db-reset-notice.spec.ts", "first-send-order.spec.ts"],
       use: { ...devices["Desktop Firefox"] },
     },
   ],
