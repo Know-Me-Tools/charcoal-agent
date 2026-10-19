@@ -363,13 +363,12 @@ impl ParsedEvent {
                 if !path.starts_with(A2UI_PATH_PREFIX) {
                     return None;
                 }
-                if let Some(from) = op.get("from") {
-                    if !from
+                if let Some(from) = op.get("from")
+                    && !from
                         .as_str()
                         .is_some_and(|f| f.starts_with(A2UI_PATH_PREFIX))
-                    {
-                        return None;
-                    }
+                {
+                    return None;
                 }
                 let mut public = Map::new();
                 for key in ["op", "path", "from", "value"] {

@@ -423,11 +423,28 @@ pub async fn start_with(options: Options<'_>) -> Harness {
         None => build_app(&config),
     };
     let addr = serve(app.unwrap()).await;
+    let http = reqwest::Client::new();
+    // These tests assert the fixture page's hash, assets and text. Compiled
+    // against the real bundle (no KNOWME_WEB_DIST_DIR) they fail in several
+    // unrelated places, so say why once, here.
+    let page = http
+        .get(format!("http://{addr}/"))
+        .send()
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
+    assert!(
+        page.contains("fixture-index"),
+        "the server tests need the fixture web dir: run them with \
+         KNOWME_WEB_DIST_DIR=$PWD/tests/fixtures/web (from server/), not the real bundle"
+    );
     Harness {
         base: format!("http://{addr}"),
         stub,
         meter,
-        http: reqwest::Client::new(),
+        http,
         kill_switch,
     }
 }
@@ -557,7 +574,7 @@ async fn meter_handler(
         };
     }
     let query = String::from_utf8(body.to_vec()).unwrap();
-    let vars = uri.query().map(|q| url_pairs(q)).unwrap_or_default();
+    let vars = uri.query().map(url_pairs).unwrap_or_default();
     meter.calls.lock().unwrap().push(MeterCall {
         query: query.clone(),
         vars,
