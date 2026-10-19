@@ -28,8 +28,6 @@ import { DB_RESET_NOTICE_CONTENT } from "../../../content/site/db-reset-notice";
 
 const FAILURE_TOAST_ID = "knowme-persistence-failure";
 const DB_RESET_TOAST_ID = "knowme-db-reset";
-/** Long enough to read; the visitor has just lost their saved chats. */
-const DB_RESET_TOAST_DURATION_MS = 12_000;
 
 export const PERSISTENCE_FAILURE_TEXT =
   "Couldn't save your latest messages on this device. They're still on screen, but may be missing after you reload.";
@@ -50,7 +48,10 @@ export function PersistenceNotices() {
       subscribeDbReset(() => {
         toast(DB_RESET_NOTICE_CONTENT.text, {
           id: DB_RESET_TOAST_ID,
-          duration: DB_RESET_TOAST_DURATION_MS,
+          // Stays until the visitor dismisses it: they have just lost their
+          // saved chats, and a timed toast is easy to miss on a phone.
+          duration: Infinity,
+          closeButton: true,
         });
       }),
     [],

@@ -15,6 +15,7 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./support/test";
 import { FIXTURE_THREAD_ID } from "./support/routes";
+import { seedTheme } from "./support/page-helpers";
 import { FIXTURE_FINAL_TEXT } from "./fixtures/sse";
 import { DB_RESET_NOTICE_CONTENT } from "../content/site/db-reset-notice";
 
@@ -47,34 +48,55 @@ test("a normal start shows no reset notice", async ({ page }) => {
   await expect(page.getByText(DB_RESET_NOTICE_CONTENT.text)).toHaveCount(0);
 });
 
-test("a database that cannot be opened is reset once, with one notice, and the next load is quiet", async ({ page }, testInfo) => {
-  await createSavedThread(page);
+const VARIANTS = [
+  { name: "desktop-dark", theme: "dark", width: 1440, height: 900 },
+  { name: "phone-320-light", theme: "light", width: 320, height: 640 },
+] as const;
 
-  let served = 0;
-  await page.route(PGLITE_DATA, async (route) => {
-    served += 1;
-    if (served === 1) {
-      // Wrong size on the first open only: PGlite throws, DbProvider purges and retries.
-      return route.fulfill({ status: 200, contentType: "application/octet-stream", body: Buffer.alloc(1024) });
+for (const variant of VARIANTS) {
+  test(`a database that cannot be opened is reset once, the notice stays until dismissed, and the next load is quiet (${variant.name})`, async ({ page }, testInfo) => {
+    await seedTheme(page, variant.theme);
+    // The saved thread is made at desktop width, where the sidebar lists it.
+    await createSavedThread(page);
+    await page.setViewportSize({ width: variant.width, height: variant.height });
+
+    let served = 0;
+    await page.route(PGLITE_DATA, async (route) => {
+      served += 1;
+      if (served === 1) {
+        // Wrong size on the first open only: PGlite throws, DbProvider purges and retries.
+        return route.fulfill({ status: 200, contentType: "application/octet-stream", body: Buffer.alloc(1024) });
+      }
+      return route.continue();
+    });
+
+    await page.reload();
+
+    const notice = page.getByText(DB_RESET_NOTICE_CONTENT.text);
+    await expect(notice).toHaveCount(1);
+    await expect(notice).toBeVisible();
+    expect(served, "pglite.data requests: one bad open, one good reopen").toBe(2);
+    // The old chat is gone from the sidebar (only shown at desktop width).
+    if (variant.width >= 1024) {
+      await expect(page.locator("aside").first().getByText(THREAD_TITLE)).toHaveCount(0);
     }
-    return route.continue();
+
+    // Still there after longer than a normal toast lasts (sonner's default is 4 s).
+    await page.waitForTimeout(6000);
+    await expect(notice).toBeVisible();
+    const close = page.getByRole("button", { name: /close toast/i });
+    await expect(close).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath(`reset-notice-${variant.name}.png`) });
+
+    // The close control dismisses it.
+    await close.click();
+    await expect(notice).toHaveCount(0);
+
+    // A later load opens the new database normally and says nothing.
+    await page.unroute(PGLITE_DATA);
+    await page.reload();
+    await expect(page.getByPlaceholder(/Ask your agent anything/i).filter({ visible: true })).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    await expect(page.getByText(DB_RESET_NOTICE_CONTENT.text)).toHaveCount(0);
   });
-
-  await page.reload();
-
-  const notice = page.getByText(DB_RESET_NOTICE_CONTENT.text);
-  await expect(notice).toHaveCount(1);
-  await expect(notice).toBeVisible();
-  expect(served, "pglite.data requests: one bad open, one good reopen").toBe(2);
-  // The old chat is gone and the app opened with an empty list.
-  await expect(page.locator("aside").first().getByText(THREAD_TITLE)).toHaveCount(0);
-  await page.screenshot({ path: testInfo.outputPath("reset-notice.png") });
-
-  // A later load opens the new database normally and says nothing.
-  await page.unroute(PGLITE_DATA);
-  await page.reload();
-  await expect(page.getByPlaceholder(/Ask your agent anything/i).filter({ visible: true })).toBeVisible();
-  await page.waitForLoadState("networkidle");
-  await expect(page.getByText(DB_RESET_NOTICE_CONTENT.text)).toHaveCount(0);
-  await expect(page.locator("aside").first().getByText(THREAD_TITLE)).toHaveCount(0);
-});
+}

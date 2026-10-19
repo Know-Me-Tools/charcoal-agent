@@ -60,6 +60,12 @@ describe("DbProvider reset notice", () => {
     expect(open).toHaveBeenCalledTimes(2);
     expect(purgeDatabase).toHaveBeenCalledTimes(1);
     expect(resetNoticeCalls()).toHaveLength(1);
+    // Stays until dismissed, with a close control, under one stable id.
+    expect(resetNoticeCalls()[0][1]).toMatchObject({
+      id: expect.any(String),
+      duration: Infinity,
+      closeButton: true,
+    });
   });
 
   it("shows no notice on a normal start", async () => {

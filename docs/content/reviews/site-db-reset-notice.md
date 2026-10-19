@@ -1,13 +1,21 @@
-# Review record: Saved chats reset notice
+# Review record: Saved chats deleted notice
 
 - **Piece:** `content/site/db-reset-notice.ts` -> `DB_RESET_NOTICE_CONTENT.text`, change `app-db-reset-notice`, phase `site-chat-follow-ups`.
-- **String (draft):** "Your saved chats on this device could not be read, so this device's chat history was reset."
-- **Where it appears:** one toast (`src/components/common/persistence-notices.tsx`, top centre, about 12 seconds), once, after the browser database could not be read, was deleted and was created again, and only in the page load where that happened. Not on a normal start, not on later loads, not when the reopen also fails (that case keeps the existing "Database error" screen).
+- **String (draft, as changed by the pre-review):** "Your saved chats could not be read, so they were deleted from this browser."
+- **Earlier draft (replaced):** "Your saved chats on this device could not be read, so this device's chat history was reset."
+- **Where it appears:** one toast (`src/components/common/persistence-notices.tsx`, top centre) with a close control. It stays until the visitor dismisses it. It appears once, after the browser database could not be read, was deleted and was created again, and only in the page load where that happened. Not on a normal start, not on later loads, not when the reopen also fails (that case keeps the existing "Database error" screen).
 - **Why:** before this change the wipe was silent. A visitor with saved chats lost them with no trace except a console warning.
+- **Persistence decision:** the toast has no timer (sonner `duration: Infinity`) and a close control (`closeButton: true`), under one stable id so it cannot stack. A timed toast is easy to miss on a phone and the consequence is the loss of saved chats. No marker is stored: the reset happens in one page load and the next load opens the new database normally, so the notice cannot repeat. Checked in Chromium at 1440 wide (dark) and 320 wide (light): visible after 6 seconds, dismissed by the close control, absent after reload.
 - **What it must not claim:**
   - It must not promise or hint that the chats can be recovered, exported or restored. They cannot: the database is already unreadable when the error is thrown, and nothing is copied before the wipe.
   - It must not name a cause (no "corrupt", "bug", "update" or "storage full"); the cause is not known at that point.
-  - It must not claim the data was or was not sent elsewhere. It speaks only about this device.
+  - It must not say anything broader than this browser. The site's server may keep runtime conversation state of its own (`content/knowledge/knowme-privacy.md`, "How long this site and the KnowMe agent keep your conversations": the retention of that state has not been published), so the text must not say the conversations are gone everywhere or that nothing is kept.
   - No hype language, no exclamation mark, no apology theatre.
-- **Claims checked against the system:** "could not be read" is the condition that triggers the path (PGlite throws an error naming a bundle size on open). "reset" matches what happens: `purgeDatabase` deletes the IndexedDB `/pglite/charcoal-db` and the app reopens with an empty database.
-- **Status:** pre-review pending. The chief content officer's editorial pre-review has not run on this string. Operator approval: not given. This record is not approved.
+- **Claims checked against the system:**
+  - "could not be read": this is the condition that triggers the path. PGlite throws an error naming a bundle size when it opens the database (`isCorruptionError` in `src/lib/db/db-provider.tsx`).
+  - "deleted": `purgeDatabase` deletes the IndexedDB `/pglite/charcoal-db` (`src/lib/db/purge.ts`) and the app reopens with an empty database. Nothing is exported or copied first.
+  - "from this browser": the data is that one browser's IndexedDB. "Device" would overstate the scope (other browsers on the device keep their own copies) and "reset" is vague. Other browsers and the server are not touched.
+  - Shown once, only after a successful reopen: covered by `src/lib/db/db-provider.test.tsx` and `e2e/db-reset-notice.spec.ts` (built app, Chromium). The e2e reaches the path by serving a wrong-size `pglite.data` to the first open; a damaged IndexedDB was not found to trigger it.
+- **Voice:** short, plain, one sentence, sentence case, no hype, no exclamation mark, no softening or apology. States what happened and where, and nothing more.
+- **Editorial pre-review by the chief content officer role, 2026-10-19: CHANGE (wording, duration), applied here. This is not the operator's approval.**
+- **Operator approval:** not given. This record is not approved. Approval is the operator's name, date and git hash, recorded on merge.

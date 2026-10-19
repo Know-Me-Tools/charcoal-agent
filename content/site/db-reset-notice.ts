@@ -7,7 +7,9 @@
  *
  * Shown once, after the browser database could not be read, was deleted and
  * was created again. It states what happened and nothing more: it does not
- * promise the chats can be recovered and does not name a cause.
+ * promise the chats can be recovered and does not name a cause. It names the
+ * browser, not the device or the site, because the data is one browser's
+ * IndexedDB and the site's server may keep its own conversation state.
  */
 export interface DbResetNoticeContent {
 	/** One line, shown as a toast after the new database is ready. */
@@ -15,5 +17,5 @@ export interface DbResetNoticeContent {
 }
 
 export const DB_RESET_NOTICE_CONTENT: DbResetNoticeContent = {
-	text: "Your saved chats on this device could not be read, so this device's chat history was reset.",
+	text: "Your saved chats could not be read, so they were deleted from this browser.",
 };
