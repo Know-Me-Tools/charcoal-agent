@@ -130,3 +130,9 @@ fn spawn_limiter_eviction(state: &AppState) {
         }
     });
 }
+
+// CI PROOF ONLY, never merged: one deliberate clippy::len_zero error.
+#[allow(dead_code)]
+fn ci_proof_deliberate_clippy_error(v: &[u8]) -> bool {
+    v.len() == 0
+}
