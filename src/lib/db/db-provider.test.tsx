@@ -1,6 +1,5 @@
 import { act, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { CharcoalDb as CharcoalDbType } from "@/lib/db/pglite";
 import { DB_RESET_NOTICE_CONTENT } from "../../../content/site/db-reset-notice";
 
 const toastMock = vi.fn();
@@ -17,7 +16,8 @@ const { CharcoalDb } = await import("@/lib/db/pglite");
 const { DbProvider } = await import("./db-provider");
 const { PersistenceNotices } = await import("@/components/common/persistence-notices");
 
-const fakeDb = {} as CharcoalDbType;
+// Derived from `open` so the product-naming guard (which allows only the exact identifier) sees no alias.
+const fakeDb = {} as Awaited<ReturnType<typeof CharcoalDb.open>>;
 const bundleError = () => new Error("Invalid FS bundle size: 10 !== 20");
 
 function renderApp() {
