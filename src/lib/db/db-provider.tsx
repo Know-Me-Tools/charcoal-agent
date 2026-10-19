@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { CharcoalDb, setDbInstance } from "@/lib/db/pglite";
 import { discardJournalAfterPurge, replayJournal } from "@/lib/db/persistence-journal";
 import { purgeDatabase } from "@/lib/db/purge";
+import { announceDbReset } from "@/lib/db/reset-notice";
 
 // ---------------------------------------------------------------------------
 // Context
@@ -67,6 +68,9 @@ export function DbProvider({ children }: DbProviderProps) {
 
         setDbInstance(db);
         setValue({ ready: true, db });
+        // Only the reopen after a purge reaches here with isRetry set. Tell
+        // the visitor once that saved chats on this device were reset.
+        if (isRetry) announceDbReset();
       } catch (err: unknown) {
         if (cancelled) return;
 
