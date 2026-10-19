@@ -23,8 +23,13 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { subscribeWriteFailures } from "@/lib/db/write-queue";
+import { subscribeDbReset } from "@/lib/db/reset-notice";
+import { DB_RESET_NOTICE_CONTENT } from "../../../content/site/db-reset-notice";
 
 const FAILURE_TOAST_ID = "knowme-persistence-failure";
+const DB_RESET_TOAST_ID = "knowme-db-reset";
+/** Long enough to read; the visitor has just lost their saved chats. */
+const DB_RESET_TOAST_DURATION_MS = 12_000;
 
 export const PERSISTENCE_FAILURE_TEXT =
   "Couldn't save your latest messages on this device. They're still on screen, but may be missing after you reload.";
@@ -36,6 +41,17 @@ export function PersistenceNotices() {
         // Stable id: a further call while the toast is still showing
         // updates it in place instead of stacking a new one.
         toast(PERSISTENCE_FAILURE_TEXT, { id: FAILURE_TOAST_ID });
+      }),
+    [],
+  );
+
+  useEffect(
+    () =>
+      subscribeDbReset(() => {
+        toast(DB_RESET_NOTICE_CONTENT.text, {
+          id: DB_RESET_TOAST_ID,
+          duration: DB_RESET_TOAST_DURATION_MS,
+        });
       }),
     [],
   );
