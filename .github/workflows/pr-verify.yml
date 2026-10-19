@@ -1,0 +1,44 @@
+name: Verify pull request
+
+# Mirrors the `verify` job in site.yml so the same checks run on the pull
+# request, before the merge, instead of only after it. Keep the two in step.
+# Verify only: no image build, no registry login, no deploy, no secrets.
+
+on: pull_request
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-verify-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      # ci-supply-chain-pins: first step, before anything else trusts a
+      # workflow `uses:` SHA or a manifest image digest.
+      - name: Check supply-chain pins
+        run: ./scripts/check-pins.sh
+      # Parse and render k8s/ so invalid YAML or an image-less container
+      # fails here, not at deploy time. Uses only kubectl and python3
+      # (PyYAML, or yq) already on ubuntu-latest; installs nothing.
+      - name: Check Kubernetes manifests
+        run: ./scripts/check-manifests.sh
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  server:
+    name: Server
+    uses: ./.github/workflows/server-verify.yml
