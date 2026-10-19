@@ -22,7 +22,7 @@ jobs:
           set -euo pipefail
           RUST="$(sed -n 's/^"rust" = "\(.*\)"$/\1/p' versions.toml)"
           if [ -z "$RUST" ]; then
-            echo "::error::versions.toml has no \"rust\" pin" >&2
+            echo "::error::versions.toml has no \"rust\" pin"
             exit 1
           fi
           rustup toolchain install "$RUST" --profile minimal --component clippy
