@@ -1,0 +1,109 @@
+{
+  "schemaVersion": "2",
+  "generatedBy": "kbd-runtime",
+  "projectionContractVersion": 2,
+  "sourceRevision": 2277,
+  "derivedRevision": 2277,
+  "frontier": {
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 2277
+  },
+  "conflictCount": 0,
+  "phase": "site-chat-follow-ups",
+  "phaseId": "site-chat-follow-ups",
+  "parentPhase": null,
+  "last_updated": "2026-10-19T14:35:31.509158Z",
+  "last_updated_by": "kbd-runtime",
+  "changes_total": 3,
+  "changes_completed": 3,
+  "implementation_total": 3,
+  "implementation_completed": 3,
+  "completion": {
+    "primaryCounter": "implementation",
+    "implementation": {
+      "completed": 3,
+      "total": 3,
+      "status": "COMPLETE"
+    },
+    "evidence": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    },
+    "certification": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    },
+    "publication": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    }
+  },
+  "completionScopes": {
+    "completion": "phase",
+    "runCompletion": "run"
+  },
+  "runCompletion": {
+    "scope": "run",
+    "runId": "complete-rebranding-20260923T223312Z",
+    "primaryCounter": "implementation",
+    "implementation": {
+      "completed": 50,
+      "total": 88,
+      "status": "IN_PROGRESS"
+    },
+    "evidence": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    },
+    "certification": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    },
+    "publication": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    }
+  },
+  "changes": [
+    {
+      "id": "app-export-omission-note",
+      "title": "Export says when visible content was left out",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 5,
+      "tasks_done": 5,
+      "last_task_completed": "Open the PR ready (not draft) with the review record; the operator merges",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "app-db-reset-notice",
+      "title": "Visitor is told when saved chats are reset",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 6,
+      "tasks_done": 6,
+      "last_task_completed": "Open the PR ready (not draft) with the review record; the operator merges",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "site-server-gates-green",
+      "title": "Server lint and header tests pass on main",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 7,
+      "tasks_done": 7,
+      "last_task_completed": "Open the PR ready (not draft); the operator merges",
+      "next_task_pending": null,
+      "blockers": []
+    }
+  ],
+  "children": {},
+  "migrationStatus": null
+}

@@ -1,0 +1,46 @@
+diff --git a/e2e/real-stream-probe.spec.ts b/e2e/real-stream-probe.spec.ts
+index c92ad4b..43c3509 100644
+--- a/e2e/real-stream-probe.spec.ts
++++ b/e2e/real-stream-probe.spec.ts
+@@ -91,6 +91,7 @@ test(`real stream under ${CPU_RATE}x CPU throttle: main-thread cost of one reply
+     return { task: m.TaskDuration, script: m.ScriptDuration, layout: m.LayoutDuration, style: m.RecalcStyleDuration, nodes: m.Nodes, heap: m.JSHeapUsedSize };
+   };
+ 
++  const idleProfiling = process.env.PROFILE === "idle";
+   const profiling = process.env.PROFILE === "1";
+   if (profiling) {
+     await cdp.send("Profiler.enable");
+@@ -122,9 +123,33 @@ test(`real stream under ${CPU_RATE}x CPU throttle: main-thread cost of one reply
+     for (const [key, us] of top) console.log(`PROFILE ${(us / 1000).toFixed(0).padStart(6)} ms  ${key}`);
+   }
+   // Let any trailing work settle, then measure idle cost for 3 s.
++  if (idleProfiling) {
++    await cdp.send("Profiler.enable");
++    await cdp.send("Profiler.setSamplingInterval", { interval: 500 });
++    await cdp.send("Profiler.start");
++  }
+   const idleStart = await read();
+   await page.waitForTimeout(3_000);
++  if (idleProfiling) {
++    const { profile } = await cdp.send("Profiler.stop");
++    const self = new Map<string, number>();
++    const byId = new Map(profile.nodes.map((n) => [n.id, n]));
++    profile.samples?.forEach((id, i) => {
++      const f = byId.get(id)?.callFrame;
++      if (!f) return;
++      const key = `${f.functionName || "(anon)"} ${f.url.replace(/^https?:\/\/[^/]+/, "")}:${f.lineNumber + 1}`;
++      self.set(key, (self.get(key) ?? 0) + (profile.timeDeltas?.[i] ?? 0));
++    });
++    for (const [key, us] of [...self.entries()].sort((a, b) => b[1] - a[1]).slice(0, 15)) console.log(`PROFILE ${(us / 1000).toFixed(0).padStart(6)} ms  ${key}`);
++  }
+   const idleEnd = await read();
++  const anims = await page.evaluate(() =>
++    document.getAnimations().filter((a) => a.playState === "running").map((a) => {
++      const t = (a as CSSAnimation).effect?.target as Element | null;
++      return `${(a as CSSAnimation).animationName ?? a.constructor.name} on ${t?.tagName}.${(t?.getAttribute("class") ?? "").slice(0, 60)}`;
++    }),
++  );
++  console.log(`RUNNING_ANIMATIONS ${anims.length} ${JSON.stringify(anims.slice(0, 8))}`);
+   const web = await page.evaluate(() => {
+     const w = window as unknown as { __long: number[]; __gaps: number[] };
+     return { longTasks: w.__long.length, maxLongMs: Math.round(Math.max(0, ...w.__long)), maxGapMs: Math.round(Math.max(0, ...w.__gaps)), gapsOver100: w.__gaps.filter((g) => g > 100).length };
