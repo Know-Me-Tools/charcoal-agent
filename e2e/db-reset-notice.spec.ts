@@ -86,6 +86,19 @@ for (const variant of VARIANTS) {
     await expect(notice).toBeVisible();
     const close = page.getByRole("button", { name: /close toast/i });
     await expect(close).toBeVisible();
+
+    // The close control is a touch-sized target (at least 44 px each way) and
+    // nothing sits on top of its centre, at this width.
+    const box = await close.boundingBox();
+    expect(box, "close control has a box").not.toBeNull();
+    expect(box!.width, `close control width at ${variant.width}px (${box!.width}x${box!.height})`).toBeGreaterThanOrEqual(44);
+    expect(box!.height, `close control height at ${variant.width}px (${box!.width}x${box!.height})`).toBeGreaterThanOrEqual(44);
+    const centreIsControl = await close.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+      return hit !== null && (hit === el || el.contains(hit));
+    });
+    expect(centreIsControl, "the close control's centre is not covered by another element").toBe(true);
     await page.screenshot({ path: testInfo.outputPath(`reset-notice-${variant.name}.png`) });
 
     // The close control dismisses it.

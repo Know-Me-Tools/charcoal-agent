@@ -71,7 +71,12 @@ const Toaster = ({ ...props }: ToasterProps) => {
             "rounded-md bg-primary px-3 py-1.5 font-ui text-xs font-semibold text-primary-foreground",
           cancelButton:
             "rounded-md bg-hover px-3 py-1.5 font-ui text-xs font-semibold text-fg-secondary",
-          closeButton: "border-0 bg-transparent text-fg-secondary hover:text-fg",
+          // A 44px target at the end of the row. The negative margins let it
+          // sit flush with the toast's padding so the row does not grow. The
+          // `!` marks beat sonner's own unlayered dark-theme rule, which
+          // would otherwise paint it a black square.
+          closeButton:
+            "order-last -my-3 -mr-3 flex size-11 shrink-0 items-center justify-center rounded-lg border-0 bg-transparent! text-fg-secondary! hover:bg-hover! hover:text-fg! focus-cue [&_svg]:size-4",
         },
       }}
       {...props}
