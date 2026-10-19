@@ -28,4 +28,4 @@ Two images.
 
 ![A diagram](https://know-me.tools/assets/diagram.png)
 
-_Left out of this file: images hosted on other sites._
+_Left out of this file: images from other sites._

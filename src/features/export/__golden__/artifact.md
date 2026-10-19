@@ -41,4 +41,4 @@ graph TD
 <p>hi</p>
 ```
 
-_Left out of this file: interactive cards._
+_Left out of this file: cards._
