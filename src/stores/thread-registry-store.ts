@@ -74,7 +74,11 @@ export const useThreadRegistryStore = create<ThreadRegistryStore>()(
     initFromDb: (threads) =>
       set((state) => {
         for (const t of threads) {
-          state.threads[t.id] = t;
+          // A thread already in memory was registered or changed after this
+          // read began (the front page registers it and the first send
+          // promotes it before the read returns); the stored row is the older
+          // copy and would revert it to ephemeral.
+          if (!state.threads[t.id]) state.threads[t.id] = t;
         }
         state.hydrated = true;
       }),
