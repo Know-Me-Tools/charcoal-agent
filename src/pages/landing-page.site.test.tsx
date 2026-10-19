@@ -12,6 +12,7 @@ import { APPROVED_TAGLINES } from "../../content/brand/taglines";
 import { LANDING_CONTENT } from "../../content/site/landing";
 import { SITE_LANDING_CONTENT } from "../../content/site/landing-site";
 import { HISTORY_LINK_CONTENT } from "../../content/site/history-link";
+import { RESUME_CHAT_CONTENT } from "../../content/site/resume-chat";
 import { useThreadRegistryStore } from "@/stores/thread-registry-store";
 import type { LocalThread } from "@/types";
 import LandingPage from "./landing-page";
@@ -37,13 +38,13 @@ function collectStrings(value: unknown): string[] {
 	return [];
 }
 
-function thread(id: string, isEphemeral: boolean): LocalThread {
+function thread(id: string, isEphemeral: boolean, updatedAt = "2026-10-01T00:00:00.000Z"): LocalThread {
 	return {
 		id,
 		title: "t",
 		isEphemeral,
 		createdAt: "2026-10-01T00:00:00.000Z",
-		updatedAt: "2026-10-01T00:00:00.000Z",
+		updatedAt,
 	} as LocalThread;
 }
 
@@ -72,6 +73,86 @@ describe("history link on the site build", () => {
 		renderLanding();
 		const link = screen.getByRole("link", { name: HISTORY_LINK_CONTENT.label });
 		expect(link.getAttribute("href")).toBe("/threads");
+	});
+});
+
+describe("resume-chat button on the site build", () => {
+	const queryResume = () => screen.queryByRole("link", { name: RESUME_CHAT_CONTENT.label });
+
+	it("is absent when this browser has no saved conversation", () => {
+		vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+		useThreadRegistryStore.setState({ threads: {}, hydrated: true });
+		renderLanding();
+		expect(queryResume()).toBeNull();
+	});
+
+	it("is absent when the only thread is an unsaved draft", () => {
+		vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+		useThreadRegistryStore.setState({ threads: { a: thread("a", true) }, hydrated: true });
+		renderLanding();
+		expect(queryResume()).toBeNull();
+	});
+
+	it("is absent until the saved chats have been read", () => {
+		vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+		useThreadRegistryStore.setState({ threads: { a: thread("a", false) }, hydrated: false });
+		renderLanding();
+		expect(queryResume()).toBeNull();
+	});
+
+	it("links straight to the one saved conversation", () => {
+		vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+		useThreadRegistryStore.setState({ threads: { a: thread("a", false) }, hydrated: true });
+		renderLanding();
+		expect(screen.getByRole("link", { name: RESUME_CHAT_CONTENT.label }).getAttribute("href")).toBe("/threads/a");
+	});
+
+	it("links to the saved conversation updated last, ignoring drafts", () => {
+		vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+		useThreadRegistryStore.setState({
+			threads: {
+				old: thread("old", false, "2026-10-01T00:00:00.000Z"),
+				newest: thread("newest", false, "2026-10-09T00:00:00.000Z"),
+				mid: thread("mid", false, "2026-10-05T00:00:00.000Z"),
+				draft: thread("draft", true, "2026-10-18T00:00:00.000Z"),
+			},
+			hydrated: true,
+		});
+		renderLanding();
+		expect(screen.getByRole("link", { name: RESUME_CHAT_CONTENT.label }).getAttribute("href")).toBe("/threads/newest");
+	});
+
+	it("leaves the header link to the conversation list in place", () => {
+		vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+		useThreadRegistryStore.setState({ threads: { a: thread("a", false) }, hydrated: true });
+		renderLanding();
+		expect(screen.getByRole("link", { name: HISTORY_LINK_CONTENT.label }).getAttribute("href")).toBe("/threads");
+	});
+
+	it("is 44 px high at least and keyboard-focusable with the shared focus cue", () => {
+		vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+		useThreadRegistryStore.setState({ threads: { a: thread("a", false) }, hydrated: true });
+		renderLanding();
+		const link = screen.getByRole("link", { name: RESUME_CHAT_CONTENT.label });
+		expect(link).toHaveClass("min-h-11", "focus-cue");
+	});
+
+	it("is not rendered on the app build, which has its own 'Open app' link", () => {
+		vi.stubEnv("VITE_SITE_AGENT_ID", "");
+		useThreadRegistryStore.setState({ threads: { a: thread("a", false) }, hydrated: true });
+		renderLanding();
+		expect(queryResume()).toBeNull();
+	});
+});
+
+describe("resume-chat content module", () => {
+	it("has no '!', no banned word and no forbidden claim", () => {
+		const banned = /revolutionary|game-changing|cutting-edge|unlock|unleash|supercharge/i;
+		for (const s of collectStrings(RESUME_CHAT_CONTENT)) {
+			expect(s.includes("!"), s).toBe(false);
+			expect(banned.test(s), s).toBe(false);
+			expect(FORBIDDEN_ON_SITE.test(s), s).toBe(false);
+		}
 	});
 });
 
