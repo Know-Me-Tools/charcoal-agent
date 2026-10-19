@@ -1,7 +1,7 @@
 /**
  * Fixed text the exported file carries. DRAFT: the visitor-facing wording is
  * pending chief-content-officer review and operator approval (task 4.5, spec
- * section 9). Wording makes no claim beyond what the product does: the file is
+ * section 9; the omission line is in docs/content/reviews/site-export-omission-note.md). Wording makes no claim beyond what the product does: the file is
  * made in the browser and is not uploaded.
  */
 export const OKF_STRINGS = {
@@ -16,11 +16,27 @@ export const OKF_STRINGS = {
 	webSearchOn: "_Web search was on for this answer._",
 	kbSourcePrefix: "KnowMe knowledge base: ",
 	webSourceFallbackPrefix: "Web source: ",
+	omittedCards: "interactive cards",
+	omittedImages: "images hosted on other sites",
 	redacted: "[removed]",
 	bundleIndexTitle: "KnowMe conversations",
 	bundleLogTitle: "Log",
 	bundleUndated: "Undated",
 } as const;
+
+/** What the exporter dropped from one conversation that the visitor could see. */
+export interface OmittedKinds {
+	cards: boolean;
+	images: boolean;
+}
+
+/** The one closing line of a conversation that lost visible content. Names kinds only, never the content. */
+export function omissionLine(kinds: OmittedKinds): string {
+	const named: string[] = [];
+	if (kinds.cards) named.push(OKF_STRINGS.omittedCards);
+	if (kinds.images) named.push(OKF_STRINGS.omittedImages);
+	return `_Left out of this file: ${named.join(" and ")}._`;
+}
 
 /** The one `log.md` line of an export run (OKF Creation entry). Singular for one conversation. */
 export function bundleCreationLine(count: number): string {

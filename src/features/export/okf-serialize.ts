@@ -8,12 +8,12 @@ import type { CitationContentBlock, ContentBlock } from "@/types/chat-content";
 import type { RichMessage } from "@/types/chat-content";
 import { normalizeHttpsUrl } from "@/lib/link-policy/cited-web-url";
 import { citationDisplayName } from "@/features/chat/citation-text";
-import { artifactMarkdown, BLOCK_DISPOSITION, imageMarkdown, rewriteMarkers } from "./okf-blocks";
+import { artifactDroppedWhileVisible, artifactMarkdown, BLOCK_DISPOSITION, imageMarkdown, rewriteMarkers } from "./okf-blocks";
 import { conversationFilename } from "./okf-filename";
 import { neutralizeReplyText } from "./okf-inert";
 import { oneLine, writeFrontmatter, type OkfSource } from "./okf-frontmatter";
 import { buildScrub, type Scrub } from "./okf-scrub";
-import { OKF_EXPORT_FORMAT_VERSION, OKF_STRINGS } from "./okf-strings";
+import { OKF_EXPORT_FORMAT_VERSION, OKF_STRINGS, omissionLine, type OmittedKinds } from "./okf-strings";
 
 export type ExportProducer = "knowme-site" | "knowme-app";
 
@@ -140,7 +140,7 @@ function describeRange(stamps: readonly string[]): string {
 }
 
 /** The body of one message, or null when nothing exportable is left. */
-function renderMessage(message: RichMessage, registry: SourceRegistry): string | null {
+function renderMessage(message: RichMessage, registry: SourceRegistry, omitted: OmittedKinds): string | null {
 	const isAssistant = message.role === "assistant";
 	const web = new Map<number, string>();
 	const kb = new Map<number, string>();
@@ -175,10 +175,12 @@ function renderMessage(message: RichMessage, registry: SourceRegistry): string |
 			flush();
 			const md = artifactMarkdown(block);
 			if (md !== null) pieces.push(md);
+			else if (artifactDroppedWhileVisible(block)) omitted.cards = true;
 		} else if (block.type === "image") {
 			flush();
 			const md = imageMarkdown(block);
 			if (md !== null) pieces.push(md);
+			else omitted.images = true;
 		} else if (block.type === "error" && isAssistant) {
 			stopped = true;
 		}
@@ -207,11 +209,12 @@ function heading(role: RichMessage["role"]): string {
 export function serializeConversation(input: ExportInput): OkfExport | null {
 	const scrub: Scrub = buildScrub(internalIds(input));
 	const registry = new SourceRegistry();
+	const omitted: OmittedKinds = { cards: false, images: false };
 
 	const sections: Array<{ message: RichMessage; body: string }> = [];
 	for (const message of input.messages) {
 		if (message.role === "system") continue;
-		const body = renderMessage(message, registry);
+		const body = renderMessage(message, registry, omitted);
 		if (body !== null) sections.push({ message, body });
 	}
 	if (sections.length === 0) return null;
@@ -241,6 +244,7 @@ export function serializeConversation(input: ExportInput): OkfExport | null {
 		`# ${title}`,
 		`Conversation with the ${OKF_STRINGS.assistantHeading}${range}.\n${OKF_STRINGS.provenance}`,
 		...parts,
+		...(omitted.cards || omitted.images ? [omissionLine(omitted)] : []),
 	].join("\n\n")}`;
 
 	return {

@@ -10,6 +10,7 @@
  */
 import type { ArtifactContentBlock, ContentBlock, ImageContentBlock } from "@/types/chat-content";
 import { OKF_PUBLIC_ORIGIN } from "./okf-strings";
+import { defaultRenderRegistry } from "@/features/chat/render-registry/default-entries";
 import { OWN_IMAGE_HOST } from "@/lib/link-policy/allowed-reply-links";
 import { codeBlockText, mermaidBlockText, svgBlockText } from "../blocks/block-text";
 
@@ -60,6 +61,18 @@ export function artifactMarkdown(block: ArtifactContentBlock): string | null {
 	if (language === "svg") return fence("svg", svgBlockText(block.content));
 	if (language === "mermaid") return fence("mermaid", mermaidBlockText(block.content));
 	return fence(language, codeBlockText(block.content));
+}
+
+/**
+ * True when the visitor could see this artifact in the chat but the file has no
+ * text for it: an input request, or a type the render registry shows (form,
+ * confirm, display, a2ui). Types the registry hides (provider_event and the
+ * other run diagnostics) and types it does not know are not visible, so they
+ * never count. Source types are not asked of the registry.
+ */
+export function artifactDroppedWhileVisible(block: ArtifactContentBlock): boolean {
+	if (SOURCE_ARTIFACT_TYPES.has(block.artifactType)) return block.isInputRequest;
+	return defaultRenderRegistry.resolve({ kind: "artifact", name: block.artifactType }).disposition !== "hide";
 }
 
 /** Own-host or same-origin images only (the reply policy); everything else is omitted. */
