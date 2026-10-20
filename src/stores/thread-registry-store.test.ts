@@ -121,3 +121,36 @@ describe("thread-registry-store write-through", () => {
     expect(deleteThread).toHaveBeenCalledWith(ID);
   });
 });
+
+describe("thread-registry-store hydration", () => {
+  beforeEach(reset);
+
+  // The front page registers the thread (ephemeral) and the thread page starts
+  // the first send before the stored-threads read (useDbHydration, mounted in
+  // AppLayout only) returns. That read carries the stale ephemeral row.
+  it("initFromDb keeps a thread already promoted in memory instead of restoring its stored ephemeral row", () => {
+    useThreadRegistryStore.getState().registerThread(ID);
+    const stale = { ...useThreadRegistryStore.getState().threads[ID] };
+    useThreadRegistryStore.getState().markPersisted(ID);
+
+    useThreadRegistryStore.getState().initFromDb([stale]);
+
+    expect(useThreadRegistryStore.getState().threads[ID].isEphemeral).toBe(false);
+  });
+
+  it("initFromDb still loads threads the registry does not know yet", () => {
+    useThreadRegistryStore.getState().initFromDb([
+      {
+        id: "stored-1",
+        sessionId: "stored-1",
+        title: "Stored",
+        isEphemeral: false,
+        createdAt: "2026-10-01T00:00:00.000Z",
+        updatedAt: "2026-10-01T00:00:00.000Z",
+      },
+    ]);
+
+    expect(useThreadRegistryStore.getState().threads["stored-1"].title).toBe("Stored");
+    expect(useThreadRegistryStore.getState().hydrated).toBe(true);
+  });
+});
