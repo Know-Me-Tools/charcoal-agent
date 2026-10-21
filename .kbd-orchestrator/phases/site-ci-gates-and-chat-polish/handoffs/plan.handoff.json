@@ -1,0 +1,21 @@
+{
+  "stage": "plan",
+  "completedAt": "2026-10-19T18:12:05Z",
+  "outputs": [
+    "plan.md",
+    "adopted-contract.json",
+    "decision-log.md",
+    "tasks.json"
+  ],
+  "nextStage": "execute",
+  "summaryForNext": "Plan revision 2 (2026-10-19, execute time): 6 changes, 34 tasks. Changes 1 to 4 (ci-pr-checks, ci-server-gate-on-deploy, app-reset-notice-polish, qa-browser-matrix) are merged and live. On the operator's instruction (D-009) two changes were added: app-first-send-thread-order (the persistence fix diagnosed in the flake investigation) and app-home-resume-chat (a front-page button to the latest saved conversation); the real-phone sheet was waived (NOT_EXERCISED). Contract amended with supersedes, digest 3d2954ff. Adversarial review skipped on the standing instruction; change 5 edits persistence-adjacent code with no independent reviewer.",
+  "skipped": false,
+  "skipReason": null,
+  "identity": {
+    "projectId": "440c5818-223c-4091-8b7f-bc8083505a3c",
+    "runId": "complete-rebranding-20260923T223312Z",
+    "phaseId": "site-ci-gates-and-chat-polish",
+    "planRevision": 2,
+    "contractDigest": "3d2954ff7f48084cf62c4301d1b6014746d8d398d51e93d8b1ee24d662d99964"
+  }
+}

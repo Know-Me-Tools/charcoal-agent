@@ -1,0 +1,90 @@
+{
+  "phase": "site-ci-gates-and-chat-polish",
+  "note": "Coverage index for the readiness check. Ids are <change>:<task> because task ordinals repeat across changes. Source of truth for task state is the runtime ledger.",
+  "tasks": [
+    {
+      "id": "app-first-send-thread-order:1.1"
+    },
+    {
+      "id": "app-first-send-thread-order:1.2"
+    },
+    {
+      "id": "app-first-send-thread-order:1.3"
+    },
+    {
+      "id": "app-first-send-thread-order:1.4"
+    },
+    {
+      "id": "app-home-resume-chat:1.2"
+    },
+    {
+      "id": "app-home-resume-chat:1.3"
+    },
+    {
+      "id": "app-home-resume-chat:1.4"
+    },
+    {
+      "id": "app-home-resume-chat:1.5"
+    },
+    {
+      "id": "app-persist-loss:1.1"
+    },
+    {
+      "id": "app-persist-loss:1.2"
+    },
+    {
+      "id": "app-reset-notice-polish:1.1"
+    },
+    {
+      "id": "app-reset-notice-polish:1.2"
+    },
+    {
+      "id": "app-reset-notice-polish:1.3"
+    },
+    {
+      "id": "app-reset-notice-polish:1.4"
+    },
+    {
+      "id": "app-reset-notice-polish:1.5"
+    },
+    {
+      "id": "ci-pr-checks:1.1"
+    },
+    {
+      "id": "ci-pr-checks:1.2"
+    },
+    {
+      "id": "ci-pr-checks:1.4"
+    },
+    {
+      "id": "ci-pr-checks:1.5"
+    },
+    {
+      "id": "ci-server-gate-on-deploy:1.1"
+    },
+    {
+      "id": "ci-server-gate-on-deploy:1.2"
+    },
+    {
+      "id": "ci-server-gate-on-deploy:1.3"
+    },
+    {
+      "id": "qa-browser-matrix:1.1"
+    },
+    {
+      "id": "qa-browser-matrix:1.2"
+    },
+    {
+      "id": "qa-browser-matrix:1.3"
+    },
+    {
+      "id": "qa-browser-matrix:1.4"
+    },
+    {
+      "id": "qa-browser-matrix:1.5"
+    },
+    {
+      "id": "qa-browser-matrix:1.7"
+    }
+  ]
+}

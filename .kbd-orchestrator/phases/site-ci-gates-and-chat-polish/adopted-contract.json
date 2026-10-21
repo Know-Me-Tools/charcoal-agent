@@ -1,0 +1,297 @@
+{
+  "contractVersion": "1",
+  "kind": "kbd.adopted-contract",
+  "identity": {
+    "projectId": "440c5818-223c-4091-8b7f-bc8083505a3c",
+    "runId": "complete-rebranding-20260923T223312Z",
+    "phaseId": "site-ci-gates-and-chat-polish",
+    "planRevision": 2,
+    "contractDigest": "cc53bbc85c189a7deab675c79e018f9d863a9fd1ee98c6dac63350087e6094ac"
+  },
+  "digestNormalization": {
+    "algorithm": "sha256",
+    "command": "jq -S -c 'del(.identity.contractDigest) | del(.identity.planRevision)' adopted-contract.json",
+    "rationale": "contractDigest is excluded to avoid self-reference; planRevision is excluded because the canonical Decision binds it.",
+    "stalenessRule": "REJECT-STALE when the digest differs from the latest non-superseded adoption decision for this contract path."
+  },
+  "adoptionSource": "Operator instruction 2026-10-19: 'go' (open the next phase from the reflection's seed, with the CI gate for the server crate first) and the standing instruction 'DO EVERYTHING!! Don't ask me unless you absolutely need to.' The three goals are in goals.md. The plan-time defaults (PR-time checks as a separate workflow, no branch protection change, remote-image search instead of built-bundle coverage, browser install, a waivable phone sheet) are decisions D-001 to D-005 in decision-log.md and are the lead's, not the operator's. Amended 2026-10-19 on the operator message in chat: \"Yes. Fix it. Waive the real phone sheet for now. Be sure to add in a button that allows the user to go straight to the chat view if there is history available from the home page.\" (decisions D-009 to D-011). Amended again 2026-10-19: the investigation the operator asked for (\"Fix it\") found a second persistence defect while testing the front-page button (decision D-012).",
+  "decisionOwner": "Travis James (operator)",
+  "amendmentPolicy": "Material scope or acceptance changes require explicit operator adoption recorded as a new canonical decision with supersedes; suggestions never auto-enter task totals.",
+  "releaseClaim": {
+    "userOperation": "A red lint or test for the server or the web app is visible on a pull request before the merge and blocks the image build and deploy after it; a visitor who gets the reset notice can close it with a normal tap; the two newest visitor strings are exercised in WebKit and Firefox engines and, where the operator reports, on a real phone. A visitor whose first message is sent before the saved chats are read does not lose it; a returning visitor can go straight back to their latest chat from the front page. A conversation started from the front page is saved even when the stored chats are read after the first reply.",
+    "supportedEnvironments": [
+      "GitHub-hosted ubuntu-latest runners for the workflows",
+      "macOS aarch64 for local gates, Node 24.21.0 and Rust 1.98.1",
+      "Playwright Chromium, desktop WebKit and Firefox on the built app",
+      "the operator's iPhone and Android for the phone sheet"
+    ],
+    "currentCapabilities": "site.yml triggers only on push to main and workflow_dispatch; no workflow runs on a pull request; no job lints or tests the server crate; the image job needs only verify; main has no branch protection and no rulesets. The reset notice's close control is about 14 px because the Toaster is unstyled and its closeButton class carries no size. The two newest e2e specs have run only in Chromium; WebKit and Firefox are not installed locally; CI runs no Playwright tests. Production runs the PR 130 image.",
+    "explicitUnknowns": [
+      "How long a cold GitHub runner takes to build and test the server crate (no CI-side measurement exists)",
+      "The cause of the one unexplained db-reset-notice e2e failure (its trace was deleted)",
+      "Whether the Firefox and WebKit engines render the toast and the export acceptably",
+      "Whether anything produces a remote image content block (found none by grep of src, not proven)",
+      "Whether the operator will run the real-phone sheet",
+      "Whether the first push to main after the deploy workflow edit passes the new server job on a runner",
+      "Whether a real visitor reaches the first-send race in practice (measured gap 100 to 500 ms on a cold start; unknown thread URLs only)",
+      "Where the new front-page button fits best in the hero without a layout shift (decided by the builder, task 1 of app-home-resume-chat)"
+    ]
+  },
+  "statusVocabulary": [
+    "PASS",
+    "FAIL",
+    "BLOCKED",
+    "NOT_EXERCISED"
+  ],
+  "scenarioMatrix": [
+    {
+      "id": "CI-1",
+      "name": "A pull request runs the web and server checks and passes when clean",
+      "ownerTask": "ci-pr-checks:1.1+ci-pr-checks:1.2+ci-pr-checks:1.4",
+      "productionEntry": "The Verify pull request workflow on the GitHub pull request that carries ci-pr-checks, run by GitHub Actions on ubuntu-latest",
+      "realCollaborators": [
+        "GitHub Actions runner",
+        "rustup and the pinned toolchain",
+        "npm registry",
+        "the tracked fixture web directory"
+      ],
+      "oracle": "gh run view for the run on the PR shows the web job and the server job both completed with conclusion success, and no image or deploy job exists in the run.",
+      "negativeControl": "CI-2: the same workflow on a stacked pull request with one deliberate clippy error concludes failure on the server job.",
+      "fixtures": "The pull request branch of ci-pr-checks at its recorded head commit; run id and head sha are recorded in the evidence file.",
+      "evidence": "gh run view output (run id, head sha, job names, conclusions, durations) saved in evidence/<date>/ci-pr-checks-run.md."
+    },
+    {
+      "id": "CI-2",
+      "name": "A deliberate clippy error turns the pull request run red",
+      "ownerTask": "ci-pr-checks:1.1+ci-pr-checks:1.5",
+      "productionEntry": "The Verify pull request workflow on a throwaway pull request stacked on the ci-pr-checks branch, containing one deliberate clippy error in server/",
+      "realCollaborators": [
+        "GitHub Actions runner",
+        "the server crate",
+        "clippy on the pinned toolchain"
+      ],
+      "oracle": "The run concludes failure and the failing job is the server job, with a clippy error in its log; the web job is unaffected.",
+      "negativeControl": "The unmodified ci-pr-checks branch (CI-1) concludes success.",
+      "fixtures": "A branch ci-proof/red-clippy off the ci-pr-checks head with a recorded one-line diff; closed unmerged and the branch deleted afterwards.",
+      "evidence": "gh run view output with the failing job and the clippy error line, the diff of the deliberate error, and the closed pull request number."
+    },
+    {
+      "id": "CI-3",
+      "name": "The deploy path waits for the server job and a guard keeps it that way",
+      "ownerTask": "ci-server-gate-on-deploy:1.1+ci-server-gate-on-deploy:1.2+ci-server-gate-on-deploy:1.3",
+      "productionEntry": "scripts/check-ci-gates.sh run against .github/workflows/site.yml and pr-verify.yml from the repository root; and, after the merge, the Deploy site run for the merge commit",
+      "realCollaborators": [
+        "the real workflow files",
+        "actionlint",
+        "GitHub Actions for the post-merge run"
+      ],
+      "oracle": "The guard exits 0 on the changed workflows; actionlint and yamllint are clean; after the merge the Deploy site run shows the server job finishing before the image job starts and the deploy and smoke jobs succeeding.",
+      "negativeControl": "With server removed from the image job's needs the guard exits non-zero; with the pull_request trigger removed from pr-verify.yml it exits non-zero.",
+      "fixtures": "Copies of the workflow files in a scratch directory for the mutations; the originals are restored and a clean diff is recorded.",
+      "evidence": "Guard exit codes and output for the clean and both mutated files, actionlint and yamllint output, and (boundary packet) gh run view for the deploy run."
+    },
+    {
+      "id": "UI-1",
+      "name": "The reset notice's close control is at least 44 px at 320 px and 1440 px",
+      "ownerTask": "app-reset-notice-polish:1.2+app-reset-notice-polish:1.4+app-reset-notice-polish:1.5",
+      "productionEntry": "The built site app (vite build, vite preview) in Chromium, reaching the reset path by serving a wrong-size pglite.data once, as e2e/db-reset-notice.spec.ts does",
+      "realCollaborators": [
+        "built app",
+        "real PGlite",
+        "Chromium",
+        "IndexedDB"
+      ],
+      "oracle": "The close control's bounding box is at least 44 by 44 px at both widths, it is not covered by another element, and activating it removes the notice.",
+      "negativeControl": "With the old closeButton class string restored the same assertion fails (about 14 px).",
+      "fixtures": "A fresh browser context per run; the seeded saved thread the existing spec creates; the wrong-size pglite.data body of 1024 bytes.",
+      "evidence": "Test output with the measured sizes, the mutation-check output, and screenshots at 320 px light and 1440 px dark read by the builder."
+    },
+    {
+      "id": "UI-2",
+      "name": "The reset-notice flake is explained and fixed, or recorded as not reproducible",
+      "ownerTask": "app-reset-notice-polish:1.1+app-reset-notice-polish:1.3+app-reset-notice-polish:1.5+app-first-send-thread-order:1.4",
+      "classification": "investigative: the verdict is the recorded result, and a run count with no failure is recorded as 'not reproducible in N runs', never as a pass of a fix",
+      "productionEntry": "Repeated Chromium runs of e2e/db-reset-notice.spec.ts on the built app with fullyParallel and other specs running beside it",
+      "realCollaborators": [
+        "built app",
+        "real PGlite",
+        "Chromium",
+        "parallel Playwright workers"
+      ],
+      "oracle": "N consecutive runs complete with the failure count recorded; any failure's trace is kept and read and the cause is written down; a fix is verified by a further N runs with no failure.",
+      "negativeControl": "The same repeat run against the pre-change spec shows whether the failure reproduces at all; if it does not, the result stays 'not reproducible in N runs'.",
+      "fixtures": "A separate Playwright outputDir per run so a later run cannot delete a trace; N and the worker count recorded.",
+      "evidence": "Run counts, failure counts, the trace summaries read, and the cause or the not-reproducible statement."
+    },
+    {
+      "id": "BR-1",
+      "name": "The two specs pass in desktop WebKit and Firefox and fail when their string is altered",
+      "ownerTask": "qa-browser-matrix:1.1+qa-browser-matrix:1.2+qa-browser-matrix:1.3+qa-browser-matrix:1.4",
+      "productionEntry": "npx playwright test with the webkit and firefox projects on the built app, for chat-export-omission.spec.ts and db-reset-notice.spec.ts",
+      "realCollaborators": [
+        "Playwright WebKit and Firefox builds",
+        "built app",
+        "real PGlite"
+      ],
+      "oracle": "Each spec's counts per engine are recorded; every failure is classified as a product defect or an engine difference before any change; passes are recorded as passes.",
+      "negativeControl": "With each string constant altered, the matching spec fails in WebKit and in Firefox; restored, it passes.",
+      "fixtures": "The built app from the branch head; the Playwright browser versions recorded after install.",
+      "evidence": "Per-engine run output, the mutation outputs, browser versions, the classification of any failure."
+    },
+    {
+      "id": "IMG-1",
+      "name": "Whether anything produces a remote image content block is settled by a recorded search",
+      "ownerTask": "qa-browser-matrix:1.5",
+      "classification": "investigative: a search can miss a producer, so the verdict records the method and its limits",
+      "productionEntry": "A search of src (non-test files) for creation of ImageContentBlock values, including object literals, spreads, JSON parsing and storage reads",
+      "realCollaborators": [
+        "the source tree at the branch head"
+      ],
+      "oracle": "The note lists the commands run and the files read, states whether a producer was found, and if one was found a follow-up task for built-bundle coverage is registered.",
+      "negativeControl": "The same search finds the known consumer (okf-blocks.ts), showing the search can find image-block code at all.",
+      "fixtures": "The branch head commit hash recorded in the note.",
+      "evidence": "The note with commands, results and the commit hash."
+    },
+    {
+      "id": "DEV-1",
+      "name": "The operator's real-phone look is recorded or waived",
+      "ownerTask": "qa-browser-matrix:1.7",
+      "classification": "delivery/human: WAIVED by the operator on 2026-10-19 (\"Waive the real phone sheet for now\"); recorded NOT_EXERCISED, never PASS; re-requestable",
+      "productionEntry": "https://know-me.tools on the operator's phone, following the sheet",
+      "realCollaborators": [
+        "production site",
+        "the operator's phone and browser"
+      ],
+      "oracle": "The operator waived the sheet; the verdict is NOT_EXERCISED with the waiver recorded in the evidence file.",
+      "negativeControl": "A FAIL line with a description is accepted as a result; a missing report is NOT_EXERCISED, never PASS.",
+      "fixtures": "The sheet file in the evidence folder, dated.",
+      "evidence": "The sheet with the operator's lines, or the waiver text."
+    },
+    {
+      "id": "PERS-1",
+      "name": "A message is never written before its thread row, and a stored thread is never overwritten",
+      "ownerTask": "app-first-send-thread-order:1.1+app-first-send-thread-order:1.2+app-first-send-thread-order:1.3+app-first-send-thread-order:1.4",
+      "productionEntry": "The built site app in Chromium (and WebKit), a thread route for an unknown id with the thread registry hydration delayed, then a send; and a thread route for a stored id with the same delay",
+      "realCollaborators": [
+        "built app",
+        "real PGlite",
+        "IndexedDB",
+        "Chromium and WebKit"
+      ],
+      "oracle": "No messages_thread_id_fkey failure and no save-failure toast; the thread appears in the sidebar after the reply with its generated title; a reload keeps both messages; for a stored id the stored title and earlier messages are intact after the send.",
+      "negativeControl": "The same tests on the code before the fix fail with the foreign-key error (failing-first), and with the wait or the registration removed from the fix they fail again (mutation checks).",
+      "fixtures": "A fresh browser context per run; hydration delayed by a recorded number of milliseconds at the network or module boundary; a stored thread created through the app and seeded identity recorded.",
+      "evidence": "The failing-before and passing-after test output, the mutation outputs, the repeat-run counts (30 repeats with 4 workers in Chromium and a WebKit repeat) and the CI Verify sequence results."
+    },
+    {
+      "id": "HOME-1",
+      "name": "The front page offers a button straight to the latest saved conversation",
+      "ownerTask": "app-home-resume-chat:1.2+app-home-resume-chat:1.3+app-home-resume-chat:1.4+app-home-resume-chat:1.5",
+      "productionEntry": "The built site app: save a conversation, return to the front page at / and activate the new button; and a fresh browser profile with no history",
+      "realCollaborators": [
+        "built app",
+        "real PGlite",
+        "Chromium, WebKit and Firefox"
+      ],
+      "oracle": "With a saved conversation the button is visible after the saved chats are read, is at least 44 by 44 px, and opens that conversation with its messages; with several the latest by update time; with none, or only drafts, no button; the layout shift when it appears is under 0.1.",
+      "negativeControl": "With the visibility condition removed the no-history case fails; with the target pointed at the list the click test fails; a fresh profile shows no button.",
+      "fixtures": "A scratch browser profile per run; saved conversations created through the app; the identity of the latest thread recorded.",
+      "evidence": "Unit and end-to-end output, the mutation outputs, a layout-shift measurement, and screenshots at 320 px and 1440 px in both themes read by the builder."
+    },
+    {
+      "id": "PERS-2",
+      "name": "A conversation started on the front page is stored as a saved conversation, not left as a draft",
+      "ownerTask": "app-persist-loss:1.1+app-persist-loss:1.2",
+      "productionEntry": "The built site app: ask the first question in the front-page composer, wait for the reply, reload, return to the front page",
+      "realCollaborators": [
+        "built app",
+        "real PGlite",
+        "IndexedDB",
+        "Chromium, WebKit and Firefox"
+      ],
+      "oracle": "After the reply the stored thread is not ephemeral: after a reload the conversation is listed and the front-page button to the latest conversation appears, in every repeat run.",
+      "negativeControl": "The registry unit test that restores a stored ephemeral row over a promoted thread fails on the code before the fix; the previous failure rate of the saved-conversation end-to-end (14 of 110) is the baseline the repeat run must beat.",
+      "fixtures": "A fresh browser context per run; UAR mocked, PGlite real; 40 repeats with 4 workers.",
+      "evidence": "Failing-before unit output, the log evidence of the ephemeral flag, the CI Verify sequence and the repeat-run counts per engine."
+    }
+  ],
+  "functionalScope": [
+    "Every pull request runs the web checks and the server clippy and tests with a read-only token and no deploy",
+    "The deploy workflow runs the same server job and the image build waits for it; a guard script keeps the wait in place",
+    "The reset notice's close control is at least 44 px at 320 px and 1440 px; the flake is explained and fixed or recorded as not reproducible",
+    "The two newest specs run in desktop WebKit and Firefox with recorded results",
+    "The existing e2e type error is fixed; the image-block question is settled by a recorded search",
+    "The first message of a conversation is saved even when it is sent before the saved chats are read; a stored conversation is never overwritten by that send",
+    "The front page shows a button straight to the latest saved conversation when there is history",
+    "Reading the stored threads never reverts a thread that was registered or changed in memory after the read began"
+  ],
+  "resilienceScope": {
+    "policy": "Adopted requirements never defer via budget overflow (exhaustion means checkpoint and BLOCKED). Only never-adopted optional items may defer.",
+    "deferredOptional": [
+      "Branch protection or required checks (the operator's setting)",
+      "Playwright in CI",
+      "A Cargo or npm cache action",
+      "cargo fmt --check in the server job",
+      "The smaller export review items, the reply-speed progress cue, the monthly token ceiling"
+    ]
+  },
+  "exclusions": [
+    "Changing repository settings, branch protection or rulesets",
+    "Adding any secret to a pull request workflow, or any trigger that gives a pull request run write access",
+    "Running a manual dispatch of the deploy workflow on any branch other than main",
+    "Changing the image, deploy or smoke jobs of site.yml beyond the one needs line and the new server job",
+    "Changing the kill switch, the ConfigMap site-chat-kill-switch or SITE_CHAT_KILL_SWITCH_EXPECTED",
+    "Reading credential values",
+    "Changing the production Content-Security-Policy header",
+    "Changes to the write queue, the database recovery, the journal or migrations beyond the send-time guard in use-chat-runtime.ts",
+    "Changing the existing header link to the conversation list, or the app build landing page"
+  ],
+  "requiredSafetyChecks": [
+    "scripts/check-pins.sh and scripts/check-manifests.sh stay green: every uses: is a full commit SHA; local ./ reusable workflows are allowed",
+    "The pull request workflow has contents: read only and references no secret; npm ci runs with --ignore-scripts",
+    "actionlint and yamllint are clean on every changed workflow",
+    "The throwaway proof pull request is never merged and its branch is deleted",
+    "The full CI Verify sequence (pins, manifests, npm ci --ignore-scripts, lint, full npm test, build) runs before any pull request that adds or edits a test file or a workflow is opened",
+    "A failed server job on main after the deploy workflow edit is reported to the operator, not retried blindly",
+    "Single-writer cargo discipline: one cargo invocation at a time in one target directory",
+    "A stored thread opened by URL and sent to immediately keeps its stored title and messages (tested, with a mutation check)",
+    "New visitor strings carry a content-officer pre-review and a review record before the pull request is opened (the front-page button label)"
+  ],
+  "budgets": {
+    "timeMinutes": 720,
+    "toolCalls": 800,
+    "repairAttempts": 3,
+    "noProgressLimit": 3,
+    "tokenBudget": "UNKNOWN",
+    "tokenFallback": "toolCalls ceiling",
+    "exhaustion": "Checkpoint and mark BLOCKED; never skip or downgrade a required safety check."
+  },
+  "evidenceInvalidation": "Evidence is keyed to the commit and fixture it ran against. A later commit to files a scenario touches invalidates that scenario's evidence only; other scenarios keep theirs; history is preserved; no blanket re-review.",
+  "workerRoutes": {
+    "agent": "Claude Code native subagents (km-devops-engineer, km-frontend-engineer, km-qa-engineer) and the driver session",
+    "model": "claude-sonnet-5-5",
+    "billing": "native session; no external billing route",
+    "reviewRoundsMax": 0,
+    "subagents": "Native km-* subagents only; no external worker; adversarial review skipped on the operator's standing instruction."
+  },
+  "boundaryPacket": {
+    "postImplementationOnly": true,
+    "singleRun": true,
+    "commands": [
+      "gh run list --workflow 'Deploy site' --limit 3",
+      "gh run view <id> for the push that merged ci-server-gate-on-deploy",
+      "gh run list --workflow 'Verify pull request' --limit 10",
+      "kubectl --context know-me -n knowme get deploy knowme-web -o jsonpath='{.spec.template.spec.containers[*].image}'",
+      "curl -sI https://know-me.tools",
+      "kbd-apply reconcile site-ci-gates-and-chat-polish"
+    ],
+    "expectedEffects": "Read-only. The deploy run for the merge of ci-server-gate-on-deploy shows the server job finishing before the image job starts and all jobs succeeding; the Verify pull request runs for the phase's PRs are on record; the live CSP equals the one recorded last phase; reconcile reports clean.",
+    "requiredApprovals": "None for the reads. The operator merges each PR; merges are not run by the agent.",
+    "receipts": "Output of the commands in evidence/<date>/boundary-packet.md.",
+    "cleanup": "None.",
+    "stopConditions": "A failed server job on main that blocks a deploy; a live CSP that differs from the recorded one; reconcile reporting drift."
+  },
+  "status": {
+    "implementationComplete": false
+  }
+}

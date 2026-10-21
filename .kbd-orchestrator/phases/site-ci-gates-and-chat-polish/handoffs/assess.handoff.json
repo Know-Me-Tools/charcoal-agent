@@ -1,0 +1,11 @@
+{
+  "stage": "assess",
+  "completedAt": "2026-10-19T15:08:11Z",
+  "outputs": [
+    "assessment.md"
+  ],
+  "nextStage": "analyze",
+  "summaryForNext": "Goal 1 is wider than written: CI runs only on push to main (no pull_request trigger anywhere) and main has no branch protection, so a red main after a merge is possible; the server crate has no clippy or test job at all, and image needs only verify. Goal 2: the close control is small because the Toaster is unstyled and its closeButton class has no size; the flake cause is unknown and its trace was deleted. Goal 3: no WebKit or Firefox browsers installed locally, no Firefox project, CI runs no e2e; the remote-image export case probably has no producer (grep only). Plan needs five operator answers with defaults stated: PR-time checks as a separate workflow (default yes), branch protection (operator only, default no change), drop remote-image sub-goal (default yes), browser install (default yes), real-phone sheet. Adversarial review skipped on the standing instruction; build health UNKNOWN.",
+  "skipped": false,
+  "skipReason": null
+}

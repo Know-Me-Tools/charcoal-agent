@@ -1,0 +1,153 @@
+{
+  "schemaVersion": "2",
+  "generatedBy": "kbd-runtime",
+  "projectionContractVersion": 2,
+  "sourceRevision": 2497,
+  "derivedRevision": 2497,
+  "frontier": {
+    "a0967547-26fc-4329-94ba-3da3d5e790a5": 2497
+  },
+  "conflictCount": 0,
+  "phase": "site-ci-gates-and-chat-polish",
+  "phaseId": "site-ci-gates-and-chat-polish",
+  "parentPhase": null,
+  "last_updated": "2026-10-21T09:26:41.847279Z",
+  "last_updated_by": "kbd-runtime",
+  "changes_total": 7,
+  "changes_completed": 7,
+  "implementation_total": 7,
+  "implementation_completed": 7,
+  "completion": {
+    "primaryCounter": "implementation",
+    "implementation": {
+      "completed": 7,
+      "total": 7,
+      "status": "COMPLETE"
+    },
+    "evidence": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    },
+    "certification": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    },
+    "publication": {
+      "status": "NOT_TRACKED",
+      "summary": null,
+      "blockers": []
+    }
+  },
+  "completionScopes": {
+    "completion": "phase",
+    "runCompletion": "run"
+  },
+  "runCompletion": {
+    "scope": "run",
+    "runId": "complete-rebranding-20260923T223312Z",
+    "primaryCounter": "implementation",
+    "implementation": {
+      "completed": 57,
+      "total": 95,
+      "status": "IN_PROGRESS"
+    },
+    "evidence": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    },
+    "certification": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    },
+    "publication": {
+      "status": "PENDING",
+      "summary": null,
+      "blockers": []
+    }
+  },
+  "changes": [
+    {
+      "id": "ci-pr-checks",
+      "title": "A pull request runs the web and server checks without deploying",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 5,
+      "tasks_done": 5,
+      "last_task_completed": "Negative control: a throwaway pull request stacked on this branch with one deliberate clippy error in `server/`; record that `pr-verify` fails on the server job; close it unmerged and delete the branch",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "ci-server-gate-on-deploy",
+      "title": "A push to main runs the server lint and tests before the image is built",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 4,
+      "tasks_done": 4,
+      "last_task_completed": "Integration gate: open the pull request ready (not draft); the `pr-verify` run on it (from `ci-pr-checks`) is green; record the run id and results; state in the pull request that the deploy wiring is first exercised by the push after the merge",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "app-reset-notice-polish",
+      "title": "The reset notice can be closed with a tap-sized control",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 6,
+      "tasks_done": 6,
+      "last_task_completed": "Open the pull request ready (not draft)",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "qa-browser-matrix",
+      "title": "The reset notice and the export omission line are exercised in Chromium, WebKit and Firefox",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 8,
+      "tasks_done": 8,
+      "last_task_completed": "Integration gate: the CI Verify sequence (pins, manifests, `npm ci --ignore-scripts`, lint, full `npm test`, build) and the e2e type check, then open the pull request ready (not draft)",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "app-first-send-thread-order",
+      "title": "A message is never written before its thread row",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 5,
+      "tasks_done": 5,
+      "last_task_completed": "Open the pull request ready (not draft)",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "app-home-resume-chat",
+      "title": "The front page offers a way straight back to the latest saved conversation",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 6,
+      "tasks_done": 6,
+      "last_task_completed": "Open the pull request ready (not draft)",
+      "next_task_pending": null,
+      "blockers": []
+    },
+    {
+      "id": "app-persist-loss",
+      "title": "Reading the stored threads never reverts a promoted thread",
+      "status": "DONE",
+      "implementation_status": "COMPLETE",
+      "tasks_total": 3,
+      "tasks_done": 3,
+      "last_task_completed": "Open the pull request ready (not draft)",
+      "next_task_pending": null,
+      "blockers": []
+    }
+  ],
+  "children": {},
+  "migrationStatus": null
+}
