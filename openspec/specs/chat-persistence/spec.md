@@ -119,3 +119,73 @@ When the local database is deleted and recreated because it could not be read, t
 
 - **WHEN** the reopen after the purge fails
 - **THEN** the existing database error screen is shown and no reset notice is shown
+
+### Requirement: The reset notice can be closed with a tap-sized control
+
+The control that closes the reset notice SHALL be at least 44 px wide and 44 px high at every viewport width, SHALL keep sonner's accessible name, and SHALL use the KnowMe tokens with no border, shadow or gradient.
+
+#### Scenario: A phone-width viewport
+
+- **WHEN** the reset notice is shown at a 320 px wide viewport
+- **THEN** its close control measures at least 44 px by 44 px
+- **AND** it is not covered by another element
+
+#### Scenario: A desktop viewport
+
+- **WHEN** the reset notice is shown at 1440 px wide
+- **THEN** its close control measures at least 44 px by 44 px
+
+#### Scenario: Closing it
+
+- **WHEN** the visitor activates the close control
+- **THEN** the notice is removed and does not return on reload
+
+### Requirement: The reset notice test is stable under parallel load
+
+The end-to-end test of the reset notice SHALL pass on every one of a recorded number of consecutive runs under the suite's parallel load, or the recorded result SHALL name the cause found and the fix, or state that the failure did not reproduce in that number of runs.
+
+#### Scenario: Repeated runs
+
+- **WHEN** the test is run the recorded number of times on the built app with the suite's parallelism
+- **THEN** the number of failures and the evidence for each failure are recorded, and a failure's trace is kept until it has been read
+
+### Requirement: A message is never written before its thread row
+
+When a visitor sends a message on a thread whose id the thread registry does not yet know, the app SHALL wait for the registry to be hydrated from the local database, then register the thread if it is still unknown, before the stream starts and before any message of that thread is enqueued for saving. The app SHALL NOT register a thread before the registry is hydrated, so a stored thread is never overwritten as a new ephemeral one.
+
+#### Scenario: Send before the registry is hydrated, unknown thread id
+
+- **WHEN** the visitor sends the first message on a thread route for an unknown id while the registry is still hydrating
+- **THEN** the thread row is written before either message of the exchange
+- **AND** no foreign-key failure is raised and no save-failure toast is shown
+- **AND** the thread appears in the sidebar after the reply and receives its title on the first exchange
+
+#### Scenario: Send before the registry is hydrated, stored thread id
+
+- **WHEN** the visitor opens the route of a thread that is stored in the local database and sends a message before the registry is hydrated
+- **THEN** the stored thread keeps its title and its earlier messages
+- **AND** it is not replaced by a new ephemeral thread
+
+#### Scenario: A reload after the first exchange
+
+- **WHEN** the visitor reloads after the first exchange on a previously unknown thread id
+- **THEN** both messages of that exchange are still there
+
+#### Scenario: The hydration read fails
+
+- **WHEN** reading the stored threads fails and the registry flips to hydrated with an empty list
+- **THEN** a send still starts and the visitor gets a reply
+- **AND** the send does not wait indefinitely for hydration
+
+### Requirement: Hydration never reverts a thread already in memory
+Loading the stored threads into the registry SHALL add only threads the registry does not already hold, so a thread promoted this session is not reverted to its older stored copy.
+
+#### Scenario: First send completes before the stored threads load
+- **GIVEN** the front page registered a thread and the first exchange has completed and promoted it
+- **WHEN** the stored-threads read returns the earlier, ephemeral copy of that thread
+- **THEN** the thread stays persisted in memory and in the database, and is listed after a reload
+
+#### Scenario: Stored threads are still loaded
+- **GIVEN** the registry does not hold a stored thread
+- **WHEN** the stored-threads read returns it
+- **THEN** the registry holds it and is marked hydrated
