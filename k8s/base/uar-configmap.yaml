@@ -13,6 +13,12 @@ data:
   PORT: "6565"
   UAR_SERVER__PORT: "6565"
   UAR_SERVER__HOST: "0.0.0.0"
+  # UAR v1.2.2+ creates its watched ingestion directory at startup and exits
+  # if it cannot (src/server.rs: "Failed to create ingestion directory"). The
+  # default, /data/ingest, is not writable by uid 65532, so v1.2.3 crash-looped
+  # with "Permission denied (os error 13)". Point it at the writable emptyDir
+  # mounted at /var/lib/uar (uar-deployment.yaml).
+  UAR_SERVER__INGEST_DIRECTORY: "/var/lib/uar/ingest"
   UAR_SECURITY__JWT_REQUIRED: "true"
   # gate-site-credentials: UAR verifies flint-gate's ES256 tokens through
   # gate's JWKS (in-cluster), so the site server and the seed job use
