@@ -1,4 +1,17 @@
 # UAR — no PVC: persistence is the remote SurrealDB, not the embedded store.
+# 2026-10-22 (fix/uar-pin-v1-2-3): pinned to UAR v1.2.3 (tag v1.2.3, source
+# c4a65625), index digest sha256:7fa7973fdcc0968d1fd0fa3a497f9c5a51daa97a653a48f01a2a1507fdbe3195
+# (linux/amd64 manifest 8c1fa484...), from "Build and Publish Images" run
+# 39875057583 (both platform builds and the manifest merge succeeded). The release
+# notes record a native gate and a gate against this exact published amd64 image
+# (95 core, 60 safety, 5 cancellation cases). They do not certify PostgreSQL, arm64
+# runtime or paid providers. 1.2.0 added caller-tool declarations; the site never
+# sends any, because server/src/domain/chat_request.rs rebuilds the request from an
+# allowlist and drops `tools`. The a42f23bb model-verification step below still
+# applies after this roll.
+# Rollback: kubectl --context know-me -n knowme rollout undo deploy/uar, or the
+# previous digest sha256:064f5004fb3ba76506abce5cf81285b2a8aa3e54fa5a22e2c2bfc97b1211e43b
+# (v1.1.0). The paragraphs below describe that previous pin.
 # 2026-10-15 (fix/uar-pin-v1-1-0): pinned to UAR v1.1.0 (tag v1.1.0, source
 # d815ef72), index digest sha256:064f5004fb3ba76506abce5cf81285b2a8aa3e54fa5a22e2c2bfc97b1211e43b
 # (linux/amd64 manifest 94f78a7e...). It carries the per-provider llm.timeout_secs
@@ -77,7 +90,7 @@ spec:
           # provider configuration and credential revision, so re-verify after any
           # provider edit or API key rotation. Builds before a42f23bb (the 2cc9a182
           # pin this replaced) have no gate, so the step only matters from this pin on.
-          image: ghcr.io/prometheus-ags/universal-agent-runtime:1.1.0@sha256:064f5004fb3ba76506abce5cf81285b2a8aa3e54fa5a22e2c2bfc97b1211e43b
+          image: ghcr.io/prometheus-ags/universal-agent-runtime:1.2.3@sha256:7fa7973fdcc0968d1fd0fa3a497f9c5a51daa97a653a48f01a2a1507fdbe3195
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
