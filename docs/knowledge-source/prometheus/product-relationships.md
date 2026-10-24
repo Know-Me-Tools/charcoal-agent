@@ -80,11 +80,17 @@ sources:
 
 # Product relationships
 
-## Product map
+## How do the KnowMe AI, LLC products relate to each other?
 
-Makers: KnowMe AI, LLC makes KnowMe, The Boss and IPFS Sync for Obsidian. Prometheus AGS makes the Universal Agent Runtime, BossFang, the Surreal Memory Server and the Prometheus skill packages.
+KnowMe AI, LLC makes KnowMe, The Boss and IPFS Sync for Obsidian. Prometheus AGS makes the Universal Agent Runtime, BossFang, the Surreal Memory Server and the Prometheus skill packages.
 
-Links: KnowMe and The Boss are built on the Universal Agent Runtime. The Boss bundles the Universal Agent Runtime and BossFang, works with the Surreal Memory Server over MCP, and is built on Cherry Studio. BossFang is a client of the Universal Agent Runtime and uses the Surreal Memory Server library. The Universal Agent Runtime's optional memory uses the Surreal Memory Server library. The skill packages list the Surreal Memory Server as optional memory. IPFS Sync for Obsidian has no stated link to the others.
+KnowMe and The Boss are built on the Universal Agent Runtime. The Boss bundles the Universal Agent Runtime and BossFang, works with the Surreal Memory Server over MCP, and is built on Cherry Studio. BossFang is a client of the Universal Agent Runtime and uses the Surreal Memory Server library.
+
+Not stated: any link between IPFS Sync for Obsidian and the other products, or between the Prometheus skill packages and KnowMe, the Universal Agent Runtime or BossFang.
+
+## More stated links in the product map
+
+The Universal Agent Runtime's optional memory uses the Surreal Memory Server library. The skill packages list the Surreal Memory Server as optional memory.
 
 ## Who makes the products in this relationship map
 

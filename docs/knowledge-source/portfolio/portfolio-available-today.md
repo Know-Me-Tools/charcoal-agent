@@ -55,7 +55,13 @@ sources:
 
 # What you can use today
 
-KnowMe AI, LLC and Prometheus AGS publish a few products you can use today: The Boss, the Prometheus skill packages, and some libraries with a published release. Most of the portfolio is in development, a prototype or a design. The portfolio records no release for KnowMe, the personal intelligence product.[^portfolio] Statuses are the portfolio's own wording, not independent audits.[^portfolio]
+## What can I use today?
+
+Use today: The Boss, which you can download from https://the-boss.know-me.tools, the Prometheus skill packages, and some libraries with a published release.[^boss-site][^portfolio]
+
+Not available to use yet: KnowMe, the KnowMe Concierge and most other products. The portfolio records no release, package or install route for them.[^portfolio]
+
+Most of the portfolio is in development, a prototype or a design. Statuses are the portfolio's own wording, not independent audits.[^portfolio]
 
 ## Use today: The Boss
 

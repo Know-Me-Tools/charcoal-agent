@@ -1,8 +1,12 @@
 # Stated relationships between products (KnowMe and Prometheus portfolio)
 
-This page lists only relationships that the portfolio or a repository states. Each one names its source. The portfolio says its relationships are architectural intent, not proof of completed integration. A listed relationship does not mean the two products run together today.
+## How do the KnowMe and Prometheus products relate to each other? (KnowMe and Prometheus portfolio)
+
+The portfolio says its relationships are architectural intent, not proof of completed integration. This page lists only relationships that the portfolio or a repository states, and each one names its source. A listed relationship does not mean two products run together today. Two are stated in repositories: the KnowMe Concierge README says the agent runs inside the Universal Agent Runtime, and The Boss installers include the Universal Agent Runtime and BossFang as bundled programs.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
+Source: KnowMe Concierge repository README, retrieved 2026-10-24.
+Source: The Boss integration artifacts manifest, retrieved 2026-10-12.
 
 ## The Universal Agent Runtime and its users (KnowMe and Prometheus portfolio)
 

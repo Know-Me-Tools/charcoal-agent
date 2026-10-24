@@ -2,18 +2,18 @@
 
 Short answers to the comparison questions visitors ask. Each answer rests on the sourced landscape pages in this knowledge base, which paraphrase other makers' own pages as of 2026-10-12. KnowMe is not released, so answers about KnowMe describe KnowMe AI, LLC's design intent.
 
-## How is KnowMe different from OpenAI dots? (Landscape)
-
-OpenAI dots are shipped always-on agents that run on OpenAI's cloud computers with OpenAI's model, reach the person through ChatGPT, Slack, Teams and voice, and keep their memories in OpenAI's systems, according to OpenAI's pages. KnowMe is not released; by design it runs on the person's own devices, keeps conversations and memory in an encrypted local database there, syncs only between the person's own devices and servers, and can use local models or several providers. Dots do more today; KnowMe asks the person to run more themselves. The page OpenAI dots and KnowMe gives the full comparison, with minuses on both sides.
-
-Source: OpenAI, Introducing dots (2026-09-29), retrieved 2026-10-12.
-Source: OpenAI Help Center, Getting started with your dot, retrieved 2026-10-12.
-
 ## Why not just use ChatGPT? (Landscape)
 
 For many people ChatGPT is the right choice: it is available now with free sign-up, comes with OpenAI's models, and its desktop app brings ChatGPT and Codex to the desktop with context from files and screen content, according to OpenAI's download page. According to OpenAI's dots pages, a dot's memories are held in OpenAI's systems; the ChatGPT download page read for this knowledge base does not state memory or data handling. KnowMe is being designed for a different trade: data and memory on the person's own hardware and a free choice of models, at the cost of running more oneself and of waiting, because KnowMe is not released.
 
 Source: OpenAI, ChatGPT download page, retrieved 2026-10-12.
+Source: OpenAI Help Center, Getting started with your dot, retrieved 2026-10-12.
+
+## How is KnowMe different from OpenAI dots? (Landscape)
+
+OpenAI dots are shipped always-on agents that run on OpenAI's cloud computers with OpenAI's model, reach the person through ChatGPT, Slack, Teams and voice, and keep their memories in OpenAI's systems, according to OpenAI's pages. KnowMe is not released; by design it runs on the person's own devices, keeps conversations and memory in an encrypted local database there, syncs only between the person's own devices and servers, and can use local models or several providers. Dots do more today; KnowMe asks the person to run more themselves. The page OpenAI dots and KnowMe gives the full comparison, with minuses on both sides.
+
+Source: OpenAI, Introducing dots (2026-09-29), retrieved 2026-10-12.
 Source: OpenAI Help Center, Getting started with your dot, retrieved 2026-10-12.
 
 ## Is The Boss better than Cherry Studio? (Landscape)

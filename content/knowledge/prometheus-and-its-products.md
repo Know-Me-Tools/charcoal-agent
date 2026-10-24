@@ -1,6 +1,8 @@
 # Prometheus and its products
 
-Prometheus AGS makes the Universal Agent Runtime, BossFang, the Surreal Memory Server and the Prometheus skill packages. KnowMe AI, LLC makes KnowMe, The Boss and IPFS Sync for Obsidian.
+## What is Prometheus?
+
+Prometheus is the name of Prometheus AGS's server-side AI platform work. Prometheus AGS makes the Universal Agent Runtime, the Surreal Memory Server, BossFang and the Prometheus skill packages. KnowMe AI, LLC makes KnowMe, The Boss and IPFS Sync for Obsidian, and builds KnowMe and The Boss on those Prometheus parts.
 
 ## Who makes the Universal Agent Runtime (Prometheus)?
 
@@ -26,10 +28,6 @@ Prometheus AGS makes both Prometheus skill packages: the full Prometheus Skill P
 
 Source: Prometheus Skill Pack repository, retrieved 2026-10-13.
 Source: Prometheus Skills Mini repository, retrieved 2026-10-13.
-
-## What is Prometheus?
-
-Prometheus is the name of Prometheus AGS's server-side AI platform work. Prometheus AGS makes the Universal Agent Runtime, the Surreal Memory Server, BossFang and the Prometheus skill packages. KnowMe AI, LLC makes KnowMe, The Boss and IPFS Sync for Obsidian, and builds KnowMe and The Boss on those Prometheus parts.
 
 ## Is the Universal Agent Runtime MIT licensed? (Prometheus)
 

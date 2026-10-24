@@ -1,5 +1,13 @@
 # Universal Agent Runtime status and licence
 
+## What is the latest version of the Universal Agent Runtime, and is there a pre-release?
+
+The latest stable release of the Universal Agent Runtime (UAR) is v1.2.3. v1.3.0 is published as a pre-release, and its release notes mark verification as pending. UAR is MIT licensed and is made by Prometheus AGS.
+
+Source: Universal Agent Runtime changelog, retrieved 2026-10-13.
+Source: Universal Agent Runtime releases, retrieved 2026-10-24.
+Source: Universal Agent Runtime LICENSE, retrieved 2026-10-13.
+
 ## Who makes the Universal Agent Runtime and what licence it uses
 
 Prometheus AGS makes the Universal Agent Runtime (UAR), and its LICENSE file names Prometheus AGS as copyright holder. UAR is MIT licensed, and its documentation is CC-BY-4.0. KnowMe AI, LLC builds KnowMe and The Boss on it.
