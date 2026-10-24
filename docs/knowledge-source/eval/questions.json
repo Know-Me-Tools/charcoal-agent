@@ -435,5 +435,32 @@
       "convert an existing one"
     ],
     "critical": false
+  },
+  {
+    "question": "What products does KnowMe AI make?",
+    "expect_file": "portfolio-overview.md",
+    "expect_contains": [
+      "six families",
+      "The Boss"
+    ],
+    "critical": false
+  },
+  {
+    "question": "How do your products relate to each other?",
+    "expect_file": "portfolio-stated-relationships.md",
+    "expect_contains": [
+      "architectural intent",
+      "not proof of completed integration"
+    ],
+    "critical": false
+  },
+  {
+    "question": "What can I use today?",
+    "expect_file": "portfolio-available-today.md",
+    "expect_contains": [
+      "Not available to use yet",
+      "the-boss.know-me.tools"
+    ],
+    "critical": false
   }
 ]

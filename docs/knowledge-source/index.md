@@ -20,6 +20,7 @@ Source documents for the KnowMe site knowledge base. Each product directory hold
 * [Native agent creator](native-agent-creator/) - Rust templates and scaffolding for native agents.
 * [Artifact Refiner](artifact-refiner/) - Document refinement and teaching workflows.
 * [Prometheus](prometheus/) - Who makes each product, its licence and where to get it, as short direct answers.
+* [KnowMe and Prometheus portfolio](portfolio/) - The whole portfolio at a glance: products by family and status, the relationships the sources state, and what can be used today.
 
 ## Context
 
