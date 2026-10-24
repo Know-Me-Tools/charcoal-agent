@@ -6,7 +6,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 ## What is available, in development or design only (KnowMe and Prometheus portfolio)
 
-Seven products record a published release or package: The Boss, Universal Agent Runtime, Flint Forge, Prometheus Entity Management, Prometheus Parking Lot, Prometheus Skill Pack and Prometheus Skills Mini. Each has its own caveat below. Many others are existing source with no release. Some are prototypes. Many are designs or specifications only, with no implementation. Version lines are the latest recorded when the portfolio was checked on 24 October 2026.
+Seven products record a published release or package: The Boss, Universal Agent Runtime, Flint Forge, Prometheus Entity Management, Prometheus Parking Lot, Prometheus Skill Pack and Prometheus Skills Mini. IPFS Sync for Obsidian has a pre-release. Each has its own caveat below. Many others are existing source with no release. Some are prototypes. Many are designs or specifications only, with no implementation. Version lines are the latest recorded when the portfolio was checked on 24 October 2026.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
@@ -15,7 +15,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 - The Boss: existing implementation and releases; current-source features are not automatically included in released installers. Release v2.2.41.
 - KnowMe: implementation and specifications; full cross-platform qualification not established. Version: no tagged release (last commit 2026-10-20).
 - KnowMe Concierge: existing implementation; full App/Locus and authentic-voice integration not established. Version: no tagged release (last commit 2026-10-24).
-- Prometheus Studio: existing source and README; active roadmap and release status unverified. No repository was identified.
+- Prometheus Studio: existing README; active roadmap and release status unverified; no repository was identified.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
@@ -31,14 +31,15 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 ## Agents and memory: runtimes and memory services (KnowMe and Prometheus portfolio)
 
-- Universal Agent Runtime: work stopped; current runtime qualification not established. Release v1.2.3; pre-release v1.3.0.
+- Universal Agent Runtime: The portfolio says work stopped and current runtime qualification is not established. The repository lists release v1.2.3 and pre-release v1.3.0. Its changelog records functional acceptance of the Linux amd64 image within a defined scope. The repository is the newer record.
 - BossFang: existing source; product and integration goals remain unfinished. Build tag bossfang-sidecar-0899e4993, no semantic version.
 - Surreal Memory Server: existing implementation; remediation and per-user brain design have separate qualification. Git tag v1.10.2, no release.
 - Prometheus Knowledge: existing runtime; current deployment coverage not audited. Git tag v1.11.0, no release.
 - Knowledge Gateway: existing project with phased capabilities; graph-discovery completeness unverified. No repository was identified.
-- Tranquil: existing public repository and event work; private jobs, fencing and high availability are new design. No repository was identified.
+- Tranquil: existing event work; private jobs, fencing and high availability are new design; no repository was identified.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
+Source: Universal Agent Runtime changelog, retrieved 2026-10-13.
 
 ## Agents and memory: designs and proposals (KnowMe and Prometheus portfolio)
 
@@ -49,11 +50,16 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
-## Platform and infrastructure (KnowMe and Prometheus portfolio)
+## Platform and infrastructure: Flint Gate, Forge and Fabric (KnowMe and Prometheus portfolio)
 
 - Flint Gate: existing implementation; production qualification not independently audited. Version: no tagged release (last commit 2026-10-23).
 - Flint Forge: README reports v1.0-ready, a source claim, not an audit. Release v1.0.0.
 - Flint Realtime Fabric: README reports phase-18 scope complete; full media loop and wider integration qualified separately. Version: no tagged release (last commit 2026-10-11).
+
+Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
+
+## Platform and infrastructure: other services and designs (KnowMe and Prometheus portfolio)
+
 - Flint core infrastructure: existing source; deployment not audited. Version: no tagged release (last commit 2026-10-23).
 - Prometheus Entity Sync: existing implementation and prototype; deployment not audited. Version: no tagged release (last commit 2026-09-17).
 - Demo hosting platform: scaffold and server/API design. Version: no tagged release (last commit 2026-10-21).

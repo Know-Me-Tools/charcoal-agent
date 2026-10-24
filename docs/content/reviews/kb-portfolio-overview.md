@@ -32,3 +32,16 @@ The portfolio says the Universal Agent Runtime is "work stopped; current runtime
 
 ## Gate
 `build-kb`, `validate-kb` (0 failures, 0 warnings), `check-product-facts` (OK, 58 rows), `check-withheld-terms` (0 hits), `node --test scripts/kb/__tests__/*.test.mjs` (58 tests, 57 pass, the known `seed-modes` failure only).
+
+## Content-officer pre-review: PASS WITH FIXES (applied in a second commit)
+1. Universal Agent Runtime now has two-part wording on all three pages (portfolio says work stopped; repository lists the release and pre-release; changelog records Linux amd64 acceptance within a defined scope; repository is the newer record), with a `uar-changelog` source.
+2. BossFang removed from not-available; "no separate release; it comes only with The Boss" added.
+3. KnowMe Concierge: "the agent on this site. It has no download or install route."
+4. "No GitHub release. Some carry a git tag, which is not a release."
+5. Overview names the IPFS Sync pre-release.
+6. Know Decision "planned decision layer", portfolio status cited; gen_ui "intended shared core".
+7. Phase Exit and Project Management removed from the not-stated list.
+8. Praxis/Locus edge marked "per the portfolio".
+9. Tranquil and Studio no longer say a repository exists and was not identified.
+10. "libraries with a published release".
+11. Sections split (Flint platform, not-stated, overview Platform, available-today list); "It" openings replaced.

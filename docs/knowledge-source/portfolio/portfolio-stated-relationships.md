@@ -87,6 +87,10 @@ sources:
     resource: https://github.com/Know-Me-Tools/know-me-decision/blob/main/README.md
     title: Know Decision repository README
     last_modified: "2026-10-24T00:00:00+00:00"
+  - id: uar-changelog
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/CHANGELOG.md
+    title: Universal Agent Runtime changelog
+    last_modified: "2026-10-13T01:28:18+00:00"
 ---
 
 # Stated relationships between products
@@ -95,14 +99,14 @@ This page lists only relationships that the portfolio or a repository states. Ea
 
 ## The Universal Agent Runtime and its users
 
-- The portfolio calls the Universal Agent Runtime a shared runtime dependency used by multiple portfolio applications. It also says work on it stopped and its current qualification is not established.[^portfolio]
+- The portfolio calls the Universal Agent Runtime a shared runtime dependency used by multiple portfolio applications. It also says work on it stopped and its current qualification is not established.[^portfolio] The repository lists release {{v:uar}} and pre-release {{v:uar:pre}}, and its changelog records functional acceptance of the Linux amd64 image within a defined scope. The repository is the newer record.[^uar-changelog]
 - The KnowMe Concierge README says the agent runs inside the Universal Agent Runtime and the client connects to it.[^concierge-readme]
 - The Boss installers include the Universal Agent Runtime and BossFang as bundled programs that run beside The Boss.[^boss-build]
 - BossFang connects to a Universal Agent Runtime instance that already exists and never starts it. That connection is implemented in source, not yet built or tested.[^bossfang-uar]
 
 ## The Boss, BossFang and memory
 
-- The Boss works with the Surreal Memory Server over MCP as a separate service. It is not in the installer.[^boss-memory-adapter]
+- The Boss works with the Surreal Memory Server over MCP as a separate service. The Surreal Memory Server is not in the installer.[^boss-memory-adapter]
 - The Boss is built on the open-source Cherry Studio client.[^boss-readme]
 - BossFang uses the Surreal Memory Server library as its memory layer.[^bf-agents]
 - The Universal Agent Runtime's optional memory system is built on the Surreal Memory Server library. It is off until turned on.[^uar-memory]
@@ -113,9 +117,12 @@ This page lists only relationships that the portfolio or a repository states. Ea
 - Prometheus Skills Mini can publish lessons to the Surreal Memory Server's REST API.[^mini-readme]
 - The full pack and Mini share skill names, so they should not share a home directory.[^mini-readme]
 
-## The Flint platform
+## The Flint platform: Gate, Forge and Fabric
 
 - Flint Forge's README says Forge sits behind Flint Gate, which handles ingress and authentication, and consumes Flint Realtime Fabric as its realtime source.[^forge-readme]
+
+## The Flint platform: sync, infrastructure and demos
+
 - The Prometheus Entity Sync README says Entity Sync is built on Flint Realtime Fabric and reuses its change capture, CRDT and operation-log code.[^sync-readme]
 - The Flint core infrastructure README places Flint Gate, Flint Forge's Quarry and Flint Realtime Fabric in the stack it configures.[^infra-readme]
 - The demo hosting platform's README assigns roles: the Universal Agent Runtime runs agents, Flint Gate owns identity, Flint Forge supplies data, Flint Realtime Fabric supplies live updates. These are design statements.[^demos-readme]
@@ -133,15 +140,15 @@ This page lists only relationships that the portfolio or a repository states. Ea
 - The portfolio describes Companion as a potential shared workspace for dot, Locus and other agent systems. It says no live cross-agent integration is verified.[^portfolio]
 - The portfolio says full integration of the KnowMe Concierge with the KnowMe App, Locus and an authentic voice is not established.[^portfolio]
 - The Know Meet README names persistent dots as meeting participants.[^meet-readme]
-- The portfolio lists the Private Dot (Locus) documents among the published Praxis source records.[^portfolio]
+- Per the portfolio, the Private Dot (Locus) documents are among the published Praxis source records.[^portfolio]
 
 ## Tools and skills
 
 - The portfolio groups Prometheus Skills, Know Decision, Phase Exit, Project Management and Doc Forge as tools that support building and governing the work.[^portfolio]
 - The Phase Exit README says the preview was published for use in a Universal Agent Runtime release phase.[^pe-readme]
 - The Project Management README lists other skills it needs, such as kbd-init and agent-team-creator.[^kpm-readme]
-- The Know Decision README describes it as the decision layer shared by KnowMe's products. It names no integration that exists.[^decision-readme]
-- The portfolio describes gen_ui as the shared core for KnowMe's surfaces.[^portfolio]
+- The Know Decision README describes Know Decision as a planned decision layer for KnowMe's products. The portfolio lists it as pre-implementation.[^portfolio] Know Decision names no integration that exists.[^decision-readme]
+- The portfolio describes gen_ui as the intended shared core for KnowMe's surfaces.[^portfolio]
 
 ## Integrations outside the portfolio
 
@@ -150,7 +157,10 @@ This page lists only relationships that the portfolio or a repository states. Ea
 
 ## What the sources do not state
 
-- The sources state no relationship for Phase Exit, KnowMe Project Management, HTMX Doc Forge, IPFS Sync for Obsidian, Prometheus Studio, Knowtes, Kaia, Logos, Light Creator, Prometheus Tune, Lampas or the realtor assistant with the products above, beyond the groupings listed.
+- The sources state no relationship for HTMX Doc Forge, IPFS Sync for Obsidian, Prometheus Studio, Knowtes, Kaia, Logos, Light Creator, Prometheus Tune, Lampas or the realtor assistant with the products above, beyond the groupings listed.
+
+## What the sources do not state: Flint and other products
+
 - They state no relationship between Flint Agent Mesh or Flint AI Code Companion and the other Flint products. The shared Flint name is not a stated integration.
 - They state no relationship between DocuMind, Knowledge Gateway or the native agent creator and other products.
 - A relationship described as intent is intent. It is not proof that two products work together, or that either one is finished.

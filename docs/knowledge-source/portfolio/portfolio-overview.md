@@ -15,6 +15,10 @@ sources:
     resource: https://ipfs.prometheusags.ai/ipfs/bafybeidmp2shm6zpf7bj25iugtbylnzl5ms564lr3vsozuszbp23d63pie/
     title: "KnowMe and Prometheus portfolio, Edition 2"
     last_modified: "2026-10-24T00:00:00+00:00"
+  - id: uar-changelog
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/CHANGELOG.md
+    title: Universal Agent Runtime changelog
+    last_modified: "2026-10-13T01:28:18+00:00"
 ---
 
 # KnowMe and Prometheus portfolio overview
@@ -23,14 +27,14 @@ The KnowMe and Prometheus portfolio is the published list of products and projec
 
 ## What is available, in development or design only
 
-Seven products record a published release or package: The Boss, Universal Agent Runtime, Flint Forge, Prometheus Entity Management, Prometheus Parking Lot, Prometheus Skill Pack and Prometheus Skills Mini. Each has its own caveat below.[^portfolio] Many others are existing source with no release. Some are prototypes. Many are designs or specifications only, with no implementation.[^portfolio] Version lines are the latest recorded when the portfolio was checked on 24 October 2026.[^portfolio]
+Seven products record a published release or package: The Boss, Universal Agent Runtime, Flint Forge, Prometheus Entity Management, Prometheus Parking Lot, Prometheus Skill Pack and Prometheus Skills Mini. IPFS Sync for Obsidian has a pre-release. Each has its own caveat below.[^portfolio] Many others are existing source with no release. Some are prototypes. Many are designs or specifications only, with no implementation.[^portfolio] Version lines are the latest recorded when the portfolio was checked on 24 October 2026.[^portfolio]
 
 ## Applications: existing implementations
 
 - The Boss: existing implementation and releases; current-source features are not automatically included in released installers. Release {{v:boss}}.[^portfolio]
 - KnowMe: implementation and specifications; full cross-platform qualification not established. Version: {{v:knowme}}.[^portfolio]
 - KnowMe Concierge: existing implementation; full App/Locus and authentic-voice integration not established. Version: {{v:concierge}}.[^portfolio]
-- Prometheus Studio: existing source and README; active roadmap and release status unverified. No repository was identified.[^portfolio]
+- Prometheus Studio: existing README; active roadmap and release status unverified; no repository was identified.[^portfolio]
 
 ## Applications: prototypes and designs
 
@@ -42,12 +46,12 @@ Seven products record a published release or package: The Boss, Universal Agent 
 
 ## Agents and memory: runtimes and memory services
 
-- Universal Agent Runtime: work stopped; current runtime qualification not established. Release {{v:uar}}; pre-release {{v:uar:pre}}.[^portfolio]
+- Universal Agent Runtime: The portfolio says work stopped and current runtime qualification is not established.[^portfolio] The repository lists release {{v:uar}} and pre-release {{v:uar:pre}}. Its changelog records functional acceptance of the Linux amd64 image within a defined scope.[^uar-changelog] The repository is the newer record.
 - BossFang: existing source; product and integration goals remain unfinished. Build tag {{v:bossfang}}, no semantic version.[^portfolio]
 - Surreal Memory Server: existing implementation; remediation and per-user brain design have separate qualification. Git tag {{v:memory}}, no release.[^portfolio]
 - Prometheus Knowledge: existing runtime; current deployment coverage not audited. Git tag {{v:knowledge}}, no release.[^portfolio]
 - Knowledge Gateway: existing project with phased capabilities; graph-discovery completeness unverified. No repository was identified.[^portfolio]
-- Tranquil: existing public repository and event work; private jobs, fencing and high availability are new design. No repository was identified.[^portfolio]
+- Tranquil: existing event work; private jobs, fencing and high availability are new design; no repository was identified.[^portfolio]
 
 ## Agents and memory: designs and proposals
 
@@ -56,11 +60,14 @@ Seven products record a published release or package: The Boss, Universal Agent 
 - Numen Enclave: published architecture and deployment standard v0.1, a review proposal published 24 October 2026. No repository was identified.[^portfolio]
 - Synaxis: published design; operating paid service not established. No repository was identified.[^portfolio]
 
-## Platform and infrastructure
+## Platform and infrastructure: Flint Gate, Forge and Fabric
 
 - Flint Gate: existing implementation; production qualification not independently audited. Version: {{v:gate}}.[^portfolio]
 - Flint Forge: README reports v1.0-ready, a source claim, not an audit. Release {{v:forge}}.[^portfolio]
 - Flint Realtime Fabric: README reports phase-18 scope complete; full media loop and wider integration qualified separately. Version: {{v:fabric}}.[^portfolio]
+
+## Platform and infrastructure: other services and designs
+
 - Flint core infrastructure: existing source; deployment not audited. Version: {{v:core-infra}}.[^portfolio]
 - Prometheus Entity Sync: existing implementation and prototype; deployment not audited. Version: {{v:sync}}.[^portfolio]
 - Demo hosting platform: scaffold and server/API design. Version: {{v:demos}}.[^portfolio]
