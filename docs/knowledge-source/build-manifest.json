@@ -355,6 +355,10 @@
     {
       "source": "portfolio/portfolio-available-today.md",
       "output": "portfolio-available-today.md"
+    },
+    {
+      "source": "portfolio/portfolio-how-products-relate.md",
+      "output": "portfolio-how-products-relate.md"
     }
   ]
 }

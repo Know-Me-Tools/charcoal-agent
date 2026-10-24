@@ -29,6 +29,6 @@ The portfolio status for Synaxis is "Published design; operating paid service no
 - The portfolio lists one design document, dated 21 October, and one edition record.[^portfolio]
 - The portfolio records no independent qualification of a service implementation.[^portfolio]
 
-## How Synaxis relates to other products
+## Related products
 
-The sources do not state a relationship between Synaxis and other KnowMe products. The portfolio treats relationships among its entries as architectural intent, not proof of completed integration.
+None is stated in the sources.

@@ -28,6 +28,6 @@ The portfolio status is "MVP specification and deployed synthetic demonstration;
 - A synthetic demonstration is deployed, and it uses made-up data.[^portfolio]
 - The full MVP specification is delivered privately and has no public specification receipt.[^portfolio]
 
-## How the KnowMe realtor assistant relates to other products
+## Related products
 
-The sources do not state a relationship between the realtor assistant and other KnowMe products.
+None is stated in the sources.

@@ -240,7 +240,7 @@
   },
   {
     "question": "How do the KnowMe AI, LLC products relate to each other?",
-    "expect_file": "product-relationships.md",
+    "expect_file": "portfolio-how-products-relate.md",
     "critical": false,
     "expect_contains": "Universal Agent Runtime"
   },
@@ -447,7 +447,7 @@
   },
   {
     "question": "How do your products relate to each other?",
-    "expect_file": "portfolio-stated-relationships.md",
+    "expect_file": "portfolio-how-products-relate.md",
     "expect_contains": [
       "architectural intent",
       "not proof of completed integration"

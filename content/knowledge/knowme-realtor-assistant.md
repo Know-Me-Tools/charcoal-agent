@@ -18,6 +18,6 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
-## How the KnowMe realtor assistant relates to other products
+## Related products (KnowMe realtor assistant)
 
-The sources do not state a relationship between the realtor assistant and other KnowMe products.
+None is stated in the sources.

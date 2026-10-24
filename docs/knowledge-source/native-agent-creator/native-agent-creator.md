@@ -35,6 +35,6 @@ No repository was identified for the native agent creator, so no version or rele
 
 The portfolio records no standalone public page and no public publication receipt for the native agent creator.[^portfolio] It does not name a release, a licence, supported platforms or a way to install it, so this page does not either.
 
-## How the native agent creator relates to other products
+## Related products
 
-The sources do not state a relationship between the native agent creator and other products.
+None is stated in the sources.

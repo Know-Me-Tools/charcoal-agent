@@ -18,6 +18,6 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
-## How Knowtes relates to other products
+## Related products (Knowtes)
 
-The sources do not state a relationship between Knowtes and other KnowMe products.
+None is stated in the sources.

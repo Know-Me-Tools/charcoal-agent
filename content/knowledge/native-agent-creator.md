@@ -25,6 +25,6 @@ The portfolio records no standalone public page and no public publication receip
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
-## How the native agent creator relates to other products
+## Related products (Native agent creator)
 
-The sources do not state a relationship between the native agent creator and other products.
+None is stated in the sources.

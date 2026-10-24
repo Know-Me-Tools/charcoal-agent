@@ -28,6 +28,6 @@ The portfolio status for Logos is "Design/specification and dashboard prototype;
 - The portfolio lists five local editions: a functional specification (version 3.0), a brand guide (version 2), a dashboard, a moodboard and build prompts (version 3).[^portfolio]
 - The public address of each local edition is not verified, and there is no standalone public publication.[^portfolio]
 
-## How Logos relates to other products
+## Related products
 
-The sources do not state a relationship between Logos and other KnowMe products. The portfolio treats relationships among its entries as architectural intent, not proof of completed integration.
+None is stated in the sources.

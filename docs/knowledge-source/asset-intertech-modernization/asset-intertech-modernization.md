@@ -30,6 +30,6 @@ No repository was identified for this program, so no version or release can be g
 - The program includes research on agent-assisted engineering.[^portfolio]
 - Its proprietary implementation and commercial details are withheld.[^portfolio]
 
-## How the ASSET InterTech modernization program relates to other products
+## Related products
 
-The sources do not state a relationship between this program and other products.
+None is stated in the sources.

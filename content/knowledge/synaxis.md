@@ -19,6 +19,6 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
-## How Synaxis relates to other products
+## Related products (Synaxis)
 
-The sources do not state a relationship between Synaxis and other KnowMe products. The portfolio treats relationships among its entries as architectural intent, not proof of completed integration.
+None is stated in the sources.
