@@ -7,7 +7,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const SHELL_DIRS = ["src/components/layout", "src/components/common"];
+const SHELL_DIRS = ["src/components/layout", "src/components/common", "src/components/site/directory"];
 const SHELL_PRIMITIVES = [
   "src/components/ui/dialog.tsx",
   "src/components/ui/select.tsx",

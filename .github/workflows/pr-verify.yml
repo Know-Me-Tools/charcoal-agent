@@ -38,6 +38,11 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+      # site-home-directory: fails when content/site/directory.ts is not what
+      # the facts file and content/site/directory-copy.ts would generate, when
+      # a public row has no copy, or when copy names a row that is not public.
+      - name: Check product directory
+        run: node scripts/site/build-directory.mjs --check
       - run: npm ci --ignore-scripts
       - run: npm run lint
       - run: npm test

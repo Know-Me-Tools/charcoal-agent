@@ -31,6 +31,11 @@
      and the About rows (docs/design/brand-pages.md §3). Light uses the muted
      value because #fafbfc on the canvas is 1.31 L*, below the 1.8 floor. */
   --km-band: #eef0f3;
+  /* A filled container on the canvas that holds status and AI soft fills
+     (docs/design/product-directory.md §2.3, §6.1). The chrome value in light,
+     the surface value in dark: the only ground where success-, warning- and
+     cyan-soft all clear the 1.8 L* floor in both themes. */
+  --km-tile: #ffffff;
 
   /* Text */
   --km-fg: #0b0f14;
@@ -95,6 +100,7 @@
      would make focus (raised) darker than rest. */
   --km-composer: #161d29;
   --km-band: #161d29;
+  --km-tile: #161d29;
 
   --km-fg: #e8edf3;
   --km-fg-secondary: #a7b0bc;
@@ -185,6 +191,7 @@
   --color-code: var(--km-code);
   --color-composer: var(--km-composer);
   --color-band: var(--km-band);
+  --color-tile: var(--km-tile);
   --color-fg: var(--km-fg);
   --color-fg-secondary: var(--km-fg-secondary);
   --color-faint: var(--km-fg-faint);

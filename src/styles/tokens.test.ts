@@ -48,6 +48,8 @@ const SURFACES = [
   "km-muted",
   "km-composer",
   "km-band",
+  // Directory tile (docs/design/product-directory.md §2.3, §6.1).
+  "km-tile",
 ];
 const TEXT = [
   "km-fg",
@@ -95,11 +97,16 @@ const FILL_STEPS: Array<[a: string, b: string, where: string]> = [
   ["km-band", "km-canvas", "alternate band next to a canvas band; About row on the canvas"],
   ["km-band", "km-chrome", "alternate band next to the site footer"],
   ["km-ember-hover", "km-ember", "ember CTA hover"],
+  // Directory tiles sit on the canvas (product-directory.md §2.3).
+  ["km-tile", "km-canvas", "directory tile next to the canvas"],
 ];
+// A filled badge or chip only ever sits on the tile: each soft fill must
+// separate from it by the same floor (product-directory.md §2.3, §6.1).
+const SOFT_ON_TILE = ["km-success-soft", "km-warning-soft", "km-cyan-soft"];
 const MIN_FILL_STEP = 1.8;
 // The 2px ember focus outline (focus-cue and the CTA outline) sits at a 2px
 // offset on whatever fill surrounds the control: WCAG 1.4.11 needs 3:1.
-const FOCUS_RING_ON = ["km-canvas", "km-chrome", "km-band", "km-composer", "km-raised"];
+const FOCUS_RING_ON = ["km-canvas", "km-chrome", "km-band", "km-composer", "km-raised", "km-tile"];
 const NON_TEXT = 3;
 // The ember CTA on hover must still stand apart from every fill it sits on:
 // the composer (send), raised (send while the form has focus), canvas (404).
@@ -136,6 +143,11 @@ describe.each([
   it.each(FILL_STEPS)("%s separates from %s (%s)", (a, b) => {
     const step = Math.abs(lightness(tokens[a]) - lightness(tokens[b]));
     expect(step, `${a} vs ${b} = ${step.toFixed(2)} L*`).toBeGreaterThanOrEqual(MIN_FILL_STEP);
+  });
+
+  it.each(SOFT_ON_TILE)("%s separates from km-tile", (soft) => {
+    const step = Math.abs(lightness(tokens[soft]) - lightness(tokens["km-tile"]));
+    expect(step, `${soft} vs km-tile = ${step.toFixed(2)} L*`).toBeGreaterThanOrEqual(MIN_FILL_STEP);
   });
 
   it.each(FOCUS_RING_ON)("ember focus outline reaches 3:1 on %s", (fill) => {
