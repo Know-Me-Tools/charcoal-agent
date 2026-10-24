@@ -48,7 +48,7 @@ BossFang's memory uses the Surreal Memory Server library with an embedded databa
 
 ## Where to get BossFang
 
-BossFang's home page is https://bossfang.know-me.tools. Its source code is at https://github.com/GQAdonis/librefang, the BossFang fork of LibreFang.[^bf-agents] Its releases page carries native payloads built for The Boss, several marked pre-release, whose notes say release acceptance is tracked separately.[^bf-releases] No end-user BossFang release or tested install path is established here.
+BossFang's source code is at https://github.com/GQAdonis/librefang, the BossFang fork of LibreFang.[^bf-agents] Its releases page carries native payloads built for The Boss, several marked pre-release, whose notes say release acceptance is tracked separately.[^bf-releases] No end-user BossFang release or tested install path is established here.
 
 ## More about BossFang
 

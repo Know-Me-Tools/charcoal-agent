@@ -101,11 +101,11 @@ All current The Boss installers include the Universal Agent Runtime and BossFang
 
 ## What are the Universal Agent Runtime, BossFang and the Surreal Memory Server that KnowMe and The Boss are built on?
 
-The Universal Agent Runtime is a governed agent runtime, written in Rust, that routes models and runs agents and tools under policy. BossFang is an agent operating system forked from the open-source LibreFang project, with SurrealDB storage, for agents that run on schedules; its public home is https://bossfang.know-me.tools. The Surreal Memory Server is a memory service with a knowledge graph and search. All three are made by Prometheus (Prometheus AGS); KnowMe and The Boss, from KnowMe AI, LLC, are built on them.
+The Universal Agent Runtime is a governed agent runtime, written in Rust, that routes models and runs agents and tools under policy. BossFang is an agent operating system forked from the open-source LibreFang project, with SurrealDB storage, for agents that run on schedules; its source code is at https://github.com/GQAdonis/librefang. The Surreal Memory Server is a memory service with a knowledge graph and search. All three are made by Prometheus (Prometheus AGS); KnowMe and The Boss, from KnowMe AI, LLC, are built on them.
 
 ## Who makes the Universal Agent Runtime, BossFang and the Surreal Memory Server that KnowMe uses?
 
-Prometheus (Prometheus AGS) makes the Universal Agent Runtime, the Surreal Memory Server, BossFang and the Prometheus skill packages. KnowMe AI, LLC makes KnowMe, The Boss and IPFS Sync for Obsidian, and KnowMe and The Boss are built on those Prometheus parts: the KnowMe agent on this site runs on the Universal Agent Runtime, and The Boss bundles the Universal Agent Runtime and BossFang. BossFang's public home is https://bossfang.know-me.tools.
+Prometheus (Prometheus AGS) makes the Universal Agent Runtime, the Surreal Memory Server, BossFang and the Prometheus skill packages. KnowMe AI, LLC makes KnowMe, The Boss and IPFS Sync for Obsidian, and KnowMe and The Boss are built on those Prometheus parts: the KnowMe agent on this site runs on the Universal Agent Runtime, and The Boss bundles the Universal Agent Runtime and BossFang. BossFang's source code is at https://github.com/GQAdonis/librefang.
 
 ## What is Prometheus, and how does it relate to KnowMe?
 

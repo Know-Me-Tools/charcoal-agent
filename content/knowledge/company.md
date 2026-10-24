@@ -12,7 +12,7 @@ KnowMe AI, LLC makes the products described on this site:
 
 ## The parts KnowMe and The Boss are built on
 
-KnowMe and The Boss are built on parts made by Prometheus (Prometheus AGS); Prometheus is the name of that company's server-side AI platform work, which also includes the Prometheus skill packages. The Universal Agent Runtime is a governed agent runtime, written in Rust, that routes models and runs agents and tools under policy; the KnowMe agent on this site runs on it, and The Boss bundles it. BossFang is an agent operating system forked from the open-source LibreFang project, with SurrealDB storage, for agents that run on schedules; The Boss bundles it too, and its public home is https://bossfang.know-me.tools. The Surreal Memory Server is a memory service with a knowledge graph and search that The Boss works with as a separate service.
+KnowMe and The Boss are built on parts made by Prometheus (Prometheus AGS); Prometheus is the name of that company's server-side AI platform work, which also includes the Prometheus skill packages. The Universal Agent Runtime is a governed agent runtime, written in Rust, that routes models and runs agents and tools under policy; the KnowMe agent on this site runs on it, and The Boss bundles it. BossFang is an agent operating system forked from the open-source LibreFang project, with SurrealDB storage, for agents that run on schedules; The Boss bundles it too; its source code is at https://github.com/GQAdonis/librefang. The Surreal Memory Server is a memory service with a knowledge graph and search that The Boss works with as a separate service.
 
 ## How the know-me.tools site and the KnowMe agent work
 
