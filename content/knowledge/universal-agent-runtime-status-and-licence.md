@@ -8,9 +8,10 @@ Source: Universal Agent Runtime LICENSE, retrieved 2026-10-13.
 
 ## Universal Agent Runtime version
 
-UAR is at version 1.0.0, dated 2026-07-12 in its changelog. It follows semantic versioning for the HTTP, event, configuration and artifact contracts that its support matrix marks Stable. Preview and Experimental features do not get that compatibility promise.
+The latest stable release of UAR is v1.2.3, which its changelog dates 2026-10-22. The changelog records that functional acceptance of the published Linux amd64 image passed within a defined scope; arm64 acceptance is outside that scope. v1.3.0 is published as a pre-release, and its release notes mark verification as pending. The 1.x line began with 1.0.0 on 2026-07-12. UAR follows semantic versioning for the HTTP, event, configuration and artifact contracts that its support matrix marks Stable. Preview and Experimental features do not get that compatibility promise.
 
 Source: Universal Agent Runtime changelog, retrieved 2026-10-13.
+Source: Universal Agent Runtime releases, retrieved 2026-10-24.
 
 ## What the Universal Agent Runtime support levels mean
 

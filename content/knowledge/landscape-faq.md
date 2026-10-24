@@ -48,7 +48,7 @@ No. Always-on agents run on their maker's servers while the person's device is o
 
 ## Which of these tools can I use today? (Landscape)
 
-From KnowMe AI, LLC, The Boss for macOS and Windows. From Prometheus AGS, the Universal Agent Runtime at version 1.0.0 with public source and an MIT licence, BossFang as public source without an established end-user release, and the Surreal Memory Server as source published for review rather than a tested release. KnowMe has no public release and no announced date. Every other product named in the landscape pages is available from its own maker under that maker's terms.
+From KnowMe AI, LLC, The Boss for macOS and Windows. From Prometheus AGS, the Universal Agent Runtime at version v1.2.3 with public source and an MIT licence, BossFang as public source without an established end-user release, and the Surreal Memory Server as source published for review rather than a tested release. KnowMe has no public release and no announced date. Every other product named in the landscape pages is available from its own maker under that maker's terms.
 
 Source: The Boss download page, retrieved 2026-10-12.
 Source: Universal Agent Runtime README, retrieved 2026-10-12.

@@ -11,6 +11,10 @@ tags:
   - status
   - licence
 sources:
+  - id: full-releases
+    resource: https://github.com/Prometheus-AGS/prometheus-skill-system/releases
+    title: Prometheus Skill Pack releases
+    last_modified: "2026-10-24T00:00:00+00:00"
   - id: full-readme
     resource: https://github.com/Prometheus-AGS/prometheus-skill-system/blob/main/README.md
     title: Prometheus Skill Pack README
@@ -57,11 +61,11 @@ Prometheus AGS makes both the full Prometheus Skill Pack and Prometheus Skills M
 
 ## How many skills the Prometheus skill packages have
 
-Counted by listing the skill folders in the repository on 2026-10-13. The full pack, version 1.12.2 in its `skill-system.json`, has 120 skills in its `skills/<category>/<skill>/` folders, each with a SKILL.md; two of them are imported from other repositories. With nested helper skills it has 404 SKILL.md files in total, not counting installed dependencies.[^full-system] Mini, version 1.12.1 in its `package.json`, has 100 skills in its `skills/<name>/` folders.[^mini-package]
+Counted by listing the skill folders in the repository on 2026-10-13. The full pack, version 1.12.2 in its `skill-system.json` on that date, has 120 skills in its `skills/<category>/<skill>/` folders, each with a SKILL.md; two of them are imported from other repositories. With nested helper skills it has 404 SKILL.md files in total, not counting installed dependencies.[^full-system] Mini, version 1.12.1 in its `package.json`, has 100 skills in its `skills/<name>/` folders.[^mini-package]
 
 ## Status of the full pack in the Prometheus skill packages
 
-The full pack's `skill-system.json` gives release version 1.12.2; treat that as the source version, not a tested release.[^full-system] Its README does not select a release. Support depends on the release, the host machine and the entry point, and a successful install does not prove that every requested service works.[^full-readme]
+The latest GitHub release of the full pack is {{v:skills}} ({{v:skills:date}}), and the latest release of Mini is {{v:mini}} ({{v:mini:date}}).[^full-releases] The skill counts on this page were taken from version 1.12.2 and have not been recounted for {{v:skills}}. The full pack's `skill-system.json` gave release version 1.12.2 when it was last read for this page; treat a version in a manifest as the source version, not a tested release.[^full-system] Its README does not select a release. Support depends on the release, the host machine and the entry point, and a successful install does not prove that every requested service works.[^full-readme]
 
 ## Status of Mini in the Prometheus skill packages
 

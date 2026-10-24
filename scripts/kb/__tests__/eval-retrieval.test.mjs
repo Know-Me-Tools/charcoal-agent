@@ -12,7 +12,9 @@ const COMMITTED = JSON.parse(
   readFileSync(new URL("../../../docs/knowledge-source/eval/questions.json", import.meta.url), "utf8"),
 );
 const FR8 = (Array.isArray(COMMITTED) ? COMMITTED : COMMITTED.questions).filter(
-  (q) => q.expect_file === "ipfs-sync-for-obsidian.md" || q.expect_file === "the-boss.md",
+  (q) =>
+    q.question.startsWith("What version of IPFS Sync for Obsidian is available") ||
+    q.question === "What platforms does The Boss support?",
 );
 const QUESTIONS_FILE = join(mkdtempSync(join(tmpdir(), "kb-eval-")), "questions.json");
 writeFileSync(QUESTIONS_FILE, JSON.stringify(Array.isArray(COMMITTED) ? FR8 : { ...COMMITTED, questions: FR8 }));

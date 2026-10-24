@@ -23,6 +23,7 @@
 // Options (for tests): --manifest <file> --source-dir <dir> --out-dir <dir>
 
 import { existsSync, lstatSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { loadFacts, resolvePlaceholders } from "./lib/product-facts.mjs";
 import { dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { footnoteRefs, mapOutsideCode, parseConceptFile, retrievalDate } from "./lib/frontmatter.mjs";
@@ -132,10 +133,14 @@ function attributionLines(ids, sources, sourcePath, errors) {
 
 /**
  * Converts one concept file. Returns { output, errors }.
- * `text` is the concept file, `label` its product label.
+ * `text` is the concept file, `label` its product label, `facts` the product-facts map used to
+ * resolve {{v:<id>}} version placeholders (see lib/product-facts.mjs).
  */
-export function buildConcept({ text, label, sourcePath }) {
+export function buildConcept({ text: rawText, label, sourcePath, facts = null }) {
   const errors = [];
+  const resolved = resolvePlaceholders(rawText, facts, sourcePath);
+  errors.push(...resolved.errors);
+  const text = resolved.text;
   const parsed = parseConceptFile(text);
   if (!parsed.present) errors.push(`${sourcePath}: missing frontmatter`);
   for (const e of parsed.errors) errors.push(`${sourcePath}:${e.line}: ${e.message}`);
@@ -217,6 +222,7 @@ export function outputCollisions(outDir, outputs) {
 export function run(argv) {
   const opts = parseArgs(argv);
   const { entries, errors } = loadManifest(opts.manifest);
+  const facts = loadFacts(join(opts.sourceDir, "product-facts.json"));
   const built = [];
   for (const { source, output } of entries) {
     const sourcePath = join(opts.sourceDir, source);
@@ -229,7 +235,7 @@ export function run(argv) {
       errors.push(`${source}: its product directory has no index.md with a '# ' heading (the product label)`);
       continue;
     }
-    const r = buildConcept({ text: readFileSync(sourcePath, "utf8"), label, sourcePath: source });
+    const r = buildConcept({ text: readFileSync(sourcePath, "utf8"), label, sourcePath: source, facts });
     errors.push(...r.errors);
     built.push({ output, content: r.output });
   }
