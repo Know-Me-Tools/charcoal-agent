@@ -167,6 +167,70 @@
     {
       "source": "prometheus/product-relationships.md",
       "output": "product-relationships.md"
+    },
+    {
+      "source": "flint-code-companion/flint-code-companion.md",
+      "output": "flint-code-companion.md"
+    },
+    {
+      "source": "flint-agent-mesh/flint-agent-mesh.md",
+      "output": "flint-agent-mesh.md"
+    },
+    {
+      "source": "flint-gate/flint-gate.md",
+      "output": "flint-gate.md"
+    },
+    {
+      "source": "flint-forge/flint-forge.md",
+      "output": "flint-forge.md"
+    },
+    {
+      "source": "flint-realtime-fabric/flint-realtime-fabric.md",
+      "output": "flint-realtime-fabric.md"
+    },
+    {
+      "source": "flint-core-infrastructure/flint-core-infrastructure.md",
+      "output": "flint-core-infrastructure.md"
+    },
+    {
+      "source": "prometheus-entity-management/prometheus-entity-management.md",
+      "output": "prometheus-entity-management.md"
+    },
+    {
+      "source": "prometheus-entity-sync/prometheus-entity-sync.md",
+      "output": "prometheus-entity-sync.md"
+    },
+    {
+      "source": "gen-ui/gen-ui.md",
+      "output": "gen-ui.md"
+    },
+    {
+      "source": "prometheus-parking-lot/prometheus-parking-lot.md",
+      "output": "prometheus-parking-lot.md"
+    },
+    {
+      "source": "documind/documind.md",
+      "output": "documind.md"
+    },
+    {
+      "source": "knowledge-gateway/knowledge-gateway.md",
+      "output": "knowledge-gateway.md"
+    },
+    {
+      "source": "prometheus-knowledge/prometheus-knowledge.md",
+      "output": "prometheus-knowledge.md"
+    },
+    {
+      "source": "demo-hosting-platform/demo-hosting-platform.md",
+      "output": "demo-hosting-platform.md"
+    },
+    {
+      "source": "inference-forks/inference-forks.md",
+      "output": "inference-forks.md"
+    },
+    {
+      "source": "candle-vllm/candle-vllm.md",
+      "output": "candle-vllm.md"
     }
   ]
 }

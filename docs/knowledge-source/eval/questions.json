@@ -295,5 +295,57 @@
       "{{v:skills}}"
     ],
     "critical": false
+  },
+  {
+    "question": "What is Flint Gate and is it production ready?",
+    "expect_file": "flint-gate.md",
+    "expect_contains": [
+      "authentication",
+      "not independently audited"
+    ],
+    "critical": false
+  },
+  {
+    "question": "Is Flint Forge version 1.0 released?",
+    "expect_file": "flint-forge.md",
+    "expect_contains": [
+      "{{v:forge}}",
+      "source claim"
+    ],
+    "critical": false
+  },
+  {
+    "question": "Which version of Prometheus Parking Lot is on crates.io?",
+    "expect_file": "prometheus-parking-lot.md",
+    "expect_contains": [
+      "{{v:parking}}",
+      "0.1.0"
+    ],
+    "critical": false
+  },
+  {
+    "question": "Does Candle-VLLM use Parking Lot 0.3.0?",
+    "expect_file": "candle-vllm.md",
+    "expect_contains": [
+      "0.1.0",
+      "32b481d"
+    ],
+    "critical": false
+  },
+  {
+    "question": "What is the Flint Agent Mesh and is it deployed?",
+    "expect_file": "flint-agent-mesh.md",
+    "expect_contains": [
+      "deployed mesh not established"
+    ],
+    "critical": false
+  },
+  {
+    "question": "What is the latest version of Prometheus Entity Management?",
+    "expect_file": "prometheus-entity-management.md",
+    "expect_contains": [
+      "{{v:pem}}"
+    ],
+    "critical": false
   }
 ]
