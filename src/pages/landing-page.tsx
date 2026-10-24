@@ -5,6 +5,7 @@ import { EMBER_CTA } from "@/components/site/ember-cta";
 import { ResumeChatLink } from "@/components/site/resume-chat-link";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
+import { ProductDirectory } from "@/components/site/directory/product-directory";
 import { WebSearchToggle } from "@/components/assistant-ui/web-search-toggle";
 import { useStartChat } from "@/hooks/use-start-chat";
 import { isSiteBuild } from "@/hooks/use-site-config";
@@ -141,6 +142,8 @@ export default function LandingPage() {
 						</div>
 					</div>
 				</section>
+
+				{siteBuild && <ProductDirectory />}
 
 				{content.sections.map((section, index) => (
 					<section

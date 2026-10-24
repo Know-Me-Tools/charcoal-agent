@@ -13,6 +13,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "size:check": "node scripts/check-bundle-size.mjs",
+    "directory:build": "node scripts/site/build-directory.mjs",
+    "directory:check": "node scripts/site/build-directory.mjs --check",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p e2e/tsconfig.json",

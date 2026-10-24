@@ -65,7 +65,7 @@ function versionLines(row) {
 		case "manifest":
 			return [`${v.value} pre-release`];
 		case "untagged":
-			return [`No release · last commit ${date(v.lastCommit)}`];
+			return [`No tagged release · last commit ${date(v.lastCommit)}`];
 		default:
 			return ["No release recorded"];
 	}
