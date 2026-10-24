@@ -23,7 +23,7 @@ Copy, reviewed here: everything in `DIRECTORY_COPY`.
 | 7 | Disclosure | "Show {n} more in {family}" / "Show fewer" | The button under each family's index rows. |
 | 8 | Display names and one-line summaries (52) | Table A below | Each entry's row or tile. |
 | 9 | Lead questions (10) and tile summaries (2) | Table B below | The ask chip of each tile; the summary of the two multi-row tiles (Flint platform, Prometheus Skill Pack). |
-| 10 | Index prompt template | "What is {name}, and how far along is it?" | The question an index row's "Ask" chip sends; also in its accessible name "Ask the concierge: {question}" (existing string, `ask-concierge.ts`). Not shown on screen. |
+| 10 | Index prompt template | "Tell me about {name}. How far along is it?" | The question an index row's "Ask" chip sends; also in its accessible name "Ask the concierge: {question}" (existing string, `ask-concierge.ts`). Not shown on screen. |
 
 Not added here, deliberately: "See all products" and the label definitions. The `/products` route and the labels section ship in the next change (`site-product-pages`); the strings go through review with it. No tile title links to a product page yet; the slug stays in the data (`productSlug`, `DirectoryLead.slug`).
 
@@ -129,7 +129,7 @@ Questions follow `product-directory.md` section 5.2: a question in the visitor's
 ## Decisions for the operator
 
 1. **"Ask about the products." section kept.** The brief proposes removing it (section 3.2, "PROPOSED REMOVAL, for the content officer and the operator"). That text is operator-approved (`landing-site.ts`, `site-landing.md`) and the brief leaves the decision open, so it is untouched. With it, the sections below the directory alternate canvas/band as before (products on band); without it, "Your conversations are stored in this browser." would sit on the band, as the brief draws. Its body names three products and is now stale beside a directory of 52.
-2. **Version line wording follows the brief, not the knowledge-base build.** The brief (section 2.4) and the appendix give "No release · last commit 20 Oct 2026" and "No release recorded". `scripts/kb/lib/product-facts.mjs` renders "no tagged release (last commit YYYY-MM-DD)" for the knowledge base. The generator follows the appendix, because its drift check is defined against it.
+2. **Version line wording follows the brief, not the knowledge-base build.** The brief (section 2.4) and the appendix give "No tagged release · last commit 20 Oct 2026" and "No release recorded". `scripts/kb/lib/product-facts.mjs` renders "no tagged release (last commit YYYY-MM-DD)" for the knowledge base. The generator follows the appendix, because its drift check is defined against it.
 3. **Multi-row tiles have one ask chip**, as drawn in the brief. The three Flint rows and the two Skill Pack rows each show their own badge and version, and share the tile's question.
 4. **No "See all products" link and no tile links yet.** `/products` and `/products/<slug>` ship in the next change.
 
@@ -139,3 +139,16 @@ Not yet given.
 - Name:
 - Date:
 - Approved file git hash (`git hash-object content/site/directory-copy.ts`):
+
+## Fixes after the independent content-officer review (PASS WITH FIXES)
+
+1. `demos`: "An early scaffold for hosting packaged demos; bindings are still design." The label stays as derived (In development, rule S7). For the operator: its facts row (scaffold, only a health route implemented) may belong in "Design only".
+2. `tranquil`: "A Rust personal-data-server direction for Parlour; private agent jobs are designed."
+3. `phase-exit`: "A preview of evidence-based completion decisions against an adopted contract."
+4. `meet`: "A synthetic prototype of an agentic meeting experience; integrations unverified." `realtor`: "A prototype real-estate assistant, demonstrated on synthetic data."
+5. `knowme` summary: "A personal intelligence app in progress: memory, your inference, agent workflows." (81 characters)
+6. `knowme` lead question: "What is KnowMe, and can I use it yet?"
+7. Index prompt template: "Tell me about {name}. How far along is it?" `inference` is now "Inference fork work".
+8. Version line: "No tagged release · last commit …" in the generator, `directory.ts`, the design appendix and `docs/design/comps/build-data.mjs`. "No release recorded" is unchanged.
+
+Open for the operator, not changed: the site mixes "concierge" and "agent" wording.

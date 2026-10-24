@@ -90,7 +90,7 @@ describe("version lines", () => {
 			"Build tag, no version · 8 Oct 2026",
 		]);
 		expect(line({ kind: "manifest", value: "v0.2.0" })).toEqual(["v0.2.0 pre-release"]);
-		expect(line({ kind: "untagged", lastCommit: "2026-10-20" })).toEqual(["No release · last commit 20 Oct 2026"]);
+		expect(line({ kind: "untagged", lastCommit: "2026-10-20" })).toEqual(["No tagged release · last commit 20 Oct 2026"]);
 		expect(line({ kind: "none" })).toEqual(["No release recorded"]);
 	});
 });

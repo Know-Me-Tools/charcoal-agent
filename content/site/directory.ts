@@ -74,26 +74,26 @@ export const DIRECTORY: Directory = {
 								"v2.2.41 · 23 Oct 2026"
 							],
 							"productSlug": "the-boss",
-							"prompt": "What is The Boss, and how far along is it?"
+							"prompt": "Tell me about The Boss. How far along is it?"
 						}
 					]
 				},
 				{
 					"slug": "knowme",
 					"title": "KnowMe",
-					"question": "What is KnowMe, and when can I use it?",
-					"summary": "A personal intelligence app: memory, user-controlled inference and agent workflows.",
+					"question": "What is KnowMe, and can I use it yet?",
+					"summary": "A personal intelligence app in progress: memory, your inference, agent workflows.",
 					"entries": [
 						{
 							"id": "knowme",
 							"name": "KnowMe",
-							"summary": "A personal intelligence app: memory, user-controlled inference and agent workflows.",
+							"summary": "A personal intelligence app in progress: memory, your inference, agent workflows.",
 							"status": "development",
 							"versionLines": [
-								"No release · last commit 20 Oct 2026"
+								"No tagged release · last commit 20 Oct 2026"
 							],
 							"productSlug": "knowme",
-							"prompt": "What is KnowMe, and how far along is it?"
+							"prompt": "Tell me about KnowMe. How far along is it?"
 						}
 					]
 				},
@@ -109,10 +109,10 @@ export const DIRECTORY: Directory = {
 							"summary": "A proposed owner-controlled private assistant with durable state and selective memory.",
 							"status": "design",
 							"versionLines": [
-								"No release · last commit 21 Oct 2026"
+								"No tagged release · last commit 21 Oct 2026"
 							],
 							"productSlug": "locus",
-							"prompt": "What is Locus, and how far along is it?"
+							"prompt": "Tell me about Locus. How far along is it?"
 						}
 					]
 				}
@@ -124,10 +124,10 @@ export const DIRECTORY: Directory = {
 					"summary": "The chat client behind this site, with streamed agent replies and local threads.",
 					"status": "development",
 					"versionLines": [
-						"No release · last commit 24 Oct 2026"
+						"No tagged release · last commit 24 Oct 2026"
 					],
 					"productSlug": null,
-					"prompt": "What is KnowMe Concierge, and how far along is it?"
+					"prompt": "Tell me about KnowMe Concierge. How far along is it?"
 				},
 				{
 					"id": "studio",
@@ -138,7 +138,7 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is Prometheus Studio, and how far along is it?"
+					"prompt": "Tell me about Prometheus Studio. How far along is it?"
 				},
 				{
 					"id": "documind",
@@ -149,7 +149,7 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is DocuMind, and how far along is it?"
+					"prompt": "Tell me about DocuMind. How far along is it?"
 				},
 				{
 					"id": "flint",
@@ -160,29 +160,29 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is Flint AI Code Companion, and how far along is it?"
+					"prompt": "Tell me about Flint AI Code Companion. How far along is it?"
 				},
 				{
 					"id": "meet",
 					"name": "Know Meet",
-					"summary": "A prototype of an agentic meeting experience across messages, calendar and notes.",
+					"summary": "A synthetic prototype of an agentic meeting experience; integrations unverified.",
 					"status": "prototype",
 					"versionLines": [
-						"No release · last commit 19 Oct 2026"
+						"No tagged release · last commit 19 Oct 2026"
 					],
 					"productSlug": null,
-					"prompt": "What is Know Meet, and how far along is it?"
+					"prompt": "Tell me about Know Meet. How far along is it?"
 				},
 				{
 					"id": "realtor",
 					"name": "KnowMe realtor assistant",
-					"summary": "A prototype real-estate assistant with a light CRM and follow-up workflows.",
+					"summary": "A prototype real-estate assistant, demonstrated on synthetic data.",
 					"status": "prototype",
 					"versionLines": [
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is KnowMe realtor assistant, and how far along is it?"
+					"prompt": "Tell me about KnowMe realtor assistant. How far along is it?"
 				}
 			]
 		},
@@ -207,7 +207,7 @@ export const DIRECTORY: Directory = {
 								"v1.3.0 pre-release · 24 Oct 2026"
 							],
 							"productSlug": "universal-agent-runtime",
-							"prompt": "What is Universal Agent Runtime, and how far along is it?"
+							"prompt": "Tell me about Universal Agent Runtime. How far along is it?"
 						}
 					]
 				},
@@ -226,7 +226,7 @@ export const DIRECTORY: Directory = {
 								"Build tag, no version · 8 Oct 2026"
 							],
 							"productSlug": "bossfang",
-							"prompt": "What is BossFang, and how far along is it?"
+							"prompt": "Tell me about BossFang. How far along is it?"
 						}
 					]
 				},
@@ -245,7 +245,7 @@ export const DIRECTORY: Directory = {
 								"Tag v1.10.2 · no release"
 							],
 							"productSlug": "surreal-memory-server",
-							"prompt": "What is Surreal Memory Server, and how far along is it?"
+							"prompt": "Tell me about Surreal Memory Server. How far along is it?"
 						}
 					]
 				}
@@ -260,7 +260,7 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is Knowledge Gateway, and how far along is it?"
+					"prompt": "Tell me about Knowledge Gateway. How far along is it?"
 				},
 				{
 					"id": "knowledge",
@@ -271,18 +271,18 @@ export const DIRECTORY: Directory = {
 						"Tag v1.11.0 · no release"
 					],
 					"productSlug": null,
-					"prompt": "What is Prometheus Knowledge, and how far along is it?"
+					"prompt": "Tell me about Prometheus Knowledge. How far along is it?"
 				},
 				{
 					"id": "tranquil",
 					"name": "Tranquil",
-					"summary": "A Rust personal-data-server direction for Parlour, with private agent jobs.",
+					"summary": "A Rust personal-data-server direction for Parlour; private agent jobs are designed.",
 					"status": "development",
 					"versionLines": [
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is Tranquil, and how far along is it?"
+					"prompt": "Tell me about Tranquil. How far along is it?"
 				},
 				{
 					"id": "praxis",
@@ -293,7 +293,7 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is KnowMe Praxis, and how far along is it?"
+					"prompt": "Tell me about KnowMe Praxis. How far along is it?"
 				},
 				{
 					"id": "numen",
@@ -304,7 +304,7 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is Numen, and how far along is it?"
+					"prompt": "Tell me about Numen. How far along is it?"
 				},
 				{
 					"id": "numen-enclave",
@@ -315,7 +315,7 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is Numen Enclave, and how far along is it?"
+					"prompt": "Tell me about Numen Enclave. How far along is it?"
 				},
 				{
 					"id": "synaxis",
@@ -326,7 +326,7 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is Synaxis, and how far along is it?"
+					"prompt": "Tell me about Synaxis. How far along is it?"
 				}
 			]
 		},
@@ -347,10 +347,10 @@ export const DIRECTORY: Directory = {
 							"summary": "An authentication and authorization proxy for streaming AI workloads.",
 							"status": "development",
 							"versionLines": [
-								"No release · last commit 23 Oct 2026"
+								"No tagged release · last commit 23 Oct 2026"
 							],
 							"productSlug": "flint-platform",
-							"prompt": "What is Flint Gate, and how far along is it?"
+							"prompt": "Tell me about Flint Gate. How far along is it?"
 						},
 						{
 							"id": "forge",
@@ -361,7 +361,7 @@ export const DIRECTORY: Directory = {
 								"v1.0.0 · 7 Jul 2026"
 							],
 							"productSlug": "flint-platform",
-							"prompt": "What is Flint Forge, and how far along is it?"
+							"prompt": "Tell me about Flint Forge. How far along is it?"
 						},
 						{
 							"id": "fabric",
@@ -369,10 +369,10 @@ export const DIRECTORY: Directory = {
 							"summary": "A durable event spine with media, CRDT and federation transports.",
 							"status": "development",
 							"versionLines": [
-								"No release · last commit 11 Oct 2026"
+								"No tagged release · last commit 11 Oct 2026"
 							],
 							"productSlug": "flint-platform",
-							"prompt": "What is Flint Realtime Fabric, and how far along is it?"
+							"prompt": "Tell me about Flint Realtime Fabric. How far along is it?"
 						}
 					]
 				}
@@ -381,13 +381,13 @@ export const DIRECTORY: Directory = {
 				{
 					"id": "demos",
 					"name": "Demo hosting platform",
-					"summary": "Proposed hosting for packaged demos with agent, data and runtime bindings.",
+					"summary": "An early scaffold for hosting packaged demos; bindings are still design.",
 					"status": "development",
 					"versionLines": [
-						"No release · last commit 21 Oct 2026"
+						"No tagged release · last commit 21 Oct 2026"
 					],
 					"productSlug": null,
-					"prompt": "What is Demo hosting platform, and how far along is it?"
+					"prompt": "Tell me about Demo hosting platform. How far along is it?"
 				},
 				{
 					"id": "core-infra",
@@ -395,10 +395,10 @@ export const DIRECTORY: Directory = {
 					"summary": "Shared identity, authorization, data and realtime configuration for the platform.",
 					"status": "development",
 					"versionLines": [
-						"No release · last commit 23 Oct 2026"
+						"No tagged release · last commit 23 Oct 2026"
 					],
 					"productSlug": null,
-					"prompt": "What is Flint core infrastructure, and how far along is it?"
+					"prompt": "Tell me about Flint core infrastructure. How far along is it?"
 				},
 				{
 					"id": "sync",
@@ -406,10 +406,10 @@ export const DIRECTORY: Directory = {
 					"summary": "Rust database synchronization with browser, Flutter and native SDKs.",
 					"status": "development",
 					"versionLines": [
-						"No release · last commit 17 Sep 2026"
+						"No tagged release · last commit 17 Sep 2026"
 					],
 					"productSlug": null,
-					"prompt": "What is Prometheus Entity Sync, and how far along is it?"
+					"prompt": "Tell me about Prometheus Entity Sync. How far along is it?"
 				},
 				{
 					"id": "mesh",
@@ -420,7 +420,7 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is Flint Agent Mesh, and how far along is it?"
+					"prompt": "Tell me about Flint Agent Mesh. How far along is it?"
 				}
 			]
 		},
@@ -444,7 +444,7 @@ export const DIRECTORY: Directory = {
 								"v1.13.0 · 18 Oct 2026"
 							],
 							"productSlug": "prometheus-skill-pack",
-							"prompt": "What is Prometheus Skill Pack, and how far along is it?"
+							"prompt": "Tell me about Prometheus Skill Pack. How far along is it?"
 						},
 						{
 							"id": "mini",
@@ -455,7 +455,7 @@ export const DIRECTORY: Directory = {
 								"v1.12.1 · 12 Oct 2026"
 							],
 							"productSlug": "prometheus-skill-pack",
-							"prompt": "What is Prometheus Skills Mini, and how far along is it?"
+							"prompt": "Tell me about Prometheus Skills Mini. How far along is it?"
 						}
 					]
 				},
@@ -474,7 +474,7 @@ export const DIRECTORY: Directory = {
 								"v4.1.1 · 8 Oct 2026"
 							],
 							"productSlug": "prometheus-entity-management",
-							"prompt": "What is Prometheus Entity Management, and how far along is it?"
+							"prompt": "Tell me about Prometheus Entity Management. How far along is it?"
 						}
 					]
 				},
@@ -493,7 +493,7 @@ export const DIRECTORY: Directory = {
 								"v0.3.0 on crates.io · 24 Oct 2026"
 							],
 							"productSlug": "parking-lot",
-							"prompt": "What is Parking Lot, and how far along is it?"
+							"prompt": "Tell me about Parking Lot. How far along is it?"
 						}
 					]
 				}
@@ -508,7 +508,7 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is Artifact Refiner, and how far along is it?"
+					"prompt": "Tell me about Artifact Refiner. How far along is it?"
 				},
 				{
 					"id": "genui",
@@ -519,7 +519,7 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is gen_ui, and how far along is it?"
+					"prompt": "Tell me about gen_ui. How far along is it?"
 				},
 				{
 					"id": "docforge",
@@ -527,10 +527,10 @@ export const DIRECTORY: Directory = {
 					"summary": "Branded publications, SVG explanations and IPFS publishing workflows.",
 					"status": "development",
 					"versionLines": [
-						"No release · last commit 13 Oct 2026"
+						"No tagged release · last commit 13 Oct 2026"
 					],
 					"productSlug": null,
-					"prompt": "What is HTMX Doc Forge, and how far along is it?"
+					"prompt": "Tell me about HTMX Doc Forge. How far along is it?"
 				},
 				{
 					"id": "setup",
@@ -538,10 +538,10 @@ export const DIRECTORY: Directory = {
 					"summary": "Repeatable setup and conversion for code, processes, research and docs.",
 					"status": "development",
 					"versionLines": [
-						"No release · last commit 30 Sep 2026"
+						"No tagged release · last commit 30 Sep 2026"
 					],
 					"productSlug": null,
-					"prompt": "What is KnowMe Project Management, and how far along is it?"
+					"prompt": "Tell me about KnowMe Project Management. How far along is it?"
 				},
 				{
 					"id": "native-agent",
@@ -552,18 +552,18 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is Native agent creator, and how far along is it?"
+					"prompt": "Tell me about Native agent creator. How far along is it?"
 				},
 				{
 					"id": "phase-exit",
 					"name": "Phase Exit",
-					"summary": "Evidence-based completion decisions checked against an adopted contract.",
+					"summary": "A preview of evidence-based completion decisions against an adopted contract.",
 					"status": "development",
 					"versionLines": [
-						"No release · last commit 16 Oct 2026"
+						"No tagged release · last commit 16 Oct 2026"
 					],
 					"productSlug": null,
-					"prompt": "What is Phase Exit, and how far along is it?"
+					"prompt": "Tell me about Phase Exit. How far along is it?"
 				},
 				{
 					"id": "companion",
@@ -574,7 +574,7 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is Companion, and how far along is it?"
+					"prompt": "Tell me about Companion. How far along is it?"
 				},
 				{
 					"id": "logos",
@@ -585,7 +585,7 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is Logos, and how far along is it?"
+					"prompt": "Tell me about Logos. How far along is it?"
 				},
 				{
 					"id": "decision",
@@ -593,10 +593,10 @@ export const DIRECTORY: Directory = {
 					"summary": "Planned local decision models with Act, Review and Escalate outcomes.",
 					"status": "design",
 					"versionLines": [
-						"No release · last commit 30 Sep 2026"
+						"No tagged release · last commit 30 Sep 2026"
 					],
 					"productSlug": null,
-					"prompt": "What is Know Decision, and how far along is it?"
+					"prompt": "Tell me about Know Decision. How far along is it?"
 				},
 				{
 					"id": "tune",
@@ -607,7 +607,7 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is Prometheus Tune, and how far along is it?"
+					"prompt": "Tell me about Prometheus Tune. How far along is it?"
 				},
 				{
 					"id": "light",
@@ -618,7 +618,7 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is Light Creator, and how far along is it?"
+					"prompt": "Tell me about Light Creator. How far along is it?"
 				}
 			]
 		},
@@ -637,7 +637,7 @@ export const DIRECTORY: Directory = {
 						"v0.2.0 pre-release"
 					],
 					"productSlug": null,
-					"prompt": "What is IPFS Sync for Obsidian, and how far along is it?"
+					"prompt": "Tell me about IPFS Sync for Obsidian. How far along is it?"
 				},
 				{
 					"id": "candle-vllm",
@@ -645,21 +645,21 @@ export const DIRECTORY: Directory = {
 					"summary": "A fork of Candle-VLLM that serves inference through Parking Lot.",
 					"status": "development",
 					"versionLines": [
-						"No release · last commit 26 May 2026"
+						"No tagged release · last commit 26 May 2026"
 					],
 					"productSlug": null,
-					"prompt": "What is Candle-VLLM fork, and how far along is it?"
+					"prompt": "Tell me about Candle-VLLM fork. How far along is it?"
 				},
 				{
 					"id": "inference",
-					"name": "Inference forks",
+					"name": "Inference fork work",
 					"summary": "Inference and provider-routing fork work on candle-vllm and liter-llm.",
 					"status": "development",
 					"versionLines": [
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is Inference forks, and how far along is it?"
+					"prompt": "Tell me about Inference fork work. How far along is it?"
 				},
 				{
 					"id": "poppy",
@@ -670,7 +670,7 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is KnowMe integration with Poppy, and how far along is it?"
+					"prompt": "Tell me about KnowMe integration with Poppy. How far along is it?"
 				}
 			]
 		},
@@ -689,7 +689,7 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is KnowMe dot, and how far along is it?"
+					"prompt": "Tell me about KnowMe dot. How far along is it?"
 				},
 				{
 					"id": "voice",
@@ -700,7 +700,7 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is Authentic Digital Twin, and how far along is it?"
+					"prompt": "Tell me about Authentic Digital Twin. How far along is it?"
 				},
 				{
 					"id": "lampas",
@@ -711,7 +711,7 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is Lampas, and how far along is it?"
+					"prompt": "Tell me about Lampas. How far along is it?"
 				},
 				{
 					"id": "pulse",
@@ -722,7 +722,7 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is Prometheus Pulse, and how far along is it?"
+					"prompt": "Tell me about Prometheus Pulse. How far along is it?"
 				},
 				{
 					"id": "operator",
@@ -733,7 +733,7 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is The Operator Service, and how far along is it?"
+					"prompt": "Tell me about The Operator Service. How far along is it?"
 				},
 				{
 					"id": "kaia",
@@ -744,7 +744,7 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is Kaia, and how far along is it?"
+					"prompt": "Tell me about Kaia. How far along is it?"
 				},
 				{
 					"id": "knowtes",
@@ -755,7 +755,7 @@ export const DIRECTORY: Directory = {
 						"No release recorded"
 					],
 					"productSlug": null,
-					"prompt": "What is Knowtes, and how far along is it?"
+					"prompt": "Tell me about Knowtes. How far along is it?"
 				}
 			]
 		}

@@ -86,7 +86,7 @@ export const DIRECTORY_COPY: DirectoryCopy = {
 	statusMixLabel: "Status of the {n} entries",
 	showMoreTemplate: "Show {n} more in {family}",
 	showFewer: "Show fewer",
-	rowPromptTemplate: "What is {name}, and how far along is it?",
+	rowPromptTemplate: "Tell me about {name}. How far along is it?",
 
 	families: [
 		{ slug: "applications", name: "Applications", line: "Apps and clients a person uses directly." },
@@ -132,7 +132,7 @@ export const DIRECTORY_COPY: DirectoryCopy = {
 		knowme: {
 			name: "KnowMe",
 			family: "applications",
-			summary: "A personal intelligence app: memory, user-controlled inference and agent workflows.",
+			summary: "A personal intelligence app in progress: memory, your inference, agent workflows.",
 		},
 		locus: {
 			name: "Locus",
@@ -162,12 +162,12 @@ export const DIRECTORY_COPY: DirectoryCopy = {
 		meet: {
 			name: "Know Meet",
 			family: "applications",
-			summary: "A prototype of an agentic meeting experience across messages, calendar and notes.",
+			summary: "A synthetic prototype of an agentic meeting experience; integrations unverified.",
 		},
 		realtor: {
 			name: "KnowMe realtor assistant",
 			family: "applications",
-			summary: "A prototype real-estate assistant with a light CRM and follow-up workflows.",
+			summary: "A prototype real-estate assistant, demonstrated on synthetic data.",
 		},
 
 		// Agents and memory
@@ -199,7 +199,7 @@ export const DIRECTORY_COPY: DirectoryCopy = {
 		tranquil: {
 			name: "Tranquil",
 			family: "agents-and-memory",
-			summary: "A Rust personal-data-server direction for Parlour, with private agent jobs.",
+			summary: "A Rust personal-data-server direction for Parlour; private agent jobs are designed.",
 		},
 		praxis: {
 			name: "KnowMe Praxis",
@@ -241,7 +241,7 @@ export const DIRECTORY_COPY: DirectoryCopy = {
 		demos: {
 			name: "Demo hosting platform",
 			family: "platform",
-			summary: "Proposed hosting for packaged demos with agent, data and runtime bindings.",
+			summary: "An early scaffold for hosting packaged demos; bindings are still design.",
 		},
 		"core-infra": {
 			name: "Flint core infrastructure",
@@ -308,7 +308,7 @@ export const DIRECTORY_COPY: DirectoryCopy = {
 		"phase-exit": {
 			name: "Phase Exit",
 			family: "developer-tools",
-			summary: "Evidence-based completion decisions checked against an adopted contract.",
+			summary: "A preview of evidence-based completion decisions against an adopted contract.",
 		},
 		companion: {
 			name: "Companion",
@@ -348,7 +348,7 @@ export const DIRECTORY_COPY: DirectoryCopy = {
 			summary: "A fork of Candle-VLLM that serves inference through Parking Lot.",
 		},
 		inference: {
-			name: "Inference forks",
+			name: "Inference fork work",
 			family: "integrations",
 			summary: "Inference and provider-routing fork work on candle-vllm and liter-llm.",
 		},
@@ -409,7 +409,7 @@ export const DIRECTORY_COPY: DirectoryCopy = {
 			family: "applications",
 			title: "KnowMe",
 			rows: ["knowme"],
-			question: "What is KnowMe, and when can I use it?",
+			question: "What is KnowMe, and can I use it yet?",
 		},
 		{
 			slug: "locus",

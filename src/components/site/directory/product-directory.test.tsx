@@ -141,7 +141,7 @@ describe("ask chips", () => {
 		// The first row of the first family is visible without expanding.
 		const entry = DIRECTORY.families[0].rest[0];
 		renderWithRouter(<ProductDirectory />);
-		expect(entry.prompt).toBe(`What is ${entry.name}, and how far along is it?`);
+		expect(entry.prompt).toBe(`Tell me about ${entry.name}. How far along is it?`);
 		const chip = screen.getByRole("button", { name: `Ask the concierge: ${entry.prompt}` });
 		expect(chip.textContent).toBe("Ask");
 		fireEvent.click(chip);
