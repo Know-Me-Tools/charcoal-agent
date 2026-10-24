@@ -1,17 +1,16 @@
 import { ArrowRight } from "lucide-react";
 import { type FormEvent, type KeyboardEvent, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { KnowMeLockup } from "@/components/brand";
 import { EMBER_CTA } from "@/components/site/ember-cta";
 import { ResumeChatLink } from "@/components/site/resume-chat-link";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { WebSearchToggle } from "@/components/assistant-ui/web-search-toggle";
+import { useStartChat } from "@/hooks/use-start-chat";
 import { isSiteBuild } from "@/hooks/use-site-config";
+import { ASK_COMPOSER_ATTRIBUTE } from "@/components/site/ask-composer-attribute";
 import { prefetchThreadRoutes } from "@/lib/route-chunks";
 import { cn } from "@/lib/utils";
-import { useChatIntentStore } from "@/stores/chat-intent-store";
-import { useThreadRegistryStore } from "@/stores/thread-registry-store";
 import { AI_DISCLOSURE_CONTENT } from "../../content/site/ai-disclosure";
 import { LANDING_CONTENT } from "../../content/site/landing";
 import { SITE_LANDING_CONTENT, type SiteLandingContent } from "../../content/site/landing-site";
@@ -49,9 +48,7 @@ function sectionBackground(position: number): "bg-band" | "bg-canvas" {
 
 export default function LandingPage() {
 	const [message, setMessage] = useState("");
-	const navigate = useNavigate();
-	const setPendingPrompt = useChatIntentStore((s) => s.setPendingPrompt);
-	const registerThread = useThreadRegistryStore((s) => s.registerThread);
+	const startChat = useStartChat();
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
 	const siteBuild = isSiteBuild();
@@ -66,15 +63,7 @@ export default function LandingPage() {
 			return;
 		}
 
-		// Register the thread in the local registry as ephemeral before navigating.
-		// It will be promoted to persisted once the first message reply arrives.
-		const sessionId = crypto.randomUUID();
-		registerThread(sessionId);
-
-		// Write the prompt to the intent store BEFORE navigating so the thread
-		// page can read it synchronously on first render without any race.
-		setPendingPrompt(trimmed);
-		navigate(`/threads/${sessionId}`);
+		startChat(trimmed);
 	};
 
 	const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -122,6 +111,7 @@ export default function LandingPage() {
 							>
 								<textarea
 									ref={textareaRef}
+									{...{ [ASK_COMPOSER_ATTRIBUTE]: "" }}
 									value={message}
 									onChange={(event) => setMessage(event.target.value)}
 									onKeyDown={handleKeyDown}

@@ -1,6 +1,7 @@
-import { ArrowRight, Moon, Sun } from "lucide-react";
+import { ArrowRight, History, Moon, Sun } from "lucide-react";
 import { Link } from "react-router-dom";
 import { KnowMeLockup } from "@/components/brand";
+import { AskConciergeEntry } from "@/components/site/ask-concierge-entry";
 import { isSiteBuild } from "@/hooks/use-site-config";
 import { useHasSavedChats } from "@/hooks/use-has-saved-chats";
 import { useUi } from "@/hooks/use-ui";
@@ -36,6 +37,7 @@ export function SiteHeader() {
 						<KnowMeLockup variant="nav" />
 					</Link>
 					<div className="flex items-center gap-1">
+						{isSiteBuild() && <AskConciergeEntry />}
 						<button
 							type="button"
 							onClick={() => setTheme(isDark ? "light" : "dark")}
@@ -64,9 +66,12 @@ export function SiteHeader() {
 						{isSiteBuild() && hasSavedChats && (
 							<Link
 								to="/threads"
-								className="inline-flex h-11 items-center gap-1.5 rounded-lg px-3 font-ui text-sm font-semibold text-fg transition-hover hover:bg-hover focus-cue sm:px-4"
+								className="inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-lg px-3 font-ui text-sm font-semibold text-fg transition-hover hover:bg-hover focus-cue sm:px-4"
 							>
-								{HISTORY_LINK_CONTENT.label}
+								{/* Icon-only below 640 px so the header keeps room for the Ask entry
+								    at 320 (docs/design/product-directory.md section 5.3). */}
+								<History className="size-[1.125rem] sm:hidden" aria-hidden="true" />
+								<span className="max-sm:sr-only">{HISTORY_LINK_CONTENT.label}</span>
 								<ArrowRight className="hidden size-4 sm:block" aria-hidden="true" />
 							</Link>
 						)}
