@@ -343,6 +343,18 @@
     {
       "source": "artifact-refiner/artifact-refiner.md",
       "output": "artifact-refiner.md"
+    },
+    {
+      "source": "portfolio/portfolio-overview.md",
+      "output": "portfolio-overview.md"
+    },
+    {
+      "source": "portfolio/portfolio-stated-relationships.md",
+      "output": "portfolio-stated-relationships.md"
+    },
+    {
+      "source": "portfolio/portfolio-available-today.md",
+      "output": "portfolio-available-today.md"
     }
   ]
 }
