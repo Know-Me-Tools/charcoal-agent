@@ -686,8 +686,51 @@ doc_id_for_base() {
     | head -n1
 }
 
+# reupload_failed_docs: a document can end in status `failed` after a clean
+# upload (sync runs 40113631173 and 40121480906: one to two of about 90
+# documents each, the same transient database transaction error as the upload
+# 500). A rerun re-uploads them, so do that here instead of failing the whole
+# run: upload the same file under the same name, then delete the failed copy.
+# Returns 0 when nothing was failed.
+reupload_failed_docs() {
+  local f base doc_json doc_status filename old_id status attempt n=0
+  shopt -s nullglob
+  for f in "$CORPUS_DIR"/*.md; do
+    base="$(basename "$f" .md)"
+    doc_json="$(printf '%s' "$POST_SYNC_DOCS_JSON" \
+      | jq -c --arg base "$base" \
+        '[.[] | select(.filename | test("^" + $base + "\\.[0-9a-f]{12}\\.md$"))] | first')"
+    [[ -z "$doc_json" || "$doc_json" == "null" ]] && continue
+    doc_status="$(printf '%s' "$doc_json" | jq -r '.status // ""')"
+    [[ "$doc_status" != "failed" ]] && continue
+    filename="$(printf '%s' "$doc_json" | jq -r '.filename')"
+    old_id="$(printf '%s' "$doc_json" | jq -r '.id')"
+    log "re-uploading $filename (ingestion failed)"
+    for attempt in 1 2 3 4 5; do
+      api POST "/api/uar/knowledge-bases/${KB_ID}/documents" \
+        -F "file=@${f};filename=${filename};type=text/markdown"
+      status="$API_STATUS"
+      if [[ "$status" == 500 && "$REPLY_BODY" == *"failed transaction"* && "$attempt" -lt 5 ]]; then
+        sleep $((attempt * 3))
+        continue
+      fi
+      break
+    done
+    require_2xx "$status" "re-upload $filename"
+    api DELETE "/api/uar/knowledge-bases/${KB_ID}/documents/${old_id}"
+    require_2xx "$API_STATUS" "delete failed copy of $filename"
+    n=$((n + 1))
+  done
+  shopt -u nullglob
+  [[ "$n" -eq 0 ]]
+}
+
 log "checking every corpus document is present and indexed"
 wait_for_ingestion
+for _round in 1 2 3; do
+  reupload_failed_docs && break
+  wait_for_ingestion
+done
 
 health_fail=0
 shopt -s nullglob
