@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Comp: home with product directory</title>
+		<!-- Real tokens and the self-hosted brand fonts (run from a checkout with node_modules). -->
+		<link rel="stylesheet" href="../../../src/styles/tokens.css" />
+		<link rel="stylesheet" href="../../../node_modules/@fontsource-variable/space-grotesk/index.css" />
+		<link rel="stylesheet" href="../../../node_modules/@fontsource-variable/inter/index.css" />
+		<link rel="stylesheet" href="../../../node_modules/@fontsource-variable/roboto/index.css" />
+		<link rel="stylesheet" href="../../../node_modules/@fontsource-variable/jetbrains-mono/index.css" />
+		<link rel="stylesheet" href="comp.css" />
+		<script src="icons.js"></script>
+		<script src="directory-data.js"></script>
+		<script src="comp.js"></script>
+	</head>
+	<body>
+		<div id="page"></div>
+		<script>
+			const C = window.Comp;
+			const D = window.DIRECTORY;
+			document.getElementById("page").innerHTML = `
+${C.header({ askHint: "focuses the hero composer" })}
+<main id="main">
+  <section class="hero" aria-labelledby="hero-heading"><div class="wrap grid">
+    <div>
+      <p class="section-label">// KnowMe AI, LLC</p>
+      <h1 id="hero-heading">AI that <span class="l2">understands <span class="ember-word">you.</span></span></h1>
+      <p class="value-line">This site is the front door to the products of KnowMe AI, LLC. Ask the concierge about any of them, and go as deep as you like.</p>
+    </div>
+    <div class="ask" id="ask">
+      <form class="composer" onsubmit="return false">
+        <span class="field">Ask about KnowMe, The Boss and the other products</span>
+        <div class="actions"><button type="submit" class="ember-cta">Send ${C.icon("arrow-right")}</button></div>
+      </form>
+      <div class="disclosure">
+        <p>KnowMe Concierge — an AI assistant. Answers may be wrong.</p>
+        <p>Please don't share sensitive personal details in this chat.</p>
+      </div>
+    </div>
+  </div></section>
+
+  <section class="directory" aria-labelledby="directory-heading"><div class="wrap">
+    <div class="directory-head">
+      <h2 class="h2" id="directory-heading">What can I ask about?</h2>
+      <p class="lead">${D.total} products and projects from KnowMe AI, LLC, each with the status its own source gives. Ask the concierge about any of them.</p>
+      <a href="products.html" class="text-link hover focus-cue">See all products ${C.icon("arrow-right")}</a>
+    </div>
+    ${D.families.map((f) => C.family(f)).join("")}
+  </div></section>
+
+  <section class="prose-section band" aria-labelledby="your-conversations-heading"><div class="wrap grid">
+    <div><h2 class="h2" id="your-conversations-heading">Your conversations are stored in this browser.</h2></div>
+    <div class="body"><p>Your conversations are stored in this browser. To compose an answer, your messages are sent to a cloud language model.</p></div>
+  </div></section>
+
+  <section class="prose-section" aria-labelledby="the-boss-heading"><div class="wrap grid">
+    <div><h2 class="h2" id="the-boss-heading">The Boss is available now.</h2></div>
+    <div class="body"><p>The Boss, the desktop app, is free and open source. Download it from <a class="inline-link" href="#">the-boss.know-me.tools</a>.</p><p style="margin-top:1rem">KnowMe itself is not yet released.</p></div>
+  </div></section>
+</main>
+${C.footer()}`;
+		</script>
+	</body>
+</html>

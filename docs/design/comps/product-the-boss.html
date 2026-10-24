@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Comp: product page, The Boss</title>
+		<link rel="stylesheet" href="../../../src/styles/tokens.css" />
+		<link rel="stylesheet" href="../../../node_modules/@fontsource-variable/space-grotesk/index.css" />
+		<link rel="stylesheet" href="../../../node_modules/@fontsource-variable/inter/index.css" />
+		<link rel="stylesheet" href="../../../node_modules/@fontsource-variable/roboto/index.css" />
+		<link rel="stylesheet" href="../../../node_modules/@fontsource-variable/jetbrains-mono/index.css" />
+		<link rel="stylesheet" href="comp.css" />
+		<script src="icons.js"></script>
+		<script src="directory-data.js"></script>
+		<script src="comp.js"></script>
+	</head>
+	<body>
+		<div id="page"></div>
+		<script>
+			const C = window.Comp;
+			const boss = window.DIRECTORY.families[0].pages[0].entries[0];
+			// Draft copy for layout. Facts come from the facts row and approved landing copy only;
+			// km-content-creator writes, km-chief-content-officer reviews (site-product-pages 1.2, 1.5).
+			const facts = [
+				["Built on", "Cherry Studio."],
+				["Licence", "Free and open source."],
+				["Get it", "Download from the-boss.know-me.tools."],
+				["Releases", "Features in the current source are not always in the released installers."],
+			];
+			const questions = [
+				"What can I do with The Boss today?",
+				"How do I install The Boss?",
+				"How is The Boss different from BossFang?",
+			];
+			document.getElementById("page").innerHTML = `
+${C.header({ askHint: "focuses this page's composer" })}
+<main id="main">
+  <section class="product" aria-labelledby="product-heading"><div class="wrap grid">
+    <div>
+      <nav aria-label="Breadcrumb"><ol class="crumbs" style="list-style:none;padding:0;margin:0;display:flex;align-items:center;gap:.25rem">
+        <li><a href="products.html" class="hover focus-cue">Products</a></li>
+        <li class="sep" aria-hidden="true">/</li>
+        <li aria-current="page">The Boss</li>
+      </ol></nav>
+      <h1 id="product-heading">The Boss</h1>
+      <p class="lead">${C.esc(boss.summary)}</p>
+      <div class="plate">
+        <div class="row">${C.badge(boss.status)}${C.version(boss.versionLines)}</div>
+        <p class="checked">Checked against the release page on 24 Oct 2026</p>
+      </div>
+      <section class="facts" aria-labelledby="facts-heading">
+        <h2 id="facts-heading">Key facts</h2>
+        <dl>${facts.map(([k, v]) => `<div class="fact"><dt>${k}</dt><dd>${v}</dd></div>`).join("")}</dl>
+      </section>
+    </div>
+    <section class="conversation" id="ask" aria-labelledby="ask-heading">
+      <h2 id="ask-heading">Questions worth asking</h2>
+      <div class="questions">${questions.map((q) => C.askChip(q)).join("")}</div>
+      <form class="composer" onsubmit="return false">
+        <span class="field">Ask about The Boss</span>
+        <div class="actions"><button type="submit" class="ember-cta">Send ${C.icon("arrow-right")}</button></div>
+      </form>
+      <div class="disclosure">
+        <p>KnowMe Concierge — an AI assistant. Answers may be wrong.</p>
+        <p>Please don't share sensitive personal details in this chat.</p>
+      </div>
+    </section>
+  </div></section>
+
+  <section class="sources band" aria-labelledby="sources-heading"><div class="wrap grid">
+    <div><h2 id="sources-heading">Sources</h2></div>
+    <ul>
+      <li><a href="#" class="hover focus-cue"><span class="what">Release v2.2.41</span><span class="url">github.com/Prometheus-AGS/the-boss/releases/tag/v2.2.41</span></a></li>
+      <li><a href="#" class="hover focus-cue"><span class="what">Download</span><span class="url">the-boss.know-me.tools</span></a></li>
+    </ul>
+  </div></section>
+</main>
+${C.footer()}`;
+		</script>
+	</body>
+</html>

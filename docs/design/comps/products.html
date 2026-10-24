@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Comp: /products, full directory</title>
+		<link rel="stylesheet" href="../../../src/styles/tokens.css" />
+		<link rel="stylesheet" href="../../../node_modules/@fontsource-variable/space-grotesk/index.css" />
+		<link rel="stylesheet" href="../../../node_modules/@fontsource-variable/inter/index.css" />
+		<link rel="stylesheet" href="../../../node_modules/@fontsource-variable/roboto/index.css" />
+		<link rel="stylesheet" href="../../../node_modules/@fontsource-variable/jetbrains-mono/index.css" />
+		<link rel="stylesheet" href="comp.css" />
+		<script src="icons.js"></script>
+		<script src="directory-data.js"></script>
+		<script src="comp.js"></script>
+	</head>
+	<body>
+		<div id="page"></div>
+		<script>
+			const C = window.Comp;
+			const D = window.DIRECTORY;
+			// ?family=<slug> shows the filtered state; default is All.
+			const selected = new URLSearchParams(location.search).get("family") || "all";
+			const shown = selected === "all" ? D.families : D.families.filter((f) => f.slug === selected);
+			const count = shown.reduce((n, f) => n + f.count, 0);
+			const filterBtn = (slug, label, n) =>
+				`<button type="button" class="filter-btn hover focus-cue" aria-pressed="${slug === selected}">${slug === selected ? C.icon("check") : ""}${label}<span class="n">${n}</span></button>`;
+			const definitions = {
+				released: "A version has been published as a release or a package.",
+				prerelease: "A version has been published and marked as a pre-release.",
+				development: "Working source exists. No version has been released.",
+				prototype: "A prototype or demonstration, not a finished product.",
+				design: "Written designs or specifications. No implementation yet.",
+				assessment: "Its scope or status is still being confirmed.",
+			};
+			document.getElementById("page").innerHTML = `
+${C.header({ current: "products" })}
+<main id="main">
+  <div class="wrap page-head">
+    <h1 class="page-h1">Products</h1>
+    <p class="lead" style="margin-top:1rem;max-width:58ch;font-family:var(--font-body);font-size:1.0625rem;line-height:1.7;color:var(--km-fg-secondary)">Every product and project from KnowMe AI, LLC, with the status its own source gives. Ask the concierge about any of them.</p>
+    <div class="filter" role="group" aria-label="Show family">
+      ${filterBtn("all", "All", D.total)}
+      ${D.families.map((f) => filterBtn(f.slug, f.name, f.count)).join("")}
+    </div>
+    <p class="results" role="status">Showing ${count} of ${D.total}</p>
+  </div>
+  <div class="wrap" style="padding-bottom:5rem">
+    ${shown.map((f) => C.family(f, { collapse: false, headingLevel: 2 })).join("")}
+  </div>
+  <section class="prose-section band" id="labels" aria-labelledby="labels-heading"><div class="wrap grid">
+    <div><h2 class="h2" id="labels-heading">What the labels mean</h2></div>
+    <dl class="labels-key">${Object.entries(D.statuses)
+			.map(([k]) => `<div><dt>${C.badge(k)}</dt><dd>${definitions[k]}</dd></div>`)
+			.join("")}</dl>
+  </div></section>
+</main>
+${C.footer()}`;
+		</script>
+	</body>
+</html>
