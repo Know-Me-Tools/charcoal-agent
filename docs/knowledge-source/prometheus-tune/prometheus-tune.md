@@ -29,6 +29,6 @@ The portfolio status for Prometheus Tune is "Specification only; README explicit
 - It is proposed to cover evaluation and deployment of the tuned models.[^portfolio]
 - The portfolio found no standalone public publication for it.[^portfolio]
 
-## How Prometheus Tune relates to other products
+## Related products
 
-The sources do not state a relationship between Prometheus Tune and other KnowMe or Prometheus products.
+None is stated in the sources.

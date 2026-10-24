@@ -18,6 +18,6 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
-## How Light Creator relates to other products
+## Related products (Light Creator)
 
-The sources do not state a relationship between Light Creator and other KnowMe products.
+None is stated in the sources.

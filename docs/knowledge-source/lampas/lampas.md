@@ -28,6 +28,6 @@ The portfolio status for Lampas is "Research published; product implementation a
 - It lists a second source reference, an external artifact. The portfolio notes the page loaded but its content is unverified.[^portfolio]
 - The research is public-safe only, and there is no appliance release qualification.[^portfolio]
 
-## How Lampas relates to other products
+## Related products
 
-The sources do not state a relationship between Lampas and other KnowMe products. The portfolio treats relationships among its entries as architectural intent, not proof of completed integration.
+None is stated in the sources.

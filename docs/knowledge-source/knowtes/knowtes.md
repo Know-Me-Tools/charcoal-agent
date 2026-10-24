@@ -28,6 +28,6 @@ The portfolio status for Knowtes is "Purpose and current product status unresolv
 - A starter page exists, but there is no supported product specification and no public publication receipt.[^portfolio]
 - The portfolio does not resolve what Knowtes is for.[^portfolio]
 
-## How Knowtes relates to other products
+## Related products
 
-The sources do not state a relationship between Knowtes and other KnowMe products.
+None is stated in the sources.

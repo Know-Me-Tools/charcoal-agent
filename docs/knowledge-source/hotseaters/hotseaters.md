@@ -29,6 +29,6 @@ No repository was identified for HotSeaters, so no version or release can be giv
 - HotSeaters is a prototype or rebuild context with a collaborator.[^portfolio]
 - The current product scope, ownership and status of HotSeaters are uncertain.[^portfolio]
 
-## How HotSeaters relates to other products
+## Related products
 
-The sources do not state a relationship between HotSeaters and other products.
+None is stated in the sources.

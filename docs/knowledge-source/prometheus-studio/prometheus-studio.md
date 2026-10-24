@@ -28,6 +28,6 @@ The portfolio status for Prometheus Studio is "Existing source and README; activ
 - Its concepts include a local database, IPFS and mini-apps.[^portfolio]
 - Two local pages exist for it. There is no standalone public publication.[^portfolio]
 
-## How Prometheus Studio relates to other products
+## Related products
 
-The sources do not state a relationship between Prometheus Studio and other KnowMe or Prometheus products.
+None is stated in the sources.

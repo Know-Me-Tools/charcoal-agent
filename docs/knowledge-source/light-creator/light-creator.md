@@ -28,6 +28,6 @@ The portfolio status for Light Creator is "Existing source description; ownershi
 - The described workflow includes streaming and compilation.[^portfolio]
 - There is no standalone public publication for it.[^portfolio]
 
-## How Light Creator relates to other products
+## Related products
 
-The sources do not state a relationship between Light Creator and other KnowMe products.
+None is stated in the sources.

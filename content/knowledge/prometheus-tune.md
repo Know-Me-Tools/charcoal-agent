@@ -19,6 +19,6 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
-## How Prometheus Tune relates to other products
+## Related products (Prometheus Tune)
 
-The sources do not state a relationship between Prometheus Tune and other KnowMe or Prometheus products.
+None is stated in the sources.

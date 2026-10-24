@@ -28,6 +28,6 @@ The portfolio status for Kaia is "Product scope under assessment."[^portfolio] N
 - It is also described as a developer-companion direction.[^portfolio]
 - Details of the assessment are not public.[^portfolio]
 
-## How Kaia relates to other products
+## Related products
 
-The sources do not state a relationship between Kaia and other KnowMe products.
+None is stated in the sources.
