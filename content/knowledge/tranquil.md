@@ -1,6 +1,6 @@
 # Tranquil (Parlour) status and what is stated
 
-Tranquil, also called Parlour, is a Rust personal-data-server direction. The portfolio lists existing public repository and event work. Private agent jobs, fencing and high availability are new design, not built.
+Tranquil, also called Parlour, is a Rust personal-data-server direction for Parlour. The portfolio mentions existing public repository and event work, but no repository was identified for this page, so nothing here confirms software you can use today. Private agent jobs, fencing and high availability are new design, not built.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
@@ -12,8 +12,8 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 ## What is stated about Tranquil
 
-- Tranquil is written in Rust and is a direction for a personal data server for Parlour.
-- The existing work is public repository and event work.
+- The portfolio calls Tranquil a Rust personal-data-server direction for Parlour.
+- The portfolio mentions existing public repository and event work. No repository was identified for this page.
 - Private agent-job and orchestration designs, with fencing and high availability, are new design.
 - The design is covered by the Numen identity edition. There is no standalone public publication.
 

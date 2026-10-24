@@ -12,8 +12,8 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 ## What is stated about Light Creator
 
-- Light Creator generates artifacts and previews components.
-- The workflow includes streaming and compilation.
+- Light Creator is described as generating artifacts and previewing components.
+- The described workflow includes streaming and compilation.
 - There is no standalone public publication for it.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.

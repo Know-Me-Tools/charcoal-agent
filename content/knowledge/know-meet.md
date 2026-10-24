@@ -13,7 +13,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 ## What Know Meet is stated to do
 
 - The repository README describes Know Meet as a LiveKit video meeting where people, their persistent dots and registered LiveKit agents meet around one shared memory.
-- The README points to a live prototype and brand kit, and to a design system, logo and screens under docs/design.
+- The README points to a hosted prototype and brand kit (it labels them live), and to a design system, logo and screens under docs/design.
 - The prototype screens listed are sign in, meetings dashboard, meeting, agents, recordings, settings and invitation.
 - Phone, SMS, meetings and recordings in the prototype are simulated.
 - A separate conferencing specification is private.

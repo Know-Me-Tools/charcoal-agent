@@ -12,7 +12,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 ## What is stated about Prometheus Studio
 
-- Prometheus Studio is described as a workspace for developing with AI that runs on several platforms.
+- Prometheus Studio is described as a cross-platform workspace for developing with AI.
 - Its concepts include a local database, IPFS and mini-apps.
 - Two local pages exist for it. There is no standalone public publication.
 

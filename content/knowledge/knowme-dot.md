@@ -21,7 +21,6 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 ## How KnowMe dot relates to other products
 
-The Know Meet repository describes a meeting room where people, their persistent dots and registered agents meet around one shared memory. The portfolio describes Companion as a potential shared workspace for dot, Locus and other agent systems. The portfolio treats such relationships as architectural intent, not proof of completed integration.
+The portfolio describes Companion as a potential shared workspace for dot, Locus and other agent systems. The portfolio treats such relationships as architectural intent, not proof of completed integration.
 
-Source: Know Meet repository README, retrieved 2026-10-24.
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.

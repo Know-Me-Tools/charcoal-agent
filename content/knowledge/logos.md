@@ -12,7 +12,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 ## What is stated about Logos
 
-- Logos is a dashboard for the health of an agent harness.
+- Logos is described as a harness-health dashboard. The dashboard exists as a prototype only.
 - The portfolio lists five local editions: a functional specification (version 3.0), a brand guide (version 2), a dashboard, a moodboard and build prompts (version 3).
 - The public address of each local edition is not verified, and there is no standalone public publication.
 

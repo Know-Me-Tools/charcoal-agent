@@ -24,7 +24,7 @@ The portfolio status for Logos is "Design/specification and dashboard prototype;
 
 ## What is stated about Logos
 
-- Logos is a dashboard for the health of an agent harness.[^portfolio]
+- Logos is described as a harness-health dashboard. The dashboard exists as a prototype only.[^portfolio]
 - The portfolio lists five local editions: a functional specification (version 3.0), a brand guide (version 2), a dashboard, a moodboard and build prompts (version 3).[^portfolio]
 - The public address of each local edition is not verified, and there is no standalone public publication.[^portfolio]
 

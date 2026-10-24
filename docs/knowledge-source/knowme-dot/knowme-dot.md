@@ -35,4 +35,4 @@ The portfolio status for KnowMe dot is "Specification and synthetic prototype; n
 
 ## How KnowMe dot relates to other products
 
-The Know Meet repository describes a meeting room where people, their persistent dots and registered agents meet around one shared memory.[^meet-readme] The portfolio describes Companion as a potential shared workspace for dot, Locus and other agent systems.[^portfolio] The portfolio treats such relationships as architectural intent, not proof of completed integration.
+The portfolio describes Companion as a potential shared workspace for dot, Locus and other agent systems.[^portfolio] The portfolio treats such relationships as architectural intent, not proof of completed integration.

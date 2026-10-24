@@ -24,8 +24,8 @@ The portfolio status for Light Creator is "Existing source description; ownershi
 
 ## What is stated about Light Creator
 
-- Light Creator generates artifacts and previews components.[^portfolio]
-- The workflow includes streaming and compilation.[^portfolio]
+- Light Creator is described as generating artifacts and previewing components.[^portfolio]
+- The described workflow includes streaming and compilation.[^portfolio]
 - There is no standalone public publication for it.[^portfolio]
 
 ## How Light Creator relates to other products

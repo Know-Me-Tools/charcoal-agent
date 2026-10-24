@@ -20,7 +20,7 @@ The Operator Service is the planned packaging, onboarding, tiers and operating m
 
 ## The Operator Service status and version
 
-The portfolio status for the Operator Service is "Service and economics design; commercial launch not established."[^portfolio] No repository was identified for this entry, so there is no version number to quote. Pricing has not been announced.
+The portfolio status for the Operator Service is "Service and economics design; commercial launch not established."[^portfolio] No repository was identified for this entry, so there is no version number to quote. The sources give no pricing.
 
 ## What the Operator Service is stated to include
 

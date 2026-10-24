@@ -24,7 +24,7 @@ The portfolio status for Prometheus Studio is "Existing source and README; activ
 
 ## What is stated about Prometheus Studio
 
-- Prometheus Studio is described as a workspace for developing with AI that runs on several platforms.[^portfolio]
+- Prometheus Studio is described as a cross-platform workspace for developing with AI.[^portfolio]
 - Its concepts include a local database, IPFS and mini-apps.[^portfolio]
 - Two local pages exist for it. There is no standalone public publication.[^portfolio]
 

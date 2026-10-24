@@ -29,7 +29,7 @@ The portfolio status for Know Meet is "70-screen/state synthetic prototype; oper
 ## What Know Meet is stated to do
 
 - The repository README describes Know Meet as a LiveKit video meeting where people, their persistent dots and registered LiveKit agents meet around one shared memory.[^meet-readme]
-- The README points to a live prototype and brand kit, and to a design system, logo and screens under docs/design.[^meet-readme]
+- The README points to a hosted prototype and brand kit (it labels them live), and to a design system, logo and screens under docs/design.[^meet-readme]
 - The prototype screens listed are sign in, meetings dashboard, meeting, agents, recordings, settings and invitation.[^portfolio]
 - Phone, SMS, meetings and recordings in the prototype are simulated.[^portfolio]
 - A separate conferencing specification is private.[^portfolio]

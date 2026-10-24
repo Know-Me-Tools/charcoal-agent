@@ -6,7 +6,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 ## The Operator Service status and version
 
-The portfolio status for the Operator Service is "Service and economics design; commercial launch not established." No repository was identified for this entry, so there is no version number to quote. Pricing has not been announced.
+The portfolio status for the Operator Service is "Service and economics design; commercial launch not established." No repository was identified for this entry, so there is no version number to quote. The sources give no pricing.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 

@@ -26,7 +26,6 @@ The portfolio status is "Published architecture and deployment standard v0.1: a 
 
 - The owner domain keeps private data, inference, workflows, approvals and durable receipts.[^portfolio]
 - A narrowly scoped management plane handles identity, connectivity and approved operational metadata.[^portfolio]
-- The portfolio also lists a concrete proposed deployment profile.[^portfolio]
 - "Enclave" denotes a governance and execution boundary, not a hardware TEE or regulatory certification.[^portfolio]
 - Identity and network metadata still require minimization and review.[^portfolio]
 

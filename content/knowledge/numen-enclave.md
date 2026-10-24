@@ -14,7 +14,6 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 - The owner domain keeps private data, inference, workflows, approvals and durable receipts.
 - A narrowly scoped management plane handles identity, connectivity and approved operational metadata.
-- The portfolio also lists a concrete proposed deployment profile.
 - "Enclave" denotes a governance and execution boundary, not a hardware TEE or regulatory certification.
 - Identity and network metadata still require minimization and review.
 
