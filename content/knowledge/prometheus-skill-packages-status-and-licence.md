@@ -1,5 +1,13 @@
 # Prometheus skill packages status and licence
 
+## Which version is the Prometheus Skill Pack? (Skill Packages)
+
+The latest GitHub release of the full Prometheus Skill Pack is v1.13.0 (2026-10-18), and the latest release of Prometheus Skills Mini is v1.12.1 (2026-10-12). Both are MIT licensed and made by Prometheus AGS.
+
+Source: Prometheus Skill Pack releases, retrieved 2026-10-24.
+Source: Prometheus Skill Pack LICENSE, retrieved 2026-10-13.
+Source: Prometheus Skills Mini LICENSE, retrieved 2026-10-13.
+
 ## Who makes the Prometheus skill packages and what licence they use
 
 Prometheus AGS makes both the full Prometheus Skill Pack and Prometheus Skills Mini. Both are MIT licensed, and each repository has a LICENSE file.

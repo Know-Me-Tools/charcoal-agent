@@ -1,5 +1,12 @@
 # Choosing between the Prometheus skill packages
 
+## What is the difference between the full and mini Prometheus skill packages?
+
+The full Prometheus Skill Pack gives broad guidance across languages and domains, a learning pipeline, and optional native services; it needs Git, Node and Bash. Prometheus Skills Mini gives the process, team, research and UI skills with less setup: it needs Node 22 or later and Git, keeps its state in plain files, and runs on Windows, macOS and Linux. Do not install both in the same home.
+
+Source: Prometheus Skill Pack README, retrieved 2026-10-13.
+Source: Prometheus Skills Mini README, retrieved 2026-10-13.
+
 ## When to choose the full pack from the Prometheus skill packages
 
 You want broad guidance across languages and domains, the learning pipeline, and optional native services such as durable memory, a model gateway, native research and signed execution records. The full profile with native services runs on macOS and Linux and needs Bash 4 or later. On Windows, the skills-only profile works through Git Bash or WSL; full native service installation is refused.

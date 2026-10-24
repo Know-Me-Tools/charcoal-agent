@@ -181,7 +181,7 @@
   },
   {
     "question": "Who makes the Universal Agent Runtime?",
-    "expect_file": "prometheus-and-its-products.md",
+    "expect_file": "universal-agent-runtime-status-and-licence.md",
     "expect_contains": [
       "Prometheus AGS"
     ],
@@ -189,7 +189,7 @@
   },
   {
     "question": "Is the Surreal Memory Server MIT licensed?",
-    "expect_file": "prometheus-and-its-products.md",
+    "expect_file": "surreal-memory-server-status-and-licence.md",
     "expect_contains": [
       "MIT"
     ],
@@ -205,7 +205,7 @@
   },
   {
     "question": "Who makes BossFang?",
-    "expect_file": "prometheus-and-its-products.md",
+    "expect_file": "bossfang-status-and-licence.md",
     "critical": false,
     "expect_contains": "Prometheus AGS"
   },
@@ -223,7 +223,7 @@
   },
   {
     "question": "Is BossFang open source and what licence does it use?",
-    "expect_file": "prometheus-and-its-products.md",
+    "expect_file": "bossfang-status-and-licence.md",
     "critical": false,
     "expect_contains": "MIT"
   },
@@ -246,7 +246,7 @@
   },
   {
     "question": "What does The Boss build on?",
-    "expect_file": "product-relationships.md",
+    "expect_file": "the-boss.md",
     "critical": false,
     "expect_contains": "Cherry Studio"
   },
