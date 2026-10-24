@@ -1,4 +1,17 @@
 # UAR — no PVC: persistence is the remote SurrealDB, not the embedded store.
+# 2026-10-24 (fix/uar-pin-v1-3-0): pinned to UAR v1.3.0 (tag v1.3.0, source
+# 77446974), index digest sha256:f67a36f1a6fb886379c6947f605a88945a94481c8b3c4e1d998b9b481cea0697
+# (linux/amd64 manifest 20c58178...), from publish run 40091743841 (both platform
+# builds and the manifest merge succeeded). The release is still marked
+# "verification pending": product integration tests and supported-profile
+# acceptance were not published when this was pinned. It refreshes dependencies
+# (reqwest 0.13.5, RMCP 3.7.0, Wasmtime 47.0.4, Kreuzberg 4.10.4, SurrealDB
+# lifecycle sources 3.3.0); v1.2.3..v1.3.0 adds no UAR_* key or startup directory.
+# The a42f23bb model-verification step below still applies after this roll.
+# Rollback: kubectl --context know-me -n knowme rollout undo deploy/uar, or the
+# previous digest sha256:7fa7973fdcc0968d1fd0fa3a497f9c5a51daa97a653a48f01a2a1507fdbe3195
+# (v1.2.3; needs UAR_SERVER__INGEST_DIRECTORY in uar-configmap.yaml). The
+# paragraphs below describe that previous pin.
 # 2026-10-22 (fix/uar-pin-v1-2-3): pinned to UAR v1.2.3 (tag v1.2.3, source
 # c4a65625), index digest sha256:7fa7973fdcc0968d1fd0fa3a497f9c5a51daa97a653a48f01a2a1507fdbe3195
 # (linux/amd64 manifest 8c1fa484...), from "Build and Publish Images" run
@@ -90,7 +103,7 @@ spec:
           # provider configuration and credential revision, so re-verify after any
           # provider edit or API key rotation. Builds before a42f23bb (the 2cc9a182
           # pin this replaced) have no gate, so the step only matters from this pin on.
-          image: ghcr.io/prometheus-ags/universal-agent-runtime:1.2.3@sha256:7fa7973fdcc0968d1fd0fa3a497f9c5a51daa97a653a48f01a2a1507fdbe3195
+          image: ghcr.io/prometheus-ags/universal-agent-runtime:1.3.0@sha256:f67a36f1a6fb886379c6947f605a88945a94481c8b3c4e1d998b9b481cea0697
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
