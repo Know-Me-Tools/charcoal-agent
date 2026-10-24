@@ -462,5 +462,41 @@
       "the-boss.know-me.tools"
     ],
     "critical": false
+  },
+  {
+    "question": "Is Locus available to use?",
+    "expect_file": "locus.md",
+    "expect_contains": [
+      "design proposal",
+      "not available"
+    ],
+    "critical": false
+  },
+  {
+    "question": "Is Numen available, or is it a proposal?",
+    "expect_file": "numen.md",
+    "expect_contains": [
+      "architecture proposal",
+      "not available"
+    ],
+    "critical": false
+  },
+  {
+    "question": "Is Synaxis an operating service I can sign up for?",
+    "expect_file": "synaxis.md",
+    "expect_contains": [
+      "published design",
+      "not available"
+    ],
+    "critical": false
+  },
+  {
+    "question": "Can I use Know Decision today?",
+    "expect_file": "know-decision.md",
+    "expect_contains": [
+      "pre-implementation",
+      "does not exist as working software yet"
+    ],
+    "critical": false
   }
 ]
