@@ -261,5 +261,39 @@
     "expect_file": "product-relationships.md",
     "critical": false,
     "expect_contains": "Not stated"
+  },
+  {
+    "question": "What is the latest version of the Universal Agent Runtime?",
+    "expect_file": "universal-agent-runtime-status-and-licence.md",
+    "expect_contains": [
+      "{{v:uar}}"
+    ],
+    "critical": true
+  },
+  {
+    "question": "Is there a pre-release of the Universal Agent Runtime, and is it verified?",
+    "expect_file": "universal-agent-runtime-status-and-licence.md",
+    "expect_contains": [
+      "{{v:uar:pre}}",
+      "verification"
+    ],
+    "critical": false
+  },
+  {
+    "question": "What is the latest version of The Boss and which installers does it have?",
+    "expect_file": "the-boss.md",
+    "expect_contains": [
+      "{{v:boss}}",
+      "Windows x64"
+    ],
+    "critical": true
+  },
+  {
+    "question": "Which version is the Prometheus Skill Pack?",
+    "expect_file": "prometheus-skill-packages-status-and-licence.md",
+    "expect_contains": [
+      "{{v:skills}}"
+    ],
+    "critical": false
   }
 ]

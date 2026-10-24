@@ -32,6 +32,7 @@
 // Usage: node scripts/kb/validate-kb.mjs [--bundle <dir>] [--corpus <dir>] [--email-allowlist <file>]
 
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { hasPlaceholders, loadFacts, resolvePlaceholders } from "./lib/product-facts.mjs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {
@@ -315,6 +316,22 @@ export function run(argv) {
     else if (name === "log.md") checkLog(file, text, report);
     else checkConcept(file, text, report);
     checkLinks(file, text, opts.bundle, report);
+  }
+
+  // Version placeholders: a source page may use {{v:<id>}} only for products the facts file knows; a
+  // generated corpus page must have none left (the build resolved them).
+  const facts = loadFacts(join(opts.bundle, "product-facts.json"));
+  for (const file of walk(opts.bundle)) {
+    if (!file.endsWith(".md")) continue;
+    const text = readFileSync(file, "utf8");
+    if (!hasPlaceholders(text)) continue;
+    for (const e of resolvePlaceholders(text, facts, file).errors) report.fail(file, 0, e);
+  }
+  for (const file of walk(opts.corpus)) {
+    if (!file.endsWith(".md")) continue;
+    readFileSync(file, "utf8").split("\n").forEach((line, i) => {
+      if (hasPlaceholders(line)) report.fail(file, i + 1, "unresolved {{v:...}} version placeholder in the generated corpus");
+    });
   }
 
   for (const file of [...walk(opts.bundle), ...walk(opts.corpus)]) {

@@ -9,6 +9,10 @@ generated:
 stale_after: "2026-11-10T00:00:00+00:00"
 tags: [landscape, agent-runtimes, langgraph, crewai, openai-agents-sdk, mastra, microsoft-agent-framework, universal-agent-runtime]
 sources:
+  - id: uar-releases
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/releases
+    title: Universal Agent Runtime releases
+    last_modified: "2026-10-24T00:00:00+00:00"
   - id: langgraph
     resource: https://docs.langchain.com/oss/python/langgraph/overview
     title: "LangChain documentation, LangGraph overview"
@@ -81,7 +85,7 @@ According to Microsoft Learn, the Microsoft Agent Framework provides agents, a h
 
 ## The Universal Agent Runtime, according to its repository
 
-According to its README and architecture document, the Universal Agent Runtime is one Rust process at version 1.0.0 that picks and calls models through a router, runs tools under a policy, searches documents with hybrid retrieval and streams citations, keeps optional memory, and streams results to a user interface over HTTP and server-sent events. Its own operator interface is a React web app. Tools can come from MCP servers or be built in. SurrealDB is the authoritative store in the default server bundle.[^uar-readme][^uar-arch] It is made by Prometheus AGS.
+According to its README and architecture document, the Universal Agent Runtime is one Rust process, at version {{v:uar}} today, that picks and calls models through a router, runs tools under a policy, searches documents with hybrid retrieval and streams citations, keeps optional memory, and streams results to a user interface over HTTP and server-sent events. Its own operator interface is a React web app. Tools can come from MCP servers or be built in. SurrealDB is the authoritative store in the default server bundle.[^uar-readme][^uar-arch] It is made by Prometheus AGS.
 
 ## Protocol support in the Universal Agent Runtime
 
@@ -116,7 +120,7 @@ The Universal Agent Runtime's code, including its Rust, Python and TypeScript SD
 ## Where the Universal Agent Runtime is weaker: maturity (our minuses)
 
 - Several areas are Preview or Experimental in its own support matrix: desktop and native WASM are Preview, mobile is Experimental, and the Windows native archive is Experimental.[^uar-matrix]
-- Version 1.0.0 is recent; its compatibility promise covers only rows its matrix marks Stable.[^uar-matrix]
+- The 1.x line began on 2026-07-12 and the latest stable release is {{v:uar}}, with {{v:uar:pre}} published as a pre-release awaiting verification. The compatibility promise covers only rows the matrix marks Stable.[^uar-matrix][^uar-releases]
 
 ## Differences: shape
 
@@ -128,7 +132,7 @@ UAR documents a Cedar policy decision and an audit record for every tool call, w
 
 ## Differences: tooling and ecosystem
 
-LangChain pairs LangGraph with LangSmith for tracing, evaluation and deployment, and OpenAI's SDK documents tracing, realtime and voice agents; UAR documents no hosted tooling and no voice agents.[^langgraph][^openai-agents][^uar-readme] UAR documents hybrid document retrieval with streamed citations and an operator web interface inside the runtime, which the five framework pages do not describe in that form.[^uar-readme] The frameworks have larger communities; UAR's version 1.0.0 is recent and its support matrix marks several areas Preview or Experimental.[^uar-matrix]
+LangChain pairs LangGraph with LangSmith for tracing, evaluation and deployment, and OpenAI's SDK documents tracing, realtime and voice agents; UAR documents no hosted tooling and no voice agents.[^langgraph][^openai-agents][^uar-readme] UAR documents hybrid document retrieval with streamed citations and an operator web interface inside the runtime, which the five framework pages do not describe in that form.[^uar-readme] The frameworks have larger communities; UAR's 1.x line began on 2026-07-12, its latest stable release is {{v:uar}}, and its support matrix marks several areas Preview or Experimental.[^uar-matrix]
 
 ## Choosing an agent runtime or framework
 

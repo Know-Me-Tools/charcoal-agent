@@ -11,6 +11,10 @@ tags:
   - status
   - licence
 sources:
+  - id: uar-releases
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/releases
+    title: Universal Agent Runtime releases
+    last_modified: "2026-10-24T00:00:00+00:00"
   - id: uar-readme
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/README.md
     title: Universal Agent Runtime README
@@ -41,7 +45,7 @@ Prometheus AGS makes the Universal Agent Runtime (UAR), and its LICENSE file nam
 
 ## Universal Agent Runtime version
 
-UAR is at version 1.0.0, dated 2026-07-12 in its changelog. It follows semantic versioning for the HTTP, event, configuration and artifact contracts that its support matrix marks Stable. Preview and Experimental features do not get that compatibility promise.[^uar-changelog]
+The latest stable release of UAR is {{v:uar}}, which its changelog dates 2026-10-22. The changelog records that functional acceptance of the published Linux amd64 image passed within a defined scope; arm64 acceptance is outside that scope.[^uar-changelog] {{v:uar:pre}} is published as a pre-release, and its release notes mark verification as pending.[^uar-releases] The 1.x line began with 1.0.0 on 2026-07-12. UAR follows semantic versioning for the HTTP, event, configuration and artifact contracts that its support matrix marks Stable. Preview and Experimental features do not get that compatibility promise.[^uar-changelog]
 
 ## What the Universal Agent Runtime support levels mean
 

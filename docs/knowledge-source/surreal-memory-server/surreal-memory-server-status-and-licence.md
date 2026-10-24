@@ -11,6 +11,10 @@ tags:
   - status
   - licence
 sources:
+  - id: sms-tags
+    resource: https://github.com/Prometheus-AGS/surreal-memory-server/tags
+    title: Surreal Memory Server tags
+    last_modified: "2026-10-24T00:00:00+00:00"
   - id: sms-publication
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/docs/source-publication-20261005.md
     title: Surreal Memory Server source publication note, 2026-10-05
@@ -45,7 +49,7 @@ On 2026-10-05 the owner published the completed source and documentation for rev
 
 ## Surreal Memory Server version
 
-The Surreal Memory Server's workspace manifest gives version 1.10.2.[^sms-cargo] Treat that as the source version, not as a tested release, given the publication note above.
+The Surreal Memory Server's latest git tag is {{v:memory}}, last changed {{v:memory:date}}, and the repository has no GitHub release.[^sms-tags] Treat that as the source version, not as a tested release, given the publication note above.
 
 ## How the Surreal Memory Server is run
 

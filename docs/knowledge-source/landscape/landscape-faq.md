@@ -9,6 +9,10 @@ generated:
 stale_after: "2026-11-10T00:00:00+00:00"
 tags: [landscape, faq, comparison, openai-dots, chatgpt, cherry-studio, the-boss, knowme]
 sources:
+  - id: uar-releases
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/releases
+    title: Universal Agent Runtime releases
+    last_modified: "2026-10-24T00:00:00+00:00"
   - id: dots-announce
     resource: https://openai.com/index/introducing-dots/
     title: "OpenAI, Introducing dots (2026-09-29)"
@@ -89,7 +93,7 @@ No. Always-on agents run on their maker's servers while the person's device is o
 
 ## Which of these tools can I use today?
 
-From KnowMe AI, LLC, The Boss for macOS and Windows.[^boss-site] From Prometheus AGS, the Universal Agent Runtime at version 1.0.0 with public source and an MIT licence, BossFang as public source without an established end-user release, and the Surreal Memory Server as source published for review rather than a tested release.[^uar-readme][^sms-publication] KnowMe has no public release and no announced date. Every other product named in the landscape pages is available from its own maker under that maker's terms.
+From KnowMe AI, LLC, The Boss for macOS and Windows.[^boss-site] From Prometheus AGS, the Universal Agent Runtime at version {{v:uar}} with public source and an MIT licence, BossFang as public source without an established end-user release, and the Surreal Memory Server as source published for review rather than a tested release.[^uar-readme][^sms-publication] KnowMe has no public release and no announced date. Every other product named in the landscape pages is available from its own maker under that maker's terms.
 
 ## Does this knowledge base pick a winner?
 

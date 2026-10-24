@@ -14,9 +14,9 @@ Source: Surreal Memory Server source publication note, 2026-10-05, retrieved 202
 
 ## Surreal Memory Server version
 
-The Surreal Memory Server's workspace manifest gives version 1.10.2. Treat that as the source version, not as a tested release, given the publication note above.
+The Surreal Memory Server's latest git tag is v1.10.2, last changed 2026-10-13, and the repository has no GitHub release. Treat that as the source version, not as a tested release, given the publication note above.
 
-Source: Surreal Memory Server workspace manifest, retrieved 2026-10-13.
+Source: Surreal Memory Server tags, retrieved 2026-10-24.
 
 ## How the Surreal Memory Server is run
 

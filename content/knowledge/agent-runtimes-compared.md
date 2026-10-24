@@ -50,7 +50,7 @@ Source: Microsoft Learn, Agent Framework overview, retrieved 2026-10-12.
 
 ## The Universal Agent Runtime, according to its repository (Landscape)
 
-According to its README and architecture document, the Universal Agent Runtime is one Rust process at version 1.0.0 that picks and calls models through a router, runs tools under a policy, searches documents with hybrid retrieval and streams citations, keeps optional memory, and streams results to a user interface over HTTP and server-sent events. Its own operator interface is a React web app. Tools can come from MCP servers or be built in. SurrealDB is the authoritative store in the default server bundle. It is made by Prometheus AGS.
+According to its README and architecture document, the Universal Agent Runtime is one Rust process, at version v1.2.3 today, that picks and calls models through a router, runs tools under a policy, searches documents with hybrid retrieval and streams citations, keeps optional memory, and streams results to a user interface over HTTP and server-sent events. Its own operator interface is a React web app. Tools can come from MCP servers or be built in. SurrealDB is the authoritative store in the default server bundle. It is made by Prometheus AGS.
 
 Source: Universal Agent Runtime README, retrieved 2026-10-12.
 Source: Universal Agent Runtime architecture overview, retrieved 2026-10-12.
@@ -108,9 +108,10 @@ Source: Universal Agent Runtime README, retrieved 2026-10-12.
 ## Where the Universal Agent Runtime is weaker: maturity (our minuses) (Landscape)
 
 - Several areas are Preview or Experimental in its own support matrix: desktop and native WASM are Preview, mobile is Experimental, and the Windows native archive is Experimental.
-- Version 1.0.0 is recent; its compatibility promise covers only rows its matrix marks Stable.
+- The 1.x line began on 2026-07-12 and the latest stable release is v1.2.3, with v1.3.0 published as a pre-release awaiting verification. The compatibility promise covers only rows the matrix marks Stable.
 
 Source: Universal Agent Runtime product support matrix, retrieved 2026-10-12.
+Source: Universal Agent Runtime releases, retrieved 2026-10-24.
 
 ## Differences: shape (Landscape)
 
@@ -129,7 +130,7 @@ Source: Microsoft Learn, Agent Framework overview, retrieved 2026-10-12.
 
 ## Differences: tooling and ecosystem (Landscape)
 
-LangChain pairs LangGraph with LangSmith for tracing, evaluation and deployment, and OpenAI's SDK documents tracing, realtime and voice agents; UAR documents no hosted tooling and no voice agents. UAR documents hybrid document retrieval with streamed citations and an operator web interface inside the runtime, which the five framework pages do not describe in that form. The frameworks have larger communities; UAR's version 1.0.0 is recent and its support matrix marks several areas Preview or Experimental.
+LangChain pairs LangGraph with LangSmith for tracing, evaluation and deployment, and OpenAI's SDK documents tracing, realtime and voice agents; UAR documents no hosted tooling and no voice agents. UAR documents hybrid document retrieval with streamed citations and an operator web interface inside the runtime, which the five framework pages do not describe in that form. The frameworks have larger communities; UAR's 1.x line began on 2026-07-12, its latest stable release is v1.2.3, and its support matrix marks several areas Preview or Experimental.
 
 Source: LangChain documentation, LangGraph overview, retrieved 2026-10-12.
 Source: OpenAI Agents SDK documentation (Python), retrieved 2026-10-12.

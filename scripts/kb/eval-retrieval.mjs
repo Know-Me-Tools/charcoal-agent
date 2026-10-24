@@ -25,6 +25,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { loadFacts, resolvePlaceholders } from "./lib/product-facts.mjs";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const HASH_SUFFIX = /^(.*)\.[0-9a-f]{12}\.md$/;
@@ -64,7 +65,11 @@ export function parseArgs(argv) {
   return opts;
 }
 
-export function loadQuestions(path) {
+export function loadQuestions(
+  path,
+  // Next to the questions file's bundle when present, else the repository's own facts file.
+  facts = loadFacts(join(dirname(path), "..", "product-facts.json")) ?? loadFacts(join(REPO_ROOT, "docs/knowledge-source/product-facts.json")),
+) {
   const list = JSON.parse(readFileSync(path, "utf8"));
   if (!Array.isArray(list) || list.length === 0) throw new Error(`${path}: expected a non-empty array`);
   return list.map((q, n) => {
@@ -73,7 +78,13 @@ export function loadQuestions(path) {
     }
     const contains = q.expect_contains === undefined ? [] : [q.expect_contains].flat();
     if (contains.some((c) => typeof c !== "string")) throw new Error(`${path}: item ${n} expect_contains must be strings`);
-    return { question: q.question, expectFile: q.expect_file, contains, critical: q.critical === true };
+    // {{v:<id>}} placeholders resolve from the facts file, so a version expectation never goes stale.
+    const resolved = contains.map((c) => {
+      const r = resolvePlaceholders(c, facts, `${path}: item ${n}`);
+      if (r.errors.length) throw new Error(r.errors.join("; "));
+      return r.text;
+    });
+    return { question: q.question, expectFile: q.expect_file, contains: resolved, critical: q.critical === true };
   });
 }
 

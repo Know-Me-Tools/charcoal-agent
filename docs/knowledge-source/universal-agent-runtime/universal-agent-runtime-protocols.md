@@ -10,6 +10,10 @@ tags:
   - universal-agent-runtime
   - protocols
 sources:
+  - id: uar-releases
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/releases
+    title: Universal Agent Runtime releases
+    last_modified: "2026-10-24T00:00:00+00:00"
   - id: uar-readme
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/README.md
     title: Universal Agent Runtime README
@@ -32,7 +36,7 @@ sources:
 
 ## Which protocols the Universal Agent Runtime speaks
 
-UAR exposes an OpenAI-compatible API under `/v1`, an AG-UI event stream, A2UI surfaces for declarative interfaces, an MCP (Model Context Protocol, the open standard agents use to call tools) client with a governed tool bridge, and an A2A endpoint for other agents.[^uar-readme] Version 1.0.0 published versioned contracts for the OpenAI-compatible API, AG-UI, A2UI and MCP.[^uar-changelog]
+UAR exposes an OpenAI-compatible API under `/v1`, an AG-UI event stream, A2UI surfaces for declarative interfaces, an MCP (Model Context Protocol, the open standard agents use to call tools) client with a governed tool bridge, and an A2A endpoint for other agents.[^uar-readme] Version 1.0.0 published versioned contracts for the OpenAI-compatible API, AG-UI, A2UI and MCP.[^uar-changelog] After the 1.0.0 contracts, releases 1.2.1 to {{v:uar}} added caller-owned function declarations across the OpenAI Chat Completions, Anthropic Messages, AG-UI, A2A 1.0 and ACP interfaces. The changelog marks 1.2.1 as acceptance pending and the published 1.2.2 image as having failed one acceptance case; it records that functional acceptance of the published {{v:uar}} Linux amd64 image passed within a defined scope, with arm64 outside it.[^uar-changelog]
 
 ## The OpenAI-compatible API in the Universal Agent Runtime
 

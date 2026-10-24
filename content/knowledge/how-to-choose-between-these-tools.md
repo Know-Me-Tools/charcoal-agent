@@ -47,9 +47,10 @@ Source: Microsoft Learn, Agent Framework overview, retrieved 2026-10-12.
 
 ## If you are a developer building agents: the Universal Agent Runtime (Landscape)
 
-The Universal Agent Runtime is the fit when you want a separate, governed server that enforces Cedar tool policy and audit for every client, speaks the OpenAI-compatible API, AG-UI, A2UI, MCP and A2A, and keeps clients thin, and you accept running a server with a small ecosystem and a recent 1.0.0 release.
+The Universal Agent Runtime is the fit when you want a separate, governed server that enforces Cedar tool policy and audit for every client, speaks the OpenAI-compatible API, AG-UI, A2UI, MCP and A2A, and keeps clients thin, and you accept running a server with a small ecosystem and a 1.x line that began on 2026-07-12, with v1.2.3 the latest stable release.
 
 Source: Universal Agent Runtime README, retrieved 2026-10-12.
+Source: Universal Agent Runtime releases, retrieved 2026-10-24.
 
 ## If you need a memory layer for agents: the hosted and library options (Landscape)
 
@@ -93,7 +94,7 @@ Source: Anthropic, Claude download page, retrieved 2026-10-12.
 
 ## If you want something from KnowMe AI, LLC today (Landscape)
 
-The Boss is the only KnowMe AI, LLC product you can download today: a free, open-source desktop workspace for macOS and Windows that needs no account. The Universal Agent Runtime, BossFang and the Surreal Memory Server are Prometheus AGS projects with public source; the runtime is at version 1.0.0 with an MIT licence, BossFang's end-user release path is not established, and the Surreal Memory Server is source published for review. KnowMe has no public release and no announced date; pricing has not been announced.
+The Boss is the only KnowMe AI, LLC product you can download today: a free, open-source desktop workspace for macOS and Windows that needs no account. The Universal Agent Runtime, BossFang and the Surreal Memory Server are Prometheus AGS projects with public source; the runtime is at version v1.2.3 with an MIT licence, BossFang's end-user release path is not established, and the Surreal Memory Server is source published for review. KnowMe has no public release and no announced date; pricing has not been announced.
 
 Source: The Boss download page, retrieved 2026-10-12.
 Source: Universal Agent Runtime README, retrieved 2026-10-12.

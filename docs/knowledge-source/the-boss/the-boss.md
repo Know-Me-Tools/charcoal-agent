@@ -74,15 +74,15 @@ Provider access and optional integrations each need their own configuration, for
 
 ## What The Boss includes: Universal Agent Runtime, BossFang and the Surreal Memory Server
 
-All current The Boss installers, the v2.2.36 builds for macOS on Apple Silicon and Windows x64 and the v2.2.30 builds for Intel Mac and Windows ARM64, include the Universal Agent Runtime and BossFang (with its dashboard) as bundled programs that run beside The Boss.[^boss-build] The Surreal Memory Server is not inside the installer: The Boss works with it over MCP as a separate service that The Boss can manage or connect to.[^boss-memory-adapter] Running the Surreal Memory Server as a service managed by The Boss needs a container runtime, because The Boss pins it as a container image.[^boss-payload]
+All installers in the latest release, {{v:boss}}, include the Universal Agent Runtime and BossFang (with its dashboard) as bundled programs that run beside The Boss.[^boss-build] The Surreal Memory Server is not inside the installer: The Boss works with it over MCP as a separate service that The Boss can manage or connect to.[^boss-memory-adapter] Running the Surreal Memory Server as a service managed by The Boss needs a container runtime, because The Boss pins it as a container image.[^boss-payload]
 
 ## Platforms The Boss supports
 
-The Boss runs on macOS and Windows. Today the download page offers The Boss v2.2.36 for macOS on Apple Silicon and for Windows x64. The Intel Mac and Windows ARM64 downloads are the older v2.2.30 builds; the v2.2.36 update for those two platforms is pending. The Boss needs macOS 12 or later or Windows 10 or later. Linux is not offered.[^boss-site]
+The Boss runs on macOS and Windows. The latest release is {{v:boss}}, published {{v:boss:date}}, with installers for macOS on Apple Silicon (719.3 MB, signed with a Developer ID and notarized), macOS on Intel (754.2 MB, notarized) and Windows x64 (612.3 MB, unsigned). No Windows ARM64 installer is published in that release; an older release, v2.2.30, has one.[^boss-releases] The Boss needs macOS 12 or later or Windows 10 or later. Linux is not offered.[^boss-site]
 
 ## Signing and installer sizes for The Boss
 
-The macOS builds of The Boss are signed with a Developer ID and notarized. The Windows installers are unsigned, so Windows may show a warning during installation; the download page publishes a SHA-256 checksum for every installer so you can verify what you downloaded. Installer sizes recorded in The Boss release records: v2.2.36 macOS Apple Silicon 685.0 MB and Windows x64 509.6 MB; v2.2.30 macOS Intel 713.2 MB and Windows ARM64 472.0 MB.[^boss-releases]
+The macOS builds of The Boss are signed with a Developer ID and notarized. The Windows installers are unsigned, so Windows may show a warning during installation; the download page publishes a SHA-256 checksum for every installer so you can verify what you downloaded. Installer sizes recorded in The Boss release records for {{v:boss}}: macOS Apple Silicon 719.3 MB, macOS Intel 754.2 MB and Windows x64 612.3 MB.[^boss-releases]
 
 ## Getting The Boss
 

@@ -9,6 +9,10 @@ generated:
 stale_after: "2026-11-10T00:00:00+00:00"
 tags: [landscape, decision-guide, knowme, the-boss, universal-agent-runtime, surreal-memory-server]
 sources:
+  - id: uar-releases
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/releases
+    title: Universal Agent Runtime releases
+    last_modified: "2026-10-24T00:00:00+00:00"
   - id: dots-help
     resource: https://help.openai.com/en/articles/20001530-getting-started-with-your-dot
     title: "OpenAI Help Center, Getting started with your dot"
@@ -145,7 +149,7 @@ If you write Python and want graph-shaped, durable agents with a mature tracing 
 
 ## If you are a developer building agents: the Universal Agent Runtime
 
-The Universal Agent Runtime is the fit when you want a separate, governed server that enforces Cedar tool policy and audit for every client, speaks the OpenAI-compatible API, AG-UI, A2UI, MCP and A2A, and keeps clients thin, and you accept running a server with a small ecosystem and a recent 1.0.0 release.[^uar-readme]
+The Universal Agent Runtime is the fit when you want a separate, governed server that enforces Cedar tool policy and audit for every client, speaks the OpenAI-compatible API, AG-UI, A2UI, MCP and A2A, and keeps clients thin, and you accept running a server with a small ecosystem and a 1.x line that began on 2026-07-12, with {{v:uar}} the latest stable release.[^uar-readme][^uar-releases]
 
 ## If you need a memory layer for agents: the hosted and library options
 
@@ -169,7 +173,7 @@ Today, the hosted assistants offer cross-device memory: OpenAI's dots receive an
 
 ## If you want something from KnowMe AI, LLC today
 
-The Boss is the only KnowMe AI, LLC product you can download today: a free, open-source desktop workspace for macOS and Windows that needs no account.[^boss-site] The Universal Agent Runtime, BossFang and the Surreal Memory Server are Prometheus AGS projects with public source; the runtime is at version 1.0.0 with an MIT licence, BossFang's end-user release path is not established, and the Surreal Memory Server is source published for review.[^uar-readme][^sms-publication] KnowMe has no public release and no announced date; pricing has not been announced.
+The Boss is the only KnowMe AI, LLC product you can download today: a free, open-source desktop workspace for macOS and Windows that needs no account.[^boss-site] The Universal Agent Runtime, BossFang and the Surreal Memory Server are Prometheus AGS projects with public source; the runtime is at version {{v:uar}} with an MIT licence, BossFang's end-user release path is not established, and the Surreal Memory Server is source published for review.[^uar-readme][^sms-publication] KnowMe has no public release and no announced date; pricing has not been announced.
 
 ## How this guidance was built
 
