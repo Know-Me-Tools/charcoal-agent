@@ -1,0 +1,882 @@
+{
+  "schema": 1,
+  "checked": "2026-10-24",
+  "edition": "https://ipfs.prometheusags.ai/ipfs/bafybeidmp2shm6zpf7bj25iugtbylnzl5ms564lr3vsozuszbp23d63pie/",
+  "note": "One row per portfolio entry. The repositories, the registry and the cluster win over the portfolio (D-002). A product with no release states no tagged release and the last-commit date (D-003).",
+  "withheldTerms": [
+    "Headscale",
+    "Mac mini",
+    "RTX 4070",
+    "VRAM"
+  ],
+  "rows": [
+    {
+      "id": "knowme",
+      "name": "KnowMe App / personal intelligence",
+      "family": "Applications",
+      "summary": "Private memory, user-controlled inference, agent workflows and cross-device personal intelligence. The system and earlier app/client editions remain distinct implementation tracks.",
+      "portfolioStatus": "Implementation and specifications; full cross-platform qualification not established.",
+      "repo": "Know-Me-Tools/know-me-system",
+      "version": {
+        "kind": "untagged",
+        "lastCommit": "2026-10-20",
+        "source": "https://github.com/Know-Me-Tools/know-me-system"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "locus",
+      "name": "Locus / Private Dot",
+      "family": "Applications",
+      "summary": "Proposed owner-controlled private assistant and operator-coach, with durable state, selective memory and replaceable execution workers.",
+      "portfolioStatus": "Design proposal; bounded foundation work is not an implemented Locus runtime.",
+      "repo": "Know-Me-Tools/locus",
+      "version": {
+        "kind": "untagged",
+        "lastCommit": "2026-10-21",
+        "source": "https://github.com/Know-Me-Tools/locus"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "dot",
+      "name": "KnowMe dot operator service",
+      "family": "Services",
+      "summary": "A proposed persistent shared control plane with a canonical per-user memory and task-scoped retrieval for replaceable workers.",
+      "portfolioStatus": "Specification and synthetic prototype; no live service certified.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "synaxis",
+      "name": "Synaxis by KnowMe",
+      "family": "Infrastructure",
+      "summary": "Proposed harness-independent durable messaging, orchestration and shared memory service. Working name.",
+      "portfolioStatus": "Published design; operating paid service not established.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "numen",
+      "name": "Numen execution fabric",
+      "family": "Infrastructure",
+      "summary": "Proposed governed orchestration and portable execution across interchangeable hosts, including human and agent identity credentials. Numen Enclave adds a proposed deployment boundary for owner-controlled private work; the Candle-VLLM fork is part of the intended inference infrastructure.",
+      "portfolioStatus": "Architecture proposal with a newly published Enclave deployment standard; a complete operating fabric is not established.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "praxis",
+      "name": "KnowMe Praxis / TripTych lineage",
+      "family": "Infrastructure",
+      "summary": "Agentic container and system architecture specification; historical TripTych source retained as lineage.",
+      "portfolioStatus": "Published specifications; runtime completion not inferred.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "meet",
+      "name": "Know Meet",
+      "family": "Applications",
+      "summary": "Agentic meeting experience integrating personal assistants, communications, calendar and meeting artifacts.",
+      "portfolioStatus": "70-screen/state synthetic prototype; operational integrations unverified.",
+      "repo": "Know-Me-Tools/know-meet",
+      "version": {
+        "kind": "untagged",
+        "lastCommit": "2026-10-19",
+        "source": "https://github.com/Know-Me-Tools/know-meet"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "decision",
+      "name": "Know Decision / KnowMe Decision Layer",
+      "family": "Tools",
+      "summary": "Planned local decision models with typed Act, Review and Escalate outcomes, Rust API and MCP support.",
+      "portfolioStatus": "Pre-implementation; bundled Julia candidate and native acceptance remain pending.",
+      "repo": "Know-Me-Tools/know-me-decision",
+      "version": {
+        "kind": "untagged",
+        "lastCommit": "2026-09-30",
+        "source": "https://github.com/Know-Me-Tools/know-me-decision"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "operator",
+      "name": "The Operator Service / business model",
+      "family": "Services",
+      "summary": "Planned service packaging, onboarding, tiers and operating model for persistent AI-assisted work.",
+      "portfolioStatus": "Service and economics design; commercial launch not established.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "lampas",
+      "name": "Lampas / AI appliance direction",
+      "family": "Research & concepts",
+      "summary": "Hardware, inference and persistent-operator hybrid research.",
+      "portfolioStatus": "Research published; product implementation and repository status unverified.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "boss",
+      "name": "The Boss",
+      "family": "Applications",
+      "summary": "AI desktop workspace for conversations, agents, tools and project work, built on Cherry Studio.",
+      "portfolioStatus": "Existing implementation and releases; current-source features are not automatically included in released installers.",
+      "repo": "Prometheus-AGS/the-boss",
+      "version": {
+        "kind": "stable",
+        "value": "v2.2.41",
+        "date": "2026-10-23",
+        "source": "https://github.com/Prometheus-AGS/the-boss/releases/tag/v2.2.41"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "bossfang",
+      "name": "BossFang",
+      "family": "Infrastructure",
+      "summary": "Rust agent operating-system implementation, distinct from The Boss desktop workspace.",
+      "portfolioStatus": "Existing source; product and integration goals remain unfinished.",
+      "repo": "GQAdonis/librefang",
+      "version": {
+        "kind": "tag",
+        "value": "bossfang-sidecar-0899e4993",
+        "date": "2026-10-08",
+        "source": "https://github.com/GQAdonis/librefang/releases/tag/bossfang-sidecar-0899e4993",
+        "note": "sidecar build tag with a commit hash; BossFang publishes no semantic version"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "concierge",
+      "name": "KnowMe Concierge / charcoal-agent",
+      "family": "Applications",
+      "summary": "KnowMe web and desktop client with streamed agent replies, local threads and runtime skill synchronization.",
+      "portfolioStatus": "Existing implementation; full App/Locus and authentic-voice integration not established.",
+      "repo": "Know-Me-Tools/charcoal-agent",
+      "version": {
+        "kind": "untagged",
+        "lastCommit": "2026-10-24",
+        "source": "https://github.com/Know-Me-Tools/charcoal-agent"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "flint",
+      "name": "Flint AI Code Companion / PMPO",
+      "family": "Applications",
+      "summary": "AI-assisted code-generation concept and PMPO cognition, technical and human-process specifications.",
+      "portfolioStatus": "Prototype and design documents; runtime delivery not established.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "mesh",
+      "name": "Flint Agent Mesh",
+      "family": "Infrastructure",
+      "summary": "Identity, authorization, group encryption, ordered delivery, discovery and synchronization design for an agent mesh.",
+      "portfolioStatus": "Architecture and specification; deployed mesh not established.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "gate",
+      "name": "Flint Gate",
+      "family": "Infrastructure",
+      "summary": "Authentication and authorization proxy for streaming AI workloads, with policy hooks and runtime routing.",
+      "portfolioStatus": "Existing implementation; production qualification not independently audited.",
+      "repo": "Know-Me-Tools/flint-gate",
+      "version": {
+        "kind": "untagged",
+        "lastCommit": "2026-10-23",
+        "source": "https://github.com/Know-Me-Tools/flint-gate"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "forge",
+      "name": "Flint Forge — Quarry, Anvil and Kiln",
+      "family": "Infrastructure",
+      "summary": "Data and edge-compute plane: REST/GraphQL access, database extensions and signed WASM edge functions.",
+      "portfolioStatus": "README reports v1.0-ready; treated as a source claim, not a fresh release audit.",
+      "repo": "Know-Me-Tools/flint-forge",
+      "version": {
+        "kind": "stable",
+        "value": "v1.0.0",
+        "date": "2026-07-07",
+        "source": "https://github.com/Know-Me-Tools/flint-forge/releases/tag/v1.0.0"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "fabric",
+      "name": "Flint Realtime Fabric",
+      "family": "Infrastructure",
+      "summary": "Durable event spine, multiplexed client connection and separate media, CRDT and federation transports.",
+      "portfolioStatus": "README reports phase-18 scope complete; full media loop and broader integration remain qualified separately.",
+      "repo": "Prometheus-AGS/flint-realtime-fabric",
+      "version": {
+        "kind": "untagged",
+        "lastCommit": "2026-10-11",
+        "source": "https://github.com/Prometheus-AGS/flint-realtime-fabric"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "core-infra",
+      "name": "Flint core infrastructure",
+      "family": "Infrastructure",
+      "summary": "Shared identity, authorization, data and realtime infrastructure configuration for the platform.",
+      "portfolioStatus": "Existing infrastructure source; current deployment not audited.",
+      "repo": "Prometheus-AGS/flint-infra",
+      "version": {
+        "kind": "untagged",
+        "lastCommit": "2026-10-23",
+        "source": "https://github.com/Prometheus-AGS/flint-infra"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "pem",
+      "name": "Prometheus Entity Management / entity-graph",
+      "family": "Tools",
+      "summary": "Normalized reactive entity graph and generated-UI integration across web, mobile, desktop and local-first apps.",
+      "portfolioStatus": "Published package family; version records differ across snapshots and are not a current release audit.",
+      "repo": "Prometheus-AGS/prometheus-entity-management",
+      "version": {
+        "kind": "stable",
+        "value": "v4.1.1",
+        "date": "2026-10-08",
+        "source": "https://github.com/Prometheus-AGS/prometheus-entity-management/releases/tag/v4.1.1"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "sync",
+      "name": "Prometheus Entity Sync",
+      "family": "Infrastructure",
+      "summary": "Rust-native bidirectional database synchronization with browser, Flutter and native client SDKs.",
+      "portfolioStatus": "Existing implementation and prototype; deployment qualification not audited.",
+      "repo": "Prometheus-AGS/prometheus-entity-sync",
+      "version": {
+        "kind": "untagged",
+        "lastCommit": "2026-09-17",
+        "source": "https://github.com/Prometheus-AGS/prometheus-entity-sync"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "genui",
+      "name": "gen_ui / cross-platform UI core",
+      "family": "Tools",
+      "summary": "Shared Rust application core and thin web, desktop and Flutter surfaces for KnowMe.",
+      "portfolioStatus": "Implemented modules plus architectural specification; platform acceptance remains specific.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "demos",
+      "name": "Demo hosting platform",
+      "family": "Infrastructure",
+      "summary": "Proposed hosting for packaged SPA/HTMX demos with agent, data and runtime bindings.",
+      "portfolioStatus": "Scaffold and server/API design; inspected historical server implemented only health route.",
+      "repo": "Know-Me-Tools/demos",
+      "version": {
+        "kind": "untagged",
+        "lastCommit": "2026-10-21",
+        "source": "https://github.com/Know-Me-Tools/demos"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "documind",
+      "name": "DocuMind",
+      "family": "Applications",
+      "summary": "Document and knowledge workflows with an operator console and Rust workspace.",
+      "portfolioStatus": "Prototype/starter and development documents; Core/Pro boundary unresolved.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "knowledge-gateway",
+      "name": "Knowledge Gateway",
+      "family": "Infrastructure",
+      "summary": "Federated knowledge access across document sources through shared adapters and MCP tools.",
+      "portfolioStatus": "Existing project with phased capabilities; graph-discovery completeness unverified.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "memory",
+      "name": "Surreal Memory Server",
+      "family": "Infrastructure",
+      "summary": "Scoped memories, knowledge graph, hybrid search and durable operation receipts for agent memory.",
+      "portfolioStatus": "Existing implementation; remediation and per-user brain design have separate qualification.",
+      "repo": "Prometheus-AGS/surreal-memory-server",
+      "version": {
+        "kind": "tag",
+        "value": "v1.10.2",
+        "date": "2026-10-13",
+        "source": "https://github.com/Prometheus-AGS/surreal-memory-server/tags",
+        "note": "a git tag without a GitHub release"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "knowledge",
+      "name": "Prometheus Knowledge / learning worker",
+      "family": "Tools",
+      "summary": "Markdown knowledge records, bounded immutable prompt snapshots and durable memory reconciliation.",
+      "portfolioStatus": "Existing runtime; current deployment coverage not audited.",
+      "repo": "Prometheus-AGS/prometheus-knowledge-rs",
+      "version": {
+        "kind": "tag",
+        "value": "v1.11.0",
+        "date": "2026-10-11",
+        "source": "https://github.com/Prometheus-AGS/prometheus-knowledge-rs/tags",
+        "note": "a git tag without a GitHub release"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "parking",
+      "name": "Prometheus Parking Lot",
+      "family": "Tools",
+      "summary": "A Rust library for resource-aware background work, bounded execution and retrieving results after the initiating request has returned. Published packages make the library available for reuse beyond a single application.",
+      "portfolioStatus": "Published on crates.io: prometheus_parking_lot 0.3.0 and six component crates, all non-yanked as checked 24 October 2026. The Candle-VLLM fork integrates an earlier 0.1.0 Git revision; publication of 0.3.0 does not mean every consumer has upgraded.",
+      "repo": "Prometheus-AGS/prometheus-parking-lot-rs",
+      "version": {
+        "kind": "registry",
+        "value": "v0.3.0",
+        "date": "2026-10-24",
+        "source": "https://crates.io/crates/prometheus_parking_lot"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "skills",
+      "name": "Prometheus Skill Pack",
+      "family": "Tools",
+      "summary": "Reusable development skills, workflows, research and team tools with optional memory and native services.",
+      "portfolioStatus": "Existing full distribution; individual workflows retain their own qualification.",
+      "repo": "Prometheus-AGS/prometheus-skill-system",
+      "version": {
+        "kind": "stable",
+        "value": "v1.13.0",
+        "date": "2026-10-18",
+        "source": "https://github.com/Prometheus-AGS/prometheus-skill-system/releases/tag/v1.13.0"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "mini",
+      "name": "Prometheus Skills Mini",
+      "family": "Tools",
+      "summary": "Portable process, team, research and UI guidance with Node entry points.",
+      "portfolioStatus": "Existing distribution; host/harness acceptance is path-specific.",
+      "repo": "Prometheus-AGS/prometheus-skills-mini",
+      "version": {
+        "kind": "stable",
+        "value": "v1.12.1",
+        "date": "2026-10-12",
+        "source": "https://github.com/Prometheus-AGS/prometheus-skills-mini/releases/tag/v1.12.1"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "native-agent",
+      "name": "Native agent creator",
+      "family": "Tools",
+      "summary": "Rust source-generation templates and native, container and WASM deployment patterns.",
+      "portfolioStatus": "Templates and scaffolding; arbitrary workflow conversion not proven.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "phase-exit",
+      "name": "Phase Exit",
+      "family": "Tools",
+      "summary": "Evidence-based completion decisions against an adopted contract, with optional bounded semantic adjudication.",
+      "portfolioStatus": "Existing preview under reliability hardening; no inference of downstream project completion.",
+      "repo": "Know-Me-Tools/phase-exit",
+      "version": {
+        "kind": "untagged",
+        "lastCommit": "2026-10-16",
+        "source": "https://github.com/Know-Me-Tools/phase-exit"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "setup",
+      "name": "KnowMe Project Management",
+      "family": "Tools",
+      "summary": "Repeatable greenfield setup and brownfield conversion for code, business processes, research and documentation.",
+      "portfolioStatus": "Existing project-setup skill and documentation.",
+      "repo": "Know-Me-Tools/know-me-project-management",
+      "version": {
+        "kind": "untagged",
+        "lastCommit": "2026-09-30",
+        "source": "https://github.com/Know-Me-Tools/know-me-project-management"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "docforge",
+      "name": "HTMX Doc Forge / Build Branded Documents",
+      "family": "Tools",
+      "summary": "Portable branded publications, SVG explanations, responsive viewers and receipt-based IPFS publishing workflows.",
+      "portfolioStatus": "Existing document tools; current portfolio uses HTMX 2.0.8 explicitly.",
+      "repo": "Prometheus-AGS/htmx-doc-forge",
+      "version": {
+        "kind": "untagged",
+        "lastCommit": "2026-10-13",
+        "source": "https://github.com/Prometheus-AGS/htmx-doc-forge"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "refiner",
+      "name": "Artifact Refiner / operator teaching tools",
+      "family": "Tools",
+      "summary": "Document refinement and instructional workflows used in the broader skills ecosystem.",
+      "portfolioStatus": "Existing skills; commercial service availability not established.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "tune",
+      "name": "Prometheus Tune",
+      "family": "Tools",
+      "summary": "Proposed skills for dataset construction, fine-tuning, quantization, evaluation and deployment.",
+      "portfolioStatus": "Specification only; README explicitly says no skills implemented.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "logos",
+      "name": "Logos",
+      "family": "Tools",
+      "summary": "Harness-health dashboard and functional specification with a dedicated design system.",
+      "portfolioStatus": "Design/specification and dashboard prototype; implementation qualification unverified.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "knowtes",
+      "name": "Knowtes",
+      "family": "Research & concepts",
+      "summary": "Named notes/application workspace; available README is a generic Flutter starter.",
+      "portfolioStatus": "Purpose and current product status unresolved.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "studio",
+      "name": "Prometheus Studio",
+      "family": "Applications",
+      "summary": "Cross-platform AI development workspace with local database, IPFS and mini-app concepts.",
+      "portfolioStatus": "Existing source and README; active roadmap/release status unverified.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "light",
+      "name": "Light Creator",
+      "family": "Tools",
+      "summary": "Artifact-generation and component-preview workflow with streaming and compilation.",
+      "portfolioStatus": "Existing source description; ownership lineage and present qualification need confirmation.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "uar",
+      "name": "Universal Agent Runtime",
+      "family": "Infrastructure",
+      "summary": "Shared runtime dependency used by multiple portfolio applications.",
+      "portfolioStatus": "Work stopped; current runtime qualification not established.",
+      "repo": "Prometheus-AGS/universal-agent-runtime",
+      "version": {
+        "kind": "stable",
+        "value": "v1.2.3",
+        "date": "2026-10-23",
+        "source": "https://github.com/Prometheus-AGS/universal-agent-runtime/releases/tag/v1.2.3",
+        "preRelease": {
+          "value": "v1.3.0",
+          "date": "2026-10-24",
+          "source": "https://github.com/Prometheus-AGS/universal-agent-runtime/releases/tag/v1.3.0"
+        }
+      },
+      "checked": "2026-10-24",
+      "publication": "public",
+      "deployed": {
+        "value": "v1.3.0",
+        "where": "know-me.tools production cluster",
+        "note": "1.3.0 is published as a pre-release ('verification pending'); the cluster pins its image digest"
+      },
+      "portfolioDisagreement": "The portfolio entry reads 'Work stopped; current runtime qualification not established' and calls the capability snapshot rejected/stale. The repository has a stable v1.2.3 (2026-10-23) and a v1.3.0 pre-release (2026-10-24), and the cluster serves chat on 1.3.0."
+    },
+    {
+      "id": "pulse",
+      "name": "Prometheus Pulse",
+      "family": "Capabilities",
+      "summary": "Status-persona/feed capability mapped into Locus and its project-learning workflow.",
+      "portfolioStatus": "Design amendment; not a proven separately shipped application.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "tranquil",
+      "name": "Tranquil / Parlour",
+      "family": "Infrastructure",
+      "summary": "Rust personal-data-server direction for Parlour, with new private agent-job and orchestration designs.",
+      "portfolioStatus": "Existing public repository/event work; private jobs, fencing and HA are new design.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "poppy",
+      "name": "KnowMe integration with Poppy",
+      "family": "Integrations",
+      "summary": "KnowMe support and recovery design using the external Personal Agent Protocol. Poppy itself is not a KnowMe-owned product.",
+      "portfolioStatus": "Published integration design; implementation not established.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "aso",
+      "name": "ASO Prior Authorization Workbench",
+      "family": "Client & partner work",
+      "summary": "Practice-facing evidence and prior-authorization workflow.",
+      "portfolioStatus": "Existing workbench implementation under development; the newly published PatientGPT office pilot plan defines the next proposed clinical workflow. Production qualification is not established.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "pending-consent",
+      "publicationNote": "Shares the PatientGPT clinical context; client consent is not confirmed (D-009)."
+    },
+    {
+      "id": "patientgpt",
+      "name": "PatientGPT",
+      "family": "Client & partner work",
+      "summary": "A planned real-office prior-authorization pilot: assemble chart evidence, identify missing documentation, cite criteria and prepare drafts for staff and physician review. The office retains signing, submission and clinical decisions. This advances the earlier patient-oriented concept into a bounded office workflow.",
+      "portfolioStatus": "Office pilot plan published; not deployed or HIPAA-certified.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "pending-consent",
+      "publicationNote": "Client consent to the public description is not confirmed (kb-patientgpt-prior-auth 11.0, decision D-009)."
+    },
+    {
+      "id": "tribehealth",
+      "name": "TribeHealth",
+      "family": "Client & partner work",
+      "summary": "Named health-project context related to the ASO/PatientGPT research family; exact product boundary remains unresolved.",
+      "portfolioStatus": "Scope and ownership require confirmation.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "pending-consent",
+      "publicationNote": "Client entry; scope and ownership require confirmation and consent is not confirmed (D-009)."
+    },
+    {
+      "id": "realtor",
+      "name": "KnowMe realtor assistant",
+      "family": "Applications",
+      "summary": "Real-estate assistant MVP with lightweight CRM and follow-up workflows.",
+      "portfolioStatus": "MVP specification and deployed synthetic demonstration; real booking/messaging unverified.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "kaia",
+      "name": "Kaia",
+      "family": "Research & concepts",
+      "summary": "Agent/harness assurance and developer-companion direction.",
+      "portfolioStatus": "Product scope under assessment.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "hotseaters",
+      "name": "HotSeaters",
+      "family": "Client & partner work",
+      "summary": "Collaborator prototype/rebuild context.",
+      "portfolioStatus": "Current product scope, ownership and status uncertain.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "pending-consent",
+      "publicationNote": "Client entry; scope, ownership and consent are not confirmed (D-009)."
+    },
+    {
+      "id": "voice",
+      "name": "Authentic Digital Twin / communication coach",
+      "family": "Capabilities",
+      "summary": "Personal-voice and communication-coaching design with supporting skills.",
+      "portfolioStatus": "Specification and skills exist; trained runtime not established.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "ipfs",
+      "name": "Agentic IPFS / Obsidian sync",
+      "family": "Integrations",
+      "summary": "Content-addressed artifact and synchronization work across the memory ecosystem.",
+      "portfolioStatus": "Scoped plugin prerelease and tests; wider deployment unverified.",
+      "repo": null,
+      "version": {
+        "kind": "manifest",
+        "value": "v0.2.0",
+        "source": "content/knowledge/ipfs-sync-for-obsidian.md (README and changelog cited there)",
+        "note": "pre-release; the repository was not identified in this pass"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "inference",
+      "name": "Inference forks: candle-vllm / liter-llm",
+      "family": "Integrations",
+      "summary": "Inference and provider-routing fork work used in broader platform research.",
+      "portfolioStatus": "Source/fork work. Candle-VLLM now has verified Parking Lot calls in its serving engine; see its dedicated entry. liter-llm remains separately scoped fork/provider-routing work.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "umbrella entry; see candle-vllm and the liter-llm fork"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "clients",
+      "name": "San Saba client systems",
+      "family": "Client & partner work",
+      "summary": "Client workspace and automation delivery, including infrastructure and workflow projects.",
+      "portfolioStatus": "Public indexing held for confidentiality review.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "withheld",
+      "publicationNote": "The portfolio states public indexing is held for confidentiality review."
+    },
+    {
+      "id": "asset",
+      "name": "ASSET InterTech modernization program",
+      "family": "Client & partner work",
+      "summary": "Client-program modernization and agent-assisted engineering research.",
+      "portfolioStatus": "Client research and training documents; proprietary implementation and commercial details withheld.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "pending-consent",
+      "publicationNote": "Client research and training documents; consent is not confirmed (D-009)."
+    },
+    {
+      "id": "candle-vllm",
+      "name": "Candle-VLLM · Prometheus fork",
+      "family": "Integrations",
+      "summary": "Our Prometheus fork of Candle-VLLM integrates Parking Lot into its inference-serving engine, combining KV-cache-aware resource accounting, configurable worker capacity, bounded request queues and streaming-result delivery. It forms a key part of the inference infrastructure supporting our Numen work.",
+      "portfolioStatus": "Code integration verified at 10f844d: completion and streaming paths submit work through the pool. Cargo.lock still pins Parking Lot 0.1.0 at Git revision 32b481d, not the published 0.3.0 release.",
+      "repo": "GQAdonis/candle-vllm",
+      "version": {
+        "kind": "untagged",
+        "lastCommit": "2026-05-26",
+        "source": "https://github.com/GQAdonis/candle-vllm"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "numen-enclave",
+      "name": "Numen Enclave",
+      "family": "Infrastructure",
+      "summary": "A reusable architecture for central coordination with local authority: the owner domain keeps private data, inference, workflows, approvals and durable receipts, while a narrowly scoped management plane handles identity, connectivity and approved operational metadata.",
+      "portfolioStatus": "Published architecture and deployment standard v0.1: a review proposal dated 23 October and published 24 October 2026. PatientGPT supplies a concrete proposed clinical deployment profile.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    },
+    {
+      "id": "companion",
+      "name": "Companion · provisional working name",
+      "family": "Tools",
+      "summary": "A potential shared coordination workspace for dot, Locus and other agent systems: see progress centrally, surface approvals and blockers, track deliverable receipts and coordinate work across agents.",
+      "portfolioStatus": "Tested local Axum/Postgres MVP with task hierarchy, events, deduplication, SSE replay and five MCP tools. Prototype screenshots exist. Cloud deployment is blocked on reauthentication and verification.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-24",
+      "publication": "public"
+    }
+  ]
+}
