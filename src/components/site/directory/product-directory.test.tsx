@@ -83,11 +83,14 @@ describe("ProductDirectory entries", () => {
 		expect(screen.getByRole("heading", { level: 2, name: DIRECTORY_COPY.heading })).toBeTruthy();
 	});
 
-	it("does not link to product pages yet", () => {
+	it("links each tile title to its product page, and the lead to the full list, and nothing else", () => {
 		const { container } = renderWithRouter(<ProductDirectory />);
-		expect(container.querySelectorAll("a")).toHaveLength(0);
-		// The slug stays in the data for the product-pages change.
-		expect(DIRECTORY.families.flatMap((f) => f.leads).every((l) => l.slug.length > 0)).toBe(true);
+		const links = [...container.querySelectorAll("a")].map((a) => a.getAttribute("href"));
+		const slugs = DIRECTORY.families.flatMap((f) => f.leads).map((l) => `/products/${l.slug}`);
+		expect(links.filter((href) => href !== "/products").sort()).toEqual([...slugs].sort());
+		expect(links.filter((href) => href === "/products")).toHaveLength(1);
+		const tiles = container.querySelectorAll("[data-directory-lead]");
+		for (const tile of tiles) expect(tile.querySelectorAll("a")).toHaveLength(1);
 	});
 });
 

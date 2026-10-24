@@ -1,5 +1,8 @@
+import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { DIRECTORY } from "../../../../content/site/directory";
 import { DIRECTORY_COPY } from "../../../../content/site/directory-copy";
+import { PRODUCTS_COPY } from "../../../../content/site/products-copy";
 import { DirectoryFamily } from "./directory-family";
 
 /**
@@ -22,6 +25,13 @@ export function ProductDirectory() {
 					<p className="mt-3 max-w-[58ch] font-body text-base leading-[1.7] text-fg-secondary md:text-[1.0625rem]">
 						{DIRECTORY_COPY.lead.replace("{total}", String(DIRECTORY.total))}
 					</p>
+					<Link
+						to="/products"
+						className="-ml-3 mt-2 inline-flex min-h-11 items-center gap-2 rounded-lg px-3 font-ui text-sm font-semibold text-fg transition-hover hover:bg-hover focus-cue"
+					>
+						{PRODUCTS_COPY.seeAll}
+						<ArrowRight className="size-4" aria-hidden="true" />
+					</Link>
 				</div>
 				{DIRECTORY.families.map((family) => (
 					<DirectoryFamily key={family.slug} family={family} />

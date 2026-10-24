@@ -1,17 +1,46 @@
+import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { AskChip } from "@/components/site/ask-chip";
 import type { DirectoryLead } from "../../../../content/site/directory";
 import { StatusBadge } from "./status-badge";
 import { VersionLines } from "./version-lines";
 
+export interface DirectoryTileProps {
+	lead: DirectoryLead;
+	/** `h4` under the home directory's `h3` family heading, `h3` under `/products`'s `h2`. */
+	headingLevel?: 3 | 4;
+}
+
 /**
- * A tile for something that has (or will have) a product page. Single-row
- * tiles show the badge and version line; multi-row tiles list each row with
- * its own badge and never a roll-up (docs/design/product-directory.md 2.1).
- *
- * The title is plain text for now: `lead.slug` is the future page, kept in
- * the data, and the link ships with the product pages.
+ * The title as a link to the product page. The arrow is bound to the last
+ * word in a `whitespace-nowrap` span, so it is never stranded on its own line
+ * (docs/design/product-directory.md section 3.3).
  */
-export function DirectoryTile({ lead }: { lead: DirectoryLead }) {
+function TitleLink({ lead }: { lead: DirectoryLead }) {
+	const words = lead.title.split(" ");
+	const last = words.pop() ?? "";
+	return (
+		<Link
+			to={`/products/${lead.slug}`}
+			className="-mx-1 -my-2.5 inline-block rounded-lg px-1 py-2.5 text-fg transition-hover hover:bg-hover focus-cue"
+		>
+			{words.length > 0 && `${words.join(" ")} `}
+			<span className="whitespace-nowrap">
+				{last}
+				<ArrowRight className="ml-1.5 inline size-[0.8em] align-baseline" aria-hidden="true" />
+			</span>
+		</Link>
+	);
+}
+
+/**
+ * A tile for something that has a product page. Single-row tiles show the
+ * badge and version line; multi-row tiles list each row with its own badge
+ * and never a roll-up (docs/design/product-directory.md 2.1). The tile itself
+ * is not a link: its title is, so there is no nested interactive content.
+ */
+export function DirectoryTile({ lead, headingLevel = 4 }: DirectoryTileProps) {
+	const Heading = headingLevel === 3 ? "h3" : "h4";
 	const titleId = `tile-${lead.slug}`;
 	const single = lead.entries.length === 1 ? lead.entries[0] : null;
 
@@ -22,9 +51,9 @@ export function DirectoryTile({ lead }: { lead: DirectoryLead }) {
 			data-directory-entry={single?.id}
 			className="flex min-w-0 flex-col gap-3 rounded-lg bg-tile p-5 md:p-6"
 		>
-			<h4 id={titleId} className="font-display text-xl font-bold tracking-[-0.02em] text-fg">
-				{lead.title}
-			</h4>
+			<Heading id={titleId} className="font-display text-xl font-bold tracking-[-0.02em] text-fg">
+				<TitleLink lead={lead} />
+			</Heading>
 			{single ? (
 				<div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
 					<StatusBadge status={single.status} />
