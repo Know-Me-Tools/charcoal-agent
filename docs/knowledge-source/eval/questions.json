@@ -494,8 +494,8 @@
     "question": "Can I use Know Decision today?",
     "expect_file": "know-decision.md",
     "expect_contains": [
-      "planned",
-      "pre-implementation"
+      "pre-implementation",
+      "does not exist as working software yet"
     ],
     "critical": false
   }

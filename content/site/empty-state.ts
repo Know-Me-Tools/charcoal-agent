@@ -33,8 +33,8 @@ export interface EmptyStateContent {
 export const EMPTY_STATE_CONTENT: EmptyStateContent = {
 	heading: "AI that understands you.",
 	description:
-		"Ask about the KnowMe and Prometheus portfolio: apps, agents and memory, platform, developer tools, integrations, services and research. Answers come from the site's knowledge base; proposed products are called proposed.",
-	composerPlaceholder: "Ask about any KnowMe or Prometheus product",
+		"Ask about the KnowMe and Prometheus portfolio: apps, agents and memory, platform, developer tools, integrations, services and research. Answers come from the site's knowledge base; a product that is only a design is called a design.",
+	composerPlaceholder: "Ask about a KnowMe or Prometheus product",
 	starterPrompts: [
 		"What products does KnowMe AI make?",
 		"What can I use today?",

@@ -8,8 +8,8 @@
 
 | # | Key | String | Chars | Answered by (`content/knowledge/`) |
 |---|---|---|---|---|
-| 1 | `description` | Ask about the KnowMe and Prometheus portfolio: apps, agents and memory, platform, developer tools, integrations, services and research. Answers come from the site's knowledge base; proposed products are called proposed. | n/a | Says what it can talk about (the six families) and what it cannot claim. |
-| 2 | `composerPlaceholder` | Ask about any KnowMe or Prometheus product | n/a | n/a |
+| 1 | `description` | Ask about the KnowMe and Prometheus portfolio: apps, agents and memory, platform, developer tools, integrations, services and research. Answers come from the site's knowledge base; a product that is only a design is called a design. | 232 | Says what it can talk about (the six families) and what it cannot claim. |
+| 2 | `composerPlaceholder` | Ask about a KnowMe or Prometheus product | 40 | n/a |
 | 3 | `starterPrompts[0]` | What products does KnowMe AI make? | 34 | `portfolio-overview.md` (same question as its heading and an eval question) |
 | 4 | `starterPrompts[1]` | What can I use today? | 21 | `portfolio-available-today.md` (same as its heading and an eval question) |
 | 5 | `starterPrompts[2]` | How do your products relate to each other? | 42 | `portfolio-stated-relationships.md` (eval question) |
@@ -27,7 +27,8 @@ Coverage: chips 6 to 8 take two families each (Applications and Agents and memor
 
 ## Notes for the content officer
 
-- "Proposed products are called proposed" is the line that states the limit. Alternative: "Anything still a design is described as a design." Decide the wording.
+- Decision recorded: the limit sentence no longer says "proposed", because the KB uses several status words (proposal, design, planned, pre-implementation, prototype). It now reads "a product that is only a design is called a design." Alternative: "Anything not yet released is described by its status."
+- Chip 3 ("How do your products relate to each other?") keeps "your"; `product-directory.md` section 5.2 prefers no pronouns. For the operator to decide.
 - The description is two sentences, one longer than the brief's "one short line". The second half is the limit statement and I judged it worth the length; remove it if the content officer wants one line.
 - Chip 3 says "your products", matching the eval question and the landing's "we" voice; the description says "the KnowMe and Prometheus portfolio". Confirm one way of naming the portfolio.
 - "Prometheus" is not defined on this screen; the portfolio overview defines it when asked.

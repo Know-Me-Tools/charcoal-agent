@@ -72,7 +72,7 @@ describe("ThreadWelcome on the site build", () => {
       expect(text).toContain(family);
     }
     expect(text).toMatch(/knowledge base/i);
-    expect(text).toMatch(/proposed/i);
+    expect(text).toMatch(/only a design is called a design/i);
     expect(text).not.toMatch(/The Boss|BossFang|Surreal|IPFS/);
   });
 
