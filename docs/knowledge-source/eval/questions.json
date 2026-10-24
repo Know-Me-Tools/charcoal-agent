@@ -417,5 +417,23 @@
       "{{v:decision}}"
     ],
     "critical": false
+  },
+  {
+    "question": "What is Phase Exit and is it finished?",
+    "expect_file": "phase-exit.md",
+    "expect_contains": [
+      "preview",
+      "{{v:phase-exit}}"
+    ],
+    "critical": false
+  },
+  {
+    "question": "How do I set up a new project the KnowMe way?",
+    "expect_file": "knowme-project-management.md",
+    "expect_contains": [
+      "knowme-project-setup",
+      "convert an existing one"
+    ],
+    "critical": false
   }
 ]

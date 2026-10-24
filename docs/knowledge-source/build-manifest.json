@@ -323,6 +323,26 @@
     {
       "source": "kaia/kaia.md",
       "output": "kaia.md"
+    },
+    {
+      "source": "phase-exit/phase-exit.md",
+      "output": "phase-exit.md"
+    },
+    {
+      "source": "knowme-project-management/knowme-project-management.md",
+      "output": "knowme-project-management.md"
+    },
+    {
+      "source": "htmx-doc-forge/htmx-doc-forge.md",
+      "output": "htmx-doc-forge.md"
+    },
+    {
+      "source": "native-agent-creator/native-agent-creator.md",
+      "output": "native-agent-creator.md"
+    },
+    {
+      "source": "artifact-refiner/artifact-refiner.md",
+      "output": "artifact-refiner.md"
     }
   ]
 }
