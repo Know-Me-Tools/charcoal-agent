@@ -31,12 +31,12 @@ Prometheus Entity Sync has {{v:sync}}. Deployment qualification has not been aud
 
 ## What Prometheus Entity Sync does
 
-* Its README describes replication from Postgres to PGlite to SQLite, and says the code is MIT-licensed.[^sync-readme]
-* Its server reads the Postgres write-ahead log, sorts changes into per-user buckets with a TOML rule file, and streams them over a WebSocket using MessagePack.[^sync-readme]
+* The Prometheus Entity Sync README describes replication from Postgres to PGlite to SQLite, and says the code is MIT-licensed.[^sync-readme]
+* The Prometheus Entity Sync server reads the Postgres write-ahead log, sorts changes into per-user buckets with a TOML rule file, and streams them over a WebSocket using MessagePack.[^sync-readme]
 * A component maps JWT claims to the data buckets a user may read, using parameterized SQL only.[^sync-readme]
 * Client SDKs cover TypeScript with PGlite, Dart for Flutter with SQLite, native Rust, and a Tauri plugin for desktop.[^sync-readme]
 * The portfolio lists one related prototype record, a Forge Electric PGlite prototype.[^pf]
 
 ## How Prometheus Entity Sync relates to other products
 
-Its README says Entity Sync is built on Flint Realtime Fabric and reuses its change capture, CRDT and operation-log code.[^sync-readme] The portfolio treats such relationships as architectural intent, not proof of completed integration.[^pf]
+The Prometheus Entity Sync README says Entity Sync is built on Flint Realtime Fabric and reuses its change capture, CRDT and operation-log code.[^sync-readme] The portfolio treats such relationships as architectural intent, not proof of completed integration.[^pf]

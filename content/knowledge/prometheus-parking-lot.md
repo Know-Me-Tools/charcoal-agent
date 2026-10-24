@@ -1,6 +1,6 @@
 # Prometheus Parking Lot
 
-Prometheus Parking Lot is a Rust library for resource-aware background work, bounded execution and retrieving results after the initiating request has returned. It is published on crates.io, so it can be reused outside a single application.
+Prometheus Parking Lot is a Rust library for resource-aware background work, bounded execution and retrieving results after the initiating request has returned. It is published on crates.io, so it can be reused outside a single application. Registry publication is not runtime qualification.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 Source: prometheus_parking_lot on crates.io, retrieved 2026-10-24.

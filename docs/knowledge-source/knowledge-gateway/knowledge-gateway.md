@@ -27,9 +27,9 @@ No repository was identified for Knowledge Gateway, so no version exists to quot
 
 ## What Knowledge Gateway states
 
-* It reaches several document sources through one set of shared adapters.[^pf]
-* It exposes that access as MCP tools.[^pf]
-* Its capabilities are phased. The portfolio does not list which phases exist.[^pf]
+* Knowledge Gateway reaches several document sources through one set of shared adapters.[^pf]
+* Knowledge Gateway exposes that access as MCP tools.[^pf]
+* Knowledge Gateway's capabilities are phased. The portfolio does not list which phases exist.[^pf]
 * The portfolio found no standalone public HTML publication receipt for it.[^pf]
 
 ## How Knowledge Gateway relates to other products

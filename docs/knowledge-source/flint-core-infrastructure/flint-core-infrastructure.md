@@ -22,7 +22,7 @@ sources:
 
 # Flint core infrastructure
 
-Flint core infrastructure is the shared identity, authorization, data and realtime infrastructure configuration for the platform.[^pf] The portfolio's status is "Existing infrastructure source; current deployment not audited."[^pf]
+Flint core infrastructure is the shared identity, authorization, data and realtime infrastructure configuration for the platform.[^pf] It is configuration code kept in a repository, with the automation that checks and deploys it. It is not itself a running service.[^infra-readme] The portfolio's status is "Existing infrastructure source; current deployment not audited."[^pf]
 
 ## Flint core infrastructure status and version
 
@@ -30,9 +30,9 @@ Flint core infrastructure has {{v:core-infra}}. The portfolio did not audit the 
 
 ## What Flint core infrastructure covers
 
-* The repository holds infrastructure-as-code for the platform's core stack, plus the automation that builds, validates and deploys it.[^infra-readme]
+* The repository holds infrastructure-as-code for the platform's core stack, with automation that builds, validates and deploys it, and the source of one small supporting service.[^infra-readme]
 * The README groups the stack by capability: identity, an authorization edge, a data plane, and realtime.[^infra-readme]
-* The data plane in that list is Flint Forge's Quarry, the authorization edge is Flint Gate, and the realtime component is Flint Realtime Fabric.[^infra-readme]
+* The README names Flint Gate as the authorization edge, Flint Forge's Quarry as the data plane and Flint Realtime Fabric as the realtime component.[^infra-readme]
 * The portfolio notes that architecture Markdown exists but no verified public standalone publication of it.[^pf]
 
 ## How Flint core infrastructure relates to other products

@@ -12,9 +12,9 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 ## What Knowledge Gateway states
 
-* It reaches several document sources through one set of shared adapters.
-* It exposes that access as MCP tools.
-* Its capabilities are phased. The portfolio does not list which phases exist.
+* Knowledge Gateway reaches several document sources through one set of shared adapters.
+* Knowledge Gateway exposes that access as MCP tools.
+* Knowledge Gateway's capabilities are phased. The portfolio does not list which phases exist.
 * The portfolio found no standalone public HTML publication receipt for it.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.

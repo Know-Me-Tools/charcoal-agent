@@ -28,11 +28,11 @@ The inference forks entry is an umbrella, so it has no single version. The Candl
 
 ## What the inference forks entry states
 
-* It names two forks: candle-vllm, for inference serving, and liter-llm, for provider routing.[^pf]
+* The inference forks entry names two forks: candle-vllm, for inference serving, and liter-llm, for provider routing. The sources give the liter-llm fork no further detail.[^pf]
 * The Candle-VLLM fork has its own entry, and the portfolio verified Parking Lot calls in its serving engine.[^pf]
 * The liter-llm fork is scoped separately from Candle-VLLM, and the portfolio gives no further status for it.[^pf]
 * The portfolio found no standalone HTMX receipt and no production-scale benchmark for this fork family.[^pf]
 
 ## How the inference forks relate to other products
 
-The portfolio ties the Candle-VLLM fork to Prometheus Parking Lot. See the Candle-VLLM page and the Prometheus Parking Lot page. It states no relationship for the liter-llm fork.[^pf]
+The portfolio ties the Candle-VLLM fork to Prometheus Parking Lot. See the Candle-VLLM page and the Prometheus Parking Lot page. The portfolio states no relationship for the liter-llm fork.[^pf]

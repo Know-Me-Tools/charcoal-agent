@@ -32,7 +32,7 @@ The latest stable release is {{v:pem}}, dated {{v:pem:date}}.[^pem-readme] The p
 ## What Prometheus Entity Management states
 
 * Each entity lives once at a type and id address. Lists keep ordered ids, and views resolve the canonical entity plus a local patch, so one write updates every view of it.[^pem-readme]
-* Its README says thirteen npm packages were published at 4.1.1 on 2026-10-08.[^pem-readme]
+* The Prometheus Entity Management README says thirteen npm packages were published at 4.1.1 on 2026-10-08.[^pem-readme]
 * The 4.0.0 release moved the workspace to ESM-only output and published the React binding as its own package, with the older package name kept as an alias.[^pem-readme]
 * A Flutter 4.0.0 package is public on pub.dev, and a Chrome DevTools extension is available as a ZIP for developer-mode installation. It is not a Chrome Web Store listing.[^pem-readme]
 

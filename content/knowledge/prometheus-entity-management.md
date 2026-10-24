@@ -15,7 +15,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 ## What Prometheus Entity Management states
 
 * Each entity lives once at a type and id address. Lists keep ordered ids, and views resolve the canonical entity plus a local patch, so one write updates every view of it.
-* Its README says thirteen npm packages were published at 4.1.1 on 2026-10-08.
+* The Prometheus Entity Management README says thirteen npm packages were published at 4.1.1 on 2026-10-08.
 * The 4.0.0 release moved the workspace to ESM-only output and published the React binding as its own package, with the older package name kept as an alias.
 * A Flutter 4.0.0 package is public on pub.dev, and a Chrome DevTools extension is available as a ZIP for developer-mode installation. It is not a Chrome Web Store listing.
 

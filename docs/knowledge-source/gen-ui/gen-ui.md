@@ -23,7 +23,7 @@ sources:
 
 # gen_ui, the cross-platform UI core
 
-gen_ui is a shared Rust application core with thin web, desktop and Flutter surfaces for KnowMe.[^pf] The portfolio's status is "Implemented modules plus architectural specification; platform acceptance remains specific."[^pf] Some modules exist. The whole is not stated to be complete on every platform.
+gen_ui is a partly implemented shared Rust application core with thin web, desktop and Flutter surfaces for KnowMe.[^pf] The portfolio's status is "Implemented modules plus architectural specification; platform acceptance remains specific."[^pf] Some modules exist. The whole is not stated to be complete on every platform.
 
 ## gen_ui status and version
 

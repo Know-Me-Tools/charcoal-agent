@@ -19,7 +19,7 @@ sources:
 
 # Flint AI Code Companion and PMPO
 
-Flint AI Code Companion / PMPO is an AI-assisted code-generation concept, with PMPO cognition, technical and human-process specifications. The portfolio's status for it is "Prototype and design documents; runtime delivery not established."[^pf] It is not described anywhere as a delivered product.
+Flint AI Code Companion / PMPO is an AI-assisted code-generation concept, with PMPO cognition, technical and human-process specifications. The portfolio's status for it is "Prototype and design documents; runtime delivery not established."[^pf] A visitor cannot try it yet: the portfolio describes prototype and design documents, with runtime delivery not established.
 
 ## Flint AI Code Companion status and version
 

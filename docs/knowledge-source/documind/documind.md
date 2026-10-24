@@ -30,7 +30,7 @@ No repository was identified for DocuMind, so no version exists to quote.[^pf] T
 * The portfolio lists ten local HTML records for the project, none with a verified public address.[^pf]
 * They include an operator console page and a DocuMind AI agent page.[^pf]
 * They also include development-method documents: one titled Knowledge-Based Development for DocuMind, a universal reference for that method, and an essay on iterative AI engineering.[^pf]
-* The remaining records are a brand guide, a collaborative engagement document, a preview-environment essay and short personal posts.[^pf]
+* The remaining records are a brand guide, a collaborative engagement document, a preview-environment essay and one personal post.[^pf]
 
 ## How DocuMind relates to other products
 

@@ -36,3 +36,7 @@ Portfolio Edition 2 (IPFS) for every page. Read-only README reads for Flint Gate
 
 ## Review status
 Author self-review only. The content officer's AI pre-review and the operator's approval are still required. Nothing reaches the concierge until the operator seeds the KB.
+
+## Pre-review fixes (km-chief-content-officer, PASS WITH FIXES)
+Applied: Forge status in paragraph one (README v1.0-ready, v1.0.0 release, neither an audit); Candle-VLLM Numen wording (portfolio direction only, no live integration verified); Gate names "a session from an identity service" (Postgres storage of routes is stated in its README); core infrastructure first chunk says configuration code, not a running service, and the Gate/Quarry/Fabric mapping is stated in the flint-infra README; bullets open with the product name; Parking Lot "Registry publication is not runtime qualification"; DocuMind "one personal post"; gen_ui "partly implemented"; Flint AI Code Companion "a visitor cannot try it yet"; inference forks says liter-llm has no further detail.
+README spot-check against full READMEs (Gate, Fabric, Entity Sync, Knowledge, Entity Management, Parking Lot, Candle-VLLM, demos, Forge, infra): one sentence changed, Fabric "full media forwarding" to the README's "full sovereign SFU media". All other claims were found in the READMEs.

@@ -41,8 +41,8 @@ Flint Realtime Fabric has {{v:fabric}}. The phase-18 completion is the README's 
 
 * The event spine is built on Apache Iggy.[^frf-readme]
 * The repository holds the core, the gateway and the SDKs, with the SDKs generated from one frozen protocol contract.[^frf-readme]
-* Its README says phase 18 completed media, federation and authentication-flow work, including a WebRTC negotiation spike, Matrix inbound sync and AT Protocol outbound writes.[^frf-readme]
-* It lists work still deferred: full media forwarding, LiveKit cross-node inbound, full OIDC login and AT Protocol outbound gateway wiring.[^frf-readme]
+* Flint Realtime Fabric's README says phase 18 completed media, federation and authentication-flow work, including a WebRTC negotiation spike, Matrix inbound sync and AT Protocol outbound writes.[^frf-readme]
+* Flint Realtime Fabric's README lists work still deferred: full sovereign SFU media, LiveKit cross-node inbound, full OIDC login and AT Protocol outbound gateway wiring.[^frf-readme]
 
 ## How Flint Realtime Fabric relates to other products
 

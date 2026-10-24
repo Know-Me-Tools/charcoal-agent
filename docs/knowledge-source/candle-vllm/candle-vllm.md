@@ -37,11 +37,11 @@ The fork has {{v:candle-vllm}}. At commit 10f844d, the lockfile still pins Parki
 ## What the Candle-VLLM fork states
 
 * The integration combines KV-cache-aware resource accounting, configurable worker capacity, bounded request queues and streaming-result delivery.[^pf]
-* Its README describes a four-crate workspace and a scheduler that applies backpressure and uses a dedicated thread pool.[^cv-readme]
+* The Candle-VLLM fork's README describes a four-crate workspace and a scheduler that applies backpressure and uses a dedicated thread pool.[^cv-readme]
 * The README lists an MCP client, a declarative model configuration file, a pluggable request queue, and prompt caching.[^cv-readme]
 * The portfolio found no production-scale benchmark and no live Numen integration. The inspected engine uses its first pipeline, and multiple GPU executors remain future work.[^pf]
 * Streaming uses separate threads, so worker capacity alone is not a proven cap on concurrent stream generation.[^pf]
 
 ## How Candle-VLLM relates to other products
 
-The fork submits work through Prometheus Parking Lot.[^pf] The portfolio calls it a key part of the inference infrastructure supporting Numen work. That is portfolio direction, not a claim of a live deployed integration.[^pf]
+The fork submits work through Prometheus Parking Lot.[^pf] The portfolio calls the fork a key part of the inference infrastructure supporting Numen work. That is portfolio direction only. No live Numen integration is verified.[^pf]
