@@ -54,6 +54,7 @@ import { usePersistenceStatus } from "@/hooks/use-persistence-status";
 import { AI_DISCLOSURE_CONTENT } from "../../../content/site/ai-disclosure";
 import { BLOCK_COPY_CONTENT } from "../../../content/site/block-copy";
 import { EMPTY_STATE_CONTENT } from "../../../content/site/empty-state";
+import { StarterPromptChip } from "./starter-prompt-chip";
 import { isSiteBuild } from "@/hooks/use-site-config";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { isFirstAssistantMessageIndex } from "@/features/chat/first-assistant-message";
@@ -220,7 +221,7 @@ export const ThreadWelcome: FC = () => (isSiteBuild() ? <SiteWelcome /> : <KnowM
 // Site copy is DRAFT (content/site/empty-state.ts). No AI label here: the
 // composer disclosure directly below already shows it before the first
 // token, so a second copy on the empty state only repeated it (integration
-// gate 08, C1). Starter prompts come in change 07.
+// gate 08, C1). Starter prompts: site-concierge-opening.
 const SiteWelcome: FC = () => (
 	<div className="mx-auto my-auto flex w-full max-w-(--thread-max-width) grow flex-col">
 		<div className="flex w-full grow flex-col items-center justify-center gap-4 px-4 text-center">
@@ -233,7 +234,11 @@ const SiteWelcome: FC = () => (
 			<p className="max-w-md font-body text-sm text-fg-secondary leading-relaxed">
 				{EMPTY_STATE_CONTENT.description}
 			</p>
-			<StarterPromptSlot />
+			<StarterPromptSlot>
+				{EMPTY_STATE_CONTENT.starterPrompts.map((prompt) => (
+					<StarterPromptChip key={prompt} prompt={prompt} />
+				))}
+			</StarterPromptSlot>
 		</div>
 	</div>
 );
@@ -253,10 +258,7 @@ export const SiteWelcomeHeading: FC<{ text: string }> = ({ text }) => {
 	);
 };
 
-/**
- * Reserved row for the starter prompts of change 07 (critique P1-5). Empty on
- * purpose: no prompts are invented here. Chips drop in as children.
- */
+/** Row for the starter prompt chips (critique P1-5). Chips are its children. */
 export const StarterPromptSlot: FC<{ children?: ReactNode }> = ({ children }) => (
 	<div data-slot="starter-prompts" className="flex min-h-11 w-full flex-wrap items-center justify-center gap-2">
 		{children}

@@ -5,7 +5,8 @@
  * attributes are set, the app build is unchanged). The visual result at
  * 320/768/1440 is only provable in a browser capture.
  */
-import { fireEvent, render, renderHook, screen } from "@testing-library/react";
+import { fireEvent, render, renderHook, screen, within } from "@testing-library/react";
+import { EMPTY_STATE_CONTENT } from "../../../content/site/empty-state";
 import { MemoryRouter } from "react-router-dom";
 import { useRef, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -183,14 +184,13 @@ describe("TooltipIconButton target size (P2-6)", () => {
 });
 
 describe("Starter prompt slot (P1-5)", () => {
-  it("is reserved in the site empty state and holds no prompts", () => {
+  it("is in the site empty state and holds the starter prompts as buttons", () => {
     vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
     const { container } = render(<ThreadWelcome />);
     const slot = container.querySelector("[data-slot='starter-prompts']");
     expect(slot).not.toBeNull();
     expect(slot?.className).toContain("min-h-11");
-    expect(slot?.textContent).toBe("");
-    expect(screen.queryByRole("button")).toBeNull();
+    expect(within(slot as HTMLElement).getAllByRole("button")).toHaveLength(EMPTY_STATE_CONTENT.starterPrompts.length);
   });
 
   it("is absent from the app welcome", () => {
