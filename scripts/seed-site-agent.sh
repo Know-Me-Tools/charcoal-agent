@@ -553,9 +553,21 @@ for f in "$CORPUS_DIR"/*.md; do
   else
     log "uploading $desired_filename (new or changed)"
   fi
-  api POST "/api/uar/knowledge-bases/${KB_ID}/documents" \
-    -F "file=@${f};filename=${desired_filename};type=text/markdown"
-  status="$API_STATUS"
+  # UAR answers HTTP 500 "The query was not executed due to a failed transaction"
+  # on some back-to-back uploads (sync runs 40110394867 and 40110799638 each hit
+  # it on a different file). The write did not run, so retrying that exact reply
+  # is safe; any other failure still stops the seed.
+  for attempt in 1 2 3 4 5; do
+    api POST "/api/uar/knowledge-bases/${KB_ID}/documents" \
+      -F "file=@${f};filename=${desired_filename};type=text/markdown"
+    status="$API_STATUS"
+    if [[ "$status" == 500 && "$REPLY_BODY" == *"failed transaction"* && "$attempt" -lt 5 ]]; then
+      log "upload $desired_filename hit a failed transaction (attempt $attempt of 5); retrying"
+      sleep $((attempt * 3))
+      continue
+    fi
+    break
+  done
   require_2xx "$status" "upload $desired_filename"
   changed=1
 
