@@ -100,8 +100,8 @@ export function versionLines(row) {
 // ---------------------------------------------------------------- copy checks
 
 /** Words and claims the site never makes (voice rules, PRODUCT.md constraints). */
-const FORBIDDEN_WORDS = /seamless|cutting[- ]edge|leverag|utiliz|synerg|revolution|unleash|supercharge/i;
-const FORBIDDEN_CLAIMS = /pricing|\bprices?\b|[$€£]\s?\d|gdpr|hipaa|soc ?2|certified|certification|compliant|guarantee/i;
+export const FORBIDDEN_WORDS = /seamless|cutting[- ]edge|leverag|utiliz|synerg|revolution|unleash|supercharge/i;
+export const FORBIDDEN_CLAIMS = /pricing|\bprices?\b|[$€£]\s?\d|gdpr|hipaa|soc ?2|certified|certification|compliant|guarantee/i;
 
 function stringsOf(value) {
 	if (typeof value === "string") return [value];
@@ -196,6 +196,8 @@ export function buildDirectory(doc, copy) {
 			summary: text.summary,
 			status: statusOf(row),
 			versionLines: versionLines(row),
+			versionKind: row.version.kind,
+			checked: row.checked,
 			productSlug: leadOf.get(id) ?? null,
 			prompt: copy.rowPromptTemplate.replace("{name}", text.name),
 		};
@@ -245,14 +247,18 @@ export interface DirectoryEntry {
 	status: DirectoryStatus;
 	/** Resolved version line(s), shown as is. */
 	versionLines: string[];
-	/** The product page this entry belongs to (the page ships in a later change), or null. */
+	/** The facts row's \`version.kind\`: what the version was read from (a product page says "Checked against ..."). */
+	versionKind: string;
+	/** The facts row's \`checked\` date (ISO). */
+	checked: string;
+	/** The product page this entry belongs to, or null. */
 	productSlug: string | null;
 	/** The ask chip's question for an index row. */
 	prompt: string;
 }
 
 export interface DirectoryLead {
-	/** The product page slug. Kept in the data; the tile does not link to it yet. */
+	/** The product page slug: the tile title links to /products/<slug>. */
 	slug: string;
 	title: string;
 	/** The tile's ask chip question. */

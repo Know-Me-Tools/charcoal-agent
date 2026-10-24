@@ -43,6 +43,11 @@ jobs:
       # a public row has no copy, or when copy names a row that is not public.
       - name: Check product directory
         run: node scripts/site/build-directory.mjs --check
+      # site-product-pages: fails when a product page names a slug or facts row
+      # that is not a public directory tile, carries its own status, version or
+      # date, breaks a copy limit, or links a private repository.
+      - name: Check product pages
+        run: node scripts/site/check-products.mjs
       - run: npm ci --ignore-scripts
       - run: npm run lint
       - run: npm test

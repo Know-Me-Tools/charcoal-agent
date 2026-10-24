@@ -1,5 +1,6 @@
 import { ArrowRight, History, Moon, Sun } from "lucide-react";
 import { Link } from "react-router-dom";
+import { NavLink } from "@/components/NavLink";
 import { KnowMeLockup } from "@/components/brand";
 import { AskConciergeEntry } from "@/components/site/ask-concierge-entry";
 import { isSiteBuild } from "@/hooks/use-site-config";
@@ -7,6 +8,7 @@ import { useHasSavedChats } from "@/hooks/use-has-saved-chats";
 import { useUi } from "@/hooks/use-ui";
 import { HISTORY_LINK_CONTENT } from "../../../content/site/history-link";
 import { LANDING_CONTENT } from "../../../content/site/landing";
+import { PRODUCTS_COPY } from "../../../content/site/products-copy";
 
 /**
  * The public site header: skip link, brand lockup, theme toggle and the
@@ -32,11 +34,24 @@ export function SiteHeader() {
 				<div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-2 px-4 sm:px-6 md:px-8 lg:px-12">
 					<Link
 						to="/"
-						className="-mx-1 rounded-lg px-1 py-1 focus-cue"
+						className="-mx-1 inline-flex min-h-11 items-center rounded-lg px-1 py-1 focus-cue"
 					>
 						<KnowMeLockup variant="nav" />
 					</Link>
 					<div className="flex items-center gap-1">
+						{/* "Products" from 640 px; below that the directory link and the
+						    breadcrumb carry it (docs/design/product-directory.md section 5.3).
+						    NavLink sets aria-current="page" on /products only (`end`). */}
+						{isSiteBuild() && (
+							<NavLink
+								to="/products"
+								end
+								className="hidden h-11 items-center rounded-lg px-3 font-ui text-sm font-semibold text-fg transition-hover hover:bg-hover focus-cue sm:inline-flex"
+								activeClassName="bg-ember-soft"
+							>
+								{PRODUCTS_COPY.navLabel}
+							</NavLink>
+						)}
 						{isSiteBuild() && <AskConciergeEntry />}
 						<button
 							type="button"

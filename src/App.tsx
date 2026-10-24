@@ -6,6 +6,7 @@ import { DbProvider } from "@/lib/db/db-provider";
 import { isSiteBuild } from "@/hooks/use-site-config";
 import LandingPage from "@/pages/landing-page";
 import NotFound from "@/pages/NotFound";
+import { siteRoutes } from "@/site-routes";
 import { loadAppShell, loadThreadDetailPage, loadThreadsPage } from "@/lib/route-chunks";
 import type { RouteObject } from "react-router-dom";
 
@@ -48,6 +49,7 @@ const adminRoutes: RouteObject[] = isSiteBuild()
 
 const router = createBrowserRouter([
   { path: "/", element: <LandingPage /> },
+  ...siteRoutes(),
   {
     lazy: async () => ({ Component: (await loadAppShell()).default }),
     hydrateFallbackElement: <div className="h-screen bg-background" />,

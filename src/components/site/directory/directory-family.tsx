@@ -51,29 +51,41 @@ function StatusMix({ family, count }: { family: DirectoryFamilyData; count: numb
  * Rows past the first two are rendered but `hidden`, so the HTML holds every
  * entry (docs/design/product-directory.md section 3.3).
  */
-export function DirectoryFamily({ family }: { family: DirectoryFamilyData }) {
+export interface DirectoryFamilyProps {
+	family: DirectoryFamilyData;
+	/** `h3` on the home page (under the directory's `h2`), `h2` on `/products`. */
+	headingLevel?: 2 | 3;
+	/** Home page: long index lists collapse. `/products` never collapses. */
+	collapse?: boolean;
+	/** Hides the whole family but keeps it in the HTML (the `/products` filter). */
+	hidden?: boolean;
+}
+
+export function DirectoryFamily({ family, headingLevel = 3, collapse = true, hidden = false }: DirectoryFamilyProps) {
+	const Heading = headingLevel === 2 ? "h2" : "h3";
 	const [open, setOpen] = useState(false);
 	const headingId = `directory-${family.slug}-heading`;
 	const moreId = `directory-${family.slug}-more`;
 	const count = family.leads.reduce((n, l) => n + l.entries.length, 0) + family.rest.length;
-	const collapsible = family.rest.length > COLLAPSE_ABOVE;
+	const collapsible = collapse && family.rest.length > COLLAPSE_ABOVE;
 	const shown = collapsible ? family.rest.slice(0, VISIBLE_ROWS) : family.rest;
 	const more = collapsible ? family.rest.slice(VISIBLE_ROWS) : [];
 
 	return (
 		<section
 			id={family.slug}
+			hidden={hidden}
 			aria-labelledby={headingId}
 			className="mt-12 lg:mt-16 lg:grid lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] lg:items-start lg:gap-12"
 		>
 			<div className="lg:sticky lg:top-6">
-				<h3
+				<Heading
 					id={headingId}
 					className="font-display text-xl font-semibold leading-[1.2] tracking-[-0.015em] text-fg md:text-[1.375rem]"
 				>
 					{family.name}{" "}
 					<span className="ml-1 font-mono text-sm font-medium tracking-normal text-faint">{count}</span>
-				</h3>
+				</Heading>
 				<p className="mt-1.5 max-w-[40ch] font-body text-[0.9375rem] leading-[1.6] text-fg-secondary">
 					{family.line}
 				</p>
@@ -84,7 +96,7 @@ export function DirectoryFamily({ family }: { family: DirectoryFamilyData }) {
 				{family.leads.length > 0 && (
 					<div className={leadsLayout(family.leads.length)}>
 						{family.leads.map((lead) => (
-							<DirectoryTile key={lead.slug} lead={lead} />
+							<DirectoryTile key={lead.slug} lead={lead} headingLevel={headingLevel === 2 ? 3 : 4} />
 						))}
 					</div>
 				)}

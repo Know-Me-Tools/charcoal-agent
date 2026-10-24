@@ -240,8 +240,10 @@ describe("landing page on the site build", () => {
 		vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
 		renderLanding();
 		expect(screen.getByText(SITE_LANDING_CONTENT.eyebrow)).toBeInTheDocument();
+		// The header's "Products" link is not a section label, so look in <main> only.
+		const main = within(screen.getByRole("main"));
 		for (const section of SITE_LANDING_CONTENT.sections) {
-			expect(screen.queryByText(section.label)).toBeNull();
+			expect(main.queryByText(section.label)).toBeNull();
 		}
 	});
 

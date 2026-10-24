@@ -19,14 +19,18 @@ export interface DirectoryEntry {
 	status: DirectoryStatus;
 	/** Resolved version line(s), shown as is. */
 	versionLines: string[];
-	/** The product page this entry belongs to (the page ships in a later change), or null. */
+	/** The facts row's `version.kind`: what the version was read from (a product page says "Checked against ..."). */
+	versionKind: string;
+	/** The facts row's `checked` date (ISO). */
+	checked: string;
+	/** The product page this entry belongs to, or null. */
 	productSlug: string | null;
 	/** The ask chip's question for an index row. */
 	prompt: string;
 }
 
 export interface DirectoryLead {
-	/** The product page slug. Kept in the data; the tile does not link to it yet. */
+	/** The product page slug: the tile title links to /products/<slug>. */
 	slug: string;
 	title: string;
 	/** The tile's ask chip question. */
@@ -73,6 +77,8 @@ export const DIRECTORY: Directory = {
 							"versionLines": [
 								"v2.2.41 · 23 Oct 2026"
 							],
+							"versionKind": "stable",
+							"checked": "2026-10-24",
 							"productSlug": "the-boss",
 							"prompt": "Tell me about The Boss. How far along is it?"
 						}
@@ -92,6 +98,8 @@ export const DIRECTORY: Directory = {
 							"versionLines": [
 								"No tagged release · last commit 20 Oct 2026"
 							],
+							"versionKind": "untagged",
+							"checked": "2026-10-24",
 							"productSlug": "knowme",
 							"prompt": "Tell me about KnowMe. How far along is it?"
 						}
@@ -111,6 +119,8 @@ export const DIRECTORY: Directory = {
 							"versionLines": [
 								"No tagged release · last commit 21 Oct 2026"
 							],
+							"versionKind": "untagged",
+							"checked": "2026-10-24",
 							"productSlug": "locus",
 							"prompt": "Tell me about Locus. How far along is it?"
 						}
@@ -126,6 +136,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No tagged release · last commit 24 Oct 2026"
 					],
+					"versionKind": "untagged",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about KnowMe Concierge. How far along is it?"
 				},
@@ -137,6 +149,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Prometheus Studio. How far along is it?"
 				},
@@ -148,6 +162,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about DocuMind. How far along is it?"
 				},
@@ -159,6 +175,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Flint AI Code Companion. How far along is it?"
 				},
@@ -170,6 +188,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No tagged release · last commit 19 Oct 2026"
 					],
+					"versionKind": "untagged",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Know Meet. How far along is it?"
 				},
@@ -181,6 +201,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about KnowMe realtor assistant. How far along is it?"
 				}
@@ -206,6 +228,8 @@ export const DIRECTORY: Directory = {
 								"v1.2.3 · 23 Oct 2026",
 								"v1.3.0 pre-release · 24 Oct 2026"
 							],
+							"versionKind": "stable",
+							"checked": "2026-10-24",
 							"productSlug": "universal-agent-runtime",
 							"prompt": "Tell me about Universal Agent Runtime. How far along is it?"
 						}
@@ -225,6 +249,8 @@ export const DIRECTORY: Directory = {
 							"versionLines": [
 								"Build tag, no version · 8 Oct 2026"
 							],
+							"versionKind": "tag",
+							"checked": "2026-10-24",
 							"productSlug": "bossfang",
 							"prompt": "Tell me about BossFang. How far along is it?"
 						}
@@ -244,6 +270,8 @@ export const DIRECTORY: Directory = {
 							"versionLines": [
 								"Tag v1.10.2 · no release"
 							],
+							"versionKind": "tag",
+							"checked": "2026-10-24",
 							"productSlug": "surreal-memory-server",
 							"prompt": "Tell me about Surreal Memory Server. How far along is it?"
 						}
@@ -259,6 +287,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Knowledge Gateway. How far along is it?"
 				},
@@ -270,6 +300,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"Tag v1.11.0 · no release"
 					],
+					"versionKind": "tag",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Prometheus Knowledge. How far along is it?"
 				},
@@ -281,6 +313,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Tranquil. How far along is it?"
 				},
@@ -292,6 +326,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about KnowMe Praxis. How far along is it?"
 				},
@@ -303,6 +339,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Numen. How far along is it?"
 				},
@@ -314,6 +352,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Numen Enclave. How far along is it?"
 				},
@@ -325,6 +365,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Synaxis. How far along is it?"
 				}
@@ -349,6 +391,8 @@ export const DIRECTORY: Directory = {
 							"versionLines": [
 								"No tagged release · last commit 23 Oct 2026"
 							],
+							"versionKind": "untagged",
+							"checked": "2026-10-24",
 							"productSlug": "flint-platform",
 							"prompt": "Tell me about Flint Gate. How far along is it?"
 						},
@@ -360,6 +404,8 @@ export const DIRECTORY: Directory = {
 							"versionLines": [
 								"v1.0.0 · 7 Jul 2026"
 							],
+							"versionKind": "stable",
+							"checked": "2026-10-24",
 							"productSlug": "flint-platform",
 							"prompt": "Tell me about Flint Forge. How far along is it?"
 						},
@@ -371,6 +417,8 @@ export const DIRECTORY: Directory = {
 							"versionLines": [
 								"No tagged release · last commit 11 Oct 2026"
 							],
+							"versionKind": "untagged",
+							"checked": "2026-10-24",
 							"productSlug": "flint-platform",
 							"prompt": "Tell me about Flint Realtime Fabric. How far along is it?"
 						}
@@ -386,6 +434,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No tagged release · last commit 21 Oct 2026"
 					],
+					"versionKind": "untagged",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Demo hosting platform. How far along is it?"
 				},
@@ -397,6 +447,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No tagged release · last commit 23 Oct 2026"
 					],
+					"versionKind": "untagged",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Flint core infrastructure. How far along is it?"
 				},
@@ -408,6 +460,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No tagged release · last commit 17 Sep 2026"
 					],
+					"versionKind": "untagged",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Prometheus Entity Sync. How far along is it?"
 				},
@@ -419,6 +473,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Flint Agent Mesh. How far along is it?"
 				}
@@ -443,6 +499,8 @@ export const DIRECTORY: Directory = {
 							"versionLines": [
 								"v1.13.0 · 18 Oct 2026"
 							],
+							"versionKind": "stable",
+							"checked": "2026-10-24",
 							"productSlug": "prometheus-skill-pack",
 							"prompt": "Tell me about Prometheus Skill Pack. How far along is it?"
 						},
@@ -454,6 +512,8 @@ export const DIRECTORY: Directory = {
 							"versionLines": [
 								"v1.12.1 · 12 Oct 2026"
 							],
+							"versionKind": "stable",
+							"checked": "2026-10-24",
 							"productSlug": "prometheus-skill-pack",
 							"prompt": "Tell me about Prometheus Skills Mini. How far along is it?"
 						}
@@ -473,6 +533,8 @@ export const DIRECTORY: Directory = {
 							"versionLines": [
 								"v4.1.1 · 8 Oct 2026"
 							],
+							"versionKind": "stable",
+							"checked": "2026-10-24",
 							"productSlug": "prometheus-entity-management",
 							"prompt": "Tell me about Prometheus Entity Management. How far along is it?"
 						}
@@ -492,6 +554,8 @@ export const DIRECTORY: Directory = {
 							"versionLines": [
 								"v0.3.0 on crates.io · 24 Oct 2026"
 							],
+							"versionKind": "registry",
+							"checked": "2026-10-24",
 							"productSlug": "parking-lot",
 							"prompt": "Tell me about Parking Lot. How far along is it?"
 						}
@@ -507,6 +571,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Artifact Refiner. How far along is it?"
 				},
@@ -518,6 +584,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about gen_ui. How far along is it?"
 				},
@@ -529,6 +597,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No tagged release · last commit 13 Oct 2026"
 					],
+					"versionKind": "untagged",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about HTMX Doc Forge. How far along is it?"
 				},
@@ -540,6 +610,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No tagged release · last commit 30 Sep 2026"
 					],
+					"versionKind": "untagged",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about KnowMe Project Management. How far along is it?"
 				},
@@ -551,6 +623,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Native agent creator. How far along is it?"
 				},
@@ -562,6 +636,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No tagged release · last commit 16 Oct 2026"
 					],
+					"versionKind": "untagged",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Phase Exit. How far along is it?"
 				},
@@ -573,6 +649,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Companion. How far along is it?"
 				},
@@ -584,6 +662,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Logos. How far along is it?"
 				},
@@ -595,6 +675,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No tagged release · last commit 30 Sep 2026"
 					],
+					"versionKind": "untagged",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Know Decision. How far along is it?"
 				},
@@ -606,6 +688,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Prometheus Tune. How far along is it?"
 				},
@@ -617,6 +701,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Light Creator. How far along is it?"
 				}
@@ -636,6 +722,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"v0.2.0 pre-release"
 					],
+					"versionKind": "manifest",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about IPFS Sync for Obsidian. How far along is it?"
 				},
@@ -647,6 +735,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No tagged release · last commit 26 May 2026"
 					],
+					"versionKind": "untagged",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Candle-VLLM fork. How far along is it?"
 				},
@@ -658,6 +748,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Inference fork work. How far along is it?"
 				},
@@ -669,6 +761,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about KnowMe integration with Poppy. How far along is it?"
 				}
@@ -688,6 +782,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about KnowMe dot. How far along is it?"
 				},
@@ -699,6 +795,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Authentic Digital Twin. How far along is it?"
 				},
@@ -710,6 +808,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Lampas. How far along is it?"
 				},
@@ -721,6 +821,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Prometheus Pulse. How far along is it?"
 				},
@@ -732,6 +834,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about The Operator Service. How far along is it?"
 				},
@@ -743,6 +847,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Kaia. How far along is it?"
 				},
@@ -754,6 +860,8 @@ export const DIRECTORY: Directory = {
 					"versionLines": [
 						"No release recorded"
 					],
+					"versionKind": "none",
+					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Knowtes. How far along is it?"
 				}
