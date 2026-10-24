@@ -146,7 +146,7 @@ export const PRODUCT_PAGES: ProductPageCopy[] = [
 		],
 		sources: [
 			{ label: "Source repository", url: "https://github.com/GQAdonis/librefang" },
-			{ label: "Releases on GitHub", url: "https://github.com/GQAdonis/librefang/releases" },
+			{ label: "Sidecar builds on GitHub", url: "https://github.com/GQAdonis/librefang/releases" },
 		],
 	},
 	{
@@ -156,9 +156,9 @@ export const PRODUCT_PAGES: ProductPageCopy[] = [
 		lead: "A Rust server that runs AI agents: it calls models, runs tools under a policy and streams results to a user interface.",
 		facts: [
 			{
-				label: "Written in",
-				value: "Rust. Its own operator interface is a React web app.",
-				source: "universal-agent-runtime/universal-agent-runtime-overview.md",
+				label: "Portfolio note",
+				value: "The portfolio lists work as stopped and runtime qualification as not established; the repository shows newer releases.",
+				source: "facts:uar",
 			},
 			{
 				label: "Clients",
@@ -167,7 +167,7 @@ export const PRODUCT_PAGES: ProductPageCopy[] = [
 			},
 			{
 				label: "Used by",
-				value: "The Boss bundles it, KnowMe is built on it and the agent on this site runs inside it.",
+				value: "The Boss bundles it, KnowMe is built on it and the agent on this site runs on it.",
 				source: "universal-agent-runtime/universal-agent-runtime-overview.md",
 			},
 			{
@@ -213,7 +213,7 @@ export const PRODUCT_PAGES: ProductPageCopy[] = [
 			},
 			{
 				label: "Used by",
-				value: "The Universal Agent Runtime's optional memory system and BossFang are built on it.",
+				value: "BossFang uses its library; the Universal Agent Runtime's optional memory system and The Boss connect to it.",
 				source: "surreal-memory-server/surreal-memory-server-overview.md",
 			},
 			{
@@ -230,7 +230,7 @@ export const PRODUCT_PAGES: ProductPageCopy[] = [
 		questions: [
 			"How does the Surreal Memory Server store agent memory?",
 			"Which products use the Surreal Memory Server?",
-			"How do I run the Surreal Memory Server?",
+			"How is the Surreal Memory Server run?",
 		],
 		sources: [
 			{ label: "Source repository", url: "https://github.com/Prometheus-AGS/surreal-memory-server" },
@@ -335,7 +335,7 @@ export const PRODUCT_PAGES: ProductPageCopy[] = [
 			},
 			{
 				label: "Version records",
-				value: "Portfolio snapshots disagree on version numbers, so check the project's releases for the current one.",
+				value: "The version shown is the latest GitHub release; older portfolio snapshots list other numbers.",
 				source: "prometheus-entity-management/prometheus-entity-management.md",
 			},
 		],
@@ -414,7 +414,7 @@ export const PRODUCT_PAGES: ProductPageCopy[] = [
 			},
 			{
 				label: "Download",
-				value: "The desktop app you can download today is The Boss, which is not an edition of KnowMe.",
+				value: "The desktop app available to download is The Boss, which is not an edition of KnowMe.",
 				source: "knowme/knowme-platforms-and-status.md",
 			},
 		],

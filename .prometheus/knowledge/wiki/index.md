@@ -4,10 +4,6 @@ okf_version: "0.2"
 
 # Wiki Index
 
-## Reference
-
-* [Empty Source Document](/no-technical-content-provided.md)
-
 ## SessionRecord
 
 * [Karpathy session 00a71e78f9bd](/karpathy-session-00a71e78f9bd9445.md)
@@ -63,6 +59,7 @@ okf_version: "0.2"
 * [Karpathy session 3c1f8d37c4cb](/karpathy-session-3c1f8d37c4cb0349.md)
 * [Karpathy session 3cc771d32e6f](/karpathy-session-3cc771d32e6fea8c.md)
 * [Karpathy session 3e70eae17a7e](/karpathy-session-3e70eae17a7e6e06.md)
+* [Karpathy session 3f5e224c3196](/karpathy-session-3f5e224c31962f6a.md)
 * [Karpathy session 3ffa927fcc11](/karpathy-session-3ffa927fcc116cc6.md)
 * [Karpathy session 40658ae34383](/karpathy-session-40658ae343835057.md)
 * [Karpathy session 435580e08951](/karpathy-session-435580e089514e58.md)

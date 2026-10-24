@@ -82,7 +82,7 @@ export interface DirectoryCopy {
 
 export const DIRECTORY_COPY: DirectoryCopy = {
 	heading: "What can I ask about?",
-	lead: "{total} products and projects from KnowMe AI, LLC, each with the status its own source gives. Ask the concierge about any of them.",
+	lead: "{total} products and projects from KnowMe AI, LLC and Prometheus AGS, each with the status its own source gives. Ask the concierge about any of them.",
 	statusMixLabel: "Status of the {n} entries",
 	showMoreTemplate: "Show {n} more in {family}",
 	showFewer: "Show fewer",

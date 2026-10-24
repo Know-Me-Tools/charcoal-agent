@@ -61,7 +61,7 @@ export const PRODUCTS_COPY: ProductsCopy = {
 
 	listHeading: "Products",
 	listLead:
-		"Every product and project from KnowMe AI, LLC, with the status its own source gives. Ask the concierge about any of them.",
+		"Products and projects from KnowMe AI, LLC and Prometheus AGS, each with the status its own source gives. Ask the concierge about any of them.",
 	filterGroupLabel: "Show family",
 	filterAll: "All",
 	resultTemplate: "Showing {n} of {total}",
@@ -76,7 +76,7 @@ export const PRODUCTS_COPY: ProductsCopy = {
 	},
 	listTitle: "Products · KnowMe AI, LLC",
 	listDescription:
-		"Every product and project from KnowMe AI, LLC, with the status its own source gives. Ask the concierge about any of them.",
+		"Products and projects from KnowMe AI, LLC and Prometheus AGS, each with the status its own source gives. Ask the concierge about any of them.",
 
 	breadcrumbLabel: "Breadcrumb",
 	breadcrumbRoot: "Products",

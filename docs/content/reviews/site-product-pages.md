@@ -201,3 +201,17 @@ Unknown slug resolving to a product (unit and e2e fail); a chip sending a differ
 ## Operator approval
 
 (not yet recorded)
+
+## Independent review fixes (PASS WITH FIXES)
+
+Applied after the independent content-officer review:
+1. `/products` lead and description: "Products and projects from KnowMe AI, LLC and Prometheus AGS, each with the status its own source gives. Ask the concierge about any of them." **Claim change for the operator:** the same correction is applied to the earlier-approved directory lead in `directory-copy.ts` (`directory.ts` regenerated).
+2. UAR: "Written in" replaced by "Portfolio note" (source `facts:uar`).
+3. UAR "Used by": "runs on it".
+4. BossFang source label: "Sidecar builds on GitHub".
+5. Surreal Memory Server "Used by": the UAR clause is sourced (`universal-agent-runtime-faq.md`, `the-boss.md`), so it stays.
+6. Question: "How is the Surreal Memory Server run?"
+7. Entity Management "Version records": "The version shown is the latest GitHub release; older portfolio snapshots list other numbers."
+8. KnowMe "Download": "today" dropped.
+9. Checked against the knowledge pages: Parking Lot durable mode ("so accepted work survives a crash" is the README claim as the page states it, kept), Entity Management packages, Flint Gate and Fabric facts all match their sources; nothing stronger than its source.
+10. `directory.ts` carries no version source URL, so the private Locus repository is not printed anywhere visitor-facing.
