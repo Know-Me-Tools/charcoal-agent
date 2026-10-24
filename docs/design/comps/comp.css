@@ -1,0 +1,1111 @@
+/*
+ * Static comps for docs/design/product-directory.md. Not application code.
+ *
+ * Every colour is a var(--km-*) from src/styles/tokens.css (linked before this
+ * file). The one exception is --comp-tile, the proposed --km-tile token
+ * (brief section 6.1), aliased here from existing tokens so no new value is
+ * invented: light = the chrome value (#fff), dark = the surface value.
+ * Class names mirror the Tailwind classes the brief specifies, where useful.
+ */
+
+:root {
+	--comp-tile: var(--km-chrome);
+	--font-display: "Space Grotesk Variable", "Space Grotesk", sans-serif;
+	--font-ui: "Inter Variable", Inter, sans-serif;
+	--font-body: "Roboto Variable", Roboto, sans-serif;
+	--font-mono: "JetBrains Mono Variable", "JetBrains Mono", monospace;
+}
+.dark {
+	--comp-tile: var(--km-surface);
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+html {
+	-webkit-text-size-adjust: 100%;
+}
+body {
+	margin: 0;
+	background: var(--km-canvas);
+	color: var(--km-fg);
+	font-family: var(--font-ui);
+	-webkit-font-smoothing: antialiased;
+}
+::selection {
+	background: var(--km-ember-soft);
+	color: var(--km-fg);
+}
+h1,
+h2,
+h3,
+h4,
+p,
+dl,
+dd,
+ul {
+	margin: 0;
+}
+ul {
+	padding: 0;
+	list-style: none;
+}
+a {
+	color: inherit;
+	text-decoration: none;
+}
+button {
+	font: inherit;
+	color: inherit;
+	background: none;
+	border: 0;
+	padding: 0;
+	cursor: pointer;
+}
+svg.icon {
+	flex-shrink: 0;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+/* ------------------------------------------------------------ page grid */
+.wrap {
+	margin-inline: auto;
+	width: 100%;
+	max-width: 72rem;
+	padding-inline: 1rem;
+}
+@media (min-width: 640px) {
+	.wrap {
+		padding-inline: 1.5rem;
+	}
+}
+@media (min-width: 768px) {
+	.wrap {
+		padding-inline: 2rem;
+	}
+}
+@media (min-width: 1024px) {
+	.wrap {
+		padding-inline: 3rem;
+	}
+}
+
+/* ------------------------------------------------------------ controls */
+.focus-cue:focus-visible {
+	background: var(--km-hover);
+	outline: 2px solid var(--km-ember);
+	outline-offset: 2px;
+}
+.hover:hover {
+	background: var(--km-hover);
+}
+
+/* ------------------------------------------------------------ header */
+.site-header {
+	background: var(--km-chrome);
+}
+.site-header .row {
+	display: flex;
+	height: 4rem;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+}
+.lockup {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.625rem;
+	color: var(--km-fg);
+}
+.lockup .word {
+	font-family: var(--font-display);
+	font-weight: 700;
+	font-size: 1.125rem;
+	letter-spacing: -0.03em;
+	line-height: 1;
+}
+.lockup .word .me {
+	color: var(--km-ember);
+}
+.lockup--footer {
+	gap: 0.5rem;
+}
+.lockup--footer .word {
+	font-size: 1rem;
+}
+.nav-group {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+}
+.nav-link {
+	display: inline-flex;
+	height: 2.75rem;
+	align-items: center;
+	gap: 0.375rem;
+	border-radius: 0.625rem;
+	padding-inline: 0.75rem;
+	font-size: 0.875rem;
+	font-weight: 600;
+	color: var(--km-fg);
+}
+.nav-link[aria-current="page"] {
+	background: var(--km-ember-soft);
+}
+.icon-btn {
+	display: inline-flex;
+	width: 2.75rem;
+	height: 2.75rem;
+	align-items: center;
+	justify-content: center;
+	border-radius: 0.625rem;
+	color: var(--km-fg-secondary);
+}
+/* Ask the concierge: the header entry. Cyan icon = a door into the AI. */
+.ask-entry {
+	display: inline-flex;
+	height: 2.75rem;
+	min-width: 2.75rem;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	border-radius: 0.625rem;
+	padding-inline: 0.75rem;
+	font-size: 0.875rem;
+	font-weight: 600;
+	color: var(--km-fg);
+}
+.ask-entry .icon {
+	color: var(--km-cyan-text);
+}
+.only-sm {
+	display: none;
+}
+@media (min-width: 640px) {
+	.only-sm {
+		display: inline-flex;
+	}
+	.ask-entry .label {
+		display: inline;
+	}
+}
+.ask-entry .label {
+	display: none;
+}
+@media (min-width: 640px) {
+	.ask-entry .label {
+		display: inline;
+	}
+}
+
+/* ------------------------------------------------------------ footer */
+.site-footer {
+	background: var(--km-chrome);
+}
+.site-footer .row {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	padding-block: 2.5rem;
+}
+@media (min-width: 768px) {
+	.site-footer .row {
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		padding-block: 3rem;
+	}
+}
+.legal {
+	font-family: var(--font-mono);
+	font-size: 0.75rem;
+	color: var(--km-fg-faint);
+}
+
+/* ------------------------------------------------------------ hero (existing, brand-pages section 6) */
+.hero .grid {
+	padding-block: 2.5rem 3rem;
+}
+@media (min-width: 768px) {
+	.hero .grid {
+		padding-block: 4rem 5rem;
+	}
+}
+@media (min-width: 1024px) {
+	.hero .grid {
+		display: grid;
+		grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+		align-items: end;
+		gap: 3rem;
+		padding-block: 6rem;
+	}
+}
+.section-label {
+	font-family: var(--font-mono);
+	font-size: 0.75rem;
+	font-weight: 600;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--km-ember-text);
+}
+.hero h1 {
+	margin-top: 0.75rem;
+	font-family: var(--font-display);
+	font-weight: 700;
+	line-height: 1.05;
+	letter-spacing: -0.035em;
+	font-size: 1.75rem;
+}
+@media (min-width: 640px) {
+	.hero h1 {
+		font-size: 2rem;
+	}
+}
+@media (min-width: 768px) {
+	.hero h1 {
+		font-size: 3.25rem;
+	}
+}
+@media (min-width: 1024px) {
+	.hero h1 {
+		font-size: 3.5rem;
+	}
+}
+@media (min-width: 1280px) {
+	.hero h1 {
+		font-size: 4rem;
+	}
+}
+.hero h1 .l2 {
+	display: block;
+	white-space: nowrap;
+}
+.ember-word {
+	color: var(--km-ember-text);
+}
+.value-line {
+	margin-top: 1rem;
+	max-width: 58ch;
+	font-family: var(--font-body);
+	font-size: 1rem;
+	line-height: 1.7;
+	color: var(--km-fg-secondary);
+}
+@media (min-width: 768px) {
+	.value-line {
+		margin-top: 1.5rem;
+		font-size: 1.0625rem;
+	}
+}
+.hero .ask {
+	margin-top: 2rem;
+}
+@media (min-width: 1024px) {
+	.hero .ask {
+		margin-top: 0;
+	}
+}
+
+/* ------------------------------------------------------------ composer (existing) */
+.composer {
+	border-radius: 1rem;
+	background: var(--km-composer);
+	padding: 0.5rem;
+}
+.composer .field {
+	display: block;
+	min-height: 3.5rem;
+	padding: 0.625rem 0.75rem;
+	font-family: var(--font-body);
+	font-size: 1rem;
+	line-height: 1.625;
+	color: var(--km-fg-faint);
+}
+@media (min-width: 1024px) {
+	.composer .field {
+		min-height: 6rem;
+	}
+}
+.composer .actions {
+	margin-top: 0.25rem;
+	display: flex;
+	justify-content: flex-end;
+}
+.ember-cta {
+	display: inline-flex;
+	height: 2.5rem;
+	align-items: center;
+	gap: 0.5rem;
+	border-radius: 0.625rem;
+	padding-inline: 1rem;
+	font-size: 0.875rem;
+	font-weight: 600;
+	background: var(--km-ember);
+	color: var(--km-on-ember);
+}
+.disclosure {
+	margin-top: 0.75rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.125rem;
+	padding-inline: 0.25rem;
+}
+.disclosure p {
+	font-family: var(--font-mono);
+	font-size: 0.75rem;
+	line-height: 1.5;
+	color: var(--km-fg-faint);
+}
+
+/* ------------------------------------------------------------ prose sections (existing, brand-pages section 7) */
+.band {
+	background: var(--km-band);
+}
+.prose-section .grid {
+	padding-block: 4rem;
+}
+@media (min-width: 768px) {
+	.prose-section .grid {
+		padding-block: 5rem;
+	}
+}
+@media (min-width: 1024px) {
+	.prose-section .grid {
+		display: grid;
+		grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+		gap: 3rem;
+		padding-block: 6rem;
+	}
+}
+.h2 {
+	font-family: var(--font-display);
+	font-weight: 700;
+	font-size: 1.5rem;
+	line-height: 1.15;
+	letter-spacing: -0.02em;
+	text-wrap: balance;
+}
+@media (min-width: 768px) {
+	.h2 {
+		font-size: 1.875rem;
+	}
+}
+.body {
+	max-width: 62ch;
+	font-family: var(--font-body);
+	font-size: 1rem;
+	line-height: 1.7;
+	color: var(--km-fg);
+}
+.prose-section .body {
+	margin-top: 1.5rem;
+}
+@media (min-width: 1024px) {
+	.prose-section .body {
+		margin-top: 0;
+	}
+}
+.inline-link {
+	font-weight: 600;
+	color: var(--km-ember-text);
+	white-space: nowrap;
+}
+
+/* ------------------------------------------------------------ status badge (brief part 2) */
+.badge {
+	display: inline-flex;
+	height: 1.5rem;
+	align-items: center;
+	gap: 0.375rem;
+	border-radius: 9999px;
+	padding-inline: 0.5rem;
+	font-family: var(--font-ui);
+	font-size: 0.75rem;
+	font-weight: 600;
+	line-height: 1;
+	white-space: nowrap;
+}
+.badge .icon {
+	width: 0.75rem;
+	height: 0.75rem;
+	stroke-width: 2.25;
+}
+.badge--success {
+	background: var(--km-success-soft);
+	color: var(--km-success-text);
+}
+.badge--warning {
+	background: var(--km-warning-soft);
+	color: var(--km-warning-text);
+}
+.badge--neutral {
+	background: transparent;
+	color: var(--km-fg-secondary);
+	padding-inline: 0;
+}
+.version {
+	font-family: var(--font-mono);
+	font-size: 0.75rem;
+	line-height: 1.5;
+	color: var(--km-fg-faint);
+}
+
+/* ------------------------------------------------------------ ask chip (brief part 5) */
+.ask-chip {
+	display: inline-flex;
+	min-height: 2.75rem;
+	align-items: center;
+	gap: 0.5rem;
+	border-radius: 0.625rem;
+	padding: 0.5rem 0.875rem;
+	background: var(--km-cyan-soft);
+	color: var(--km-cyan-text);
+	font-family: var(--font-ui);
+	font-size: 0.875rem;
+	font-weight: 600;
+	line-height: 1.35;
+	text-align: left;
+}
+.ask-chip .icon {
+	width: 1rem;
+	height: 1rem;
+}
+.ask-chip:hover {
+	background: var(--km-hover);
+}
+.ask-chip--short {
+	padding-inline: 0.75rem;
+}
+
+/* ------------------------------------------------------------ directory (brief part 3) */
+/* The directory shares the canvas with the hero; the hero's bottom padding
+   already separates them, so the directory adds little on top. */
+.directory {
+	padding-block: 1rem 4rem;
+}
+@media (min-width: 768px) {
+	.directory {
+		padding-block: 1rem 5rem;
+	}
+}
+@media (min-width: 1024px) {
+	.directory {
+		padding-block: 0 6rem;
+	}
+}
+.directory-head {
+	max-width: 44rem;
+}
+.directory-head .lead {
+	margin-top: 0.75rem;
+	max-width: 58ch;
+	font-family: var(--font-body);
+	font-size: 1rem;
+	line-height: 1.7;
+	color: var(--km-fg-secondary);
+}
+@media (min-width: 768px) {
+	.directory-head .lead {
+		font-size: 1.0625rem;
+	}
+}
+.text-link {
+	display: inline-flex;
+	min-height: 2.75rem;
+	align-items: center;
+	gap: 0.375rem;
+	margin-top: 0.5rem;
+	margin-left: -0.5rem;
+	border-radius: 0.625rem;
+	padding-inline: 0.5rem;
+	font-size: 0.875rem;
+	font-weight: 600;
+	color: var(--km-fg);
+}
+.text-link .icon {
+	width: 1rem;
+	height: 1rem;
+}
+
+.family {
+	margin-top: 3rem;
+}
+@media (min-width: 1024px) {
+	.family {
+		margin-top: 4rem;
+		display: grid;
+		grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+		gap: 3rem;
+		align-items: start;
+	}
+	.family-head {
+		position: sticky;
+		top: 1.5rem;
+	}
+}
+.family-head :is(h2, h3) {
+	font-family: var(--font-display);
+	font-weight: 600;
+	font-size: 1.25rem;
+	line-height: 1.2;
+	letter-spacing: -0.015em;
+}
+@media (min-width: 768px) {
+	.family-head :is(h2, h3) {
+		font-size: 1.375rem;
+	}
+}
+.family-head .count {
+	font-family: var(--font-mono);
+	font-weight: 500;
+	font-size: 0.875rem;
+	color: var(--km-fg-faint);
+	margin-left: 0.5rem;
+	letter-spacing: 0;
+}
+.family-head .line {
+	margin-top: 0.375rem;
+	font-family: var(--font-body);
+	font-size: 0.9375rem;
+	line-height: 1.6;
+	color: var(--km-fg-secondary);
+	max-width: 40ch;
+}
+/* The family's status mix: label and count, no fill, one line per label at lg. */
+.mix {
+	margin-top: 0.75rem;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.25rem 1rem;
+}
+.mix li {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.375rem;
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: var(--km-fg-secondary);
+}
+.mix li .icon {
+	width: 0.75rem;
+	height: 0.75rem;
+}
+.mix .n {
+	font-family: var(--font-mono);
+	font-weight: 500;
+	color: var(--km-fg-faint);
+}
+@media (min-width: 1024px) {
+	.mix {
+		flex-direction: column;
+		gap: 0.375rem;
+	}
+}
+
+.family-body {
+	margin-top: 1.25rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+}
+@media (min-width: 1024px) {
+	.family-body {
+		margin-top: 0;
+	}
+}
+.leads {
+	display: grid;
+	gap: 0.75rem;
+}
+@media (min-width: 768px) {
+	.leads.n2,
+	.leads.n3 {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+	/* Three leads: the first spans the row, the next two share one. */
+	.leads.n3 .tile:first-child {
+		grid-column: 1 / -1;
+	}
+}
+
+.tile {
+	border-radius: 0.625rem;
+	background: var(--comp-tile);
+	padding: 1.25rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	min-width: 0;
+}
+@media (min-width: 768px) {
+	.tile {
+		padding: 1.5rem;
+	}
+}
+.tile h4 {
+	font-family: var(--font-display);
+	font-weight: 700;
+	font-size: 1.25rem;
+	line-height: 1.2;
+	letter-spacing: -0.02em;
+}
+.tile h4 a {
+	border-radius: 0.375rem;
+}
+.tile h4 a .icon {
+	width: 1.125rem;
+	height: 1.125rem;
+	margin-left: 0.375rem;
+	vertical-align: -0.15em;
+	color: var(--km-fg-secondary);
+}
+.nw {
+	white-space: nowrap;
+}
+.meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.375rem 0.75rem;
+}
+.tile .summary {
+	font-family: var(--font-body);
+	font-size: 0.9375rem;
+	line-height: 1.6;
+	color: var(--km-fg-secondary);
+	max-width: 60ch;
+}
+.tile .ask-chip {
+	align-self: flex-start;
+	margin-top: 0.25rem;
+}
+.components {
+	display: flex;
+	flex-direction: column;
+	gap: 0.625rem;
+}
+.components li {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.25rem 0.75rem;
+}
+.components .cname {
+	font-size: 0.875rem;
+	font-weight: 600;
+	color: var(--km-fg);
+	min-width: 9.5rem;
+}
+
+/* The index: every other entry, in one tile, rows divided by space only. */
+.index {
+	border-radius: 0.625rem;
+	background: var(--comp-tile);
+	padding: 0.25rem 1.25rem;
+}
+@media (min-width: 768px) {
+	.index {
+		padding-inline: 1.5rem;
+	}
+}
+/* Below 640 the Ask chip shares the version line's row; from 640 it takes
+   its own column, centred on the entry. */
+.entry {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	grid-template-areas: "main main" "ver chip";
+	align-items: end;
+	column-gap: 0.75rem;
+	row-gap: 0.25rem;
+	padding-block: 0.875rem;
+}
+.entry .main {
+	grid-area: main;
+}
+.entry .ver {
+	grid-area: ver;
+	padding-bottom: 0.5rem;
+}
+.entry .ask-chip {
+	grid-area: chip;
+}
+@media (min-width: 640px) {
+	.entry {
+		grid-template-areas: "main chip" "ver chip";
+		align-items: center;
+		column-gap: 1.5rem;
+		padding-block: 1rem;
+	}
+	.entry .ver {
+		padding-bottom: 0;
+	}
+}
+.entry .top {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.25rem 0.75rem;
+}
+.entry .name {
+	font-size: 0.9375rem;
+	font-weight: 600;
+	color: var(--km-fg);
+}
+.entry .summary {
+	margin-top: 0.25rem;
+	font-family: var(--font-body);
+	font-size: 0.9375rem;
+	line-height: 1.55;
+	color: var(--km-fg-secondary);
+}
+
+.more {
+	display: flex;
+	min-height: 2.75rem;
+	width: 100%;
+	align-items: center;
+	gap: 0.5rem;
+	margin-block: 0.25rem 0.75rem;
+	margin-left: -0.5rem;
+	border-radius: 0.625rem;
+	padding-inline: 0.5rem;
+	font-size: 0.875rem;
+	font-weight: 600;
+	color: var(--km-fg);
+	width: auto;
+}
+.more .icon {
+	width: 1rem;
+	height: 1rem;
+	color: var(--km-fg-secondary);
+}
+
+/* ------------------------------------------------------------ /products (brief part 4) */
+.page-head {
+	padding-block: 2.5rem 1rem;
+}
+@media (min-width: 768px) {
+	.page-head {
+		padding-block: 4rem 1.5rem;
+	}
+}
+.page-h1 {
+	font-family: var(--font-display);
+	font-weight: 700;
+	font-size: 2.25rem;
+	line-height: 1.05;
+	letter-spacing: -0.035em;
+}
+@media (min-width: 768px) {
+	.page-h1 {
+		font-size: 3.25rem;
+	}
+}
+@media (min-width: 1280px) {
+	.page-h1 {
+		font-size: 3.5rem;
+	}
+}
+/* Below 640 the filter is one row that scrolls inside itself (the page
+   never scrolls sideways); from 640 it wraps. */
+.filter {
+	margin-top: 1.5rem;
+	display: flex;
+	gap: 0.5rem;
+	overflow-x: auto;
+	scrollbar-width: none;
+	margin-inline: -1rem;
+	padding-inline: 1rem;
+	scroll-padding-inline: 1rem;
+}
+.filter-btn {
+	flex-shrink: 0;
+}
+@media (min-width: 640px) {
+	.filter {
+		flex-wrap: wrap;
+		overflow: visible;
+		margin-inline: 0;
+		padding-inline: 0;
+	}
+}
+.filter-btn {
+	display: inline-flex;
+	min-height: 2.75rem;
+	align-items: center;
+	gap: 0.5rem;
+	border-radius: 0.625rem;
+	padding-inline: 0.875rem;
+	background: var(--comp-tile);
+	font-size: 0.875rem;
+	font-weight: 600;
+	color: var(--km-fg-secondary);
+}
+.filter-btn .n {
+	font-family: var(--font-mono);
+	font-weight: 500;
+	font-size: 0.75rem;
+	color: var(--km-fg-faint);
+}
+.filter-btn[aria-pressed="true"] {
+	background: var(--km-ember-soft);
+	color: var(--km-fg);
+}
+.filter-btn[aria-pressed="true"] .n {
+	color: var(--km-fg-secondary);
+}
+.filter-btn .icon {
+	width: 1rem;
+	height: 1rem;
+}
+.results {
+	margin-top: 1rem;
+	font-family: var(--font-mono);
+	font-size: 0.75rem;
+	color: var(--km-fg-faint);
+}
+.labels-key {
+	display: grid;
+	gap: 1rem 2rem;
+	margin-top: 1.5rem;
+}
+@media (min-width: 768px) {
+	.labels-key {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+@media (min-width: 1024px) {
+	.labels-key {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		margin-top: 0;
+	}
+}
+.labels-key dd {
+	margin-top: 0.375rem;
+	font-family: var(--font-body);
+	font-size: 0.9375rem;
+	line-height: 1.6;
+	color: var(--km-fg-secondary);
+}
+
+/* ------------------------------------------------------------ product page (brief part 4) */
+.crumbs {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.25rem;
+	font-size: 0.875rem;
+	font-weight: 600;
+	color: var(--km-fg-secondary);
+}
+.crumbs a {
+	display: inline-flex;
+	min-height: 2.75rem;
+	align-items: center;
+	margin-left: -0.5rem;
+	border-radius: 0.625rem;
+	padding-inline: 0.5rem;
+	color: var(--km-fg);
+}
+.crumbs a {
+	margin-right: -0.5rem;
+}
+.crumbs .sep {
+	margin-inline: 0.375rem;
+	color: var(--km-fg-faint);
+}
+.product .grid {
+	padding-block: 1.5rem 4rem;
+}
+@media (min-width: 768px) {
+	.product .grid {
+		padding-block: 2.5rem 5rem;
+	}
+}
+@media (min-width: 1024px) {
+	.product .grid {
+		display: grid;
+		grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+		gap: 3rem;
+		align-items: start;
+		padding-block: 3rem 6rem;
+	}
+	.product .conversation {
+		position: sticky;
+		top: 1.5rem;
+	}
+}
+.product h1 {
+	margin-top: 0.5rem;
+	font-family: var(--font-display);
+	font-weight: 700;
+	font-size: 2.25rem;
+	line-height: 1.05;
+	letter-spacing: -0.035em;
+	text-wrap: balance;
+}
+@media (min-width: 768px) {
+	.product h1 {
+		font-size: 3.25rem;
+	}
+}
+@media (min-width: 1280px) {
+	.product h1 {
+		font-size: 4rem;
+	}
+}
+.product .lead {
+	margin-top: 1rem;
+	max-width: 52ch;
+	font-family: var(--font-body);
+	font-size: 1.0625rem;
+	line-height: 1.65;
+	color: var(--km-fg-secondary);
+}
+@media (min-width: 768px) {
+	.product .lead {
+		font-size: 1.1875rem;
+	}
+}
+.plate {
+	width: fit-content;
+	max-width: 100%;
+	margin-top: 1.5rem;
+	border-radius: 0.625rem;
+	background: var(--comp-tile);
+	padding: 1rem 1.25rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+.plate .row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.375rem 0.75rem;
+}
+.plate .checked {
+	font-family: var(--font-mono);
+	font-size: 0.75rem;
+	color: var(--km-fg-faint);
+}
+.facts {
+	margin-top: 2.5rem;
+}
+.facts h2,
+.conversation h2,
+.sources h2 {
+	font-family: var(--font-display);
+	font-weight: 600;
+	font-size: 1.25rem;
+	letter-spacing: -0.015em;
+}
+.facts dl {
+	margin-top: 1rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+.facts .fact {
+	display: grid;
+	gap: 0.25rem;
+	border-radius: 0.625rem;
+	background: var(--km-band);
+	padding: 0.75rem 1rem;
+}
+@media (min-width: 640px) {
+	.facts .fact {
+		grid-template-columns: 9rem minmax(0, 1fr);
+		gap: 1rem;
+		align-items: baseline;
+	}
+}
+.facts dt {
+	font-size: 0.875rem;
+	color: var(--km-fg-secondary);
+}
+.facts dd {
+	font-family: var(--font-body);
+	font-size: 0.9375rem;
+	line-height: 1.6;
+	color: var(--km-fg);
+}
+.conversation {
+	margin-top: 2.5rem;
+}
+@media (min-width: 1024px) {
+	.conversation {
+		margin-top: 0;
+	}
+}
+.questions {
+	margin-top: 1rem;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 0.5rem;
+}
+.conversation .composer {
+	margin-top: 1.25rem;
+}
+.sources .grid {
+	padding-block: 3rem;
+}
+@media (min-width: 1024px) {
+	.sources .grid {
+		display: grid;
+		grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+		gap: 3rem;
+		padding-block: 4rem;
+	}
+}
+.sources ul {
+	margin-top: 1rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+}
+@media (min-width: 1024px) {
+	.sources ul {
+		margin-top: 0;
+	}
+}
+.sources a {
+	display: inline-flex;
+	min-height: 2.75rem;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.125rem 0.75rem;
+	margin-left: -0.5rem;
+	border-radius: 0.625rem;
+	padding: 0.25rem 0.5rem;
+}
+.sources .what {
+	font-size: 0.9375rem;
+	font-weight: 600;
+	color: var(--km-fg);
+}
+.sources .url {
+	font-family: var(--font-mono);
+	font-size: 0.75rem;
+	color: var(--km-fg-secondary);
+	word-break: break-all;
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
