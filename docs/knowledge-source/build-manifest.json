@@ -231,6 +231,98 @@
     {
       "source": "candle-vllm/candle-vllm.md",
       "output": "candle-vllm.md"
+    },
+    {
+      "source": "locus/locus.md",
+      "output": "locus.md"
+    },
+    {
+      "source": "knowme-dot/knowme-dot.md",
+      "output": "knowme-dot.md"
+    },
+    {
+      "source": "synaxis/synaxis.md",
+      "output": "synaxis.md"
+    },
+    {
+      "source": "numen/numen.md",
+      "output": "numen.md"
+    },
+    {
+      "source": "knowme-praxis/knowme-praxis.md",
+      "output": "knowme-praxis.md"
+    },
+    {
+      "source": "know-meet/know-meet.md",
+      "output": "know-meet.md"
+    },
+    {
+      "source": "know-decision/know-decision.md",
+      "output": "know-decision.md"
+    },
+    {
+      "source": "operator-service/operator-service.md",
+      "output": "operator-service.md"
+    },
+    {
+      "source": "lampas/lampas.md",
+      "output": "lampas.md"
+    },
+    {
+      "source": "knowme-concierge/knowme-concierge.md",
+      "output": "knowme-concierge.md"
+    },
+    {
+      "source": "knowtes/knowtes.md",
+      "output": "knowtes.md"
+    },
+    {
+      "source": "prometheus-tune/prometheus-tune.md",
+      "output": "prometheus-tune.md"
+    },
+    {
+      "source": "logos/logos.md",
+      "output": "logos.md"
+    },
+    {
+      "source": "prometheus-studio/prometheus-studio.md",
+      "output": "prometheus-studio.md"
+    },
+    {
+      "source": "light-creator/light-creator.md",
+      "output": "light-creator.md"
+    },
+    {
+      "source": "prometheus-pulse/prometheus-pulse.md",
+      "output": "prometheus-pulse.md"
+    },
+    {
+      "source": "tranquil/tranquil.md",
+      "output": "tranquil.md"
+    },
+    {
+      "source": "knowme-poppy-integration/knowme-poppy-integration.md",
+      "output": "knowme-poppy-integration.md"
+    },
+    {
+      "source": "authentic-digital-twin/authentic-digital-twin.md",
+      "output": "authentic-digital-twin.md"
+    },
+    {
+      "source": "companion/companion.md",
+      "output": "companion.md"
+    },
+    {
+      "source": "numen-enclave/numen-enclave.md",
+      "output": "numen-enclave.md"
+    },
+    {
+      "source": "knowme-realtor-assistant/knowme-realtor-assistant.md",
+      "output": "knowme-realtor-assistant.md"
+    },
+    {
+      "source": "kaia/kaia.md",
+      "output": "kaia.md"
     }
   ]
 }
