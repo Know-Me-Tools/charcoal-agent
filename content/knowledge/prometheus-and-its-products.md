@@ -12,7 +12,7 @@ Source: Universal Agent Runtime repository, retrieved 2026-10-13.
 
 ## Who makes BossFang (Prometheus)?
 
-Prometheus AGS makes BossFang, an agent operating system forked from the open-source LibreFang project, with SurrealDB storage, for agents that run on schedules. BossFang's public home is https://bossfang.know-me.tools and its source is at https://github.com/GQAdonis/librefang. The Boss, from KnowMe AI, LLC, bundles BossFang.
+Prometheus AGS makes BossFang, an agent operating system forked from the open-source LibreFang project, with SurrealDB storage, for agents that run on schedules. BossFang's source is at https://github.com/GQAdonis/librefang. The Boss, from KnowMe AI, LLC, bundles BossFang.
 
 Source: BossFang repository, retrieved 2026-10-13.
 
@@ -68,4 +68,4 @@ KnowMe AI, LLC makes The Boss and KnowMe, and also IPFS Sync for Obsidian. The B
 
 ## Where can I get the Universal Agent Runtime, BossFang, the Surreal Memory Server and the skill packages? (Prometheus)
 
-Universal Agent Runtime: https://github.com/Prometheus-AGS/universal-agent-runtime. BossFang: https://bossfang.know-me.tools, source at https://github.com/GQAdonis/librefang. Surreal Memory Server: https://github.com/Prometheus-AGS/surreal-memory-server. Skill packages: https://github.com/Prometheus-AGS/prometheus-skill-system and https://github.com/Prometheus-AGS/prometheus-skills-mini. The Boss desktop app bundles the Universal Agent Runtime and BossFang: https://the-boss.know-me.tools.
+Universal Agent Runtime: https://github.com/Prometheus-AGS/universal-agent-runtime. BossFang: source at https://github.com/GQAdonis/librefang. Surreal Memory Server: https://github.com/Prometheus-AGS/surreal-memory-server. Skill packages: https://github.com/Prometheus-AGS/prometheus-skill-system and https://github.com/Prometheus-AGS/prometheus-skills-mini. The Boss desktop app bundles the Universal Agent Runtime and BossFang: https://the-boss.know-me.tools.

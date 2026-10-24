@@ -80,7 +80,7 @@ The fork's CONTRIBUTING.md asks for bug reports with reproduction steps through 
 
 ## Who makes BossFang?
 
-Prometheus AGS makes BossFang. BossFang's home page is https://bossfang.know-me.tools.
+Prometheus AGS makes BossFang. Its source code is at https://github.com/GQAdonis/librefang. The Boss installers bundle BossFang as a sidecar. No end-user BossFang release is established.
 
 ## What is Prometheus, behind BossFang?
 
