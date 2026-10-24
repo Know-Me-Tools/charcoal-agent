@@ -347,5 +347,75 @@
       "{{v:pem}}"
     ],
     "critical": false
+  },
+  {
+    "question": "Is Locus, the private assistant, available to use?",
+    "expect_file": "locus.md",
+    "expect_contains": [
+      "design proposal",
+      "not an implemented Locus runtime"
+    ],
+    "critical": false
+  },
+  {
+    "question": "What is the KnowMe dot operator service and is it live?",
+    "expect_file": "knowme-dot.md",
+    "expect_contains": [
+      "no live service certified"
+    ],
+    "critical": false
+  },
+  {
+    "question": "Is Know Meet a working meeting product?",
+    "expect_file": "know-meet.md",
+    "expect_contains": [
+      "synthetic prototype",
+      "{{v:meet}}"
+    ],
+    "critical": false
+  },
+  {
+    "question": "What is Numen Enclave and has it been built?",
+    "expect_file": "numen-enclave.md",
+    "expect_contains": [
+      "not a hardware TEE",
+      "remain to be demonstrated"
+    ],
+    "critical": false
+  },
+  {
+    "question": "What is Companion and is it ready for the cloud?",
+    "expect_file": "companion.md",
+    "expect_contains": [
+      "provisional working name",
+      "local MVP tests do not establish cloud readiness"
+    ],
+    "critical": false
+  },
+  {
+    "question": "What is Kaia?",
+    "expect_file": "kaia.md",
+    "expect_contains": [
+      "Product scope under assessment"
+    ],
+    "critical": false
+  },
+  {
+    "question": "Is the KnowMe Concierge an existing product and how is it built?",
+    "expect_file": "knowme-concierge.md",
+    "expect_contains": [
+      "Existing implementation",
+      "{{v:concierge}}"
+    ],
+    "critical": false
+  },
+  {
+    "question": "Is Know Decision available, and what is its status?",
+    "expect_file": "know-decision.md",
+    "expect_contains": [
+      "Pre-implementation",
+      "{{v:decision}}"
+    ],
+    "critical": false
   }
 ]
