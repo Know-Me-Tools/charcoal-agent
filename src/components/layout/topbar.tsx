@@ -5,6 +5,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { WIDE_LAYOUT_QUERY } from "@/components/layout/breakpoints";
 import { KnowMeLockup } from "@/components/brand";
+import { AskConciergeEntry } from "@/components/site/ask-concierge-entry";
 import { UarStatus } from "@/components/common/uar-status";
 import { ABOUT_PANEL_ID, ABOUT_TOGGLE_ID } from "@/components/layout/about-sources-panel";
 import { isSiteBuild } from "@/hooks/use-site-config";
@@ -68,6 +69,8 @@ export function Topbar() {
       <div className="flex items-center gap-2">
         {/* Runtime status is infra detail; on the site it showed visitors "localhost". */}
         {!isMobile && !siteBuild && <UarStatus compact />}
+
+        {siteBuild && !isThreadView && <AskConciergeEntry />}
 
         <button
           type="button"
