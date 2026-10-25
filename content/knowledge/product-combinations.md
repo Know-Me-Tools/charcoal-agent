@@ -4,12 +4,14 @@ A visitor asks: "Which of these products work together, and which combinations a
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
 
-## Combinations: the one shipped bundle (Solutions)
+## Combinations: the one shipped pairing (Solutions)
 
-- The Boss, the Universal Agent Runtime and BossFang: [shipped]. All installers in the latest release, v2.2.41, include the Universal Agent Runtime and BossFang as bundled programs that run beside The Boss.
-- Within that bundle, BossFang's connection to a Universal Agent Runtime instance is [planned]. BossFang's own document says it is implemented in source, not yet built or tested.
+- The Boss with the Universal Agent Runtime: [shipped]. The v2.2.41 release notes say the installers include complete pinned Universal Agent Runtime sidecar payloads for macOS Apple Silicon, macOS Intel and Windows x64. The integration manifest on the main branch also lists BossFang, but the release notes do not name it, and the portfolio notes that current-source features are not automatically in released installers. This page does not establish that BossFang is in the installer.
+- BossFang bundled with The Boss: [planned], as stated above. BossFang's connection to a Universal Agent Runtime instance is [planned]. BossFang's own document says it is implemented in source, not yet built or tested.
 
+Source: The Boss v2.2.41 release notes, retrieved 2026-10-25.
 Source: The Boss integration artifacts manifest, retrieved 2026-10-25.
+Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
 Source: BossFang connects to UAR, retrieved 2026-10-25.
 
 ## Combinations: memory and runtime [planned] (Solutions)
@@ -33,11 +35,13 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
 - Flint Gate, Flint Forge and Flint Realtime Fabric: Forge's README says it sits behind Gate and consumes Fabric as its realtime source.
 - Prometheus Entity Sync on Flint Realtime Fabric: Entity Sync reuses Fabric's change capture, CRDT and operation-log code.
 - The Universal Agent Runtime, Flint Gate, Flint Forge and Flint Realtime Fabric: the demo hosting platform's README assigns roles. UAR runs agents, Gate owns identity, Forge supplies data and Fabric supplies live updates. These are design statements.
+- Flint Gate in front of the Universal Agent Runtime for edge authentication: the UAR README says Gate owns edge auth enforcement, and the demo platform README assigns Gate identity.
 - The Flint core infrastructure README places Gate, Forge's Quarry and Fabric in the stack it configures.
 
 Source: Flint Forge README, retrieved 2026-10-25.
 Source: Prometheus Entity Sync README, retrieved 2026-10-25.
 Source: demos README, retrieved 2026-10-25.
+Source: Universal Agent Runtime README, retrieved 2026-10-25.
 Source: Flint core infrastructure README, retrieved 2026-10-25.
 
 ## Combinations: libraries and inference [planned] (Solutions)

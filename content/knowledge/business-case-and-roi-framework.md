@@ -49,7 +49,7 @@ Source: Flint Gate README, retrieved 2026-10-25.
 - Do not use a speed or cost improvement for any product unless a source shows it. The portfolio found no production-scale benchmark for the Candle-VLLM fork, and the Rust performance skill's edition says no production performance improvement is established.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
-Source: KnowMe and Prometheus portfolio, Edition 3, entries dated 25 October 2026 (address of Edition 3 not yet confirmed), retrieved 2026-10-25.
+Source: KnowMe and Prometheus portfolio, Edition 3, retrieved 2026-10-25.
 
 ## Business case framework: what is not stated (Solutions)
 

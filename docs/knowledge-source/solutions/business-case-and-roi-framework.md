@@ -33,8 +33,8 @@ sources:
     title: "Flint Gate README"
     last_modified: "2026-10-25T00:00:00+00:00"
   - id: pf3
-    resource: https://ipfs.prometheusags.ai/ipfs/bafybeidmp2shm6zpf7bj25iugtbylnzl5ms564lr3vsozuszbp23d63pie/
-    title: "KnowMe and Prometheus portfolio, Edition 3, entries dated 25 October 2026 (address of Edition 3 not yet confirmed)"
+    resource: https://ipfs.prometheusags.ai/ipfs/bafybeidn2uiph3kmd3ygmgtt53mollpr2eymo7is6xinaeawwbo6l5e46i/
+    title: "KnowMe and Prometheus portfolio, Edition 3"
     last_modified: "2026-10-25T00:00:00+00:00"
 ---
 

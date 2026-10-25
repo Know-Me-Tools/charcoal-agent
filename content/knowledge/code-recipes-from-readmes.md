@@ -38,13 +38,13 @@ Source: Prometheus Entity Management README, retrieved 2026-10-25.
 
 ## Recipe: Prometheus Entity Management, what 4.2.0 means (Solutions)
 
-The README's registry snapshot of 2026-10-08 names `4.2.0` as the expected candidate and lists each package's release state as pending-publication. Its package chooser shows 4.2.0 as the candidate for every package. This page does not establish that 4.2.0 is published. The commands above install what the registry serves as `latest`, which the README gives as 4.1.1.
+The README's registry snapshot of 2026-10-08 names `4.2.0` as the expected candidate and lists each package's release state as pending-publication. Its package chooser shows 4.2.0 as the candidate for every package. This page does not establish that 4.2.0 is published. A plain `pnpm add` of the core package installs the version tagged `latest` on npm, which the README gives as 4.1.1.
 
 Source: Prometheus Entity Management README, retrieved 2026-10-25.
 
 ## Recipe: Universal Agent Runtime, run locally (Solutions)
 
-Status: [shipped], release v1.2.3, with v1.3.0 a pre-release whose verification is pending. The README lists a current Rust toolchain, Node.js and pnpm 11.15.0 as requirements. Source: the Run locally section of the Universal Agent Runtime README.
+Status: [shipped], release v1.2.3, with v1.3.0 a pre-release whose verification is pending. The portfolio's status line is "Work stopped; current runtime qualification not established." The repository's release record is newer, and neither is an audit. The README lists a current Rust toolchain, Node.js and pnpm 11.15.0 as requirements. Source: the Run locally section of the Universal Agent Runtime README.
 
 ```bash
 cp .env.example .env
@@ -58,7 +58,7 @@ Source: Universal Agent Runtime README, retrieved 2026-10-25.
 
 ## Recipe: Universal Agent Runtime, what to expect (Solutions)
 
-UAR listens on 127.0.0.1:1906 by default. The README says every API request requires a JWT by default, and that tools/uar-jwt-proxy is a local-only proxy that mints and injects a token for development. Its sequence diagram shows a client creating a run with POST /api/uar/runs and then reading the run's server-sent-event stream. The README shows no request body, so this page gives none.
+The README says UAR listens on 127.0.0.1:1906 by default and the port is configurable. The README says every API request requires a JWT by default, and that tools/uar-jwt-proxy is a local-only proxy that mints and injects a token for development. Its sequence diagram shows a client creating a run with POST /api/uar/runs and then reading the run's server-sent-event stream. The README shows no request body, so this page gives none.
 
 Source: Universal Agent Runtime README, retrieved 2026-10-25.
 

@@ -26,12 +26,20 @@ Phase `usefulness-update`, child `concierge-usefulness`, change C2. Author: km-c
 Read on 2026-10-25 with `gh api repos/<owner>/<name>/contents/README.md`: Prometheus-AGS/prometheus-entity-management, Prometheus-AGS/universal-agent-runtime, Prometheus-AGS/surreal-memory-server, Know-Me-Tools/flint-gate. Other claims reuse statements already cited in existing knowledge pages (product pages, `portfolio-stated-relationships.md`) and their repository sources. Edition 3 text came from the operator-supplied parse at `scratchpad/portfolio_edition3.json`.
 
 ## Could not verify
-- The public address of Edition 3. The three new pages cite the Edition 2 address with an Edition 3 title and the note "address of Edition 3 not yet confirmed". Replace the resource when the operator supplies it.
 - That the UAR memory system and A2UI renderers named in repository docs are in release v1.2.3 (the pages say so).
 - Any README change after 2026-10-25. Retrieval quality of the new pages: the live eval was not run.
 
 ## Gate run
 `node scripts/kb/build-kb.mjs` (104 outputs, `--check` clean); `validate-kb`: 0 failures, 0 warnings; `check-product-facts`: OK 61 rows; `check-withheld-terms`: 0 hits; `node --test scripts/kb/__tests__/*.test.mjs`: 58 tests, 57 pass, 1 fail (the known `seed-modes` "an unknown SEED_MODE is rejected").
+
+## Fix round (content-officer pre-review)
+- Edition 3 source now points at its own address (bafybeidn2...). Every pf3 claim was re-checked against `portfolio_edition3.json`: Rust skill status (15 helper tests, not installed, no production performance improvement) and the ASSET statuses match.
+- The Boss installer claim now cites the v2.2.41 release notes (UAR sidecar payloads, three platforms). BossFang in the installer is stated only in the main-branch manifest, so it is tagged planned and not established.
+- Flint Gate in front of UAR added to the combinations page and sourced on the clinic page, tagged planned.
+- Re-read from the repositories on 2026-10-25: UAR port 1906 and pnpm 11.15.0 (README says 1906 by default, configurable; this repo's 6565 is a separate local setup), SDK names, Surreal Memory /api/v2/operations routes, Gate ports 4456/4457 and /approvals/{id}/decision. All confirmed.
+- UAR recipe now quotes the portfolio's "Work stopped; current runtime qualification not established." The 4.2.0 section is self-contained.
+- Cedar claims now use the UAR README wording (shared Cedar policy, approval, hard-deny, audit; a Cedar Deny cannot be overridden by approval). "No commercial license to buy" is the README License section. "No production-scale benchmark" for Candle-VLLM is in the portfolio entry.
+- Not confirmed: that BossFang is in the released installers; the UAR README still says version 1.0.0.
 
 ## Pre-review and approval
 - km-chief-content-officer AI pre-review: pending.

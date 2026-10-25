@@ -11,7 +11,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
 - Prometheus Skill Pack [shipped], release v1.13.0, and Skills Mini [shipped], release v1.12.1: a repeatable way to plan, assign, implement and keep lessons.
 - Phase Exit [planned, preview]: decides whether a stage is complete from evidence checked against a contract the team adopted.
 
-Source: KnowMe and Prometheus portfolio, Edition 3, entries dated 25 October 2026 (address of Edition 3 not yet confirmed), retrieved 2026-10-25.
+Source: KnowMe and Prometheus portfolio, Edition 3, retrieved 2026-10-25.
 Source: know-me-project-management README, retrieved 2026-10-25.
 Source: Prometheus Skill Pack README, retrieved 2026-10-25.
 Source: Phase Exit README, retrieved 2026-10-25.
@@ -33,7 +33,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
 - A copied skill does not prove a given coding assistant can run it.
 - This page does not describe client engagements or client research.
 
-Source: KnowMe and Prometheus portfolio, Edition 3, entries dated 25 October 2026 (address of Edition 3 not yet confirmed), retrieved 2026-10-25.
+Source: KnowMe and Prometheus portfolio, Edition 3, retrieved 2026-10-25.
 Source: Prometheus Skill Pack README, retrieved 2026-10-25.
 
 ## Modernize or harden a tool: start here (Solutions)

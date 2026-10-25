@@ -23,6 +23,10 @@ sources:
     resource: https://github.com/Prometheus-AGS/the-boss/blob/main/README.md
     title: "The Boss README"
     last_modified: "2026-10-25T00:00:00+00:00"
+  - id: boss-release
+    resource: https://github.com/Prometheus-AGS/the-boss/releases/tag/v2.2.41
+    title: "The Boss v2.2.41 release notes"
+    last_modified: "2026-10-25T00:00:00+00:00"
   - id: boss-build
     resource: https://github.com/Prometheus-AGS/the-boss/blob/main/build/integration-artifacts.json
     title: "The Boss integration artifacts manifest"
@@ -51,7 +55,7 @@ The Boss is a free, open-source AI desktop workspace for macOS and Windows. The 
 
 ## Install an assistant today: what comes in the installer
 
-All installers in the latest release include the Universal Agent Runtime and BossFang as bundled programs that run beside The Boss.[^boss-build] The Surreal Memory Server is not in the installer. The Boss works with it over MCP as a separate service.[^boss-memory-adapter]
+The v2.2.41 release notes say the installers include complete pinned Universal Agent Runtime sidecar payloads for macOS Apple Silicon, macOS Intel and Windows x64.[^boss-release] The integration manifest on the main branch also lists BossFang, but the release notes do not name it, and the portfolio notes that current-source features are not automatically in released installers. This page does not establish that BossFang is in the installer.[^boss-build][^pf] The Surreal Memory Server is not in the installer. The Boss works with it over MCP as a separate service.[^boss-memory-adapter]
 
 ## Install an assistant today: what is not yet released
 

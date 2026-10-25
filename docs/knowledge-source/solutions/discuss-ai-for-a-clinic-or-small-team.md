@@ -16,9 +16,9 @@ sources:
     resource: https://ipfs.prometheusags.ai/ipfs/bafybeidmp2shm6zpf7bj25iugtbylnzl5ms564lr3vsozuszbp23d63pie/
     title: "KnowMe and Prometheus portfolio, Edition 2"
     last_modified: "2026-10-25T00:00:00+00:00"
-  - id: uar-arch
-    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/ARCHITECTURE.md
-    title: "Universal Agent Runtime architecture overview"
+  - id: uar-readme
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/README.md
+    title: "Universal Agent Runtime README"
     last_modified: "2026-10-25T00:00:00+00:00"
   - id: boss-readme
     resource: https://github.com/Prometheus-AGS/the-boss/blob/main/README.md
@@ -28,13 +28,13 @@ sources:
     resource: https://github.com/Know-Me-Tools/flint-gate/blob/main/README.md
     title: "Flint Gate README"
     last_modified: "2026-10-25T00:00:00+00:00"
-  - id: boss-build
-    resource: https://github.com/Prometheus-AGS/the-boss/blob/main/build/integration-artifacts.json
-    title: "The Boss integration artifacts manifest"
+  - id: boss-release
+    resource: https://github.com/Prometheus-AGS/the-boss/releases/tag/v2.2.41
+    title: "The Boss v2.2.41 release notes"
     last_modified: "2026-10-25T00:00:00+00:00"
-  - id: uar-readme
-    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/README.md
-    title: "Universal Agent Runtime README"
+  - id: demos-readme
+    resource: https://github.com/Know-Me-Tools/demos/blob/main/README.md
+    title: "demos README"
     last_modified: "2026-10-25T00:00:00+00:00"
 ---
 
@@ -52,7 +52,7 @@ A visitor asks: "I run a small office or clinic. Can we talk about using AI safe
 
 ## Discuss AI for a small team: products that address control
 
-- The Universal Agent Runtime [shipped], release {{v:uar}}: tool calls pass a Cedar policy that returns Allow, RequireApproval or Deny, with an audit record, and approval cannot override a Deny.[^uar-arch] SurrealDB is the authoritative store in its default server bundle.[^uar-arch]
+- The Universal Agent Runtime [shipped], release {{v:uar}}: tool calls share schema validation, Cedar policy, approval, hard-deny and audit controls, and a Cedar Deny cannot be overridden by user approval.[^uar-readme] SurrealDB is the authoritative store in its default server bundle.[^uar-readme]
 - The Boss [shipped], release {{v:boss}}: conversations with cloud or local model providers and agent sessions with approval boundaries. You supply your own provider credentials.[^boss-readme]
 - Flint Gate [planned, source only]: a proxy with human approval for tool calls, per-agent token budgets and an audit trail of identity changes.[^gate-readme]
 
@@ -62,8 +62,8 @@ KnowMe is designed to run models on the person's own hardware and keep data in a
 
 ## Discuss AI for a small team: how the products fit together
 
-- The Boss with the Universal Agent Runtime and BossFang in one installer: [shipped].[^boss-build]
-- Flint Gate in front of the Universal Agent Runtime: [planned], because Gate has no release.[^uar-readme]
+- The Boss with the Universal Agent Runtime sidecar in its installers: [shipped], per the release notes.[^boss-release]
+- Flint Gate in front of the Universal Agent Runtime: [planned], because Gate has no release. The UAR README says Gate owns edge auth enforcement, and the demo platform README assigns roles; both are design statements.[^uar-readme][^demos-readme]
 
 ## Discuss AI for a small team: what is not stated
 

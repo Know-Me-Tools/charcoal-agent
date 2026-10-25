@@ -6,9 +6,8 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
 
 ## Run agents with auth and audit: the Universal Agent Runtime [shipped] (Solutions)
 
-The Universal Agent Runtime (UAR), release v1.2.3, runs every tool call through the same path. It checks inputs against the tool's schema. A policy written in the Cedar policy language returns Allow, RequireApproval or Deny, and the decision is written to an audit record. A user's approval cannot override a Deny. By default every API request needs a signed token (JWT). The portfolio's status for UAR is "Work stopped; current runtime qualification not established." The repository is the newer record, and v1.3.0 is a pre-release with verification pending.
+The Universal Agent Runtime (UAR), release v1.2.3, runs every tool call through the same path. The README says tools found through MCP and built-in tools share schema validation, Cedar policy, approval, hard-deny and audit controls, and that a Cedar Deny cannot be overridden by user approval. By default every API request requires a JWT. The portfolio's status for UAR is "Work stopped; current runtime qualification not established." The repository is the newer record, and v1.3.0 is a pre-release with verification pending.
 
-Source: Universal Agent Runtime architecture overview, retrieved 2026-10-25.
 Source: Universal Agent Runtime README, retrieved 2026-10-25.
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
 
@@ -27,15 +26,14 @@ Source: Flint Gate README, retrieved 2026-10-25.
 
 ## Run agents with auth and audit: how the products fit together (Solutions)
 
-- UAR alone, with its token requirement, Cedar policy and audit record: [shipped].
+- UAR alone, with its token requirement, Cedar policy and audit controls: [shipped].
 - Flint Gate in front of UAR for edge authentication: [planned]. The UAR README says Flint Gate owns edge auth enforcement, and the demo platform README assigns Gate identity and UAR agent execution. Those are design statements, and Gate has no release.
-- The Boss: its agent sessions use MCP tools, skills and approval boundaries, and its installers bundle UAR [shipped].
+- The Boss: its agent sessions use MCP tools, skills and approval boundaries, and the v2.2.41 release notes say its installers include UAR sidecar payloads [shipped].
 
-Source: Universal Agent Runtime architecture overview, retrieved 2026-10-25.
 Source: Universal Agent Runtime README, retrieved 2026-10-25.
 Source: demos README, retrieved 2026-10-25.
 Source: The Boss README, retrieved 2026-10-25.
-Source: The Boss integration artifacts manifest, retrieved 2026-10-25.
+Source: The Boss v2.2.41 release notes, retrieved 2026-10-25.
 
 ## Run agents with auth and audit: what is not stated (Solutions)
 

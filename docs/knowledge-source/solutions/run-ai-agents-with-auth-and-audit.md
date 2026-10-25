@@ -16,10 +16,6 @@ sources:
     resource: https://ipfs.prometheusags.ai/ipfs/bafybeidmp2shm6zpf7bj25iugtbylnzl5ms564lr3vsozuszbp23d63pie/
     title: "KnowMe and Prometheus portfolio, Edition 2"
     last_modified: "2026-10-25T00:00:00+00:00"
-  - id: uar-arch
-    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/docs/ARCHITECTURE.md
-    title: "Universal Agent Runtime architecture overview"
-    last_modified: "2026-10-25T00:00:00+00:00"
   - id: uar-readme
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/README.md
     title: "Universal Agent Runtime README"
@@ -36,9 +32,9 @@ sources:
     resource: https://github.com/Prometheus-AGS/the-boss/blob/main/README.md
     title: "The Boss README"
     last_modified: "2026-10-25T00:00:00+00:00"
-  - id: boss-build
-    resource: https://github.com/Prometheus-AGS/the-boss/blob/main/build/integration-artifacts.json
-    title: "The Boss integration artifacts manifest"
+  - id: boss-release
+    resource: https://github.com/Prometheus-AGS/the-boss/releases/tag/v2.2.41
+    title: "The Boss v2.2.41 release notes"
     last_modified: "2026-10-25T00:00:00+00:00"
 ---
 
@@ -48,7 +44,7 @@ A visitor asks: "I want agents that act for my team, but only with permission, a
 
 ## Run agents with auth and audit: the Universal Agent Runtime [shipped]
 
-The Universal Agent Runtime (UAR), release {{v:uar}}, runs every tool call through the same path. It checks inputs against the tool's schema. A policy written in the Cedar policy language returns Allow, RequireApproval or Deny, and the decision is written to an audit record. A user's approval cannot override a Deny.[^uar-arch] By default every API request needs a signed token (JWT).[^uar-readme] The portfolio's status for UAR is "Work stopped; current runtime qualification not established." The repository is the newer record, and {{v:uar:pre}} is a pre-release with verification pending.[^pf]
+The Universal Agent Runtime (UAR), release {{v:uar}}, runs every tool call through the same path. The README says tools found through MCP and built-in tools share schema validation, Cedar policy, approval, hard-deny and audit controls, and that a Cedar Deny cannot be overridden by user approval.[^uar-readme] By default every API request requires a JWT.[^uar-readme] The portfolio's status for UAR is "Work stopped; current runtime qualification not established." The repository is the newer record, and {{v:uar:pre}} is a pre-release with verification pending.[^pf]
 
 ## Run agents with auth and audit: Flint Gate [planned, source only]
 
@@ -60,9 +56,9 @@ A Cedar policy in Flint Gate can mark a tool call for human approval. The gatewa
 
 ## Run agents with auth and audit: how the products fit together
 
-- UAR alone, with its token requirement, Cedar policy and audit record: [shipped].[^uar-arch]
+- UAR alone, with its token requirement, Cedar policy and audit controls: [shipped].[^uar-readme]
 - Flint Gate in front of UAR for edge authentication: [planned]. The UAR README says Flint Gate owns edge auth enforcement, and the demo platform README assigns Gate identity and UAR agent execution. Those are design statements, and Gate has no release.[^uar-readme][^demos-readme]
-- The Boss: its agent sessions use MCP tools, skills and approval boundaries, and its installers bundle UAR [shipped].[^boss-readme][^boss-build]
+- The Boss: its agent sessions use MCP tools, skills and approval boundaries, and the v2.2.41 release notes say its installers include UAR sidecar payloads [shipped].[^boss-readme][^boss-release]
 
 ## Run agents with auth and audit: what is not stated
 

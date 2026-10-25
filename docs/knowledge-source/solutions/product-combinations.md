@@ -15,6 +15,10 @@ sources:
     resource: https://ipfs.prometheusags.ai/ipfs/bafybeidmp2shm6zpf7bj25iugtbylnzl5ms564lr3vsozuszbp23d63pie/
     title: "KnowMe and Prometheus portfolio, Edition 2"
     last_modified: "2026-10-25T00:00:00+00:00"
+  - id: boss-release
+    resource: https://github.com/Prometheus-AGS/the-boss/releases/tag/v2.2.41
+    title: "The Boss v2.2.41 release notes"
+    last_modified: "2026-10-25T00:00:00+00:00"
   - id: boss-build
     resource: https://github.com/Prometheus-AGS/the-boss/blob/main/build/integration-artifacts.json
     title: "The Boss integration artifacts manifest"
@@ -59,6 +63,10 @@ sources:
     resource: https://github.com/Know-Me-Tools/demos/blob/main/README.md
     title: "demos README"
     last_modified: "2026-10-25T00:00:00+00:00"
+  - id: uar-readme
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/README.md
+    title: "Universal Agent Runtime README"
+    last_modified: "2026-10-25T00:00:00+00:00"
   - id: infra-readme
     resource: https://github.com/Prometheus-AGS/flint-infra/blob/main/README.md
     title: "Flint core infrastructure README"
@@ -89,10 +97,10 @@ sources:
 
 A visitor asks: "Which of these products work together, and which combinations are only planned?" This page lists only combinations that the portfolio or a repository states. It infers nothing. The portfolio says its relationships are architectural intent, not proof of completed integration.[^pf] A combination is [shipped] only when every product in it has a published release and a source states the link. Otherwise it is [planned]. For the full list of stated relationships, see [stated relationships between products](/portfolio/portfolio-stated-relationships.md).
 
-## Combinations: the one shipped bundle
+## Combinations: the one shipped pairing
 
-- The Boss, the Universal Agent Runtime and BossFang: [shipped]. All installers in the latest release, {{v:boss}}, include the Universal Agent Runtime and BossFang as bundled programs that run beside The Boss.[^boss-build]
-- Within that bundle, BossFang's connection to a Universal Agent Runtime instance is [planned]. BossFang's own document says it is implemented in source, not yet built or tested.[^bossfang-uar]
+- The Boss with the Universal Agent Runtime: [shipped]. The v2.2.41 release notes say the installers include complete pinned Universal Agent Runtime sidecar payloads for macOS Apple Silicon, macOS Intel and Windows x64.[^boss-release] The integration manifest on the main branch also lists BossFang, but the release notes do not name it, and the portfolio notes that current-source features are not automatically in released installers. This page does not establish that BossFang is in the installer.[^boss-build][^pf]
+- BossFang bundled with The Boss: [planned], as stated above. BossFang's connection to a Universal Agent Runtime instance is [planned]. BossFang's own document says it is implemented in source, not yet built or tested.[^bossfang-uar]
 
 ## Combinations: memory and runtime [planned]
 
@@ -107,6 +115,7 @@ A visitor asks: "Which of these products work together, and which combinations a
 - Flint Gate, Flint Forge and Flint Realtime Fabric: Forge's README says it sits behind Gate and consumes Fabric as its realtime source.[^forge-readme]
 - Prometheus Entity Sync on Flint Realtime Fabric: Entity Sync reuses Fabric's change capture, CRDT and operation-log code.[^sync-readme]
 - The Universal Agent Runtime, Flint Gate, Flint Forge and Flint Realtime Fabric: the demo hosting platform's README assigns roles. UAR runs agents, Gate owns identity, Forge supplies data and Fabric supplies live updates. These are design statements.[^demos-readme]
+- Flint Gate in front of the Universal Agent Runtime for edge authentication: the UAR README says Gate owns edge auth enforcement, and the demo platform README assigns Gate identity.[^uar-readme][^demos-readme]
 - The Flint core infrastructure README places Gate, Forge's Quarry and Fabric in the stack it configures.[^infra-readme]
 
 ## Combinations: libraries and inference [planned]
