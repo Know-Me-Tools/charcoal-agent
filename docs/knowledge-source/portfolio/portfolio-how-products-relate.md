@@ -35,6 +35,8 @@ sources:
 
 # How the KnowMe AI, LLC products relate to each other
 
+In short: the portfolio frames the relationships between the products, including the Universal Agent Runtime that The Boss bundles and the KnowMe client connects to, as architectural intent, not proof of completed integration. Few relationships are stated in the sources, and they are listed below.
+
 ## How do the KnowMe AI, LLC products relate to each other?
 
 The portfolio says its relationships are architectural intent, not proof of completed integration.[^portfolio] The relationships the sources state most clearly are these.

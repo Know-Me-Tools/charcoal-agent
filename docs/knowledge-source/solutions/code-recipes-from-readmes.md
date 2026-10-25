@@ -40,6 +40,8 @@ sources:
 
 # Code recipes taken from product READMEs
 
+Short answer for Prometheus Entity Management: install with `pnpm add @prometheus-ags/entity-graph-core`, which gives the version tagged `latest` on npm, 4.1.1 per the README. Version 4.2.0 is not out: the README lists it as the expected candidate with release state pending-publication.
+
 A visitor asks: "Show me how to install and start these." Every snippet below is copied from the README named in its section, read on 25 October 2026. Nothing here is invented. Where a README gives no command, this page gives none. Check the README for changes before you rely on a command. Status tags on this page: [shipped] means the facts file records a published release or package. [planned] means source without a release, a prototype, a specification or a design, and is never described here as available.
 
 ## Recipe: Prometheus Entity Management, React install
