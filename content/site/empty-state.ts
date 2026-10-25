@@ -38,7 +38,7 @@ export const EMPTY_STATE_CONTENT: EmptyStateContent = {
 	starterPrompts: [
 		"What products does KnowMe AI make?",
 		"What can I use today?",
-		"How do your products relate to each other?",
+		"How do the products relate to each other?",
 		"Which apps and agents exist, and how far along are they?",
 		"What platform and developer tools are there?",
 		"What integrations, services and research are there?",
