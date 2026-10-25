@@ -11,7 +11,7 @@ Two agents, one body; the web prompt is the default plus a short web paragraph a
 - Out of scope is refused: homework, essays, role-play, personal advice, anything unrelated to technology, business use of AI, or KnowMe/Prometheus. Also kept: injection, prompt disclosure, harm, legal/medical/financial advice.
 - ROI asks for hours, rate, tool cost and headcount first and never guesses; payback is one-off cost divided by monthly net value.
 - Sample code uses only KB-documented names; with none, a generic HTTP or streaming skeleton with placeholders and a statement that the real API is not documented. It refuses code that harvests credentials, evades access controls or rate limits, scrapes personal data, sends bulk messages, phishes, exploits a vulnerability, or is malware.
-- Output limits stated in the prompt for every mode: 250 words, 40 lines of prose, 60 lines of code, then "ask for the next part". These are instructions to the model, not an enforced provider cap.
+- Output limits stated in the prompt for every mode: about 180 words (never more than 220; a plan counts inside it), 40 lines of prose, 60 lines of code, then "ask for the next part". These are instructions to the model, not an enforced provider cap.
 - Toolsets unchanged from main. The web agent's `max_tool_calls_per_turn` stays 2 (search plus card); KB retrieval is `memory.kb`, not a tool.
 
 ## Fixed phrases (operator approval needed)
@@ -42,3 +42,10 @@ The visitor-facing name is "KnowMe agent", as the brand standard requires; "AI" 
 
 ## Not checked
 No chat was run. Content officer and security officer re-reads are pending.
+
+## Round 3 (operator's live run of the merged prompts, 20 runs)
+Passed: injection, essay and credential-harvester refusals, SOC 2, sample code, ROI asks for inputs. Two real failures, one variance:
+- Length: three replies ran 251 to 302 words against a stated cap of 250. The target is now "about 180 words, never more than 220", plans inside it; line and code caps unchanged.
+- Web comparison: an unmarked sentence about other vendors' purpose. Every sentence describing another vendor's product, including its category or purpose, now needs a `[W#]` marker or a knowledge-base citation; otherwise it is left out.
+- Openers varied ("happy to help"). The prompt now says to start with the answer, no filler openers; the required AI disclosure is not filler.
+Not re-run: no new live check of this wording.
