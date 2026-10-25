@@ -111,7 +111,7 @@ export const PRODUCT_PAGES: ProductPageCopy[] = [
 		slug: "bossfang",
 		name: "BossFang",
 		rows: ["bossfang"],
-		lead: "A Rust agent operating system for running AI agents with tools, memory and messaging, separate from The Boss desktop workspace.",
+		lead: "A Rust agent operating system for AI agents, documented as not yet built or tested; separate from The Boss desktop workspace.",
 		facts: [
 			{
 				label: "Forked from",
@@ -162,7 +162,7 @@ export const PRODUCT_PAGES: ProductPageCopy[] = [
 			},
 			{
 				label: "Clients",
-				value: "Clients reach it over HTTP and server-sent events; every action is checked and recorded.",
+				value: "Clients reach it over HTTP and server-sent events; it is designed so that actions are checked and recorded.",
 				source: "universal-agent-runtime/universal-agent-runtime-overview.md",
 			},
 			{
