@@ -4,9 +4,11 @@ import { MermaidBlock } from "./mermaid-block";
 
 const mermaidRender = vi.fn();
 const mermaidInitialize = vi.fn();
+const mermaidParse = vi.fn();
 
 vi.mock("mermaid", () => ({
   default: {
+    parse: (...args: unknown[]) => mermaidParse(...args),
     initialize: (...args: unknown[]) => mermaidInitialize(...args),
     render: (...args: unknown[]) => mermaidRender(...args),
   },
@@ -22,6 +24,8 @@ describe("MermaidBlock", () => {
   beforeEach(() => {
     mermaidRender.mockReset();
     mermaidInitialize.mockReset();
+    mermaidParse.mockReset();
+    mermaidParse.mockResolvedValue({ diagramType: "flowchart" });
   });
 
   it("renders an SVG for valid Mermaid source", async () => {
@@ -45,6 +49,46 @@ describe("MermaidBlock", () => {
     });
     expect(screen.getByTestId("mermaid-source")).toHaveTextContent("not a valid diagram");
     expect(screen.queryByText(/unexpected token/i)).not.toBeInTheDocument();
+  });
+
+  it("shows the fallback and never calls render when parse rejects, leaving nothing in document.body", async () => {
+    mermaidParse.mockRejectedValue(new Error("Syntax error in text"));
+
+    render(<MermaidBlock source="graph LR\n  A--" />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/diagram could not be rendered/i)).toBeInTheDocument();
+    });
+    expect(mermaidRender).not.toHaveBeenCalled();
+    expect(screen.queryByText(/syntax error/i)).not.toBeInTheDocument();
+    expect(document.body.querySelector('[id^="dmermaid-"], svg[id^="mermaid-"]')).toBeNull();
+  });
+
+  it("removes a body-level node left by a failed render", async () => {
+    mermaidRender.mockImplementation(async (id: string) => {
+      for (const nodeId of [`d${id}`, id]) {
+        const node = document.createElement("div");
+        node.id = nodeId;
+        document.body.appendChild(node);
+      }
+      throw new Error("render failed");
+    });
+
+    render(<MermaidBlock source="graph LR\n  A-->B" />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/diagram could not be rendered/i)).toBeInTheDocument();
+    });
+    expect(document.body.querySelector('[id^="dmermaid-"], [id^="mermaid-"]')).toBeNull();
+  });
+
+  it("initializes Mermaid with suppressErrorRendering", async () => {
+    mermaidRender.mockResolvedValue({ svg: "<svg></svg>" });
+
+    render(<MermaidBlock source="graph LR\n  A-->B" />);
+
+    await waitFor(() => expect(mermaidInitialize).toHaveBeenCalled());
+    expect(mermaidInitialize.mock.calls[0][0]).toMatchObject({ suppressErrorRendering: true });
   });
 
   // site-reply-content-hardening 3.3: Mermaid's SVG is injected with

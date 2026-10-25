@@ -9,6 +9,7 @@ import remarkMath from "remark-math";
 import { type FC, memo, useContext, useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { MermaidBlock } from "@/features/artifacts/mermaid-block";
+import { RENDER_FAILED_LABEL, RenderGuard } from "@/features/artifacts/render-guard";
 import { HtmlArtifactCard } from "@/features/artifacts/html-artifact-card";
 import { SvgBlock } from "@/features/artifacts/svg-block";
 import { ShikiCodeBlock } from "@/features/artifacts/shiki-code-block";
@@ -80,43 +81,57 @@ export const EnhancedCodeBlock: FC<
 
   // Mermaid diagrams
   if (lang === "mermaid") {
-    return <MermaidBlock source={code} className="my-3" />;
+    return (
+      <RenderGuard lang="mermaid" source={code} label={RENDER_FAILED_LABEL}>
+        <MermaidBlock source={code} className="my-3" />
+      </RenderGuard>
+    );
   }
 
   // SVG: always an <img> data URL, never markup (see SvgBlock)
   if (lang === "svg") {
-    return <SvgBlock source={codeText} className="my-3" />;
+    return (
+      <RenderGuard lang="svg" source={codeText}>
+        <SvgBlock source={codeText} className="my-3" />
+      </RenderGuard>
+    );
   }
 
   // HTML artifacts — only for non-trivial content
   if (lang === "html" && code.trim().length > 100) {
     return (
-      <HtmlArtifactCard
-        code={code}
-        language="html"
-        className="my-3"
-      />
+      <RenderGuard lang="html" source={code}>
+        <HtmlArtifactCard
+          code={code}
+          language="html"
+          className="my-3"
+        />
+      </RenderGuard>
     );
   }
 
   // TSX/JSX artifacts
   if ((lang === "tsx" || lang === "jsx") && code.trim().length > 200) {
     return (
-      <HtmlArtifactCard
-        code={code}
-        language={lang as "tsx" | "jsx"}
-        className="my-3"
-      />
+      <RenderGuard lang={lang} source={code}>
+        <HtmlArtifactCard
+          code={code}
+          language={lang as "tsx" | "jsx"}
+          className="my-3"
+        />
+      </RenderGuard>
     );
   }
 
   // Default: shiki syntax highlighting
   return (
-    <ShikiCodeBlock
-      code={code}
-      language={lang || "text"}
-      className="my-3"
-    />
+    <RenderGuard lang={lang || "text"} source={code}>
+      <ShikiCodeBlock
+        code={code}
+        language={lang || "text"}
+        className="my-3"
+      />
+    </RenderGuard>
   );
 };
 

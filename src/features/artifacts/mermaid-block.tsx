@@ -10,6 +10,7 @@ import {
 } from "react";
 import { CopyButton } from "@/components/common/copy-button";
 import { Button } from "@/components/ui/button";
+import { RENDER_FAILED_LABEL } from "@/features/artifacts/render-guard";
 import { ShikiCodeBlock } from "@/features/artifacts/shiki-code-block";
 import { mermaidBlockText } from "@/features/blocks/block-text";
 import { selectElementText } from "@/hooks/use-copy-to-clipboard";
@@ -42,6 +43,8 @@ function applyMermaidTheme(mermaid: typeof import("mermaid").default, isDark: bo
 		// The SVG is injected with dangerouslySetInnerHTML: keep labels
 		// sanitized and click handlers off regardless of Mermaid's default.
 		securityLevel: "strict",
+		// Mermaid v11 otherwise appends its own "Syntax error" SVG to document.body.
+		suppressErrorRendering: true,
 		// Built-in themes keep Mermaid's layout metrics; token colors override them.
 		theme: isDark ? "dark" : "default",
 		fontFamily: "'JetBrains Mono Variable', 'JetBrains Mono', monospace",
@@ -64,8 +67,6 @@ function applyMermaidTheme(mermaid: typeof import("mermaid").default, isDark: bo
 	});
 }
 
-/** The one place the "could not be rendered" copy is written, in plain language. */
-const RENDER_FAILED_LABEL = "Diagram could not be rendered";
 
 // Simple error boundary — catches render-time exceptions in the SVG we inject,
 // distinct from a Mermaid parse failure (handled inline in MermaidRenderer).
@@ -86,7 +87,14 @@ class MermaidErrorBoundary extends Component<
 		return { hasError: true };
 	}
 
-	componentDidCatch(_error: Error, _info: ErrorInfo) {}
+	componentDidCatch(error: Error, _info: ErrorInfo) {
+		// Fixed field list: no diagram source, no raw message text.
+		console.warn("[render-failure]", {
+			kind: "render-exception",
+			lang: "mermaid",
+			messageLength: error.message.length,
+		});
+	}
 
 	render() {
 		if (this.state.hasError) {
@@ -122,6 +130,16 @@ interface MermaidBlockProps {
 
 let mermaidIdCounter = 0;
 
+/** Mermaid renders into a temporary body-level node; drop any it leaves behind. */
+function removeStrayRenderNodes(id: string): void {
+	for (const stray of document.body.querySelectorAll(`[id="d${id}"], [id="${id}"]`)) {
+		if (stray.parentElement === document.body) stray.remove();
+	}
+	for (const svg of document.body.querySelectorAll(":scope > svg")) {
+		if (svg.id.startsWith(id)) svg.remove();
+	}
+}
+
 const MermaidRenderer: FC<MermaidBlockProps> = ({ source, className }) => {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const sourceWrapRef = useRef<HTMLDivElement>(null);
@@ -141,12 +159,16 @@ const MermaidRenderer: FC<MermaidBlockProps> = ({ source, className }) => {
 			.then(async (mermaid) => {
 				try {
 					applyMermaidTheme(mermaid, theme === "dark");
+					// parse() rejects on a syntax error without drawing anything.
+					await mermaid.parse(source.trim());
 					const { svg: rendered } = await mermaid.render(idRef.current, source.trim());
 					if (!cancelled) setSvg(rendered);
 				} catch {
 					// The raw parser message is not user-facing (design spec §7.10);
 					// the source itself is shown alongside the plain-language label.
 					if (!cancelled) setHasError(true);
+				} finally {
+					removeStrayRenderNodes(idRef.current);
 				}
 			})
 			.catch(() => {
