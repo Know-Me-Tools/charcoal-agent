@@ -56,3 +56,42 @@ for (const theme of THEMES) {
     });
   }
 }
+
+test("Ask the assistant to fix this sends exactly one user turn containing the source, then hides itself", async ({ page }) => {
+  const FIX_REPLY: SseEvent[] = [
+    { event: "agui.stream.start", data: { kind: "stream", phase: "start", request_id: "req-fix" } },
+    { event: "agui.message.delta", data: { kind: "message", phase: "delta", request_id: "req-fix", delta: { text: "Here is a corrected diagram." } } },
+    { event: "agui.done", data: { kind: "done", request_id: "req-fix" } },
+  ];
+  const sent: string[] = [];
+  await page.setViewportSize({ width: 320, height: 900 });
+  await page.route("**/api/chat/completion", async (route) => {
+    const body = route.request().postDataJSON() as { stream?: boolean; message?: string } | null;
+    if (body?.stream === false) {
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(TITLE_RESPONSE) });
+    }
+    sent.push(body?.message ?? "");
+    return route.fulfill({ status: 200, contentType: "text/event-stream", body: toSseBody(sent.length === 1 ? EVENTS : FIX_REPLY) });
+  });
+  await page.goto(`/threads/${FIXTURE_THREAD_ID}`);
+  await waitForAppReady(page);
+  const composer = page.getByLabel("Message input").filter({ visible: true });
+  await composer.fill("Draw it.");
+  await composer.press("Enter");
+
+  const fix = page.getByRole("button", { name: "Ask the assistant to fix this" });
+  await expect(fix).toBeVisible();
+  // 44 px tap target at 320.
+  const box = await fix.boundingBox();
+  expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+  await expect(page.getByRole("button", { name: "Copy error report" })).toBeVisible();
+  await fix.click();
+
+  await expect(page.getByText("Here is a corrected diagram.")).toBeVisible();
+  expect(sent).toHaveLength(2);
+  expect(sent[1]).toContain("The diagram below failed to render.");
+  expect(sent[1]).toContain(INVALID);
+  await expect(page.getByRole("button", { name: "Ask the assistant to fix this" })).toHaveCount(0);
+  // The original failed block keeps its plain fallback.
+  await expect(page.getByText("Diagram could not be rendered")).toBeVisible();
+});

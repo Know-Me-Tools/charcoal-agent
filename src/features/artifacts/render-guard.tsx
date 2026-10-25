@@ -1,6 +1,9 @@
 import { AlertTriangleIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { useBlockKey } from "@/features/render-failure/block-context";
+import { RenderFailureActions } from "@/features/render-failure/render-failure-actions";
+import { recordRenderFailure } from "@/features/render-failure/registry";
 
 /** The one place the "could not be rendered" copy is written, in plain language. */
 export const RENDER_FAILED_LABEL = "Diagram could not be rendered";
@@ -21,16 +24,13 @@ interface RenderGuardProps {
  * shows the block's text and the caller's existing failure label, if any.
  */
 export function RenderGuard({ children, lang, source, label }: RenderGuardProps) {
+	const key = useBlockKey(lang, source);
 	return (
 		<ErrorBoundary
 			resetKeys={[source]}
 			onError={(error) => {
-				// Fixed field list: no block text, no raw message.
-				console.warn("[render-failure]", {
-					kind: "render-exception",
-					lang,
-					messageLength: error instanceof Error ? error.message.length : 0,
-				});
+				// The registry logs the fixed field list; no block text, no raw message.
+				recordRenderFailure({ key, kind: "render-exception", lang, source, error });
 			}}
 			fallbackRender={() => (
 				<div className="my-3 min-w-0 overflow-hidden rounded-lg bg-surface">
@@ -43,6 +43,9 @@ export function RenderGuard({ children, lang, source, label }: RenderGuardProps)
 					<pre className="overflow-x-auto bg-code p-3 font-mono text-xs leading-relaxed text-fg">
 						<code>{source}</code>
 					</pre>
+					<div className="px-3 pb-3">
+						<RenderFailureActions lang={lang} source={source} />
+					</div>
 				</div>
 			)}
 		>
