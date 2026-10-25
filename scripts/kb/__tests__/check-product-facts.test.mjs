@@ -21,7 +21,7 @@ test("the committed facts file passes the schema check", () => {
 test("the CLI exits 0 on the committed file and prints the row count", () => {
 	const r = runNode("scripts/kb/check-product-facts.mjs");
 	assert.equal(r.status, 0, r.output);
-	assert.match(r.stdout, /^OK 58 rows/);
+	assert.match(r.stdout, /^OK 61 rows/);
 });
 
 test("an untagged row without a last-commit date fails", () => {

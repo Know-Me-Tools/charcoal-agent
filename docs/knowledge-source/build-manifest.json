@@ -359,6 +359,62 @@
     {
       "source": "portfolio/portfolio-how-products-relate.md",
       "output": "portfolio-how-products-relate.md"
+    },
+    {
+      "source": "solutions/keep-notes-and-memory-across-tools.md",
+      "output": "keep-notes-and-memory-across-tools.md"
+    },
+    {
+      "source": "solutions/run-ai-agents-with-auth-and-audit.md",
+      "output": "run-ai-agents-with-auth-and-audit.md"
+    },
+    {
+      "source": "solutions/build-local-first-apps-with-a-synced-entity-graph.md",
+      "output": "build-local-first-apps-with-a-synced-entity-graph.md"
+    },
+    {
+      "source": "solutions/add-an-agent-to-an-existing-product.md",
+      "output": "add-an-agent-to-an-existing-product.md"
+    },
+    {
+      "source": "solutions/modernize-or-harden-an-existing-tool.md",
+      "output": "modernize-or-harden-an-existing-tool.md"
+    },
+    {
+      "source": "solutions/discuss-ai-for-a-clinic-or-small-team.md",
+      "output": "discuss-ai-for-a-clinic-or-small-team.md"
+    },
+    {
+      "source": "solutions/get-a-personal-ai-assistant-today.md",
+      "output": "get-a-personal-ai-assistant-today.md"
+    },
+    {
+      "source": "solutions/give-your-coding-assistant-a-repeatable-process.md",
+      "output": "give-your-coding-assistant-a-repeatable-process.md"
+    },
+    {
+      "source": "solutions/run-models-locally-and-keep-data-on-device.md",
+      "output": "run-models-locally-and-keep-data-on-device.md"
+    },
+    {
+      "source": "solutions/coordinate-several-agents-or-assistants.md",
+      "output": "coordinate-several-agents-or-assistants.md"
+    },
+    {
+      "source": "solutions/product-combinations.md",
+      "output": "product-combinations.md"
+    },
+    {
+      "source": "solutions/business-case-and-roi-framework.md",
+      "output": "business-case-and-roi-framework.md"
+    },
+    {
+      "source": "solutions/code-recipes-from-readmes.md",
+      "output": "code-recipes-from-readmes.md"
+    },
+    {
+      "source": "rust-performance-skill/rust-performance-skill.md",
+      "output": "rust-performance-skill.md"
     }
   ]
 }
