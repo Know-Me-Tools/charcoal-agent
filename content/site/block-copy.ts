@@ -58,6 +58,31 @@ export interface BlockCopyContent {
 	svgAlt: string;
 	/** One-line note shown instead of the drawing when the SVG is over the size cap. */
 	svgTooLarge: string;
+	/** Button shown when a block fails to render: sends one visible chat turn asking for a fix. */
+	fixWithAssistant: string;
+	/** Accessible name and tooltip of the icon button that copies the structured error report. */
+	copyErrorReport: string;
+	/**
+	 * First line of the fix-turn message the visitor sends. `{kind}` is replaced
+	 * by `fixKindDiagram` or `fixKindBlock`. A fix turn is recognised by this
+	 * line, so it must stay the first line of the template.
+	 */
+	fixTurnLead: string;
+	fixKindDiagram: string;
+	fixKindBlock: string;
+	/** Label before the one-line error in the fix turn and the error report. */
+	errorLabel: string;
+	/** Closing request line of the fix turn. */
+	fixTurnRequest: string;
+	/** Marker placed after source cut at the length cap (fix turn and error report). */
+	sourceTruncated: string;
+	/** Labels of the plain-text error report (the copied text is for the operator). */
+	reportTitle: string;
+	reportKind: string;
+	reportLanguage: string;
+	reportBuild: string;
+	reportTime: string;
+	reportSource: string;
 }
 
 export const BLOCK_COPY_CONTENT: BlockCopyContent = {
@@ -82,4 +107,18 @@ export const BLOCK_COPY_CONTENT: BlockCopyContent = {
 	svgDownloadLabel: "Download SVG",
 	svgAlt: "SVG diagram",
 	svgTooLarge: "This SVG is too large to preview, so only its source is shown.",
+	fixWithAssistant: "Ask the assistant to fix this",
+	copyErrorReport: "Copy error report",
+	fixTurnLead: "The {kind} below failed to render.",
+	fixKindDiagram: "diagram",
+	fixKindBlock: "block",
+	errorLabel: "Error:",
+	fixTurnRequest: "Send back a corrected version only.",
+	sourceTruncated: "[source truncated]",
+	reportTitle: "KnowMe render failure report",
+	reportKind: "Kind",
+	reportLanguage: "Language",
+	reportBuild: "Build",
+	reportTime: "Time",
+	reportSource: "Source",
 };

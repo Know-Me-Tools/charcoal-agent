@@ -12,6 +12,7 @@ import { MermaidBlock } from "@/features/artifacts/mermaid-block";
 import { RENDER_FAILED_LABEL, RenderGuard } from "@/features/artifacts/render-guard";
 import { HtmlArtifactCard } from "@/features/artifacts/html-artifact-card";
 import { SvgBlock } from "@/features/artifacts/svg-block";
+import { RenderBlockScope } from "@/features/render-failure/render-block-scope";
 import { ShikiCodeBlock } from "@/features/artifacts/shiki-code-block";
 import { useThrottledValue } from "@/hooks/use-throttled-value";
 import { AnchorScope, MarkdownImage, MarkdownSpan, MarkdownTable, MarkdownVideo } from "./markdown-block-copy";
@@ -357,6 +358,7 @@ const EnhancedMarkdownTextImpl = () => {
   return (
     <TextMessagePartProvider text={renderedText} isRunning={isStreaming}>
       <StreamingFenceContext.Provider value={openFenceContent}>
+        <RenderBlockScope text={renderedText}>
         <MarkdownTextPrimitive
           remarkPlugins={[remarkGfm, remarkMath]}
           rehypePlugins={rehypePlugins}
@@ -379,6 +381,7 @@ const EnhancedMarkdownTextImpl = () => {
           // immediately, so the final rendered result is identical.
           smooth={false}
         />
+        </RenderBlockScope>
       </StreamingFenceContext.Provider>
     </TextMessagePartProvider>
   );

@@ -12,6 +12,9 @@ import { CopyButton } from "@/components/common/copy-button";
 import { Button } from "@/components/ui/button";
 import { RENDER_FAILED_LABEL } from "@/features/artifacts/render-guard";
 import { ShikiCodeBlock } from "@/features/artifacts/shiki-code-block";
+import { useBlockKey } from "@/features/render-failure/block-context";
+import { RenderFailureActions } from "@/features/render-failure/render-failure-actions";
+import { recordRenderFailure } from "@/features/render-failure/registry";
 import { mermaidBlockText } from "@/features/blocks/block-text";
 import { selectElementText } from "@/hooks/use-copy-to-clipboard";
 import { useUiStore } from "@/stores/ui-store";
@@ -74,11 +77,15 @@ interface ErrorBoundaryState {
 	hasError: boolean;
 }
 
-class MermaidErrorBoundary extends Component<
-	{ children: ReactNode; onReset: () => void },
-	ErrorBoundaryState
-> {
-	constructor(props: { children: ReactNode; onReset: () => void }) {
+interface MermaidErrorBoundaryProps {
+	children: ReactNode;
+	source: string;
+	onReset: () => void;
+	onCatch: (error: Error) => void;
+}
+
+class MermaidErrorBoundary extends Component<MermaidErrorBoundaryProps, ErrorBoundaryState> {
+	constructor(props: MermaidErrorBoundaryProps) {
 		super(props);
 		this.state = { hasError: false };
 	}
@@ -88,18 +95,15 @@ class MermaidErrorBoundary extends Component<
 	}
 
 	componentDidCatch(error: Error, _info: ErrorInfo) {
-		// Fixed field list: no diagram source, no raw message text.
-		console.warn("[render-failure]", {
-			kind: "render-exception",
-			lang: "mermaid",
-			messageLength: error.message.length,
-		});
+		// The registry logs the fixed field list: no diagram source, no raw message text.
+		this.props.onCatch(error);
 	}
 
 	render() {
 		if (this.state.hasError) {
 			return (
-				<div className="my-3 first:mt-0 last:mb-0 flex min-w-0 items-center gap-2 rounded-lg bg-danger-soft px-3 py-2">
+				<div className="my-3 first:mt-0 last:mb-0 min-w-0 rounded-lg bg-danger-soft px-3 py-2">
+					<div className="flex items-center gap-2">
 					<AlertTriangleIcon className="size-4 shrink-0 text-danger-text" aria-hidden="true" />
 					<span className="font-ui text-sm font-semibold text-danger-text">
 						{RENDER_FAILED_LABEL}
@@ -116,6 +120,8 @@ class MermaidErrorBoundary extends Component<
 						<RefreshCwIcon className="size-3.5" aria-hidden="true" />
 						<span className="sr-only">Try again</span>
 					</Button>
+					</div>
+					<RenderFailureActions lang="mermaid" source={this.props.source} />
 				</div>
 			);
 		}
@@ -147,6 +153,7 @@ const MermaidRenderer: FC<MermaidBlockProps> = ({ source, className }) => {
 	const [hasError, setHasError] = useState(false);
 	const [showSource, setShowSource] = useState(false);
 	const idRef = useRef(`mermaid-${++mermaidIdCounter}`);
+	const failureKey = useBlockKey("mermaid", source);
 	// Re-render when the theme changes so the diagram follows the tokens.
 	const theme = useUiStore((s) => s.theme);
 
@@ -163,22 +170,29 @@ const MermaidRenderer: FC<MermaidBlockProps> = ({ source, className }) => {
 					await mermaid.parse(source.trim());
 					const { svg: rendered } = await mermaid.render(idRef.current, source.trim());
 					if (!cancelled) setSvg(rendered);
-				} catch {
+				} catch (error) {
 					// The raw parser message is not user-facing (design spec §7.10);
-					// the source itself is shown alongside the plain-language label.
-					if (!cancelled) setHasError(true);
+					// it goes to the in-memory registry in redacted form, and the
+					// source is shown alongside the plain-language label.
+					if (!cancelled) {
+						recordRenderFailure({ key: failureKey, kind: "mermaid-parse", lang: "mermaid", source, error });
+						setHasError(true);
+					}
 				} finally {
 					removeStrayRenderNodes(idRef.current);
 				}
 			})
-			.catch(() => {
-				if (!cancelled) setHasError(true);
+			.catch((error) => {
+				if (!cancelled) {
+					recordRenderFailure({ key: failureKey, kind: "render-exception", lang: "mermaid", source, error });
+					setHasError(true);
+				}
 			});
 
 		return () => {
 			cancelled = true;
 		};
-	}, [source, theme]);
+	}, [source, theme, failureKey]);
 
 	// The copied text is the Mermaid source; on a failed copy, reveal the
 	// source view (if the diagram is showing) and select it for a manual copy.
@@ -211,6 +225,7 @@ const MermaidRenderer: FC<MermaidBlockProps> = ({ source, className }) => {
 						<span>{RENDER_FAILED_LABEL}</span>
 					</div>
 					<ShikiCodeBlock code={source} language="text" />
+					<RenderFailureActions lang="mermaid" source={source} />
 				</div>
 			</div>
 		);
@@ -267,8 +282,13 @@ const MermaidRenderer: FC<MermaidBlockProps> = ({ source, className }) => {
 
 export const MermaidBlock: FC<MermaidBlockProps> = ({ source, className }) => {
 	const [key, setKey] = useState(0);
+	const failureKey = useBlockKey("mermaid", source);
 	return (
-		<MermaidErrorBoundary onReset={() => setKey((k) => k + 1)}>
+		<MermaidErrorBoundary
+			source={source}
+			onReset={() => setKey((k) => k + 1)}
+			onCatch={(error) => recordRenderFailure({ key: failureKey, kind: "render-exception", lang: "mermaid", source, error })}
+		>
 			<MermaidRenderer key={key} source={source} className={className} />
 		</MermaidErrorBoundary>
 	);
