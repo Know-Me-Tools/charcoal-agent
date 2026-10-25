@@ -56,7 +56,7 @@ export interface Directory {
 
 export const DIRECTORY: Directory = {
 	"checked": "2026-10-24",
-	"total": 52,
+	"total": 53,
 	"families": [
 		{
 			"slug": "applications",
@@ -692,6 +692,19 @@ export const DIRECTORY: Directory = {
 					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Prometheus Tune. How far along is it?"
+				},
+				{
+					"id": "rust-performance-skill",
+					"name": "Rust performance skill",
+					"summary": "A review edition of a skill for auditing and repairing Rust service performance.",
+					"status": "design",
+					"versionLines": [
+						"No release recorded"
+					],
+					"versionKind": "none",
+					"checked": "2026-10-25",
+					"productSlug": null,
+					"prompt": "Tell me about Rust performance skill. How far along is it?"
 				},
 				{
 					"id": "light",

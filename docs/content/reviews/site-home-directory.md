@@ -152,3 +152,7 @@ Not yet given.
 8. Version line: "No tagged release · last commit …" in the generator, `directory.ts`, the design appendix and `docs/design/comps/build-data.mjs`. "No release recorded" is unchanged.
 
 Open for the operator, not changed: the site mixes "concierge" and "agent" wording.
+
+## Addendum 2026-10-25: Rust performance skill entry
+
+PR #164 added the public row `rust-performance-skill`, which the directory check rejected, so every site deploy since then failed at "Check product directory". New directory copy: name "Rust performance skill", family developer tools, summary "A review edition of a skill for auditing and repairing Rust service performance." (one line, no present-tense availability claim). Status rule S6 now also matches "Public review edition", so the entry reads "Design only", not "In development"; its source says the package is not installed or production-certified. Operator approves by merge.

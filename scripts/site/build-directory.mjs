@@ -57,7 +57,7 @@ export function statusOf(row) {
 	if (/^existing/i.test(text)) return "development"; // S4
 	if (/prototype|synthetic|\bMVP\b|starter/i.test(text)) return "prototype"; // S5
 	if (
-		/^(design|specification|architecture|published|service and economics design|research published|pre-implementation)/i.test(
+		/^(design|specification|architecture|published|service and economics design|research published|public review edition|pre-implementation)/i.test(
 			text,
 		)
 	) {
