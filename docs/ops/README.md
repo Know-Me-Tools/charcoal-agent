@@ -62,3 +62,13 @@ The `identifiers_in_kb` and `phrases_in_kb` checks compare against the text of `
 ### Not covered
 
 It does not test the site server's guards, the a2ui card rendering, or multi-turn conversations (the site sends one message per request). It tests the prompts as they behave once, on one run; the model is not deterministic, so a scenario that passes once can fail on the next run. Rerun a close call before trusting it.
+
+### Known heuristic limits
+
+- Regex checks read wording, not meaning. They were tuned on one live run (2026-10-25); expect new false positives and rerun a close call.
+- `no-saving` ignores formula text ("hours saved × rate × 20") and citation markers; it flags a percentage, a currency amount or "saves N hours". A saving worded some other way passes.
+- "Asks for inputs" accepts a question mark, a numbered inputs list, "give/send me" or "reply with". It cannot tell a good ask from a poor one.
+- `status-tag` accepts shipped, planned, bundled, in progress, not released or "separate service". It does not check that the tag is true.
+- `one-question` accepts one question mark or an explicit "none of our products fits / can't claim a fit". Two questions, or none and no such wording, fail.
+- Length caps (250 words, 40 lines) and unmarked competitor claims are real catches, not heuristics to relax: a 251-word reply fails by design.
+- To re-score saved transcripts after changing an assertion, without calling the model: `node scripts/ops/check-candidate-agent.mjs replay --scenarios docs/knowledge-source/eval/concierge-scenarios.json --dir logs/candidate-eval/<ts>/transcripts --corpus content/knowledge,docs/knowledge-source`.
