@@ -456,8 +456,8 @@ fn committed_web_agent_should_expose_only_the_card_and_web_search() {
     assert_eq!(agent["policy"]["skills"]["max_active"], 0);
     assert_eq!(agent["tools"], serde_json::json!({}));
     assert_eq!(
-        agent["extensions"]["budgets"]["max_tool_calls_per_turn"], 2,
-        "one search plus the answer card"
+        agent["extensions"]["budgets"]["max_tool_calls_per_turn"], 3,
+        "one search, one knowledge-base lookup and the answer card"
     );
 }
 
