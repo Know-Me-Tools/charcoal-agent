@@ -22,6 +22,8 @@ RUN npm ci --ignore-scripts
 COPY index.html vite.config.ts tsconfig.json tsconfig.app.json tsconfig.node.json ./
 COPY public ./public
 COPY content ./content
+# Read by the build's prerender step (vite.config.ts, site-seo-prerender).
+COPY scripts/site/prerender.mjs ./scripts/site/prerender.mjs
 COPY src ./src
 
 # The public build pins every chat thread to the site agent. It never carries

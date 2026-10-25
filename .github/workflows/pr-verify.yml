@@ -48,6 +48,11 @@ jobs:
       # date, breaks a copy limit, or links a private repository.
       - name: Check product pages
         run: node scripts/site/check-products.mjs
+      # site-seo-prerender: fails when a public route would reach a crawler
+      # without its title, description, canonical or text, or sitemap.xml or
+      # the robots.txt Sitemap line is missing a page.
+      - name: Check prerendered routes
+        run: node scripts/site/check-prerender.mjs
       - run: npm ci --ignore-scripts
       - run: npm run lint
       - run: npm test

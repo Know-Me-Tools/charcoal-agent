@@ -16,6 +16,7 @@
     "directory:build": "node scripts/site/build-directory.mjs",
     "directory:check": "node scripts/site/build-directory.mjs --check",
     "products:check": "node scripts/site/check-products.mjs",
+    "prerender:check": "node scripts/site/check-prerender.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p e2e/tsconfig.json",

@@ -4,6 +4,8 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import { configDefaults } from "vitest/config";
+import type { Plugin } from "vite";
+import { pathToFileURL } from "node:url";
 
 const host = process.env.TAURI_DEV_HOST;
 
@@ -14,6 +16,29 @@ const host = process.env.TAURI_DEV_HOST;
 const pkg = JSON.parse(
   readFileSync(path.resolve(__dirname, "package.json"), "utf-8"),
 ) as { version: string };
+
+/**
+ * Public site build only (VITE_SITE_AGENT_ID set): after the bundle is written, prerender `/`,
+ * `/products` and each product page into `<route>/index.html`, keep the pristine shell as
+ * `_shell.html` and write `sitemap.xml` (scripts/site/prerender.mjs, change site-seo-prerender).
+ * Done here, not as a second npm script, because server/build.rs passes `--outDir` to
+ * `npm run build` and the output directory is only known to Vite.
+ */
+function sitePrerender(isSite: boolean): Plugin {
+  let outDir = "";
+  return {
+    name: "site-prerender",
+    apply: "build",
+    configResolved(config) {
+      outDir = path.resolve(config.root, config.build.outDir);
+    },
+    async closeBundle() {
+      if (!isSite) return;
+      const mod = await import(pathToFileURL(path.resolve(__dirname, "scripts/site/prerender.mjs")).href);
+      await mod.prerenderDist(outDir);
+    },
+  };
+}
 
 export default defineConfig(({ mode }) => {
   // Load .env / .env.development / .env.development.local into a local map.
@@ -77,7 +102,7 @@ export default defineConfig(({ mode }) => {
       };
     })(),
   },
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), sitePrerender(Boolean(env.VITE_SITE_AGENT_ID?.trim()))],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
