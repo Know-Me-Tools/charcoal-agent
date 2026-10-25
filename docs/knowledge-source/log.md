@@ -1,5 +1,9 @@
 # Update Log
 
+## 2026-10-25
+
+* **kb-solutions-and-recipes**: Added `solutions/` (ten visitor-task pages, a product-combinations page, a business-case and ROI framework page with formulas and no numbers, and a code-recipes page copied from READMEs). Every combined flow is tagged shipped or planned from `product-facts.json`. Added the Edition 3 entries `rust-performance-skill` (public, registered) and `asset-tpg-stub` and `asset-rust-feasibility` (pending consent, drafted and held out of the manifest like their parent entry). The PatientGPT status line from Edition 3 was not copied. Six non-critical eval questions added.
+
 ## 2026-10-15
 
 * **Product relationships**: Added `prometheus/product-relationships.md`, which collects every relationship between the eight products that the existing files already state, one per line, and lists the pairs with no stated relationship. A visitor asking for a diagram of how the products relate got "I don't know" because those statements sit in about six files. Four non-critical eval questions added.

@@ -21,6 +21,8 @@ Source documents for the KnowMe site knowledge base. Each product directory hold
 * [Artifact Refiner](artifact-refiner/) - Document refinement and teaching workflows.
 * [Prometheus](prometheus/) - Who makes each product, its licence and where to get it, as short direct answers.
 * [KnowMe and Prometheus portfolio](portfolio/) - The whole portfolio at a glance: products by family and status, the relationships the sources state, and what can be used today.
+* [Solutions](solutions/) - Visitor tasks mapped to the products that help, product combinations tagged shipped or planned, a business-case framework and code recipes copied from READMEs.
+* [Rust performance engineering skill](rust-performance-skill/) - A proposed Rust performance skill in a public review edition; not installed, no improvement established.
 
 ## Context
 

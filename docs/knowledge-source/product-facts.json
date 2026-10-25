@@ -877,6 +877,50 @@
       },
       "checked": "2026-10-24",
       "publication": "public"
+    },
+    {
+      "id": "asset-tpg-stub",
+      "name": "ASSET TPG–ScanWorks interface stub specification",
+      "family": "Client & partner work",
+      "summary": "Architecture, functional specification and a finite implementation plan for a minimal host-compatible diagnostic stub. Covers activation pathways, normal return and controlled-error outcomes, bounded OpenTelemetry/Jaeger telemetry, acceptance evidence and rollback.",
+      "portfolioStatus": "Review draft v0.1, dated 25 October 2026. A delivered specification only: no stub implementation or Windows/ScanWorks integration was built or validated.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-25",
+      "publication": "pending-consent",
+      "publicationNote": "Client work under the ASSET program; the parent entry is pending consent and consent to a public description is not confirmed (D-009). Edition 3 publishes the document, but the knowledge base holds this page out until the operator confirms."
+    },
+    {
+      "id": "asset-rust-feasibility",
+      "name": "ASSET Rust Windows DLL feasibility",
+      "family": "Client & partner work",
+      "summary": "Separate investigation of a Rust TPG core and Windows DLL compatibility: direct procedural ABI, a thin compatibility shell or incremental migration. Covers ownership, unwinding, callbacks, UI threading, parity, deployment and bounded go/no-go evidence.",
+      "portfolioStatus": "Research edition 1.0, dated 25 October 2026. Rust is technically plausible; a drop-in DLL, Windows build, host integration or performance improvement has not been demonstrated.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-25",
+      "publication": "pending-consent",
+      "publicationNote": "Client work under the ASSET program; the parent entry is pending consent and consent to a public description is not confirmed (D-009). Edition 3 publishes the document, but the knowledge base holds this page out until the operator confirms."
+    },
+    {
+      "id": "rust-performance-skill",
+      "name": "Rust performance engineering skill",
+      "family": "Tools",
+      "summary": "A portable skill proposal for prevention, audit, diagnosis and bounded repair of Rust services. Six modules cover workflow evidence, runtime ownership, versioned streaming adapters, database use, scheduler selection and source provenance; an optional helper checks aggregate PostgreSQL connection budgets.",
+      "portfolioStatus": "Public review edition 0.1.0-review. All 15 deterministic budget-helper tests passed in the delivery check. The package is not installed or production-certified; no production performance improvement is established.",
+      "repo": null,
+      "version": {
+        "kind": "none",
+        "note": "no repository was identified for this entry"
+      },
+      "checked": "2026-10-25",
+      "publication": "public"
     }
   ]
 }

@@ -498,5 +498,59 @@
       "does not exist as working software yet"
     ],
     "critical": false
+  },
+  {
+    "question": "I use several AI tools and they all forget. How can I keep one memory across them?",
+    "expect_file": "keep-notes-and-memory-across-tools.md",
+    "expect_contains": [
+      "Surreal Memory Server",
+      "planned"
+    ],
+    "critical": false
+  },
+  {
+    "question": "How do I run AI agents with authentication, human approval and an audit trail?",
+    "expect_file": "run-ai-agents-with-auth-and-audit.md",
+    "expect_contains": [
+      "Cedar",
+      "audit"
+    ],
+    "critical": false
+  },
+  {
+    "question": "Can I build a local-first app with a synced entity graph, and what is shipped versus planned?",
+    "expect_file": "build-local-first-apps-with-a-synced-entity-graph.md",
+    "expect_contains": [
+      "PGlite",
+      "planned"
+    ],
+    "critical": false
+  },
+  {
+    "question": "Which KnowMe and Prometheus products work together, and which combinations are only planned?",
+    "expect_file": "product-combinations.md",
+    "expect_contains": [
+      "shipped",
+      "planned"
+    ],
+    "critical": false
+  },
+  {
+    "question": "How do I work out the ROI of these products, and what do they cost?",
+    "expect_file": "business-case-and-roi-framework.md",
+    "expect_contains": [
+      "pricing has not been announced",
+      "Annual cost"
+    ],
+    "critical": false
+  },
+  {
+    "question": "What is the install command for Prometheus Entity Management, and is 4.2.0 out?",
+    "expect_file": "code-recipes-from-readmes.md",
+    "expect_contains": [
+      "pnpm add @prometheus-ags/entity-graph-core",
+      "pending-publication"
+    ],
+    "critical": false
   }
 ]
