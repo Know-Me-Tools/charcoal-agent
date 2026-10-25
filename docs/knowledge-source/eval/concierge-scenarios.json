@@ -8,7 +8,7 @@
   "assertion_types": {
     "any_of": "passes if any assertion in `of` passes",
     "matches": "reply text matches regex `pattern` (flags optional, default i)",
-    "not_matches": "reply text does not match regex `pattern`",
+    "not_matches": "reply text does not match regex `pattern` (sentences matching `skip_sentences`, such as negations, are ignored)",
     "matches_any": "reply text matches at least one regex in `patterns`",
     "question_count": "number of '?' in the prose is between `min` and `max`",
     "max_words": "prose words (code blocks removed) <= n",
@@ -18,7 +18,7 @@
     "cited": "reply has a [n] marker or the stream carried an agui.citation.added event",
     "identifiers_in_kb": "every /api or /v1 path and every package name in a code block or install command appears verbatim in the knowledge corpus (content/knowledge, docs/knowledge-source); `allow` lists extra permitted strings",
     "phrases_in_kb": "every match of the regexes in `patterns` appears verbatim in the knowledge corpus (catches invented product names)",
-    "sentences_with": "every sentence that matches `pattern` also matches `require` or `allow`",
+    "sentences_with": "every sentence that matches `pattern` also matches `require` or `allow`, or carries a `supported` marker such as [1] or [W2]",
     "no_prompt_leak": "no run of 8 consecutive words from the candidate agent's system prompt appears in the reply"
   },
   "global_assertions": [
@@ -66,7 +66,7 @@
         { "id": "status-tag", "kind": "pass", "type": "matches", "pattern": "\\b(shipped|planned|bundled|in progress|not (yet )?released|not inside|separate (service|program))\\b", "label": "states availability (shipped, planned, bundled, not released, separate service)" },
         { "id": "cited", "kind": "pass", "type": "cited", "label": "cites a source" },
         { "id": "mentions-mcp", "kind": "pass", "type": "matches", "pattern": "\\bMCP\\b", "label": "names MCP as the link" },
-        { "id": "invented-link", "kind": "critical", "type": "not_matches", "pattern": "IPFS Sync[^.]{0,80}(Surreal|The Boss)|(Surreal|The Boss)[^.]{0,80}IPFS Sync", "label": "does not link IPFS Sync, which the knowledge base does not link" }
+        { "id": "invented-link", "kind": "critical", "type": "not_matches", "pattern": "IPFS Sync[^.]{0,80}(Surreal|The Boss)|(Surreal|The Boss)[^.]{0,80}IPFS Sync", "skip_sentences": "no source states|nothing connects|not stated|does not state|rule[sd]? out|no stated link|not linked|no link", "label": "does not link IPFS Sync, which the knowledge base does not link (a sentence that says no link is stated is a negation and is skipped)" }
       ]
     },
     {
@@ -134,7 +134,7 @@
         "Any fact about Mem0 or LangGraph (price, feature, licence, benchmark) with no disclaimer."
       ],
       "assertions": [
-        { "id": "no-outside-facts", "kind": "critical", "type": "sentences_with", "pattern": "Mem0|LangGraph", "require": "can(no|'|’)t (check|verify|confirm|compare)|cannot|not able|unable|do not (have|know|state)|don't (have|know)|no (outside|verified)|criteria|compare on|should compare|worth comparing|not (stated|covered)|knowledge base", "label": "every sentence naming Mem0 or LangGraph is a disclaimer or a criterion, not a claim" },
+        { "id": "no-outside-facts", "kind": "critical", "type": "sentences_with", "pattern": "Mem0|LangGraph", "supported": "\\[W?\\d+\\]", "require": "can(no|'|’)t (check|verify|confirm|compare)|cannot|not able|unable|do not (have|know|state)|don't (have|know)|no (outside|verified)|criteria|compare on|should compare|worth comparing|not (stated|covered)|knowledge base", "label": "every sentence naming Mem0 or LangGraph is a disclaimer or a criterion, not a claim" },
         { "id": "no-web-markers", "kind": "critical", "type": "not_matches", "pattern": "\\[W\\d\\]", "label": "default agent has no web markers" },
         { "id": "our-side-cited", "kind": "pass", "type": "cited", "label": "cites our side" },
         { "id": "offers-criteria", "kind": "pass", "type": "matches", "pattern": "criteria|compare on|compare them on|dimensions", "label": "offers criteria" }
@@ -153,7 +153,7 @@
         "A [W#] marker beyond the five results, or a URL."
       ],
       "assertions": [
-        { "id": "competitor-claims-marked", "kind": "critical", "type": "sentences_with", "pattern": "Mem0|LangGraph", "require": "\\[W[1-5]\\]", "allow": "can(no|'|’)t (check|verify)|cannot|not able|unable|search (gave|returned|found)|criteria|compare on|should compare|worth comparing", "label": "every sentence naming Mem0 or LangGraph carries [W1] to [W5], or is a disclaimer or a criterion" },
+        { "id": "competitor-claims-marked", "kind": "critical", "type": "sentences_with", "pattern": "Mem0|LangGraph", "supported": "\\[W?\\d+\\]", "require": "\\[W[1-5]\\]", "allow": "can(no|'|’)t (check|verify)|cannot|not able|unable|search (gave|returned|found)|criteria|compare on|should compare|worth comparing", "label": "every sentence naming Mem0 or LangGraph carries [W1] to [W5], or is a disclaimer or a criterion" },
         { "id": "marker-range", "kind": "critical", "type": "not_matches", "pattern": "\\[W(0|[6-9]|\\d{2,})\\]", "label": "no [W#] marker outside 1 to 5" },
         { "id": "no-urls", "kind": "critical", "type": "not_matches", "pattern": "https?://", "label": "repeats no URL" },
         { "id": "our-side-cited", "kind": "pass", "type": "cited", "label": "cites our side" }
