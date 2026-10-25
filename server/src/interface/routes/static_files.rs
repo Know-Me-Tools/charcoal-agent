@@ -17,6 +17,12 @@ const IMMUTABLE: &str = "public, max-age=31536000, immutable";
 /// Unhashed public files (favicon, robots.txt, og-image): short cache.
 const SHORT: &str = "public, max-age=3600";
 const NO_CACHE: &str = "no-cache";
+/// The untouched SPA shell the build keeps beside the prerendered home page
+/// (`scripts/site/prerender.mjs`). Falls back to `index.html` when absent.
+const SHELL: &str = "_shell.html";
+/// Paths the client router serves that have no file of their own. Every other
+/// extensionless path that is not prerendered is a real 404.
+const CLIENT_ROUTE_ROOTS: &[&str] = &["threads"];
 
 pub async fn serve(State(state): State<AppState>, method: Method, uri: Uri) -> Response {
     if method != Method::GET && method != Method::HEAD {
@@ -38,10 +44,45 @@ pub async fn serve(State(state): State<AppState>, method: Method, uri: Uri) -> R
             return (StatusCode::NOT_FOUND, "not found").into_response();
         }
     }
-    match state.assets.load("index.html").await {
-        Some(bytes) => file_response("index.html", bytes, &method),
-        None => (StatusCode::SERVICE_UNAVAILABLE, "web bundle unavailable").into_response(),
+    if path.is_empty() {
+        return match state.assets.load("index.html").await {
+            Some(bytes) => file_response("index.html", bytes, &method),
+            None => bundle_unavailable(),
+        };
     }
+    // The app shell, so the client router can render. An unknown path (such as
+    // `/products/no-such-product`) gets the same shell with a real 404 status:
+    // a crawler drops it, a visitor still sees the not-found page.
+    let status = if is_client_route(path) {
+        StatusCode::OK
+    } else {
+        StatusCode::NOT_FOUND
+    };
+    let shell = match state.assets.load(SHELL).await {
+        Some(bytes) => Some(bytes),
+        None => state.assets.load("index.html").await,
+    };
+    match shell {
+        Some(bytes) => {
+            let mut response = file_response("index.html", bytes, &method);
+            *response.status_mut() = status;
+            response
+        }
+        None => bundle_unavailable(),
+    }
+}
+
+fn bundle_unavailable() -> Response {
+    (StatusCode::SERVICE_UNAVAILABLE, "web bundle unavailable").into_response()
+}
+
+/// True for `/threads` and `/threads/<id>`, the client routes with no file.
+fn is_client_route(path: &str) -> bool {
+    let mut segments = path.trim_end_matches('/').split('/');
+    segments
+        .next()
+        .is_some_and(|first| CLIENT_ROUTE_ROOTS.contains(&first))
+        && segments.count() <= 1
 }
 
 fn file_response(path: &str, bytes: Cow<'static, [u8]>, method: &Method) -> Response {
@@ -104,6 +145,23 @@ fn content_type(path: &str) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn client_routes_should_be_the_thread_pages_only() {
+        for path in ["threads", "threads/", "threads/0b1e", "threads/0b1e/"] {
+            assert!(is_client_route(path), "{path}");
+        }
+        for path in [
+            "products/no-such-product",
+            "products",
+            "deep/client/route",
+            "threads/a/b",
+            "threadsx",
+            "agents",
+        ] {
+            assert!(!is_client_route(path), "{path}");
+        }
+    }
 
     #[test]
     fn wasm_and_pglite_data_should_have_correct_types() {

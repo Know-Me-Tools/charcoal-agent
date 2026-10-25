@@ -43,6 +43,8 @@ const WEB_INPUTS: &[&str] = &[
     "src",
     "content",
     "public",
+    // The post-build prerender (vite.config.ts `site-prerender`).
+    "scripts/site",
     "index.html",
     "package.json",
     "package-lock.json",

@@ -1,14 +1,21 @@
 User-agent: Googlebot
 Allow: /
+Disallow: /_shell.html
 
 User-agent: Bingbot
 Allow: /
+Disallow: /_shell.html
 
 User-agent: Twitterbot
 Allow: /
+Disallow: /_shell.html
 
 User-agent: facebookexternalhit
 Allow: /
+Disallow: /_shell.html
 
 User-agent: *
 Allow: /
+Disallow: /_shell.html
+
+Sitemap: https://know-me.tools/sitemap.xml

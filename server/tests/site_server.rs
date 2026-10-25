@@ -694,7 +694,7 @@ async fn chat_burst_should_be_rate_limited_per_client() {
 #[tokio::test]
 async fn spa_should_fall_back_to_index_with_isolation_headers() {
     let h = start(None).await;
-    for path in ["/", "/threads/123", "/deep/client/route"] {
+    for path in ["/", "/threads/123"] {
         let res = h
             .http
             .get(format!("{}{path}", h.base))
@@ -712,7 +712,14 @@ async fn spa_should_fall_back_to_index_with_isolation_headers() {
             "strict-origin-when-cross-origin"
         );
         assert_eq!(headers["cache-control"], "no-cache");
-        assert!(res.text().await.unwrap().contains("fixture-index"));
+        let body = res.text().await.unwrap();
+        // `/` is the prerendered home page; a client route gets the pristine shell.
+        let expected = if path == "/" {
+            "fixture-index"
+        } else {
+            "fixture-shell"
+        };
+        assert!(body.contains(expected), "{path}");
     }
     let get_len = h
         .http
@@ -740,6 +747,34 @@ async fn spa_should_fall_back_to_index_with_isolation_headers() {
         .await
         .unwrap();
     assert!(prerendered.contains("prerendered-about"));
+}
+
+#[tokio::test]
+async fn product_pages_should_be_prerendered_and_unknown_paths_should_be_404() {
+    let h = start(None).await;
+    let known = h
+        .http
+        .get(format!("{}/products/the-boss", h.base))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(known.status(), StatusCode::OK);
+    assert!(known.text().await.unwrap().contains("prerendered-the-boss"));
+
+    for path in ["/products/no-such-product", "/deep/client/route", "/agents"] {
+        let res = h
+            .http
+            .get(format!("{}{path}", h.base))
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(res.status(), StatusCode::NOT_FOUND, "{path}");
+        assert_eq!(res.headers()["cache-control"], "no-cache", "{path}");
+        assert!(
+            res.text().await.unwrap().contains("fixture-shell"),
+            "{path}: a 404 still carries the shell so the client renders the not-found page"
+        );
+    }
 }
 
 #[tokio::test]
