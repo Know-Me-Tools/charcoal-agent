@@ -108,7 +108,7 @@
   },
   {
     "question": "What is The Boss?",
-    "expect_file": "faq.md",
+    "expect_file": "the-boss.md",
     "expect_contains": [
       "desktop workspace"
     ],
