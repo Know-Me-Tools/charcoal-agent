@@ -280,6 +280,11 @@ export const DIRECTORY_COPY: DirectoryCopy = {
 			family: "developer-tools",
 			summary: "A Rust library for bounded background work whose results outlive the request.",
 		},
+		"rust-performance-skill": {
+			name: "Rust performance skill",
+			family: "developer-tools",
+			summary: "A review edition of a skill for auditing and repairing Rust service performance.",
+		},
 		refiner: {
 			name: "Artifact Refiner",
 			family: "developer-tools",

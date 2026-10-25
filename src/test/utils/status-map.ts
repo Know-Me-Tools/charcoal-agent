@@ -2,7 +2,7 @@
  * The design appendix `docs/design/product-directory-status-map.md` as data:
  * the label, family, version line and product page of every public row, as the
  * creative director derived them. The directory generator and the home page
- * are checked against it, so the visitor-facing truth of 52 labels does not
+ * are checked against it, so the visitor-facing truth of 53 labels does not
  * rest on the generator agreeing with itself.
  */
 import { readFileSync } from "node:fs";

@@ -38,7 +38,7 @@ function statusOf(row) {
 	if (/under assessment|status unresolved|needs? confirmation|uncertain/i.test(s)) return ["assessment", "S3"];
 	if (/^existing/i.test(s)) return ["development", "S4"];
 	if (/prototype|synthetic|\bMVP\b|starter/i.test(s)) return ["prototype", "S5"];
-	if (/^(design|specification|architecture|published|service and economics design|research published|pre-implementation)/i.test(s))
+	if (/^(design|specification|architecture|published|service and economics design|research published|public review edition|pre-implementation)/i.test(s))
 		return ["design", "S6"];
 	return ["development", "S7"];
 }
@@ -134,6 +134,7 @@ const MAP = {
 	"phase-exit": ["Phase Exit", "developer-tools", "Evidence-based completion decisions checked against an adopted contract."],
 	setup: ["KnowMe Project Management", "developer-tools", "Repeatable setup and conversion for code, processes, research and docs."],
 	docforge: ["HTMX Doc Forge", "developer-tools", "Branded publications, SVG explanations and IPFS publishing workflows."],
+	"rust-performance-skill": ["Rust performance skill", "developer-tools", "A review edition of a skill for auditing and repairing Rust service performance."],
 	refiner: ["Artifact Refiner", "developer-tools", "Document refinement and teaching workflows used across the skills."],
 	tune: ["Prometheus Tune", "developer-tools", "Proposed skills for datasets, fine-tuning, quantization and evaluation."],
 	logos: ["Logos", "developer-tools", "A harness-health dashboard prototype with its own design system."],
@@ -234,7 +235,7 @@ ${entries.length} public rows. ${facts.rows.length - entries.length} rows (\`pen
 | S3 | \`portfolioStatus\` contains "under assessment", "status unresolved", "need(s) confirmation" or "uncertain" | Under assessment |
 | S4 | \`portfolioStatus\` starts with "Existing" | In development |
 | S5 | \`portfolioStatus\` contains "prototype", "synthetic", "MVP" or "starter" | Prototype |
-| S6 | \`portfolioStatus\` starts with "Design", "Specification", "Architecture", "Published", "Service and economics design", "Research published" or "Pre-implementation" | Design only |
+| S6 | \`portfolioStatus\` starts with "Design", "Specification", "Architecture", "Published", "Service and economics design", "Research published", "Public review edition" or "Pre-implementation" | Design only |
 | S7 | anything else (source or fork work exists, no release) | In development |
 
 Why this order: a release in the registry or on GitHub is the strongest evidence and wins (S1, S2, decision D-002). An explicit doubt in the portfolio beats any other wording (S3), so no row reads stronger than its source. "Existing ..." means code exists (S4). Only then do prototype and design words decide (S5, S6).
