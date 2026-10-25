@@ -33,7 +33,7 @@ sources:
 
 # Frequently asked questions about KnowMe AI, LLC and its products
 
-Answers to common questions about KnowMe AI, LLC and its products: KnowMe, The Boss and IPFS Sync for Obsidian, and about the chat on this site.
+Answers to common questions about KnowMe AI, LLC and its products: KnowMe, The Boss and IPFS Sync for Obsidian, and about the chat on this site. The Boss, the one app from KnowMe AI, LLC that you can download today, is a free, open-source AI desktop workspace for macOS and Windows; KnowMe is a personal AI platform still in development.
 
 ## What is KnowMe?
 

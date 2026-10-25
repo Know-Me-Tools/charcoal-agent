@@ -1,5 +1,7 @@
 # Keep notes and AI memory across tools (Solutions)
 
+Short answer: the Surreal Memory Server is the piece meant to give several AI tools one shared memory, and it is [planned], source only, not released. The Boss, a released desktop workspace, can work with it over MCP as a separate service.
+
 A visitor asks: "I use several AI tools and note apps, and each one forgets what the others know. How do I keep one memory?" No product in the portfolio is a finished answer today. The nearest pieces are a memory server whose source is public but not released, and a desktop workspace that is released. Status tags on this page: [shipped] means the facts file records a published release or package. [planned] means source without a release, a prototype, a specification or a design, and is never described here as available.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
