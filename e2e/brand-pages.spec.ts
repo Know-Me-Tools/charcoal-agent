@@ -20,6 +20,11 @@ import { THEMES } from "./support/routes";
 const PRIMARY_TAGLINE = "AI that understands you.";
 const LEGAL_LINE = "© 2026 KnowMe AI, LLC";
 const NOT_FOUND_CTA = "Back to KnowMe";
+
+/** The site build adds a "Products" header link, one more Tab stop ahead of the theme toggle. */
+async function extraHeaderStops(page: Page): Promise<number> {
+  return (await page.locator("header").getByRole("link", { name: "Products", exact: true }).isVisible()) ? 1 : 0;
+}
 const PACKAGE_VERSION = (JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as {
   version: string;
 }).version;
@@ -518,6 +523,7 @@ test("landing: Tab reaches the lockup, theme toggle, Open app and send control, 
   // theme toggle, "Open app", textarea, send.
   await page.keyboard.press("Tab"); // skip link
   await page.keyboard.press("Tab"); // lockup link
+  for (let i = await extraHeaderStops(page); i > 0; i--) await page.keyboard.press("Tab"); // Products link
   let outline = await focusedOutline(page);
   expect(outline.style, outline.label).toBe("solid");
   expect(outline.width, outline.label).toBeGreaterThanOrEqual(2);
@@ -543,6 +549,7 @@ test("404: Tab reaches the header controls and the home CTA, each with a solid >
   await gotoReady(page, "/does-not-exist");
   await page.keyboard.press("Tab"); // skip link
   await page.keyboard.press("Tab"); // lockup link
+  for (let i = await extraHeaderStops(page); i > 0; i--) await page.keyboard.press("Tab"); // Products link
   await page.keyboard.press("Tab"); // theme toggle
   await page.keyboard.press("Tab"); // "Open app"
   await page.keyboard.press("Tab"); // home CTA
