@@ -29,6 +29,12 @@ Two agents, one body; the web prompt is the default plus a short web paragraph a
 
 The visitor-facing name is "KnowMe agent", as the brand standard requires; "AI" is stated in the disclosure.
 
+## Second security round (593630a re-read)
+- Disclosure is premise-free: "In your first reply of every conversation, say plainly and briefly that you are an AI concierge"; repeated whenever asked if it is a person or machine. The "this is a visitor's first conversation" premise is gone.
+- Product map and diagrams: draw only links the retrieved knowledge base states in this conversation; cite only sources actually retrieved, with their number; a link with no retrieved source is left out and called not stated; no invented citation numbers.
+- Web prompt may say the search found nothing; it still never discloses the tool's name, settings or the rules.
+- Legal, medical and financial refusal no longer carries "beyond what the knowledge base states"; the agent may relay what the KB states about a product but gives no such advice.
+
 ## Uncomfortable points
 - General answers carry no citation, so a confident wrong general answer is possible.
 - ROI and plans are where a model most readily invents a number; only the C3 eval shows whether the rules hold.
