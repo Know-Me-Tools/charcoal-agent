@@ -125,6 +125,8 @@ export function evaluate(a, ctx) {
   const { reply } = ctx;
   const parts = splitReply(reply);
   switch (a.type) {
+    case "any_of":
+      return { ok: a.of.some((sub) => evaluate(sub, ctx).ok), detail: "none of the alternatives held" };
     case "matches":
       return { ok: re(a.pattern, a.flags).test(reply), detail: "no match" };
     case "not_matches": {
@@ -334,10 +336,42 @@ async function run(argv) {
   return 0;
 }
 
+// Re-evaluates saved transcripts against the current scenario file. No network, no agents.
+//   replay --scenarios <file> --dir <transcripts dir> --corpus <dir>[,<dir>] [--agent <file> --web <file>]
+// Without --agent/--web the prompt-leak check is skipped (it passes).
+function replay(argv) {
+  const spec = JSON.parse(readFileSync(need(argv, "scenarios"), "utf8"));
+  const dir = need(argv, "dir");
+  const corpus = loadCorpus(need(argv, "corpus").split(","));
+  const af = arg(argv, "agent");
+  const wf = arg(argv, "web");
+  const promptWords = { default: af ? promptNgrams(af) : new Set(), web: wf ? promptNgrams(wf) : new Set() };
+  let worst = 0;
+  for (const sc of spec.scenarios) {
+    for (const kind of sc.agents) {
+      let t;
+      try {
+        t = JSON.parse(readFileSync(join(dir, `${sc.id}.${kind}.json`), "utf8"));
+      } catch {
+        continue;
+      }
+      const ctx = { reply: t.reply, citations: t.citation_events ?? 0, corpus, promptWords: promptWords[kind] };
+      const all = [...(spec.global_assertions ?? []), ...sc.assertions].filter((a) => !a.agents || a.agents.includes(kind));
+      const results = all.map((a) => ({ ...a, ...evaluate(a, ctx) }));
+      const status = classify(results, true);
+      worst = Math.max(worst, status === "CRITICAL FAIL" ? 1 : status === "FAIL" ? 2 : 0);
+      const failed = results.filter((r) => !r.ok).map((r) => `${r.kind === "critical" ? "CRIT " : ""}${r.id} (${r.detail})`);
+      process.stdout.write(`${sc.id.padEnd(30)}${kind.padEnd(9)}${status.padEnd(15)}${failed.join("; ")}\n`);
+    }
+  }
+  return worst;
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
   const [cmd, ...rest] = process.argv.slice(2);
   try {
-    if (cmd === "prepare") prepare(rest);
+    if (cmd === "replay") process.exitCode = replay(rest);
+    else if (cmd === "prepare") prepare(rest);
     else if (cmd === "run") process.exitCode = await run(rest);
     else throw new Error("usage: check-candidate-agent.mjs prepare|run ...");
   } catch (e) {
