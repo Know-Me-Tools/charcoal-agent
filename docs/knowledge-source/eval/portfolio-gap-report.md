@@ -314,3 +314,7 @@ Subject, relation, object, source. "Proposed" means the source states it as desi
 - **Run:** the crawl (385 pages, 0 failures), registry and release checks, repository visibility checks. KB validation and the withheld-terms scan are run before commit; results are in the pull request.
 - **Not verified:** the 144 unpublished local records; script-rendered screens; Edition 3; edition-to-edition differences in Praxis; the memory-server and skill-pack site claims against source.
 - **Added without being asked:** section 4 rows 5 to 7 (found while diffing). Remove them if out of scope.
+
+## Update, 2026-10-26
+
+The operator excluded `Prometheus-AGS/flint-infra` (Flint core infrastructure, `core-infra`) as internal deployment only. Row 19 above was resolved by removing the page, the facts row and the directory entry. This report is otherwise unchanged as a historical record.

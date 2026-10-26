@@ -56,7 +56,7 @@ export interface Directory {
 
 export const DIRECTORY: Directory = {
 	"checked": "2026-10-24",
-	"total": 53,
+	"total": 52,
 	"families": [
 		{
 			"slug": "applications",
@@ -438,19 +438,6 @@ export const DIRECTORY: Directory = {
 					"checked": "2026-10-24",
 					"productSlug": null,
 					"prompt": "Tell me about Demo hosting platform. How far along is it?"
-				},
-				{
-					"id": "core-infra",
-					"name": "Flint core infrastructure",
-					"summary": "Shared identity, authorization, data and realtime configuration for the platform.",
-					"status": "development",
-					"versionLines": [
-						"No tagged release · last commit 23 Oct 2026"
-					],
-					"versionKind": "untagged",
-					"checked": "2026-10-24",
-					"productSlug": null,
-					"prompt": "Tell me about Flint core infrastructure. How far along is it?"
 				},
 				{
 					"id": "sync",

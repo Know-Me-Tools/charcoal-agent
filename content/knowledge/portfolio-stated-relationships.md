@@ -48,14 +48,12 @@ Source: Prometheus Skills Mini README, retrieved 2026-10-13.
 
 Source: Flint Forge README, retrieved 2026-10-24.
 
-## The Flint platform: sync, infrastructure and demos (KnowMe and Prometheus portfolio)
+## The Flint platform: sync and demos (KnowMe and Prometheus portfolio)
 
 - The Prometheus Entity Sync README says Entity Sync is built on Flint Realtime Fabric and reuses its change capture, CRDT and operation-log code.
-- The Flint core infrastructure README places Flint Gate, Flint Forge's Quarry and Flint Realtime Fabric in the stack it configures.
 - The demo hosting platform's README assigns roles: the Universal Agent Runtime runs agents, Flint Gate owns identity, Flint Forge supplies data, Flint Realtime Fabric supplies live updates. These are design statements.
 
 Source: Prometheus Entity Sync README, retrieved 2026-10-24.
-Source: Flint core infrastructure README, retrieved 2026-10-24.
 Source: demos README, retrieved 2026-10-24.
 
 ## Numen and inference (KnowMe and Prometheus portfolio)

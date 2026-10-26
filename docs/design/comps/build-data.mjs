@@ -121,7 +121,6 @@ const MAP = {
 	gate: ["Flint Gate", "platform", "An authentication and authorization proxy for streaming AI workloads."],
 	forge: ["Flint Forge", "platform", "Data and edge compute: REST and GraphQL access and signed WASM edge functions."],
 	fabric: ["Flint Realtime Fabric", "platform", "A durable event spine with media, CRDT and federation transports."],
-	"core-infra": ["Flint core infrastructure", "platform", "Shared identity, authorization, data and realtime configuration for the platform."],
 	mesh: ["Flint Agent Mesh", "platform", "A design for identity, encryption, delivery and discovery across an agent mesh."],
 	sync: ["Prometheus Entity Sync", "platform", "Rust database synchronization with browser, Flutter and native SDKs."],
 	demos: ["Demo hosting platform", "platform", "Proposed hosting for packaged demos with agent, data and runtime bindings."],

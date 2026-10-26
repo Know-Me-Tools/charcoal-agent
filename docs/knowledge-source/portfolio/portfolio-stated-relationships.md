@@ -59,10 +59,6 @@ sources:
     resource: https://github.com/Prometheus-AGS/prometheus-entity-sync/blob/main/README.md
     title: Prometheus Entity Sync README
     last_modified: "2026-10-24T00:00:00+00:00"
-  - id: infra-readme
-    resource: https://github.com/Prometheus-AGS/flint-infra/blob/main/README.md
-    title: Flint core infrastructure README
-    last_modified: "2026-10-24T00:00:00+00:00"
   - id: demos-readme
     resource: https://github.com/Know-Me-Tools/demos/blob/main/README.md
     title: demos README
@@ -123,10 +119,9 @@ The portfolio says its relationships are architectural intent, not proof of comp
 
 - Flint Forge's README says Forge sits behind Flint Gate, which handles ingress and authentication, and consumes Flint Realtime Fabric as its realtime source.[^forge-readme]
 
-## The Flint platform: sync, infrastructure and demos
+## The Flint platform: sync and demos
 
 - The Prometheus Entity Sync README says Entity Sync is built on Flint Realtime Fabric and reuses its change capture, CRDT and operation-log code.[^sync-readme]
-- The Flint core infrastructure README places Flint Gate, Flint Forge's Quarry and Flint Realtime Fabric in the stack it configures.[^infra-readme]
 - The demo hosting platform's README assigns roles: the Universal Agent Runtime runs agents, Flint Gate owns identity, Flint Forge supplies data, Flint Realtime Fabric supplies live updates. These are design statements.[^demos-readme]
 
 ## Numen and inference

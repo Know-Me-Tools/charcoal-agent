@@ -92,7 +92,7 @@ The portfolio records no release, package or install route for the following. Tr
 
 The portfolio records no release, package or install route for these either.[^portfolio]
 
-- Platform: Flint Gate, Flint Realtime Fabric, Flint core infrastructure, Prometheus Entity Sync, the demo hosting platform, Flint Agent Mesh.
+- Platform: Flint Gate, Flint Realtime Fabric, Prometheus Entity Sync, the demo hosting platform, Flint Agent Mesh.
 - Tools: Phase Exit, KnowMe Project Management, HTMX Doc Forge, Native agent creator, Artifact Refiner, Prometheus Tune, Light Creator, gen_ui, Companion, Logos, Know Decision.
 
 ## Not available to use yet: integrations, services and research

@@ -243,11 +243,6 @@ export const DIRECTORY_COPY: DirectoryCopy = {
 			family: "platform",
 			summary: "An early scaffold for hosting packaged demos; bindings are still design.",
 		},
-		"core-infra": {
-			name: "Flint core infrastructure",
-			family: "platform",
-			summary: "Shared identity, authorization, data and realtime configuration for the platform.",
-		},
 		sync: {
 			name: "Prometheus Entity Sync",
 			family: "platform",
