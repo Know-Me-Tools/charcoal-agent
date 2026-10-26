@@ -17,3 +17,10 @@ Scope: visitor tasks mapped to the KnowMe and Prometheus products that help, eac
 * [KnowMe and Prometheus product combinations and their status](product-combinations.md) - Pairs and triples the sources state, each tagged shipped or planned.
 * [Business case and ROI framework](business-case-and-roi-framework.md) - Formulas for cost, benefit and return with your own inputs; KnowMe pricing is unpublished.
 * [Code recipes taken from product READMEs](code-recipes-from-readmes.md) - Install and run commands copied from the named READMEs, with version status.
+* [Answer questions over private data](private-data-question-answering.md) - No product turns a plain-language question into a cohort query or reports denominators; the pieces that exist and what is missing.
+* [Constrained query pattern](constrained-query-pattern.md) - A design pattern, not a product: a model proposes a typed spec and code compiles read-only queries.
+* [Private deployment checklist](private-deployment-checklist.md) - Localhost default, the opt-in local-only mode, local embeddings, image size, Helm chart and identity.
+* [Audit and provenance](audit-and-provenance.md) - What the runtime, memory server and knowledge store record, what they do not, and what a customer must add.
+* [Human review workflow](human-review-workflow.md) - Which tools need approval, the 300-second limit, and what a reviewer still checks.
+* [Regulated industries: what we do not claim](regulated-industry-readiness.md) - No product claim of HIPAA compliance, the local-only design and the company's own statement about a Google GKE option.
+* [Scope a pilot](scope-a-pilot.md) - One task, ten timed examples, data-quality checks and exit criteria.

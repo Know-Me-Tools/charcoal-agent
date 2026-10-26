@@ -1,5 +1,9 @@
 # Update Log
 
+## 2026-10-26
+
+* **kb-private-data-pages**: Added seven pages under `solutions/` for a visitor who wants plain-language questions answered over private data: a problem-to-product map that says plainly no product does cohort analytics, a constrained query pattern (marked a design pattern), a private deployment checklist, audit and provenance, a human review workflow, a regulated-industries page (what is not claimed, with the company's Google GKE statement attributed and unverified) and a pilot-scoping page. Facts come from a read-only source check of the Universal Agent Runtime (v1.3.0 tag), Flint Forge, Surreal Memory Server and Prometheus Knowledge; items that were not checked are stated as not checked. Eight eval questions added, two critical.
+
 ## 2026-10-25
 
 * **kb-solutions-and-recipes**: Added `solutions/` (ten visitor-task pages, a product-combinations page, a business-case and ROI framework page with formulas and no numbers, and a code-recipes page copied from READMEs). Every combined flow is tagged shipped or planned from `product-facts.json`. Added the Edition 3 entries `rust-performance-skill` (public, registered) and `asset-tpg-stub` and `asset-rust-feasibility` (pending consent, drafted and held out of the manifest like their parent entry). The PatientGPT status line from Edition 3 was not copied. Six non-critical eval questions added.
