@@ -24,11 +24,15 @@ sources:
     resource: https://github.com/Know-Me-Tools/flint-forge/releases/tag/v1.0.0
     title: "Flint Forge release v1.0.0"
     last_modified: "2026-10-24T00:00:00+00:00"
+  - id: forge-backend
+    resource: https://github.com/Know-Me-Tools/flint-forge/blob/main/crates/fdb-postgres/src/backend.rs
+    title: "Flint Forge source: fdb-postgres backend and row-level security"
+    last_modified: "2026-10-26T00:00:00+00:00"
 ---
 
 # Flint Forge: Quarry, Anvil and Kiln
 
-Flint Forge is the data and edge-compute plane of the Flint platform: REST and GraphQL access to Postgres, database extensions, and signed WebAssembly edge functions.[^pf][^forge-readme] Its parts are named Quarry, Anvil and Kiln.[^forge-readme] The README reports it v1.0-ready, and a v1.0.0 GitHub release exists. Neither is an audit.[^pf][^forge-release]
+Flint Forge is the data and edge-compute plane of the Flint platform: REST and GraphQL access to Postgres, database extensions, and signed WebAssembly edge functions.[^pf][^forge-readme] Its parts are named Quarry, Anvil and Kiln.[^forge-readme] The README reports it v1.0-ready, and a v1.0.0 GitHub release exists. Neither is an audit.[^pf][^forge-release] Quarry has no read-only mode, and its REST surface includes writes, so read-only access has to come from a read-only Postgres role.[^forge-backend]
 
 ## Flint Forge status and version
 
