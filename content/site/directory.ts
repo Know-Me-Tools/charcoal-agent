@@ -75,10 +75,10 @@ export const DIRECTORY: Directory = {
 							"summary": "A desktop workspace for conversations, agents, tools and projects.",
 							"status": "released",
 							"versionLines": [
-								"v2.2.41 · 23 Oct 2026"
+								"v2.2.42 · 24 Oct 2026"
 							],
 							"versionKind": "stable",
-							"checked": "2026-10-24",
+							"checked": "2026-10-25",
 							"productSlug": "the-boss",
 							"prompt": "Tell me about The Boss. How far along is it?"
 						}
@@ -247,10 +247,10 @@ export const DIRECTORY: Directory = {
 							"summary": "A Rust agent operating system, separate from The Boss desktop workspace.",
 							"status": "development",
 							"versionLines": [
-								"Build tag, no version · 8 Oct 2026"
+								"Build tag, no version · 10 Oct 2026"
 							],
 							"versionKind": "tag",
-							"checked": "2026-10-24",
+							"checked": "2026-10-25",
 							"productSlug": "bossfang",
 							"prompt": "Tell me about BossFang. How far along is it?"
 						}
@@ -552,10 +552,10 @@ export const DIRECTORY: Directory = {
 							"summary": "A Rust library for bounded background work whose results outlive the request.",
 							"status": "released",
 							"versionLines": [
-								"v0.3.0 on crates.io · 24 Oct 2026"
+								"v0.4.0 on crates.io · 25 Oct 2026"
 							],
 							"versionKind": "registry",
-							"checked": "2026-10-24",
+							"checked": "2026-10-25",
 							"productSlug": "parking-lot",
 							"prompt": "Tell me about Parking Lot. How far along is it?"
 						}
