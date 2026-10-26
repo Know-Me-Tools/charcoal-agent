@@ -573,7 +573,7 @@
   },
   {
     "question": "Can Flint Forge Quarry be set to read-only?",
-    "expect_file": "constrained-query-pattern.md",
+    "expect_file": "flint-forge.md",
     "expect_contains": [
       "no read-only mode"
     ],
