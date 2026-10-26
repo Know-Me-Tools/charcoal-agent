@@ -48,7 +48,7 @@ No. The Boss is not a KnowMe edition or tier, and it is not built on KnowMe. The
 
 ## What platforms does The Boss from KnowMe AI, LLC run on?
 
-The Boss runs on macOS and Windows. The latest release is v2.2.41, with installers for macOS on Apple Silicon, macOS on Intel and Windows x64; no Windows ARM64 installer is published in it. The macOS builds are notarized; the Windows installers are unsigned, so Windows may show a warning. Linux is not offered.
+The Boss runs on macOS and Windows. The latest release is v2.2.42, with installers for macOS on Apple Silicon, macOS on Intel and Windows x64; no Windows ARM64 installer is published in it. The macOS builds are notarized; the Windows installers are unsigned, so Windows may show a warning. Linux is not offered.
 
 Source: The Boss release records, retrieved 2026-10-12.
 Source: The Boss download page, retrieved 2026-10-12.

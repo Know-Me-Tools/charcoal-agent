@@ -32,7 +32,7 @@ Candle-VLLM, the Prometheus fork, serves local language models through an OpenAI
 
 ## Candle-VLLM status and version
 
-The fork has {{v:candle-vllm}}. At commit 10f844d, the lockfile still pins Parking Lot 0.1.0 at Git revision 32b481d, not the published 0.3.0 release.[^pf][^cv-lock]
+The fork has {{v:candle-vllm}}. At commit 10f844d, the lockfile still pins Parking Lot 0.1.0 at Git revision 32b481d, not the published 0.4.0 release.[^pf][^cv-lock]
 
 ## What the Candle-VLLM fork states
 

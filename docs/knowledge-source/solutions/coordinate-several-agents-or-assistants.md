@@ -39,7 +39,7 @@ The Universal Agent Runtime, release {{v:uar}}, has an A2A endpoint for agent-to
 
 ## Coordinate agents: what is a design or prototype [planned]
 
-- Companion (a provisional working name): a tested local Axum and Postgres prototype with task hierarchy, events and five MCP tools. Cloud deployment is not verified.[^pf]
+- Companion (a provisional working name): a tested local Axum and Postgres prototype with task hierarchy, events and five MCP tools. Cloud deployment is blocked on reauthentication and verification.[^pf]
 - Flint Agent Mesh: a specification for identity, authorization, group encryption, ordered delivery, discovery and synchronization. No deployed mesh is established.[^pf]
 - Synaxis: a published design for durable messaging, orchestration and shared memory. An operating service is not established.[^pf]
 - Numen: an architecture proposal for governed orchestration across interchangeable hosts.[^pf]

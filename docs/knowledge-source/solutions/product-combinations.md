@@ -16,8 +16,8 @@ sources:
     title: "KnowMe and Prometheus portfolio, Edition 2"
     last_modified: "2026-10-25T00:00:00+00:00"
   - id: boss-release
-    resource: https://github.com/Prometheus-AGS/the-boss/releases/tag/v2.2.41
-    title: "The Boss v2.2.41 release notes"
+    resource: https://github.com/Prometheus-AGS/the-boss/releases/tag/v2.2.42
+    title: "The Boss v2.2.42 release notes"
     last_modified: "2026-10-25T00:00:00+00:00"
   - id: boss-build
     resource: https://github.com/Prometheus-AGS/the-boss/blob/main/build/integration-artifacts.json
@@ -99,7 +99,7 @@ A visitor asks: "Which of these products work together, and which combinations a
 
 ## Combinations: the one shipped pairing
 
-- The Boss with the Universal Agent Runtime: [shipped]. The v2.2.41 release notes say the installers include complete pinned Universal Agent Runtime sidecar payloads for macOS Apple Silicon, macOS Intel and Windows x64.[^boss-release] The integration manifest on the main branch also lists BossFang, but the release notes do not name it, and the portfolio notes that current-source features are not automatically in released installers. This page does not establish that BossFang is in the installer.[^boss-build][^pf]
+- The Boss with the Universal Agent Runtime: [shipped]. The v2.2.42 release notes say the installers include complete pinned Universal Agent Runtime sidecar payloads for macOS Apple Silicon, macOS Intel and Windows x64.[^boss-release] The integration manifest on the main branch also lists BossFang, but the release notes do not name it, and the portfolio notes that current-source features are not automatically in released installers. This page does not establish that BossFang is in the installer.[^boss-build][^pf]
 - BossFang bundled with The Boss: [planned], as stated above. BossFang's connection to a Universal Agent Runtime instance is [planned]. BossFang's own document says it is implemented in source, not yet built or tested.[^bossfang-uar]
 
 ## Combinations: memory and runtime [planned]

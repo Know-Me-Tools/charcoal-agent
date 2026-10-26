@@ -163,11 +163,11 @@
       "repo": "Prometheus-AGS/the-boss",
       "version": {
         "kind": "stable",
-        "value": "v2.2.41",
-        "date": "2026-10-23",
-        "source": "https://github.com/Prometheus-AGS/the-boss/releases/tag/v2.2.41"
+        "value": "v2.2.42",
+        "date": "2026-10-24",
+        "source": "https://github.com/Prometheus-AGS/the-boss/releases/tag/v2.2.42"
       },
-      "checked": "2026-10-24",
+      "checked": "2026-10-25",
       "publication": "public"
     },
     {
@@ -179,12 +179,12 @@
       "repo": "GQAdonis/librefang",
       "version": {
         "kind": "tag",
-        "value": "bossfang-sidecar-0899e4993",
-        "date": "2026-10-08",
-        "source": "https://github.com/GQAdonis/librefang/releases/tag/bossfang-sidecar-0899e4993",
+        "value": "bossfang-sidecar-92bc005f3",
+        "date": "2026-10-10",
+        "source": "https://github.com/GQAdonis/librefang/releases/tag/bossfang-sidecar-92bc005f3",
         "note": "sidecar build tag with a commit hash; BossFang publishes no semantic version"
       },
-      "checked": "2026-10-24",
+      "checked": "2026-10-25",
       "publication": "public"
     },
     {
@@ -418,15 +418,15 @@
       "name": "Prometheus Parking Lot",
       "family": "Tools",
       "summary": "A Rust library for resource-aware background work, bounded execution and retrieving results after the initiating request has returned. Published packages make the library available for reuse beyond a single application.",
-      "portfolioStatus": "Published on crates.io: prometheus_parking_lot 0.3.0 and six component crates, all non-yanked as checked 24 October 2026. The Candle-VLLM fork integrates an earlier 0.1.0 Git revision; publication of 0.3.0 does not mean every consumer has upgraded.",
+      "portfolioStatus": "Published on crates.io: prometheus_parking_lot 0.4.0 and six component crates, all seven at 0.4.0 and non-yanked as checked 25 October 2026 (the portfolio of 24 October recorded 0.3.0). The Candle-VLLM fork integrates an earlier 0.1.0 Git revision; publication of 0.4.0 does not mean every consumer has upgraded.",
       "repo": "Prometheus-AGS/prometheus-parking-lot-rs",
       "version": {
         "kind": "registry",
-        "value": "v0.3.0",
-        "date": "2026-10-24",
+        "value": "v0.4.0",
+        "date": "2026-10-25",
         "source": "https://crates.io/crates/prometheus_parking_lot"
       },
-      "checked": "2026-10-24",
+      "checked": "2026-10-25",
       "publication": "public"
     },
     {
@@ -840,7 +840,7 @@
       "name": "Candle-VLLM · Prometheus fork",
       "family": "Integrations",
       "summary": "Our Prometheus fork of Candle-VLLM integrates Parking Lot into its inference-serving engine, combining KV-cache-aware resource accounting, configurable worker capacity, bounded request queues and streaming-result delivery. It forms a key part of the inference infrastructure supporting our Numen work.",
-      "portfolioStatus": "Code integration verified at 10f844d: completion and streaming paths submit work through the pool. Cargo.lock still pins Parking Lot 0.1.0 at Git revision 32b481d, not the published 0.3.0 release.",
+      "portfolioStatus": "Code integration verified at 10f844d: completion and streaming paths submit work through the pool. Cargo.lock still pins Parking Lot 0.1.0 at Git revision 32b481d, not the published 0.4.0 release.",
       "repo": "GQAdonis/candle-vllm",
       "version": {
         "kind": "untagged",

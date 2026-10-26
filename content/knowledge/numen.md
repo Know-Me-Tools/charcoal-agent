@@ -16,6 +16,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 - Its identity design covers credentials for both humans and agents.
 - That identity design is "additive proposal content, not current UAR scope or implemented fabric."
 - The portfolio lists a current identity edition (21 October), an original historical edition and a new Enclave deployment standard (24 October).
+- Status of the identity edition: the portfolio labels it current, but the edition's own header calls it a Revision 2 candidate that is not published. Both are true as written. The portfolio's label governs here, so read "current" as the latest working edition, not a published release.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 

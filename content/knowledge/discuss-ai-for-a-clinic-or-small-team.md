@@ -15,7 +15,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
 ## Discuss AI for a small team: products that address control (Solutions)
 
 - The Universal Agent Runtime [shipped], release v1.2.3: tool calls share schema validation, Cedar policy, approval, hard-deny and audit controls, and a Cedar Deny cannot be overridden by user approval. SurrealDB is the authoritative store in its default server bundle.
-- The Boss [shipped], release v2.2.41: conversations with cloud or local model providers and agent sessions with approval boundaries. You supply your own provider credentials.
+- The Boss [shipped], release v2.2.42: conversations with cloud or local model providers and agent sessions with approval boundaries. You supply your own provider credentials.
 - Flint Gate [planned, source only]: a proxy with human approval for tool calls, per-agent token budgets and an audit trail of identity changes.
 
 Source: Universal Agent Runtime README, retrieved 2026-10-25.
@@ -33,7 +33,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
 - The Boss with the Universal Agent Runtime sidecar in its installers: [shipped], per the release notes.
 - Flint Gate in front of the Universal Agent Runtime: [planned], because Gate has no release. The UAR README says Gate owns edge auth enforcement, and the demo platform README assigns roles; both are design statements.
 
-Source: The Boss v2.2.41 release notes, retrieved 2026-10-25.
+Source: The Boss v2.2.42 release notes, retrieved 2026-10-25.
 Source: Universal Agent Runtime README, retrieved 2026-10-25.
 Source: demos README, retrieved 2026-10-25.
 

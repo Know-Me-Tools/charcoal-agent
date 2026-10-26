@@ -78,11 +78,11 @@ All installers in the latest release, {{v:boss}}, include the Universal Agent Ru
 
 ## Platforms The Boss supports
 
-The Boss runs on macOS and Windows. The latest release is {{v:boss}}, published {{v:boss:date}}, with installers for macOS on Apple Silicon (719.3 MB, signed with a Developer ID and notarized), macOS on Intel (754.2 MB, notarized) and Windows x64 (612.3 MB, unsigned). No Windows ARM64 installer is published in that release; an older release, v2.2.30, has one.[^boss-releases] The Boss needs macOS 12 or later or Windows 10 or later. Linux is not offered.[^boss-site]
+The Boss runs on macOS and Windows. The latest release is {{v:boss}}, published {{v:boss:date}}, with installers for macOS on Apple Silicon (719.8 MB, signed with a Developer ID and notarized), macOS on Intel (755.9 MB, notarized) and Windows x64 (613.4 MB, unsigned). No Windows ARM64 installer is published in that release; an older release, v2.2.30, has one.[^boss-releases] The Boss needs macOS 12 or later or Windows 10 or later. Linux is not offered.[^boss-site]
 
 ## Signing and installer sizes for The Boss
 
-The macOS builds of The Boss are signed with a Developer ID and notarized. The Windows installers are unsigned, so Windows may show a warning during installation; the download page publishes a SHA-256 checksum for every installer so you can verify what you downloaded. Installer sizes recorded in The Boss release records for {{v:boss}}: macOS Apple Silicon 719.3 MB, macOS Intel 754.2 MB and Windows x64 612.3 MB.[^boss-releases]
+The macOS builds of The Boss are signed with a Developer ID and notarized. The Windows installers are unsigned, so Windows may show a warning during installation; the download page publishes a SHA-256 checksum for every installer so you can verify what you downloaded. Installer sizes recorded in The Boss release records for {{v:boss}}: macOS Apple Silicon 719.8 MB, macOS Intel 755.9 MB and Windows x64 613.4 MB.[^boss-releases]
 
 ## Getting The Boss
 

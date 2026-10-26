@@ -15,7 +15,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 - The portfolio calls Tranquil a Rust personal-data-server direction for Parlour.
 - The portfolio mentions existing public repository and event work. No repository was identified for this page.
 - Private agent-job and orchestration designs, with fencing and high availability, are new design.
-- The design is covered by the Numen identity edition. There is no standalone public publication.
+- The design is covered by the Numen identity edition, which the portfolio lists as current but whose own header calls it an unpublished Revision 2 candidate. There is no standalone public publication.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 

@@ -33,8 +33,8 @@ sources:
     title: "The Boss README"
     last_modified: "2026-10-25T00:00:00+00:00"
   - id: boss-release
-    resource: https://github.com/Prometheus-AGS/the-boss/releases/tag/v2.2.41
-    title: "The Boss v2.2.41 release notes"
+    resource: https://github.com/Prometheus-AGS/the-boss/releases/tag/v2.2.42
+    title: "The Boss v2.2.42 release notes"
     last_modified: "2026-10-25T00:00:00+00:00"
 ---
 
@@ -58,7 +58,7 @@ A Cedar policy in Flint Gate can mark a tool call for human approval. The gatewa
 
 - UAR alone, with its token requirement, Cedar policy and audit controls: [shipped].[^uar-readme]
 - Flint Gate in front of UAR for edge authentication: [planned]. The UAR README says Flint Gate owns edge auth enforcement, and the demo platform README assigns Gate identity and UAR agent execution. Those are design statements, and Gate has no release.[^uar-readme][^demos-readme]
-- The Boss: its agent sessions use MCP tools, skills and approval boundaries, and the v2.2.41 release notes say its installers include UAR sidecar payloads [shipped].[^boss-readme][^boss-release]
+- The Boss: its agent sessions use MCP tools, skills and approval boundaries, and the v2.2.42 release notes say its installers include UAR sidecar payloads [shipped].[^boss-readme][^boss-release]
 
 ## Run agents with auth and audit: what is not stated
 

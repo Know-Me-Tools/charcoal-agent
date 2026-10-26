@@ -28,12 +28,12 @@ Source: Flint Gate README, retrieved 2026-10-25.
 
 - UAR alone, with its token requirement, Cedar policy and audit controls: [shipped].
 - Flint Gate in front of UAR for edge authentication: [planned]. The UAR README says Flint Gate owns edge auth enforcement, and the demo platform README assigns Gate identity and UAR agent execution. Those are design statements, and Gate has no release.
-- The Boss: its agent sessions use MCP tools, skills and approval boundaries, and the v2.2.41 release notes say its installers include UAR sidecar payloads [shipped].
+- The Boss: its agent sessions use MCP tools, skills and approval boundaries, and the v2.2.42 release notes say its installers include UAR sidecar payloads [shipped].
 
 Source: Universal Agent Runtime README, retrieved 2026-10-25.
 Source: demos README, retrieved 2026-10-25.
 Source: The Boss README, retrieved 2026-10-25.
-Source: The Boss v2.2.41 release notes, retrieved 2026-10-25.
+Source: The Boss v2.2.42 release notes, retrieved 2026-10-25.
 
 ## Run agents with auth and audit: what is not stated (Solutions)
 

@@ -20,7 +20,7 @@ Companion is a provisional working name for a potential shared coordination work
 
 ## Companion status and version
 
-The portfolio status for Companion, paraphrased on the cloud point, is: "Tested local Axum/Postgres MVP with task hierarchy, events, deduplication, SSE replay and five MCP tools. Prototype screenshots exist. Cloud deployment is not verified."[^portfolio] No repository was identified for this entry, so there is no version number to quote.
+The portfolio status for Companion is: "Tested local Axum/Postgres MVP with task hierarchy, events, deduplication, SSE replay and five MCP tools. Prototype screenshots exist. Cloud deployment is blocked on reauthentication and verification."[^portfolio] No repository was identified for this entry, so there is no version number to quote.
 
 ## What Companion is proposed to do
 

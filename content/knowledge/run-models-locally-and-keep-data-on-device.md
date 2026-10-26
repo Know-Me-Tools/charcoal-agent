@@ -6,14 +6,14 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
 
 ## Run local models: what works today [shipped] (Solutions)
 
-The Boss, release v2.2.41, holds conversations across cloud and local model providers. The Universal Agent Runtime, release v1.2.3, lists local FastEmbed embeddings as a Tier 1 path with named capability evidence. OpenAI-compatible and Anthropic execution paths are also Tier 1. Which provider you pick decides where your prompts go.
+The Boss, release v2.2.42, holds conversations across cloud and local model providers. The Universal Agent Runtime, release v1.2.3, lists local FastEmbed embeddings as a Tier 1 path with named capability evidence. OpenAI-compatible and Anthropic execution paths are also Tier 1. Which provider you pick decides where your prompts go.
 
 Source: The Boss README, retrieved 2026-10-25.
 Source: Universal Agent Runtime README, retrieved 2026-10-25.
 
 ## Run local models: the Candle-VLLM fork [planned, source only] (Solutions)
 
-The Candle-VLLM Prometheus fork serves local language models through an OpenAI-compatible API and submits completion and streaming work through a Prometheus Parking Lot pool. The fork has no tagged release (last commit 2026-05-26). The portfolio found no production-scale benchmark. At the inspected commit the lockfile pins an earlier Parking Lot revision, not the published v0.3.0.
+The Candle-VLLM Prometheus fork serves local language models through an OpenAI-compatible API and submits completion and streaming work through a Prometheus Parking Lot pool. The fork has no tagged release (last commit 2026-05-26). The portfolio found no production-scale benchmark. At the inspected commit the lockfile pins an earlier Parking Lot revision, not the published v0.4.0.
 
 Source: Candle-VLLM Prometheus fork README, retrieved 2026-10-25.
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
@@ -23,7 +23,7 @@ Source: Candle-VLLM Cargo.lock at 10f844d, retrieved 2026-10-25.
 
 - The Boss with a local model provider: [shipped].
 - The Candle-VLLM fork as a model source for the Universal Agent Runtime or The Boss: no source states this pairing. UAR has an OpenAI-compatible path and the fork exposes an OpenAI-compatible API, but this page does not infer an integration.
-- Prometheus Parking Lot, a Rust crate on crates.io (v0.3.0), for resource-aware queues inside a serving engine: [shipped] as a library. Registry publication is not runtime qualification.
+- Prometheus Parking Lot, a Rust crate on crates.io (v0.4.0), for resource-aware queues inside a serving engine: [shipped] as a library. Registry publication is not runtime qualification.
 
 Source: The Boss README, retrieved 2026-10-25.
 Source: Universal Agent Runtime README, retrieved 2026-10-25.
