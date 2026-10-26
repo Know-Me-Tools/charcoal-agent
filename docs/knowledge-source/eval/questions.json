@@ -552,5 +552,75 @@
       "pending-publication"
     ],
     "critical": false
+  },
+  {
+    "question": "Can KnowMe turn a plain-language question into a patient count with denominators and missing data?",
+    "expect_file": "private-data-question-answering.md",
+    "expect_contains": [
+      "None of the KnowMe or Prometheus products",
+      "denominators"
+    ],
+    "critical": true
+  },
+  {
+    "question": "What is a safe way to let an AI model query a private database without letting it write SQL?",
+    "expect_file": "constrained-query-pattern.md",
+    "expect_contains": [
+      "design pattern",
+      "read-only database role"
+    ],
+    "critical": false
+  },
+  {
+    "question": "Can Flint Forge Quarry be set to read-only?",
+    "expect_file": "constrained-query-pattern.md",
+    "expect_contains": [
+      "no read-only mode"
+    ],
+    "critical": false
+  },
+  {
+    "question": "How do I run the Universal Agent Runtime on my own machine so nothing leaves my network?",
+    "expect_file": "private-deployment-checklist.md",
+    "expect_contains": [
+      "UAR_LOCAL_ONLY=1",
+      "127.0.0.1"
+    ],
+    "critical": false
+  },
+  {
+    "question": "Does the Universal Agent Runtime keep an exportable audit log of every tool call?",
+    "expect_file": "audit-and-provenance.md",
+    "expect_contains": [
+      "no durable audit log",
+      "export endpoint"
+    ],
+    "critical": false
+  },
+  {
+    "question": "Who approves an agent's tool call, and how long does a pending approval last?",
+    "expect_file": "human-review-workflow.md",
+    "expect_contains": [
+      "300 seconds",
+      "read-only"
+    ],
+    "critical": false
+  },
+  {
+    "question": "Is KnowMe HIPAA compliant?",
+    "expect_file": "regulated-industry-readiness.md",
+    "expect_contains": [
+      "makes no claim that any product is HIPAA compliant"
+    ],
+    "critical": true
+  },
+  {
+    "question": "How should we scope a first AI pilot over our own data?",
+    "expect_file": "scope-a-pilot.md",
+    "expect_contains": [
+      "ten real examples",
+      "exit criteria"
+    ],
+    "critical": false
   }
 ]

@@ -413,6 +413,34 @@
       "output": "code-recipes-from-readmes.md"
     },
     {
+      "source": "solutions/private-data-question-answering.md",
+      "output": "private-data-question-answering.md"
+    },
+    {
+      "source": "solutions/constrained-query-pattern.md",
+      "output": "constrained-query-pattern.md"
+    },
+    {
+      "source": "solutions/private-deployment-checklist.md",
+      "output": "private-deployment-checklist.md"
+    },
+    {
+      "source": "solutions/audit-and-provenance.md",
+      "output": "audit-and-provenance.md"
+    },
+    {
+      "source": "solutions/human-review-workflow.md",
+      "output": "human-review-workflow.md"
+    },
+    {
+      "source": "solutions/regulated-industry-readiness.md",
+      "output": "regulated-industry-readiness.md"
+    },
+    {
+      "source": "solutions/scope-a-pilot.md",
+      "output": "scope-a-pilot.md"
+    },
+    {
       "source": "rust-performance-skill/rust-performance-skill.md",
       "output": "rust-performance-skill.md"
     }
