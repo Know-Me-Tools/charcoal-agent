@@ -67,10 +67,6 @@ sources:
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/README.md
     title: "Universal Agent Runtime README"
     last_modified: "2026-10-25T00:00:00+00:00"
-  - id: infra-readme
-    resource: https://github.com/Prometheus-AGS/flint-infra/blob/main/README.md
-    title: "Flint core infrastructure README"
-    last_modified: "2026-10-25T00:00:00+00:00"
   - id: pem-readme
     resource: https://github.com/Prometheus-AGS/prometheus-entity-management/blob/main/README.md
     title: "Prometheus Entity Management README"
@@ -116,7 +112,6 @@ A visitor asks: "Which of these products work together, and which combinations a
 - Prometheus Entity Sync on Flint Realtime Fabric: Entity Sync reuses Fabric's change capture, CRDT and operation-log code.[^sync-readme]
 - The Universal Agent Runtime, Flint Gate, Flint Forge and Flint Realtime Fabric: the demo hosting platform's README assigns roles. UAR runs agents, Gate owns identity, Forge supplies data and Fabric supplies live updates. These are design statements.[^demos-readme]
 - Flint Gate in front of the Universal Agent Runtime for edge authentication: the UAR README says Gate owns edge auth enforcement, and the demo platform README assigns Gate identity.[^uar-readme][^demos-readme]
-- The Flint core infrastructure README places Gate, Forge's Quarry and Fabric in the stack it configures.[^infra-readme]
 
 ## Combinations: libraries and inference [planned]
 

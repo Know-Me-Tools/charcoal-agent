@@ -100,7 +100,7 @@ describe("committed directory against the design appendix", () => {
 	const entries = DIRECTORY.families.flatMap((f) => [...f.leads.flatMap((l) => l.entries), ...f.rest]);
 
 	it("reads the appendix table", () => {
-		expect(appendix).toHaveLength(53);
+		expect(appendix).toHaveLength(52);
 	});
 
 	it("holds exactly the public rows of the facts file, no more and no less", () => {
@@ -140,7 +140,7 @@ describe("committed directory against the design appendix", () => {
 describe("--check", () => {
 	it("passes on the committed files", () => {
 		const r = run(["--check"]);
-		expect(r.output).toMatch(/OK directory is current \(53 public rows\)/);
+		expect(r.output).toMatch(/OK directory is current \(52 public rows\)/);
 		expect(r.status).toBe(0);
 	});
 

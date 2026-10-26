@@ -74,7 +74,6 @@ Seven products record a published release or package: The Boss, Universal Agent 
 
 ## Platform and infrastructure: other services and designs
 
-- Flint core infrastructure: existing source; deployment not audited. Version: {{v:core-infra}}.[^portfolio]
 - Prometheus Entity Sync: existing implementation and prototype; deployment not audited. Version: {{v:sync}}.[^portfolio]
 - Demo hosting platform: scaffold and server/API design. Version: {{v:demos}}.[^portfolio]
 - Flint Agent Mesh: architecture and specification; deployed mesh not established. No repository was identified.[^portfolio]

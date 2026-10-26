@@ -56,7 +56,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 The portfolio records no release, package or install route for these either.
 
-- Platform: Flint Gate, Flint Realtime Fabric, Flint core infrastructure, Prometheus Entity Sync, the demo hosting platform, Flint Agent Mesh.
+- Platform: Flint Gate, Flint Realtime Fabric, Prometheus Entity Sync, the demo hosting platform, Flint Agent Mesh.
 - Tools: Phase Exit, KnowMe Project Management, HTMX Doc Forge, Native agent creator, Artifact Refiner, Prometheus Tune, Light Creator, gen_ui, Companion, Logos, Know Decision.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.

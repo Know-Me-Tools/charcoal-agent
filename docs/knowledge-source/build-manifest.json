@@ -189,10 +189,6 @@
       "output": "flint-realtime-fabric.md"
     },
     {
-      "source": "flint-core-infrastructure/flint-core-infrastructure.md",
-      "output": "flint-core-infrastructure.md"
-    },
-    {
       "source": "prometheus-entity-management/prometheus-entity-management.md",
       "output": "prometheus-entity-management.md"
     },

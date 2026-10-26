@@ -68,7 +68,6 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 ## Platform and infrastructure: other services and designs (KnowMe and Prometheus portfolio)
 
-- Flint core infrastructure: existing source; deployment not audited. Version: no tagged release (last commit 2026-10-23).
 - Prometheus Entity Sync: existing implementation and prototype; deployment not audited. Version: no tagged release (last commit 2026-09-17).
 - Demo hosting platform: scaffold and server/API design. Version: no tagged release (last commit 2026-10-21).
 - Flint Agent Mesh: architecture and specification; deployed mesh not established. No repository was identified.

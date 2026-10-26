@@ -277,21 +277,6 @@
       "publication": "public"
     },
     {
-      "id": "core-infra",
-      "name": "Flint core infrastructure",
-      "family": "Infrastructure",
-      "summary": "Shared identity, authorization, data and realtime infrastructure configuration for the platform.",
-      "portfolioStatus": "Existing infrastructure source; current deployment not audited.",
-      "repo": "Prometheus-AGS/flint-infra",
-      "version": {
-        "kind": "untagged",
-        "lastCommit": "2026-10-23",
-        "source": "https://github.com/Prometheus-AGS/flint-infra"
-      },
-      "checked": "2026-10-24",
-      "publication": "public"
-    },
-    {
       "id": "pem",
       "name": "Prometheus Entity Management / entity-graph",
       "family": "Tools",

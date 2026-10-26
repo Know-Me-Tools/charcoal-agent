@@ -36,13 +36,11 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
 - Prometheus Entity Sync on Flint Realtime Fabric: Entity Sync reuses Fabric's change capture, CRDT and operation-log code.
 - The Universal Agent Runtime, Flint Gate, Flint Forge and Flint Realtime Fabric: the demo hosting platform's README assigns roles. UAR runs agents, Gate owns identity, Forge supplies data and Fabric supplies live updates. These are design statements.
 - Flint Gate in front of the Universal Agent Runtime for edge authentication: the UAR README says Gate owns edge auth enforcement, and the demo platform README assigns Gate identity.
-- The Flint core infrastructure README places Gate, Forge's Quarry and Fabric in the stack it configures.
 
 Source: Flint Forge README, retrieved 2026-10-25.
 Source: Prometheus Entity Sync README, retrieved 2026-10-25.
 Source: demos README, retrieved 2026-10-25.
 Source: Universal Agent Runtime README, retrieved 2026-10-25.
-Source: Flint core infrastructure README, retrieved 2026-10-25.
 
 ## Combinations: libraries and inference [planned] (Solutions)
 
