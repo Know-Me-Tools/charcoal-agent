@@ -67,7 +67,7 @@ describe("failed mermaid block actions", () => {
 			buildFixTurnText({ lang: "mermaid", redactedError: "Parse error on line 2: see [redacted]", source: SOURCE }),
 		);
 		expect(sent).toContain(SOURCE);
-		expect(fixButton()).toBeNull();
+		await waitFor(() => expect(fixButton()).toBeNull());
 		// The plain fallback stays.
 		expect(screen.getByText(/diagram could not be rendered/i)).toBeInTheDocument();
 		expect(screen.getByRole("button", { name: BLOCK_COPY_CONTENT.copyErrorReport })).toBeInTheDocument();
@@ -150,7 +150,7 @@ describe("RenderGuard fallback actions", () => {
 		fireEvent.click(fixButton() as HTMLElement);
 		expect(value.sendTurn).toHaveBeenCalledTimes(1);
 		expect((value.sendTurn as ReturnType<typeof vi.fn>).mock.calls[0]?.[0]).toContain("<svg/>");
-		expect(fixButton()).toBeNull();
+		await waitFor(() => expect(fixButton()).toBeNull());
 	});
 });
 
