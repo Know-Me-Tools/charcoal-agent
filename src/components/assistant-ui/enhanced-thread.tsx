@@ -42,6 +42,8 @@ import { EnhancedMarkdownText } from "@/components/assistant-ui/enhanced-markdow
 import { CopyButton } from "@/components/common/copy-button";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
 import { WebSearchToggle } from "@/components/assistant-ui/web-search-toggle";
+import { ComposerLengthCounter } from "@/components/assistant-ui/composer-length";
+import { useComposerOverLimit } from "@/features/chat/composer-limit";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -354,13 +356,26 @@ interface ComposerProps {
 	onFocusWithinChange?: (focused: boolean) => void;
 }
 
-export const EnhancedComposer: FC<ComposerProps> = ({
+/** The server caps a site message (see content/site/composer-limit.ts); the app build has no cap. */
+const SiteLimitedComposer: FC<ComposerProps> = (props) => {
+	const overLimit = useComposerOverLimit();
+	return <ComposerBody {...props} overLimit={overLimit} />;
+};
+
+export const EnhancedComposer: FC<ComposerProps> = (props) =>
+	isSiteBuild() ? <SiteLimitedComposer {...props} /> : <ComposerBody {...props} overLimit={false} />;
+
+const ComposerBody: FC<ComposerProps & { overLimit: boolean }> = ({
 	promptCachingEnabled,
 	onTogglePromptCaching,
 	onFocusWithinChange,
+	overLimit,
 }) => {
 	// The public site has no prompt-caching control (a runtime setting, not a
-	// visitor's choice) and its own placeholder.
+	// visitor's choice) and its own placeholder. It also has no attachments:
+	// the server drops them, so the "+" button and the drop overlay are left out.
+	// The dropzone element itself stays: with no attachment support it only
+	// refuses a dragged file, which keeps the browser from opening it in the tab.
 	const siteBuild = isSiteBuild();
 	// Critique P2-7: autofocus raises the phone keyboard and paints an ember
 	// ring on load, so the site build only autofocuses from 768px up.
@@ -368,6 +383,15 @@ export const EnhancedComposer: FC<ComposerProps> = ({
 	return (
 	<ComposerPrimitive.Root
 		className="relative flex w-full flex-col"
+		onSubmit={
+			overLimit
+				? (event) => {
+						// Enter submits the form without touching the Send button, so the
+						// over-limit stop has to be here as well as on the button.
+						event.preventDefault();
+					}
+				: undefined
+		}
 		onFocus={onFocusWithinChange ? () => onFocusWithinChange(true) : undefined}
 		onBlur={
 			onFocusWithinChange
@@ -394,21 +418,30 @@ export const EnhancedComposer: FC<ComposerProps> = ({
 				rows={1}
 				autoFocus={!(siteBuild && isPhone)}
 				aria-label="Message input"
+				aria-invalid={overLimit || undefined}
 			/>
+			{siteBuild && <ComposerLengthCounter />}
 			<ComposerActionBar
 				promptCachingEnabled={promptCachingEnabled}
 				onTogglePromptCaching={siteBuild ? undefined : onTogglePromptCaching}
+				overLimit={overLimit}
 			/>
-			<div className="pointer-events-none absolute inset-0 hidden items-center justify-center gap-2 rounded-xl bg-hover font-ui text-sm font-semibold text-fg group-data-[dragging=true]:flex">
-				<PaperclipIcon className="size-4" aria-hidden="true" />
-				Drop files to attach
-			</div>
+			{!siteBuild && (
+				<div className="pointer-events-none absolute inset-0 hidden items-center justify-center gap-2 rounded-xl bg-hover font-ui text-sm font-semibold text-fg group-data-[dragging=true]:flex">
+					<PaperclipIcon className="size-4" aria-hidden="true" />
+					Drop files to attach
+				</div>
+			)}
 		</ComposerPrimitive.AttachmentDropzone>
 	</ComposerPrimitive.Root>
 	);
 };
 
-const ComposerActionBar: FC<ComposerProps> = ({ promptCachingEnabled, onTogglePromptCaching }) => {
+const ComposerActionBar: FC<ComposerProps & { overLimit?: boolean }> = ({
+	promptCachingEnabled,
+	onTogglePromptCaching,
+	overLimit,
+}) => {
 	const siteBuild = isSiteBuild();
 	// Critique P2-6: 44px send/stop targets below 768 on the site build.
 	const phoneTarget = siteBuild ? "max-md:size-11" : undefined;
@@ -424,7 +457,7 @@ const ComposerActionBar: FC<ComposerProps> = ({ promptCachingEnabled, onTogglePr
 	return (
 		<div className={cn("mx-2 flex items-center justify-between gap-2", siteBuild ? "mb-1 md:mb-2" : "mb-2")}>
 			<div className="flex items-center gap-1">
-				<ComposerAddAttachment />
+				{!siteBuild && <ComposerAddAttachment />}
 				<WebSearchToggle />
 				{onTogglePromptCaching && (
 					<Tooltip>
@@ -457,7 +490,7 @@ const ComposerActionBar: FC<ComposerProps> = ({ promptCachingEnabled, onTogglePr
 				)}
 			</div>
 			<AuiIf condition={(s) => !s.thread.isRunning}>
-				<ComposerPrimitive.Send asChild>
+				<ComposerPrimitive.Send asChild disabled={overLimit}>
 					<TooltipIconButton
 						tooltip="Send message"
 						side="bottom"

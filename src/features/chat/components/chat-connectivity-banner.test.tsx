@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it } from "vitest";
 import { CHAT_OFFLINE_STATES_CONTENT } from "../../../../content/site/chat-offline-states";
+import { COMPOSER_LIMIT_CONTENT } from "../../../../content/site/composer-limit";
 import { useChatConnectivityStore } from "@/stores/chat-connectivity-store";
 import { useThreadRegistryStore } from "@/stores/thread-registry-store";
 import { ChatConnectivityBanner } from "./chat-connectivity-banner";
@@ -82,6 +83,20 @@ describe("ChatConnectivityBanner", () => {
     expect(
       screen.getByText(CHAT_OFFLINE_STATES_CONTENT.rateLimited.withoutWait),
     ).toBeInTheDocument();
+  });
+
+  it("shows the too-long notice with no retry and no link", () => {
+    useThreadRegistryStore.setState({ activeThreadId: THREAD });
+    useChatConnectivityStore.getState().setTooLong(THREAD);
+
+    renderBanner();
+
+    const c = COMPOSER_LIMIT_CONTENT.tooLongNotice;
+    expect(screen.getByText(c.heading)).toBeInTheDocument();
+    expect(screen.getByText(c.body)).toBeInTheDocument();
+    expect(screen.queryByRole("button")).toBeNull();
+    expect(screen.queryByRole("link")).toBeNull();
+    expect(document.body.textContent).not.toMatch(/try again/i);
   });
 
   it("renders nothing when there is no active thread", () => {

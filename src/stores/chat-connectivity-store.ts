@@ -13,6 +13,8 @@ export type ChatConnectivityState =
   | { kind: "offline" }
   /** The site spend ceiling was reached (503 `budget_exhausted`); the agent is up. */
   | { kind: "budget-exhausted" }
+  /** The last message was over the length cap (413); its text goes back to the composer. */
+  | { kind: "too-long" }
   | { kind: "rate-limited"; retryAfterSeconds?: number };
 
 const ONLINE: ChatConnectivityState = { kind: "online" };
@@ -21,6 +23,7 @@ interface ChatConnectivityStore {
   byThread: Record<string, ChatConnectivityState>;
   setOffline(threadId: string): void;
   setBudgetExhausted(threadId: string): void;
+  setTooLong(threadId: string): void;
   setRateLimited(threadId: string, retryAfterSeconds?: number): void;
   clear(threadId: string): void;
 }
@@ -36,6 +39,11 @@ export const useChatConnectivityStore = create<ChatConnectivityStore>((set) => (
   setBudgetExhausted: (threadId) =>
     set((state) => ({
       byThread: { ...state.byThread, [threadId]: { kind: "budget-exhausted" } },
+    })),
+
+  setTooLong: (threadId) =>
+    set((state) => ({
+      byThread: { ...state.byThread, [threadId]: { kind: "too-long" } },
     })),
 
   setRateLimited: (threadId, retryAfterSeconds) =>

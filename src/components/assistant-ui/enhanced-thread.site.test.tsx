@@ -11,11 +11,13 @@ import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { APPROVED_TAGLINES } from "../../../content/brand/taglines";
 import { AI_DISCLOSURE_CONTENT } from "../../../content/site/ai-disclosure";
+import { COMPOSER_LIMIT_CONTENT } from "../../../content/site/composer-limit";
 import { EMPTY_STATE_CONTENT } from "../../../content/site/empty-state";
 
 type Props = { children?: ReactNode } & Record<string, unknown>;
 
 const append = vi.hoisted(() => vi.fn());
+const draft = vi.hoisted(() => ({ text: "" }));
 
 vi.mock("@assistant-ui/react", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@assistant-ui/react")>();
@@ -24,6 +26,7 @@ vi.mock("@assistant-ui/react", async (importOriginal) => {
   return {
     ...actual,
     useAui: () => ({ thread: () => ({ append }) }),
+    useAuiState: (selector: (state: unknown) => unknown) => selector({ composer: { text: draft.text } }),
     AuiIf: passthrough,
     ThreadPrimitive: {
       ...actual.ThreadPrimitive,
@@ -34,14 +37,18 @@ vi.mock("@assistant-ui/react", async (importOriginal) => {
       Root: box,
       AttachmentDropzone: box,
       Input: (props: Record<string, unknown>) => <textarea {...props} />,
-      Send: passthrough,
+      Send: ({ children, disabled }: Props) => (
+        <div data-testid="send" data-disabled={String(Boolean(disabled))}>
+          {children}
+        </div>
+      ),
       Cancel: passthrough,
     },
   };
 });
 vi.mock("@/components/assistant-ui/attachment", () => ({
   ComposerAttachments: () => null,
-  ComposerAddAttachment: () => null,
+  ComposerAddAttachment: () => <button type="button">Add Attachment</button>,
   UserMessageAttachments: () => null,
 }));
 
@@ -53,6 +60,7 @@ const STALE_APP_COPY = /no threads yet|act on your behalf|start a new thread/i;
 afterEach(() => {
   vi.unstubAllEnvs();
   append.mockClear();
+  draft.text = "";
 });
 
 describe("ThreadWelcome on the site build", () => {
@@ -146,6 +154,57 @@ describe("EnhancedComposer", () => {
       EMPTY_STATE_CONTENT.composerPlaceholder,
     );
     expect(screen.queryByRole("button", { name: /prompt caching/i })).toBeNull();
+  });
+
+  it("on the site build: no attach button and no drop overlay (the server drops attachments)", () => {
+    vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+    render(<EnhancedComposer />);
+    expect(screen.queryByRole("button", { name: /add attachment/i })).toBeNull();
+    expect(screen.queryByText(/drop files to attach/i)).toBeNull();
+  });
+
+  it("on the app build: the attach button and the drop overlay stay", () => {
+    vi.stubEnv("VITE_SITE_AGENT_ID", "");
+    render(<EnhancedComposer />);
+    expect(screen.getByRole("button", { name: /add attachment/i })).toBeInTheDocument();
+    expect(screen.getByText(/drop files to attach/i)).toBeInTheDocument();
+  });
+
+  it("on the site build: no counter for a short message, send enabled", () => {
+    vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+    draft.text = "a".repeat(3199);
+    render(<EnhancedComposer />);
+    expect(screen.queryByRole("group", { name: COMPOSER_LIMIT_CONTENT.counterLabel })).toBeNull();
+    expect(screen.getByTestId("send")).toHaveAttribute("data-disabled", "false");
+    expect(screen.getByRole("textbox", { name: "Message input" })).not.toHaveAttribute("aria-invalid");
+  });
+
+  it("on the site build: counter from 3,200, send still enabled at exactly 4,000", () => {
+    vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+    draft.text = "a".repeat(4000);
+    render(<EnhancedComposer />);
+    expect(screen.getByRole("group", { name: COMPOSER_LIMIT_CONTENT.counterLabel })).toBeInTheDocument();
+    expect(screen.getByTestId("send")).toHaveAttribute("data-disabled", "false");
+  });
+
+  it("on the site build: over 4,000 shows the over-limit state and disables send", () => {
+    vi.stubEnv("VITE_SITE_AGENT_ID", SITE_AGENT);
+    draft.text = "a".repeat(4100);
+    render(<EnhancedComposer />);
+    expect(screen.getByRole("group", { name: COMPOSER_LIMIT_CONTENT.counterLabel })).toHaveAttribute(
+      "data-state",
+      "over",
+    );
+    expect(screen.getByTestId("send")).toHaveAttribute("data-disabled", "true");
+    expect(screen.getByRole("textbox", { name: "Message input" })).toHaveAttribute("aria-invalid", "true");
+  });
+
+  it("on the app build: no counter and no limit, however long the text", () => {
+    vi.stubEnv("VITE_SITE_AGENT_ID", "");
+    draft.text = "a".repeat(9000);
+    render(<EnhancedComposer />);
+    expect(screen.queryByRole("group", { name: COMPOSER_LIMIT_CONTENT.counterLabel })).toBeNull();
+    expect(screen.getByTestId("send")).toHaveAttribute("data-disabled", "false");
   });
 
   it("on the app build: agent placeholder and the prompt-caching toggle", () => {

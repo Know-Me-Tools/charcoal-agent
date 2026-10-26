@@ -23,6 +23,7 @@ vi.mock("@assistant-ui/react", async (importOriginal) => {
   return {
     ...actual,
     AuiIf: passthrough,
+    useAuiState: (selector: (state: unknown) => unknown) => selector({ composer: { text: "" } }),
     ComposerPrimitive: {
       ...actual.ComposerPrimitive,
       Root: ({ children, ...props }: Props) => <form {...props}>{children}</form>,
