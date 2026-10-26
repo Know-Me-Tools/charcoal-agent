@@ -25,7 +25,7 @@ sources:
 
 ## What products does KnowMe AI make?
 
-KnowMe AI, LLC and Prometheus AGS publish a portfolio of products. The portfolio index filters them into eight categories: Applications, Capabilities, Client & partner work, Infrastructure, Integrations, Research & concepts, Services and Tools.[^portfolio] This page regroups them into six sections of its own: Applications, Agents and memory, Platform and infrastructure, Developer tools and skills, Integrations, and Services and research. Those six names are this page's, not the portfolio's. The Boss, the free open-source desktop workspace, has a published release. So do the Prometheus Skill Pack and Prometheus Skills Mini.[^portfolio] KnowMe, the personal AI platform, is listed as implementation and specifications, and the portfolio records no release for it.[^portfolio]
+KnowMe AI, LLC and Prometheus AGS make a portfolio of products, grouped on this page in six sections: Applications, Agents and memory, Platform and infrastructure, Developer tools and skills, Integrations, and Services and research. Those six names are this page's own. The Boss, the free open-source desktop workspace, has a published release. So do the Prometheus Skill Pack and Prometheus Skills Mini.[^portfolio] KnowMe, the personal AI platform, is listed as implementation and specifications, and the portfolio records no release for it.[^portfolio] The portfolio index itself filters the products into eight categories: Applications, Capabilities, Client & partner work, Infrastructure, Integrations, Research & concepts, Services and Tools.[^portfolio]
 
 ## How the portfolio is grouped
 

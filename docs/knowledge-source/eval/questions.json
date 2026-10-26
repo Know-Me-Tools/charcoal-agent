@@ -440,7 +440,7 @@
     "question": "What products does KnowMe AI make?",
     "expect_file": "portfolio-overview.md",
     "expect_contains": [
-      "six families",
+      "six sections",
       "The Boss"
     ],
     "critical": false
