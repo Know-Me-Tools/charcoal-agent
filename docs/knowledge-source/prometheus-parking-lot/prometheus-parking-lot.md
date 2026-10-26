@@ -32,7 +32,7 @@ Prometheus Parking Lot is a Rust library for resource-aware background work, bou
 
 ## Prometheus Parking Lot status and version
 
-The registry version is {{v:parking}}, as checked on 24 October 2026.[^parking-registry] The portfolio records prometheus_parking_lot 0.3.0 and six component crates, all non-yanked at that date. The Candle-VLLM fork integrates an earlier 0.1.0 Git revision. Publication of 0.3.0 does not mean every consumer has upgraded.[^pf] The portfolio notes that seven packages are verified as published and a foreign-function package is not published. Registry publication is separate from runtime qualification and application-scale results.[^pf]
+The registry version is {{v:parking}}, as checked on 25 October 2026.[^parking-registry] The registry lists prometheus_parking_lot and its six component crates (core, embedded, iggy, pg, runtime-tokio and wasm), all seven at 0.4.0 and non-yanked; 0.4.0 was published on 25 October 2026. The portfolio of 24 October recorded 0.3.0, the version current on that date.[^pf] The Candle-VLLM fork integrates an earlier 0.1.0 Git revision. Publication of 0.4.0 does not mean every consumer has upgraded.[^pf] The portfolio notes that seven packages are verified as published and a foreign-function package is not published. Registry publication is separate from runtime qualification and application-scale results.[^pf]
 
 ## What Prometheus Parking Lot does
 

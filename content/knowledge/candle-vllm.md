@@ -7,7 +7,7 @@ Source: Candle-VLLM Prometheus fork README, retrieved 2026-10-24.
 
 ## Candle-VLLM status and version (Candle-VLLM, Prometheus fork)
 
-The fork has no tagged release (last commit 2026-05-26). At commit 10f844d, the lockfile still pins Parking Lot 0.1.0 at Git revision 32b481d, not the published 0.3.0 release.
+The fork has no tagged release (last commit 2026-05-26). At commit 10f844d, the lockfile still pins Parking Lot 0.1.0 at Git revision 32b481d, not the published 0.4.0 release.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 Source: Candle-VLLM Cargo.lock at 10f844d, retrieved 2026-10-24.

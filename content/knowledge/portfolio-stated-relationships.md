@@ -62,8 +62,8 @@ Source: demos README, retrieved 2026-10-24.
 
 - The portfolio says Numen Enclave adds a proposed deployment boundary to the Numen execution fabric.
 - The portfolio says the Candle-VLLM fork is part of the intended inference infrastructure for Numen. No live Numen integration is verified.
-- The portfolio says Tranquil's private agent-job design is covered by the Numen identity edition.
-- The Candle-VLLM fork submits completion and streaming work through a Parking Lot pool. Its lockfile pins an earlier Parking Lot revision, not the published 0.3.0.
+- The portfolio says Tranquil's private agent-job design is covered by the Numen identity edition, which the portfolio lists as current and which calls itself an unpublished Revision 2 candidate.
+- The Candle-VLLM fork submits completion and streaming work through a Parking Lot pool. Its lockfile pins an earlier Parking Lot revision, not the published 0.4.0.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 Source: Candle-VLLM Cargo.lock at 10f844d, retrieved 2026-10-24.

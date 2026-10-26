@@ -6,7 +6,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 ## Companion status and version
 
-The portfolio status for Companion, paraphrased on the cloud point, is: "Tested local Axum/Postgres MVP with task hierarchy, events, deduplication, SSE replay and five MCP tools. Prototype screenshots exist. Cloud deployment is not verified." No repository was identified for this entry, so there is no version number to quote.
+The portfolio status for Companion is: "Tested local Axum/Postgres MVP with task hierarchy, events, deduplication, SSE replay and five MCP tools. Prototype screenshots exist. Cloud deployment is blocked on reauthentication and verification." No repository was identified for this entry, so there is no version number to quote.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 

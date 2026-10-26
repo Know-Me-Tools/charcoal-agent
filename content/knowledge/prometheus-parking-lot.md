@@ -7,7 +7,7 @@ Source: prometheus_parking_lot on crates.io, retrieved 2026-10-24.
 
 ## Prometheus Parking Lot status and version
 
-The registry version is v0.3.0, as checked on 24 October 2026. The portfolio records prometheus_parking_lot 0.3.0 and six component crates, all non-yanked at that date. The Candle-VLLM fork integrates an earlier 0.1.0 Git revision. Publication of 0.3.0 does not mean every consumer has upgraded. The portfolio notes that seven packages are verified as published and a foreign-function package is not published. Registry publication is separate from runtime qualification and application-scale results.
+The registry version is v0.4.0, as checked on 25 October 2026. The registry lists prometheus_parking_lot and its six component crates (core, embedded, iggy, pg, runtime-tokio and wasm), all seven at 0.4.0 and non-yanked; 0.4.0 was published on 25 October 2026. The portfolio of 24 October recorded 0.3.0, the version current on that date. The Candle-VLLM fork integrates an earlier 0.1.0 Git revision. Publication of 0.4.0 does not mean every consumer has upgraded. The portfolio notes that seven packages are verified as published and a foreign-function package is not published. Registry publication is separate from runtime qualification and application-scale results.
 
 Source: prometheus_parking_lot on crates.io, retrieved 2026-10-24.
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.

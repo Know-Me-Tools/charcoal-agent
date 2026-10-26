@@ -6,7 +6,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
 
 ## Install an assistant today: The Boss [shipped] (Solutions)
 
-The Boss is a free, open-source AI desktop workspace for macOS and Windows. The latest release is v2.2.41. Download it from https://the-boss.know-me.tools; no account is required. You can hold conversations with cloud or local model providers, run agent sessions with MCP tools, skills and approval boundaries, and work with knowledge, documents and code. Provider access needs your own credentials. The portfolio notes that current-source features are not automatically in released installers.
+The Boss is a free, open-source AI desktop workspace for macOS and Windows. The latest release is v2.2.42. Download it from https://the-boss.know-me.tools; no account is required. You can hold conversations with cloud or local model providers, run agent sessions with MCP tools, skills and approval boundaries, and work with knowledge, documents and code. Provider access needs your own credentials. The portfolio notes that current-source features are not automatically in released installers.
 
 Source: The Boss download page, retrieved 2026-10-25.
 Source: The Boss README, retrieved 2026-10-25.
@@ -14,9 +14,9 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
 
 ## Install an assistant today: what comes in the installer (Solutions)
 
-The v2.2.41 release notes say the installers include complete pinned Universal Agent Runtime sidecar payloads for macOS Apple Silicon, macOS Intel and Windows x64. The integration manifest on the main branch also lists BossFang, but the release notes do not name it, and the portfolio notes that current-source features are not automatically in released installers. This page does not establish that BossFang is in the installer. The Surreal Memory Server is not in the installer. The Boss works with it over MCP as a separate service.
+The v2.2.42 release notes say the installers include complete pinned Universal Agent Runtime sidecar payloads for macOS Apple Silicon, macOS Intel and Windows x64. The integration manifest on the main branch also lists BossFang, but the release notes do not name it, and the portfolio notes that current-source features are not automatically in released installers. This page does not establish that BossFang is in the installer. The Surreal Memory Server is not in the installer. The Boss works with it over MCP as a separate service.
 
-Source: The Boss v2.2.41 release notes, retrieved 2026-10-25.
+Source: The Boss v2.2.42 release notes, retrieved 2026-10-25.
 Source: The Boss integration artifacts manifest, retrieved 2026-10-25.
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
 Source: The Boss UAR model source adapter, retrieved 2026-10-25.

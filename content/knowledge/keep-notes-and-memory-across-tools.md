@@ -10,7 +10,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
 
 - Surreal Memory Server [planned, source only]: a Rust memory service with a knowledge graph, scoped memories, hybrid search and MCP and REST access. Latest tag v1.10.2. The owner calls its 5 October 2026 publication a source publication, not a release.
 - Prometheus Knowledge [planned, source only]: Markdown knowledge records, immutable prompt snapshots and reconciliation of memory operations. Latest tag v1.11.0.
-- The Boss [shipped]: the desktop workspace, release v2.2.41. It works with the Surreal Memory Server over MCP as a separate service.
+- The Boss [shipped]: the desktop workspace, release v2.2.42. It works with the Surreal Memory Server over MCP as a separate service.
 
 Source: Surreal Memory Server README, retrieved 2026-10-25.
 Source: Surreal Memory Server source publication note, 2026-10-05, retrieved 2026-10-25.
@@ -52,6 +52,6 @@ Source: Surreal Memory Server MCP, REST and storage contract matrix, retrieved 2
 
 ## Keep notes and memory across tools: start here (Solutions)
 
-Download The Boss for a released workspace (v2.2.41) from https://the-boss.know-me.tools. To try the memory service, read the Surreal Memory Server README and build it from source. See [code recipes from READMEs](/solutions/code-recipes-from-readmes.md).
+Download The Boss for a released workspace (v2.2.42) from https://the-boss.know-me.tools. To try the memory service, read the Surreal Memory Server README and build it from source. See [code recipes from READMEs](/solutions/code-recipes-from-readmes.md).
 
 Source: The Boss download page, retrieved 2026-10-25.

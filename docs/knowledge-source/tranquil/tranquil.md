@@ -27,7 +27,7 @@ The portfolio status for Tranquil is "Existing public repository/event work; pri
 - The portfolio calls Tranquil a Rust personal-data-server direction for Parlour.[^portfolio]
 - The portfolio mentions existing public repository and event work. No repository was identified for this page.[^portfolio]
 - Private agent-job and orchestration designs, with fencing and high availability, are new design.[^portfolio]
-- The design is covered by the Numen identity edition. There is no standalone public publication.[^portfolio]
+- The design is covered by the Numen identity edition, which the portfolio lists as current but whose own header calls it an unpublished Revision 2 candidate. There is no standalone public publication.[^portfolio]
 
 ## How Tranquil relates to other products
 

@@ -13,7 +13,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 ## Use today: The Boss (KnowMe and Prometheus portfolio)
 
-The Boss is a free, open-source AI desktop workspace for macOS and Windows. You can download it from https://the-boss.know-me.tools with no account. The latest release is v2.2.41. The portfolio notes that current-source features are not automatically in released installers. The installers also include the Universal Agent Runtime and BossFang as bundled programs. BossFang has no separate release; it comes only with The Boss.
+The Boss is a free, open-source AI desktop workspace for macOS and Windows. You can download it from https://the-boss.know-me.tools with no account. The latest release is v2.2.42. The portfolio notes that current-source features are not automatically in released installers. The installers also include the Universal Agent Runtime and BossFang as bundled programs. BossFang has no separate release; it comes only with The Boss.
 
 Source: The Boss download page, retrieved 2026-10-12.
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
@@ -23,7 +23,7 @@ Source: The Boss integration artifacts manifest, retrieved 2026-10-12.
 
 - Prometheus Skill Pack: release v1.13.0. Its README gives an install script for supported coding assistants.
 - Prometheus Skills Mini: release v1.12.1. Its README gives a setup check and a copy step.
-- Prometheus Parking Lot: v0.3.0 on crates.io, a Rust library. Registry publication is not runtime qualification.
+- Prometheus Parking Lot: v0.4.0 on crates.io, a Rust library. Registry publication is not runtime qualification.
 - Prometheus Entity Management: release v4.1.1. Its README says thirteen npm packages were published at that version.
 
 Source: Prometheus Skill Pack README, retrieved 2026-10-13.

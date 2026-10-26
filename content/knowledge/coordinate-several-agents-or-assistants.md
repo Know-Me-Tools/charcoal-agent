@@ -13,7 +13,7 @@ Source: Prometheus Entity Management README, retrieved 2026-10-25.
 
 ## Coordinate agents: what is a design or prototype [planned] (Solutions)
 
-- Companion (a provisional working name): a tested local Axum and Postgres prototype with task hierarchy, events and five MCP tools. Cloud deployment is not verified.
+- Companion (a provisional working name): a tested local Axum and Postgres prototype with task hierarchy, events and five MCP tools. Cloud deployment is blocked on reauthentication and verification.
 - Flint Agent Mesh: a specification for identity, authorization, group encryption, ordered delivery, discovery and synchronization. No deployed mesh is established.
 - Synaxis: a published design for durable messaging, orchestration and shared memory. An operating service is not established.
 - Numen: an architecture proposal for governed orchestration across interchangeable hosts.

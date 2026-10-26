@@ -6,10 +6,10 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
 
 ## Combinations: the one shipped pairing (Solutions)
 
-- The Boss with the Universal Agent Runtime: [shipped]. The v2.2.41 release notes say the installers include complete pinned Universal Agent Runtime sidecar payloads for macOS Apple Silicon, macOS Intel and Windows x64. The integration manifest on the main branch also lists BossFang, but the release notes do not name it, and the portfolio notes that current-source features are not automatically in released installers. This page does not establish that BossFang is in the installer.
+- The Boss with the Universal Agent Runtime: [shipped]. The v2.2.42 release notes say the installers include complete pinned Universal Agent Runtime sidecar payloads for macOS Apple Silicon, macOS Intel and Windows x64. The integration manifest on the main branch also lists BossFang, but the release notes do not name it, and the portfolio notes that current-source features are not automatically in released installers. This page does not establish that BossFang is in the installer.
 - BossFang bundled with The Boss: [planned], as stated above. BossFang's connection to a Universal Agent Runtime instance is [planned]. BossFang's own document says it is implemented in source, not yet built or tested.
 
-Source: The Boss v2.2.41 release notes, retrieved 2026-10-25.
+Source: The Boss v2.2.42 release notes, retrieved 2026-10-25.
 Source: The Boss integration artifacts manifest, retrieved 2026-10-25.
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
 Source: BossFang connects to UAR, retrieved 2026-10-25.
@@ -47,7 +47,7 @@ Source: Flint core infrastructure README, retrieved 2026-10-25.
 ## Combinations: libraries and inference [planned] (Solutions)
 
 - Prometheus Entity Management with Flint Realtime Fabric through the Flint adapter: the adapter ships in the v4.1.1 README, and Fabric has no release.
-- The Candle-VLLM fork with Prometheus Parking Lot: the fork submits completion and streaming work through a pool, but its lockfile pins an earlier revision than the published v0.3.0.
+- The Candle-VLLM fork with Prometheus Parking Lot: the fork submits completion and streaming work through a pool, but its lockfile pins an earlier revision than the published v0.4.0.
 - Numen with the Candle-VLLM fork and Numen Enclave: the portfolio calls the fork part of the intended inference infrastructure and says no live Numen integration is verified.
 
 Source: Prometheus Entity Management README, retrieved 2026-10-25.

@@ -29,8 +29,8 @@ sources:
     title: "Flint Gate README"
     last_modified: "2026-10-25T00:00:00+00:00"
   - id: boss-release
-    resource: https://github.com/Prometheus-AGS/the-boss/releases/tag/v2.2.41
-    title: "The Boss v2.2.41 release notes"
+    resource: https://github.com/Prometheus-AGS/the-boss/releases/tag/v2.2.42
+    title: "The Boss v2.2.42 release notes"
     last_modified: "2026-10-25T00:00:00+00:00"
   - id: demos-readme
     resource: https://github.com/Know-Me-Tools/demos/blob/main/README.md
