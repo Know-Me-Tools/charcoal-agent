@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
+  MessageNotSentError,
   useExternalStoreRuntime,
   type AppendMessage,
   type ThreadMessageLike,
@@ -427,6 +428,7 @@ export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {
       // Include agent_id if this thread has one associated
       const thread = useThreadRegistryStore.getState().threads[threadId];
 
+      let tooLong = false;
       await startStream(
         threadId,
         {
@@ -438,8 +440,15 @@ export function useChatRuntime(threadId: string, options: ChatRuntimeOptions = {
           onComplete: () => {
             void afterStreamComplete(userText);
           },
+          onError: (error) => {
+            if (error.message === "payload_too_large") tooLong = true;
+          },
         },
       );
+      // The composer clears its text when it dispatches a send. Rejecting with
+      // MessageNotSentError is assistant-ui's supported way to hand the text
+      // back (restoreDraft), unless the visitor has already typed something new.
+      if (tooLong) throw new MessageNotSentError("The message is too long to send.");
     },
     [threadId, startStream, afterStreamComplete, options.promptCachingEnabled],
   );

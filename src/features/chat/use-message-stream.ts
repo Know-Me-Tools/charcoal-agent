@@ -129,6 +129,8 @@ const OFFLINE_ERROR_CODES: ReadonlySet<string> = new Set([
 type ChatRequestFailure =
   | { kind: "offline" }
   | { kind: "budget-exhausted" }
+  /** The message is over the server's length cap (413 `payload_too_large`). */
+  | { kind: "too-long" }
   | { kind: "rate-limited"; retryAfterSeconds?: number }
   /** Anything else — a generic, per-message failure (existing behaviour). */
   | { kind: "generic" };
@@ -146,6 +148,9 @@ function classifyResponseFailure(
 ): ChatRequestFailure {
   if (status === 429) {
     return { kind: "rate-limited", retryAfterSeconds: parseRetryAfterSeconds(retryAfterHeader) };
+  }
+  if (status === 413 || body?.error === "payload_too_large") {
+    return { kind: "too-long" };
   }
   if (body?.error === "budget_exhausted") {
     return { kind: "budget-exhausted" };
@@ -185,9 +190,13 @@ export function useMessageStream() {
     ): Promise<void> => {
       cancelStream();
 
+      // Set only when this call adds the optimistic user message, so a
+      // too-long rejection can take that message back out again.
+      let optimisticUserMsgId: string | null = null;
       if (!options?.skipUserMessage) {
         // Optimistically add the user message to the store
         const userMsgId = `user-${Date.now()}`;
+        optimisticUserMsgId = userMsgId;
         useChatMessageStore.getState().initThread(threadId, [
           ...(useChatMessageStore.getState().messagesByThread[threadId] ?? []),
           {
@@ -331,6 +340,22 @@ export function useMessageStream() {
             useChatConnectivityStore.getState().setBudgetExhausted(threadId);
             useChatMessageStore.getState().clearStreaming(threadId);
             callbacks?.onError?.(new Error("budget_exhausted"));
+            return;
+          }
+          if (failure.kind === "too-long") {
+            // Nothing was sent, so the visitor's message is not part of the
+            // conversation: drop the optimistic copy. The caller hands the
+            // text back to the composer (see `onNew` in use-chat-runtime.ts).
+            if (optimisticUserMsgId) {
+              const messages = useChatMessageStore.getState().messagesByThread[threadId] ?? [];
+              useChatMessageStore.getState().initThread(
+                threadId,
+                messages.filter((m) => m.id !== optimisticUserMsgId),
+              );
+            }
+            useChatConnectivityStore.getState().setTooLong(threadId);
+            useChatMessageStore.getState().clearStreaming(threadId);
+            callbacks?.onError?.(new Error("payload_too_large"));
             return;
           }
           if (failure.kind === "rate-limited") {

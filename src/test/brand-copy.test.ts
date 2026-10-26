@@ -15,6 +15,7 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { APPROVED_TAGLINES } from "../../content/brand/taglines";
 import { ABOUT_CONTENT } from "../../content/site/about";
+import { COMPOSER_LIMIT_CONTENT } from "../../content/site/composer-limit";
 import type { LandingContent, LandingSection } from "../../content/site/landing";
 import { LANDING_CONTENT } from "../../content/site/landing";
 import { NOT_FOUND_CONTENT } from "../../content/site/not-found";
@@ -66,6 +67,15 @@ describe("Brand voice in page copy", () => {
     landing: LANDING_CONTENT,
     about: ABOUT_CONTENT,
     "not-found": NOT_FOUND_CONTENT,
+    // The counter strings are functions, so their output is checked too.
+    "composer-limit": [
+      COMPOSER_LIMIT_CONTENT,
+      ...[0, 1, 800, 1000].flatMap((n) => [
+        COMPOSER_LIMIT_CONTENT.remaining(n),
+        COMPOSER_LIMIT_CONTENT.over(n),
+        COMPOSER_LIMIT_CONTENT.liveRemaining(n),
+      ]),
+    ],
   };
 
   for (const [name, content] of Object.entries(modules)) {

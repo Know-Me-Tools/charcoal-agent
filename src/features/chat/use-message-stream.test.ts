@@ -559,3 +559,89 @@ describe("useMessageStream — agui.tool_call.denied", () => {
     fetchMock.restore();
   });
 });
+
+/**
+ * A message over the server's length cap is refused with 413
+ * `payload_too_large`. It is the visitor's text, not a broken reply: no failed
+ * assistant bubble (and so no "Try again"), a thread-level notice instead, and
+ * the optimistic copy of the message removed so the caller can hand the text
+ * back to the composer.
+ */
+describe("useMessageStream — 413 payload too large", () => {
+  const TOO_LONG_THREAD = "thread-too-long";
+  const LONG_TEXT = "x".repeat(4100);
+
+  function respond(status: number, raw: string) {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(raw, { status, headers: { "content-type": "application/json" } }),
+    );
+    useChatMessageStore.getState().clearThread(TOO_LONG_THREAD);
+    useChatMessageStore.getState().initThread(TOO_LONG_THREAD, []);
+    useChatConnectivityStore.getState().clear(TOO_LONG_THREAD);
+  }
+
+  async function sendLong(onError?: (e: Error) => void) {
+    const { result } = renderHook(() => useMessageStream());
+    await act(async () => {
+      await result.current.startStream(TOO_LONG_THREAD, { message: LONG_TEXT }, { onError });
+    });
+  }
+
+  const connectivity = () =>
+    selectChatConnectivity(TOO_LONG_THREAD)(useChatConnectivityStore.getState());
+
+  it.each([
+    ["the payload_too_large code", JSON.stringify({ error: "payload_too_large", message: "too long" })],
+    ["a bare 413 with an HTML body", "<html>413 Request Entity Too Large</html>"],
+    ["a bare 413 with no body", ""],
+  ])("classifies a 413 with %s as too-long", async (_name, raw) => {
+    respond(413, raw);
+    await sendLong();
+    expect(connectivity()).toEqual({ kind: "too-long" });
+  });
+
+  it("classifies the payload_too_large code on any status as too-long", async () => {
+    respond(400, JSON.stringify({ error: "payload_too_large" }));
+    await sendLong();
+    expect(connectivity()).toEqual({ kind: "too-long" });
+  });
+
+  it("creates no failed assistant message, removes the optimistic user message and stops streaming", async () => {
+    respond(413, JSON.stringify({ error: "payload_too_large" }));
+    await sendLong();
+
+    const messages = useChatMessageStore.getState().messagesByThread[TOO_LONG_THREAD] ?? [];
+    expect(messages).toEqual([]);
+    expect(useChatMessageStore.getState().streamingByThread[TOO_LONG_THREAD]?.isStreaming).toBe(false);
+  });
+
+  it("leaves earlier messages of the thread alone", async () => {
+    respond(413, JSON.stringify({ error: "payload_too_large" }));
+    const earlier = {
+      id: "user-earlier",
+      role: "user",
+      content: [{ type: "text", text: "hello" }],
+      createdAt: new Date(),
+      status: "complete",
+    };
+    useChatMessageStore.getState().initThread(TOO_LONG_THREAD, [earlier as never]);
+    await sendLong();
+
+    const messages = useChatMessageStore.getState().messagesByThread[TOO_LONG_THREAD] ?? [];
+    expect(messages.map((m) => m.id)).toEqual(["user-earlier"]);
+  });
+
+  it("reports payload_too_large through onError so the runtime can return the draft", async () => {
+    respond(413, JSON.stringify({ error: "payload_too_large" }));
+    const onError = vi.fn();
+    await sendLong(onError);
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onError.mock.calls[0][0].message).toBe("payload_too_large");
+  });
+
+  it("does not turn other 4xx answers into too-long", async () => {
+    respond(400, JSON.stringify({ error: "invalid_message" }));
+    await sendLong();
+    expect(connectivity()).toEqual({ kind: "online" });
+  });
+});
