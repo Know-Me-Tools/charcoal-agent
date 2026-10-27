@@ -309,7 +309,7 @@
           "id": "restates-task",
           "kind": "pass",
           "type": "matches",
-          "pattern": "you (want|need|are looking)|your (task|goal|brief|practice|clinic)|the task",
+          "pattern": "you (want|need|are looking)|your (task|goal|brief|practice|clinic)|the task|task( in one line)?\\s*:",
           "label": "restates the task"
         },
         {
@@ -406,7 +406,7 @@
           "id": "restates-task",
           "kind": "pass",
           "type": "matches",
-          "pattern": "you (want|need|are looking)|your (task|goal|brief|practice|clinic)|the task",
+          "pattern": "you (want|need|are looking)|your (task|goal|brief|practice|clinic)|the task|task( in one line)?\\s*:",
           "label": "restates the task"
         },
         {
@@ -498,7 +498,7 @@
           "id": "says-not-offered",
           "kind": "pass",
           "type": "matches",
-          "pattern": "none of our products|does not (offer|do|provide|count)|do not (offer|do|provide|count)|not offered|no product|not covered|not stated",
+          "pattern": "none of our products|does not (offer|do|provide|count)|do not (offer|do|provide|count)|not offered|no product|not covered|not stated|does not state that any",
           "label": "says it is not offered"
         },
         {
