@@ -1,12 +1,18 @@
 # Answer questions over private data: which products help and which do not (Solutions)
 
-A visitor asks: "Can I ask plain-language questions of our own private data and get counted answers back, with the denominators and the missing data shown?" None of the KnowMe or Prometheus products does that today. No product turns a plain-language question into a cohort or analytics query, counts patients or records, or reports denominators and missing data, and no source in the portfolio or in the four repositories read for this page describes such a feature. The KnowMe Concierge can map your problem onto the pieces that do exist, state each piece's status and name what is still missing. It does not run queries over your data. Status tags on this page: [shipped] is a published release, [tag only] is a git tag without a GitHub release, [pattern] is a design this page describes and no product implements, and [not offered] means no source shows it.
+A visitor asks: "Can I ask plain-language questions of our own private data and get counted answers back, with the denominators and the missing data shown?" None of the KnowMe or Prometheus products does that today. No product turns a plain-language question into a cohort or analytics query, counts patients or records, or reports denominators and missing data, and no source in the portfolio or in the four repositories read for this page describes such a feature. The KnowMe Concierge can map your problem onto the pieces that do exist, state each piece's status and name what is still missing. It does not run queries over your data. The pieces that do exist: the Universal Agent Runtime's per-tool-call policy, human approval and opt-in local-only mode (shipped); Flint Forge Quarry's typed queries under Postgres row-level security (shipped); the Surreal Memory Server's memory history and Prometheus Knowledge's snapshots (tag only).
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-26.
 Source: Universal Agent Runtime README, retrieved 2026-10-26.
 Source: Flint Forge README, retrieved 2026-10-26.
+Source: Universal Agent Runtime v1.3.0 source: run manager tool decision, retrieved 2026-10-26.
+Source: Flint Forge source: fdb-postgres backend and row-level security, retrieved 2026-10-26.
+Source: Surreal Memory Server source: memory history record, retrieved 2026-10-26.
+Source: Prometheus Knowledge source: prompt snapshots, retrieved 2026-10-26.
 
 ## Answer questions over private data: the pieces that exist (Solutions)
+
+Status tags on this page: [shipped] is a published release, [tag only] is a git tag without a GitHub release, [pattern] is a design this page describes and no product implements, and [not offered] means no source shows it.
 
 - The Universal Agent Runtime [shipped], release v1.2.3, with v1.3.0 as the pre-release checked here: every tool call in a run is decided before it runs. A Cedar policy can deny it, and a tool, the host or the run policy can require human approval. An opt-in mode, UAR_LOCAL_ONLY=1, refuses any model provider that is not on the local machine and fails closed. It is off by default. The portfolio's status is "Work stopped; current runtime qualification not established."
 - Flint Forge, with Quarry [shipped], release v1.0.0: a typed request plan becomes SQL with bound parameters and validated identifiers, and Postgres row-level security is applied per request. Its input is REST request syntax, not natural language. The README's "v1.0-ready" is a source claim, not an audit.
