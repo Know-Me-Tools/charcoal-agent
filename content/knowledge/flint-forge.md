@@ -1,6 +1,6 @@
 # Flint Forge: Quarry, Anvil and Kiln
 
-Flint Forge is the data and edge-compute plane of the Flint platform: REST and GraphQL access to Postgres, database extensions, and signed WebAssembly edge functions. Its parts are named Quarry, Anvil and Kiln. The README reports it v1.0-ready, and a v1.0.0 GitHub release exists. Neither is an audit. Quarry has no read-only mode, and its REST surface includes writes, so read-only access has to come from a read-only Postgres role.
+Flint Forge is the data and edge-compute plane of the Flint platform: REST and GraphQL access to Postgres, database extensions, and signed WebAssembly edge functions. Its parts are named Quarry, Anvil and Kiln. The README's v1.0-ready is a source claim, and a v1.0.0 GitHub release exists; neither is an audit. Quarry has no read-only mode, and its REST surface includes writes, so read-only access has to come from a read-only Postgres role.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 Source: Flint Forge README, retrieved 2026-10-24.
