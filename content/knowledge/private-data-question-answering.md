@@ -1,10 +1,14 @@
 # Answer questions over private data: which products help and which do not (Solutions)
 
-A visitor asks: "Can I ask plain-language questions of our own private data and get counted answers back, with the denominators and the missing data shown?" None of the KnowMe or Prometheus products does that today. No product turns a plain-language question into a cohort or analytics query, counts patients or records, or reports denominators and missing data, and no source in the portfolio or in the four repositories read for this page describes such a feature. The KnowMe Concierge can map your problem onto the pieces that do exist, state each piece's status and name what is still missing. It does not run queries over your data.
+A visitor asks: "Can I ask plain-language questions of our own private data and get counted answers back, with the denominators and the missing data shown?" None of the KnowMe or Prometheus products does that today. No product turns a plain-language question into a cohort or analytics query, counts patients or records, or reports denominators and missing data, and no source in the portfolio or in the four repositories read for this page describes such a feature. The pieces that do exist: the Universal Agent Runtime's per-tool-call human approval and opt-in local-only mode (shipped); Flint Forge Quarry's typed queries under Postgres row-level security (shipped); memory history and snapshots (tag only). The KnowMe Concierge maps your problem onto them, states each status and names what is still missing. It does not run queries over your data.
 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-26.
 Source: Universal Agent Runtime README, retrieved 2026-10-26.
 Source: Flint Forge README, retrieved 2026-10-26.
+Source: Universal Agent Runtime v1.3.0 source: run manager tool decision, retrieved 2026-10-26.
+Source: Flint Forge source: fdb-postgres backend and row-level security, retrieved 2026-10-26.
+Source: Surreal Memory Server source: memory history record, retrieved 2026-10-26.
+Source: Prometheus Knowledge source: prompt snapshots, retrieved 2026-10-26.
 
 ## Answer questions over private data: what exists for each requirement in a brief (Solutions)
 
@@ -41,12 +45,18 @@ Source: Prometheus Knowledge source: prompt snapshots, retrieved 2026-10-26.
 
 ## Answer questions over private data: what the customer would still need (Solutions)
 
+Parts that already exist and that you can use: the Universal Agent Runtime's per-tool-call human approval [shipped] and opt-in local-only mode [shipped], and Flint Forge Quarry's typed queries under row-level security [shipped]. Everything else below is yours to build or supply:
+
 1. A query layer that you build or buy, with a typed spec the model fills in and code you can test.
 2. A written definition of each cohort and of what counts as missing, signed off by the people who own the data.
 3. Counts that show the denominator and the number of records with missing values, produced by code and not by the model.
 4. A read-only database role, and a copy of the data if you cannot trust the live system with the pilot.
 5. An audit trail you keep yourself, because the runtime does not keep a durable one.
 6. Your own decisions on regulation. See [Regulated industries](/solutions/regulated-industry-readiness.md).
+
+Source: Universal Agent Runtime v1.3.0 source: run manager tool decision, retrieved 2026-10-26.
+Source: Universal Agent Runtime v1.3.0 source: local-only inference mode, retrieved 2026-10-26.
+Source: Flint Forge source: fdb-postgres backend and row-level security, retrieved 2026-10-26.
 
 ## Answer questions over private data: what is not stated (Solutions)
 
