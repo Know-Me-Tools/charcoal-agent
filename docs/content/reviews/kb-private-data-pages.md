@@ -36,3 +36,8 @@ A read-only source check on 2026-10-26: the Universal Agent Runtime at tag v1.3.
 
 ## Review status
 Author self-review only. The content officer's pre-review and the operator's approval are still required. Nothing reaches the concierge until the operator runs the KB sync after merge.
+
+## Revision 2026-10-29: requirement map for pasted briefs
+Candidate-check transcripts on `155faf0` (0 of 4 brief runs pass) and a retrieval probe showed that a brief retrieves the later "not offered" and "other ways" chunks of `private-data-question-answering` and not the chunk that names the shipped pieces, so the replies tag nothing (shipped). The page now opens with a map of each requirement in a brief (read-only access, approval before an action, inside the firewall, audit trail, cohort counts and denominators, comparison categories) to the product that provides it and its status. The "not offered" and "other ways" sections were folded into that map; no claim was added or strengthened. One eval question uses a brief-shaped query. The `no-compliance-claim` assertion no longer matches the visitor's own word "audited" in a restatement; it still matches "independently audited", "has been audited" and the other claim forms.
+
+Not verified: that the map changes what a brief retrieves. That needs the KB sync, the retrieval probe and the two brief scenarios re-run after merge.
