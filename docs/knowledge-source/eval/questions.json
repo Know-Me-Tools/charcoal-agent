@@ -622,5 +622,14 @@
       "exit criteria"
     ],
     "critical": false
+  },
+  {
+    "question": "We are a six-physician clinic and want our doctors to ask plain-language questions of our own patient database, read-only, inside our firewall, with an audit trail of every question and a physician approving any action. Which of your products could do this and what would we still need to build?",
+    "expect_file": "private-data-question-answering.md",
+    "expect_contains": [
+      "Read-only access to the database",
+      "approves or rejects an action"
+    ],
+    "critical": false
   }
 ]

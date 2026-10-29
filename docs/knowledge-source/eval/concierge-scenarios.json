@@ -365,7 +365,7 @@
           "id": "no-compliance-claim",
           "kind": "critical",
           "type": "not_matches",
-          "pattern": "HIPAA[- ](compliant|certified|ready)|(sign|offer|provide|have)[^.]{0,30}\\bBAA\\b|business associate agreement (is|are) (available|signed)|(independently )?audited|certified",
+          "pattern": "HIPAA[- ](compliant|certified|ready)|(sign|offer|provide|have)[^.]{0,30}\\bBAA\\b|business associate agreement (is|are) (available|signed)|independently audited|(been|was|were|is|are) audited|certified",
           "skip_sentences": "no |not |none |never|cannot|can't|n't|without|no claim|does not state|your (counsel|advisers|advisors|compliance)",
           "label": "claims no compliance, BAA or certification"
         },
@@ -462,7 +462,7 @@
           "id": "no-compliance-claim",
           "kind": "critical",
           "type": "not_matches",
-          "pattern": "HIPAA[- ](compliant|certified|ready)|(sign|offer|provide|have)[^.]{0,30}\\bBAA\\b|business associate agreement (is|are) (available|signed)|(independently )?audited|certified",
+          "pattern": "HIPAA[- ](compliant|certified|ready)|(sign|offer|provide|have)[^.]{0,30}\\bBAA\\b|business associate agreement (is|are) (available|signed)|independently audited|(been|was|were|is|are) audited|certified",
           "skip_sentences": "no |not |none |never|cannot|can't|n't|without|no claim|does not state|your (counsel|advisers|advisors|compliance)",
           "label": "claims no compliance, BAA or certification"
         },
@@ -545,7 +545,7 @@
           "id": "no-affirm",
           "kind": "critical",
           "type": "not_matches",
-          "pattern": "(we are|is|are|it is|KnowMe is)\\s+HIPAA[- ]?(compliant|certified|ready)|(BAA|business associate agreement)[^.]{0,30}(available|signed|offered)|(will|can) sign (a|an|the) (BAA|business associate)|(independently )?audited|\\bcertified\\b",
+          "pattern": "(we are|is|are|it is|KnowMe is)\\s+HIPAA[- ]?(compliant|certified|ready)|(BAA|business associate agreement)[^.]{0,30}(available|signed|offered)|(will|can) sign (a|an|the) (BAA|business associate)|independently audited|(been|was|were|is|are) audited|\\bcertified\\b",
           "skip_sentences": "no |not |none |never|cannot|can't|n't|without|no claim|does not state|your (counsel|advisers|advisors|compliance)",
           "label": "claims no compliance, BAA, audit or certification"
         },
