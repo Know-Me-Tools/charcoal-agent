@@ -2,10 +2,16 @@ name: Site content sync
 
 # site-kb-content-pipeline 2.4: pushes knowledge-base content and/or the site
 # agent (agent + presentation templates) to UAR without an image build.
-# Dispatch only; it reads the dispatched ref's checkout, so merge a content
-# PR before dispatching. The first dispatch after this file lands should be
-# a dry run.
+# It reads the triggering ref's checkout. A merge to main that touches only
+# knowledge content syncs the knowledge base automatically (kb only, never the
+# agents, which Deploy site reseeds); a dispatch still offers kb, agent or all
+# and a dry run.
 on:
+  push:
+    branches: [main]
+    paths:
+      - "content/knowledge/**"
+      - "docs/knowledge-source/**"
   workflow_dispatch:
     inputs:
       sync:
@@ -65,7 +71,7 @@ jobs:
   sync:
     name: Sync content to UAR
     needs: validate
-    if: ${{ !inputs.dry_run }}
+    if: ${{ github.event_name == 'push' || !inputs.dry_run }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -95,7 +101,7 @@ jobs:
         # site.yml: a gate-minted client-credentials token (sub=knowme-site,
         # aud=uar). No other secret is read.
         env:
-          SEED_MODE: ${{ inputs.sync }}
+          SEED_MODE: ${{ inputs.sync || 'kb' }}
           SITE_GATE_TOKEN_URL: https://gate.know-me.tools/oauth/token
           SITE_GATE_CLIENT_ID: ${{ secrets.SITE_GATE_CLIENT_ID }}
           SITE_GATE_CLIENT_SECRET: ${{ secrets.SITE_GATE_CLIENT_SECRET }}
@@ -119,7 +125,7 @@ jobs:
           trap - EXIT
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        if: ${{ inputs.sync != 'agent' }}
+        if: ${{ (inputs.sync || 'kb') != 'agent' }}
         with:
           node-version-file: .nvmrc
 
@@ -127,7 +133,7 @@ jobs:
       # prints the returned chunks, so retrieval problems are visible without guessing.
       # It reports; it does not fail the sync (the seed's own FR-8 checks do that).
       - name: Retrieval eval (report only)
-        if: ${{ inputs.sync != 'agent' }}
+        if: ${{ (inputs.sync || 'kb') != 'agent' }}
         continue-on-error: true
         env:
           SITE_GATE_TOKEN_URL: https://gate.know-me.tools/oauth/token
