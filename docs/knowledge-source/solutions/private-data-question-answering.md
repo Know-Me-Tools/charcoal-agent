@@ -52,7 +52,7 @@ sources:
 
 # Answer questions over private data: which products help and which do not
 
-A visitor asks: "Can I ask plain-language questions of our own private data and get counted answers back, with the denominators and the missing data shown?" None of the KnowMe or Prometheus products does that today. No product turns a plain-language question into a cohort or analytics query, counts patients or records, or reports denominators and missing data, and no source in the portfolio or in the four repositories read for this page describes such a feature.[^pf][^uar-readme][^forge-readme] The KnowMe Concierge can map your problem onto the pieces that do exist, state each piece's status and name what is still missing. It does not run queries over your data.
+A visitor asks: "Can I ask plain-language questions of our own private data and get counted answers back, with the denominators and the missing data shown?" None of the KnowMe or Prometheus products does that today. No product turns a plain-language question into a cohort or analytics query, counts patients or records, or reports denominators and missing data, and no source in the portfolio or in the four repositories read for this page describes such a feature.[^pf][^uar-readme][^forge-readme] The pieces that do exist: the Universal Agent Runtime's per-tool-call human approval and opt-in local-only mode (shipped); Flint Forge Quarry's typed queries under Postgres row-level security (shipped); memory history and snapshots (tag only).[^uar-manager][^forge-backend][^mem-code][^pk-snap] The KnowMe Concierge maps your problem onto them, states each status and names what is still missing. It does not run queries over your data.
 
 ## Answer questions over private data: what exists for each requirement in a brief
 
@@ -73,6 +73,8 @@ Status tags: [shipped] is a published release, [tag only] is a git tag without a
 - Prometheus Knowledge [tag only], {{v:knowledge}}: writes immutable, content-addressed knowledge snapshots. They are prompt context for coding sessions, not a record of which snapshot produced an answer.[^pk-snap]
 
 ## Answer questions over private data: what the customer would still need
+
+Parts that already exist and that you can use: the Universal Agent Runtime's per-tool-call human approval [shipped] and opt-in local-only mode [shipped], and Flint Forge Quarry's typed queries under row-level security [shipped].[^uar-manager][^uar-local][^forge-backend] Everything else below is yours to build or supply:
 
 1. A query layer that you build or buy, with a typed spec the model fills in and code you can test.
 2. A written definition of each cohort and of what counts as missing, signed off by the people who own the data.
