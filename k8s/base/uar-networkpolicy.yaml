@@ -15,6 +15,8 @@
 #     inert manifest exists for an operator to run the seed in-cluster by
 #     hand, and admitting its one label costs nothing extra since the seed
 #     identity already holds full access to every UAR route via its JWT.
+#   - uar-provider-models (this namespace): re-applies provider model limits
+#     and verifies the model (k8s/base/uar-provider-models-deployment.yaml).
 #   - flint-gate (namespace flint-core): decision log D-7, "only knowme-web
 #     and flint-gate reach UAR, in-cluster". flint-gate's manifests live in
 #     Prometheus-AGS/know-me-cluster / flint-infra, not this repo, so its
@@ -45,6 +47,9 @@ spec:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: seed-site-agent
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: uar-provider-models
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: flint-core
