@@ -17,6 +17,9 @@ resources:
   - uar-deployment.yaml
   - uar-service.yaml
   - uar-networkpolicy.yaml
+  # Re-applies provider model limits (provider-models/) and keeps the model
+  # verified; UAR 1.4.0-rc.2 will not verify a model without them.
+  - uar-provider-models-deployment.yaml
   - memory-server-deployment.yaml
   - memory-server-service.yaml
   # site-web-search 16.5.1 / 16.5.4: the web-search MCP wrapper. Its image
@@ -33,6 +36,15 @@ resources:
   # not part of the continuously re-applied stack. (It also can't be: its
   # ConfigMaps would need to source files from outside k8s/base, which
   # `kubectl kustomize` refuses by default for security reasons.)
+
+# Limits and the script that applies them. The generated name carries a content
+# hash and kustomize rewrites the Deployment's reference, so editing either file
+# rolls uar-provider-models.
+configMapGenerator:
+  - name: uar-provider-models
+    files:
+      - provider-models/provider-models.json
+      - provider-models/reconcile.sh
 
 # Only knowme-web goes through the images transformer: CI sets its digest
 # fresh on every deploy (`kustomize edit set image`, .github/workflows/site.yml).
