@@ -55,7 +55,7 @@ export interface Directory {
 }
 
 export const DIRECTORY: Directory = {
-	"checked": "2026-10-24",
+	"checked": "2026-11-03",
 	"total": 52,
 	"families": [
 		{
@@ -75,10 +75,10 @@ export const DIRECTORY: Directory = {
 							"summary": "A desktop workspace for conversations, agents, tools and projects.",
 							"status": "released",
 							"versionLines": [
-								"v2.2.42 · 24 Oct 2026"
+								"v2.2.44 · 30 Oct 2026"
 							],
 							"versionKind": "stable",
-							"checked": "2026-10-25",
+							"checked": "2026-11-03",
 							"productSlug": "the-boss",
 							"prompt": "Tell me about The Boss. How far along is it?"
 						}
@@ -226,10 +226,10 @@ export const DIRECTORY: Directory = {
 							"status": "released",
 							"versionLines": [
 								"v1.2.3 · 23 Oct 2026",
-								"v1.3.0 pre-release · 24 Oct 2026"
+								"v1.4.0-rc.2 pre-release · 1 Nov 2026"
 							],
 							"versionKind": "stable",
-							"checked": "2026-10-24",
+							"checked": "2026-11-03",
 							"productSlug": "universal-agent-runtime",
 							"prompt": "Tell me about Universal Agent Runtime. How far along is it?"
 						}
@@ -247,10 +247,10 @@ export const DIRECTORY: Directory = {
 							"summary": "A Rust agent operating system, separate from The Boss desktop workspace.",
 							"status": "development",
 							"versionLines": [
-								"Build tag, no version · 10 Oct 2026"
+								"Build tag, no version · 12 Oct 2026"
 							],
 							"versionKind": "tag",
-							"checked": "2026-10-25",
+							"checked": "2026-11-03",
 							"productSlug": "bossfang",
 							"prompt": "Tell me about BossFang. How far along is it?"
 						}
@@ -500,7 +500,7 @@ export const DIRECTORY: Directory = {
 								"v1.12.1 · 12 Oct 2026"
 							],
 							"versionKind": "stable",
-							"checked": "2026-10-24",
+							"checked": "2026-11-03",
 							"productSlug": "prometheus-skill-pack",
 							"prompt": "Tell me about Prometheus Skills Mini. How far along is it?"
 						}
@@ -518,10 +518,10 @@ export const DIRECTORY: Directory = {
 							"summary": "A reactive entity graph for web, mobile, desktop and local-first apps.",
 							"status": "released",
 							"versionLines": [
-								"v4.1.1 · 8 Oct 2026"
+								"v4.2.0 · 10 Oct 2026"
 							],
 							"versionKind": "stable",
-							"checked": "2026-10-24",
+							"checked": "2026-11-03",
 							"productSlug": "prometheus-entity-management",
 							"prompt": "Tell me about Prometheus Entity Management. How far along is it?"
 						}

@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "checked": "2026-10-24",
-  "edition": "https://ipfs.prometheusags.ai/ipfs/bafybeidmp2shm6zpf7bj25iugtbylnzl5ms564lr3vsozuszbp23d63pie/",
+  "checked": "2026-11-03",
+  "edition": "https://ipfs.prometheusags.ai/ipfs/bafybeidn2uiph3kmd3ygmgtt53mollpr2eymo7is6xinaeawwbo6l5e46i/",
   "note": "One row per portfolio entry. The repositories, the registry and the cluster win over the portfolio (D-002). A product with no release states no tagged release and the last-commit date (D-003).",
   "withheldTerms": [
     "Headscale",
@@ -163,11 +163,11 @@
       "repo": "Prometheus-AGS/the-boss",
       "version": {
         "kind": "stable",
-        "value": "v2.2.42",
-        "date": "2026-10-24",
-        "source": "https://github.com/Prometheus-AGS/the-boss/releases/tag/v2.2.42"
+        "value": "v2.2.44",
+        "date": "2026-10-30",
+        "source": "https://github.com/Prometheus-AGS/the-boss/releases/tag/v2.2.44"
       },
-      "checked": "2026-10-25",
+      "checked": "2026-11-03",
       "publication": "public"
     },
     {
@@ -179,12 +179,12 @@
       "repo": "GQAdonis/librefang",
       "version": {
         "kind": "tag",
-        "value": "bossfang-sidecar-92bc005f3",
-        "date": "2026-10-10",
-        "source": "https://github.com/GQAdonis/librefang/releases/tag/bossfang-sidecar-92bc005f3",
+        "value": "bossfang-sidecar-2ec0f66ec",
+        "date": "2026-10-12",
+        "source": "https://github.com/GQAdonis/librefang/releases/tag/bossfang-sidecar-2ec0f66ec",
         "note": "sidecar build tag with a commit hash; BossFang publishes no semantic version"
       },
-      "checked": "2026-10-25",
+      "checked": "2026-11-03",
       "publication": "public"
     },
     {
@@ -285,11 +285,12 @@
       "repo": "Prometheus-AGS/prometheus-entity-management",
       "version": {
         "kind": "stable",
-        "value": "v4.1.1",
-        "date": "2026-10-08",
-        "source": "https://github.com/Prometheus-AGS/prometheus-entity-management/releases/tag/v4.1.1"
+        "value": "v4.2.0",
+        "date": "2026-10-10",
+        "source": "https://www.npmjs.com/package/@prometheus-ags/prometheus-entity-management/v/4.2.0",
+        "note": "operator-selected version, published on npm only; no git tag or GitHub release. npm latest is 4.3.0; the latest GitHub release is v4.1.1"
       },
-      "checked": "2026-10-24",
+      "checked": "2026-11-03",
       "publication": "public"
     },
     {
@@ -441,9 +442,10 @@
         "kind": "stable",
         "value": "v1.12.1",
         "date": "2026-10-12",
-        "source": "https://github.com/Prometheus-AGS/prometheus-skills-mini/releases/tag/v1.12.1"
+        "source": "https://github.com/Prometheus-AGS/prometheus-skills-mini/releases/tag/v1.12.1",
+        "note": "tag v1.13.2 (2026-10-27) is newer than this release; no release was cut"
       },
-      "checked": "2026-10-24",
+      "checked": "2026-11-03",
       "publication": "public"
     },
     {
@@ -602,19 +604,20 @@
         "date": "2026-10-23",
         "source": "https://github.com/Prometheus-AGS/universal-agent-runtime/releases/tag/v1.2.3",
         "preRelease": {
-          "value": "v1.3.0",
-          "date": "2026-10-24",
-          "source": "https://github.com/Prometheus-AGS/universal-agent-runtime/releases/tag/v1.3.0"
+          "value": "v1.4.0-rc.2",
+          "date": "2026-11-01",
+          "source": "https://github.com/Prometheus-AGS/universal-agent-runtime/releases/tag/v1.4.0-rc.2",
+          "note": "release candidate, validated on macOS; v1.3.0 was a pre-release (verification pending)"
         }
       },
-      "checked": "2026-10-24",
+      "checked": "2026-11-03",
       "publication": "public",
       "deployed": {
-        "value": "v1.3.0",
+        "value": "v1.4.0-rc.2",
         "where": "know-me.tools production cluster",
-        "note": "1.3.0 is published as a pre-release ('verification pending'); the cluster pins its image digest"
+        "note": "release candidate; the cluster pins its image digest"
       },
-      "portfolioDisagreement": "The portfolio entry reads 'Work stopped; current runtime qualification not established' and calls the capability snapshot rejected/stale. The repository has a stable v1.2.3 (2026-10-23) and a v1.3.0 pre-release (2026-10-24), and the cluster serves chat on 1.3.0."
+      "portfolioDisagreement": "The portfolio entry (Edition 3) says the work is stopped and runtime qualification is not established. The repository has a stable v1.2.3 (2026-10-23), a v1.3.0 pre-release (2026-10-24) and a v1.4.0-rc.2 release candidate (2026-11-01), and the cluster serves chat on 1.4.0-rc.2. The repository wins (D-002)."
     },
     {
       "id": "pulse",
