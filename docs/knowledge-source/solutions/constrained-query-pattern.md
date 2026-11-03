@@ -13,9 +13,9 @@ tags:
   - read-only
 sources:
   - id: uar-manager
-    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/v1.3.0/src/uar/runtime/manager.rs
-    title: "Universal Agent Runtime v1.3.0 source: run manager tool decision"
-    last_modified: "2026-10-26T00:00:00+00:00"
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/v1.4.0-rc.2/src/uar/runtime/manager.rs
+    title: "Universal Agent Runtime v1.4.0-rc.2 source: run manager tool decision"
+    last_modified: "2026-11-03T00:00:00+00:00"
   - id: forge-readme
     resource: https://github.com/Know-Me-Tools/flint-forge/blob/main/README.md
     title: "Flint Forge README"

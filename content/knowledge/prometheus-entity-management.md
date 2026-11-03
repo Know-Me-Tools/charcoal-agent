@@ -7,19 +7,20 @@ Source: Prometheus Entity Management README, retrieved 2026-10-24.
 
 ## Prometheus Entity Management status and version
 
-The latest stable release is v4.1.1, dated 2026-10-08. The portfolio warns that version records differ across snapshots and that its own figures are not a current release audit. Check the project's releases for the current number.
+This site documents version v4.2.0, published on npm on 2026-10-10. It has no git tag or GitHub release: the latest GitHub release is v4.1.1, and npm now also lists 4.3.0 (published 2026-10-28), tagged `latest`. The portfolio warns that version records differ across snapshots and that its own figures are not a current release audit. Check npm and the project's releases for the current number.
 
-Source: Prometheus Entity Management README, retrieved 2026-10-24.
+Source: @prometheus-ags/entity-graph-core 4.2.0 on npm, retrieved 2026-11-03.
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 ## What Prometheus Entity Management states
 
 * Each entity lives once at a type and id address. Lists keep ordered ids, and views resolve the canonical entity plus a local patch, so one write updates every view of it.
-* The Prometheus Entity Management README says thirteen npm packages were published at 4.1.1 on 2026-10-08.
+* An earlier reading of the GitHub README, on 24 October 2026, recorded thirteen npm packages published at 4.1.1 on 2026-10-08. Later versions 4.2.0 and 4.3.0 are on npm.
 * The 4.0.0 release moved the workspace to ESM-only output and published the React binding as its own package, with the older package name kept as an alias.
 * A Flutter 4.0.0 package is public on pub.dev, and a Chrome DevTools extension is available as a ZIP for developer-mode installation. It is not a Chrome Web Store listing.
 
 Source: Prometheus Entity Management README, retrieved 2026-10-24.
+Source: @prometheus-ags/entity-graph-core 4.2.0 on npm, retrieved 2026-11-03.
 
 ## How Prometheus Entity Management relates to other products
 

@@ -13,13 +13,13 @@ tags:
   - privacy
 sources:
   - id: uar-config
-    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/v1.3.0/src/config.rs
-    title: "Universal Agent Runtime v1.3.0 source: server configuration"
-    last_modified: "2026-10-26T00:00:00+00:00"
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/v1.4.0-rc.2/src/config.rs
+    title: "Universal Agent Runtime v1.4.0-rc.2 source: server configuration"
+    last_modified: "2026-11-03T00:00:00+00:00"
   - id: uar-local
-    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/v1.3.0/src/llm/local_only.rs
-    title: "Universal Agent Runtime v1.3.0 source: local-only inference mode"
-    last_modified: "2026-10-26T00:00:00+00:00"
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/v1.4.0-rc.2/src/llm/local_only.rs
+    title: "Universal Agent Runtime v1.4.0-rc.2 source: local-only inference mode"
+    last_modified: "2026-11-03T00:00:00+00:00"
 ---
 
 # Regulated industries: what KnowMe does and does not claim

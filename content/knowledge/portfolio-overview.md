@@ -20,7 +20,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 ## Applications: existing implementations (KnowMe and Prometheus portfolio)
 
-- The Boss: existing implementation and releases; current-source features are not automatically included in released installers. Release v2.2.42.
+- The Boss: existing implementation and releases; current-source features are not automatically included in released installers. Release v2.2.44.
 - KnowMe: implementation and specifications; full cross-platform qualification not established. Version: no tagged release (last commit 2026-10-20).
 - KnowMe Concierge: existing implementation; full App/Locus and authentic-voice integration not established. Version: no tagged release (last commit 2026-10-24).
 - Prometheus Studio: existing README; active roadmap and release status unverified; no repository was identified.
@@ -39,8 +39,8 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 ## Agents and memory: runtimes and memory services (KnowMe and Prometheus portfolio)
 
-- Universal Agent Runtime: The portfolio says work stopped and current runtime qualification is not established. The repository lists release v1.2.3 and pre-release v1.3.0. Its changelog records functional acceptance of the Linux amd64 image within a defined scope. The repository is the newer record.
-- BossFang: existing source; product and integration goals remain unfinished. Build tag bossfang-sidecar-92bc005f3, no semantic version.
+- Universal Agent Runtime: The portfolio says work stopped and current runtime qualification is not established. The repository lists release v1.2.3 and pre-release v1.4.0-rc.2. Its changelog records functional acceptance of the Linux amd64 image within a defined scope. The repository is the newer record.
+- BossFang: existing source; product and integration goals remain unfinished. Build tag bossfang-sidecar-2ec0f66ec, no semantic version.
 - Surreal Memory Server: existing implementation; remediation and per-user brain design have separate qualification. Git tag v1.10.2, no release.
 - Prometheus Knowledge: existing runtime; current deployment coverage not audited. Git tag v1.11.0, no release.
 - Knowledge Gateway: existing project with phased capabilities; graph-discovery completeness unverified. No repository was identified.
@@ -90,7 +90,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 ## Developer tools and skills: documents, libraries and building blocks (KnowMe and Prometheus portfolio)
 
 - HTMX Doc Forge: existing document tools. Version: no tagged release (last commit 2026-10-13).
-- Prometheus Entity Management: published package family; version records differ across snapshots. Release v4.1.1.
+- Prometheus Entity Management: published package family; version records differ across snapshots. Release v4.2.0.
 - Prometheus Parking Lot: published on crates.io, v0.4.0; an earlier revision is used by the Candle-VLLM fork.
 - gen_ui: implemented modules plus architectural specification. No repository was identified.
 - Companion: tested local MVP; cloud deployment is blocked. No repository was identified.

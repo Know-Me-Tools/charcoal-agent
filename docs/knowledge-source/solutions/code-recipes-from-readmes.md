@@ -12,6 +12,10 @@ tags:
   - code
   - install
 sources:
+  - id: pem-npm
+    resource: https://www.npmjs.com/package/@prometheus-ags/entity-graph-core/v/4.2.0
+    title: "@prometheus-ags/entity-graph-core 4.2.0 on npm"
+    last_modified: "2026-11-03T00:00:00+00:00"
   - id: pem-readme
     resource: https://github.com/Prometheus-AGS/prometheus-entity-management/blob/main/README.md
     title: "Prometheus Entity Management README"
@@ -40,23 +44,23 @@ sources:
 
 # Code recipes taken from product READMEs
 
-Short answer for Prometheus Entity Management: install with `pnpm add @prometheus-ags/entity-graph-core`, which gives the version tagged `latest` on npm, 4.1.1 per the README. Version 4.2.0 is not out: the README lists it as the expected candidate with release state pending-publication.
+Short answer for Prometheus Entity Management: this site documents version 4.2.0. Install it with `pnpm add @prometheus-ags/entity-graph-core@4.2.0`. A plain `pnpm add` without a version installs the version tagged `latest` on npm, which was 4.3.0 on 3 November 2026.
 
 A visitor asks: "Show me how to install and start these." Every snippet below is copied from the README named in its section, read on 25 October 2026. Nothing here is invented. Where a README gives no command, this page gives none. Check the README for changes before you rely on a command. Status tags on this page: [shipped] means the facts file records a published release or package. [planned] means source without a release, a prototype, a specification or a design, and is never described here as available.
 
 ## Recipe: Prometheus Entity Management, React install
 
-Status: [shipped], release {{v:pem}}. The README says all thirteen npm packages are public at 4.1.1, with the `latest` and `next` tags pointing at it, published 2026-10-08.[^pem-readme] Source: the Quickstarts section of the Prometheus Entity Management README.
+Status: [shipped], version {{v:pem}}. npm lists 4.2.0 of the core package (published 2026-10-09 UTC) and of the prometheus-entity-management package (published 2026-10-10 UTC); 4.2.0 has no git tag or GitHub release, and its npm README shows `pnpm add @prometheus-ags/entity-graph-core`.[^pem-npm] Pin the version with `@4.2.0` as shown below, because `latest` and `next` on npm both point at 4.3.0.
 
 ```bash
-pnpm add @prometheus-ags/entity-graph-core \
-  @prometheus-ags/prometheus-entity-management \
+pnpm add @prometheus-ags/entity-graph-core@4.2.0 \
+  @prometheus-ags/prometheus-entity-management@4.2.0 \
   react@19 react-dom@19
 ```
 
 ## Recipe: Prometheus Entity Management, DevTools in development only
 
-The README says npm 4.1.1 ships the optional `./devtools` and development-only `./devtools/auto` entries, and that the ordinary package root stays inspector-free.[^pem-readme] Source: the same README.
+The 4.2.0 npm README says the DevTools runtime is isolated behind the `@prometheus-ags/entity-graph-core/devtools` export and that normal application imports do not expose the controller API.[^pem-npm] The `devtools/auto` entry in the snippet below is taken from the GitHub README as read on 25 October 2026 and was not re-checked against 4.2.0.[^pem-readme]
 
 ```ts
 if (import.meta.env.DEV) {
@@ -74,7 +78,7 @@ flutter pub add entity_graph_flutter:^4.0.0
 
 ## Recipe: Prometheus Entity Management, what 4.2.0 means
 
-The README's registry snapshot of 2026-10-08 names `4.2.0` as the expected candidate and lists each package's release state as pending-publication. Its package chooser shows 4.2.0 as the candidate for every package.[^pem-readme] This page does not establish that 4.2.0 is published. A plain `pnpm add` of the core package installs the version tagged `latest` on npm, which the README gives as 4.1.1.
+npm lists 4.2.0 as published on 2026-10-09 (core) and 2026-10-10 (prometheus-entity-management), both UTC, and 4.3.0 as published on 2026-10-28 and tagged `latest` and `next`. The GitHub releases page still shows v4.1.1 as the latest release, and there is no v4.2.0 tag. This site uses 4.2.0 because the operator selected it; this page does not claim 4.2.0 is the newest version. The earlier 25 October reading of the GitHub README, which listed 4.2.0 as an unpublished candidate, is out of date.
 
 ## Recipe: Universal Agent Runtime, run locally
 

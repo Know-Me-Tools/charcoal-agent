@@ -5,7 +5,7 @@ A visitor asks: "Can I ask plain-language questions of our own private data and 
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-26.
 Source: Universal Agent Runtime README, retrieved 2026-10-26.
 Source: Flint Forge README, retrieved 2026-10-26.
-Source: Universal Agent Runtime v1.3.0 source: run manager tool decision, retrieved 2026-10-26.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: run manager tool decision, retrieved 2026-11-03.
 Source: Flint Forge source: fdb-postgres backend and row-level security, retrieved 2026-10-26.
 Source: Surreal Memory Server source: memory history record, retrieved 2026-10-26.
 Source: Prometheus Knowledge source: prompt snapshots, retrieved 2026-10-26.
@@ -23,20 +23,20 @@ Status tags: [shipped] is a published release, [tag only] is a git tag without a
 
 Source: Flint Forge source: fdb-postgres backend and row-level security, retrieved 2026-10-26.
 Source: Flint Forge source: fdb-query request-to-SQL translator, retrieved 2026-10-26.
-Source: Universal Agent Runtime v1.3.0 source: run manager tool decision, retrieved 2026-10-26.
-Source: Universal Agent Runtime v1.3.0 source: local-only inference mode, retrieved 2026-10-26.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: run manager tool decision, retrieved 2026-11-03.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: local-only inference mode, retrieved 2026-11-03.
 Source: Surreal Memory Server source: memory history record, retrieved 2026-10-26.
 Source: Prometheus Knowledge source: prompt snapshots, retrieved 2026-10-26.
 
 ## Answer questions over private data: the pieces that exist (Solutions)
 
-- The Universal Agent Runtime [shipped], release v1.2.3, with v1.3.0 as the pre-release checked here: every tool call in a run is decided before it runs. A Cedar policy can deny it, and a tool, the host or the run policy can require human approval. An opt-in mode, UAR_LOCAL_ONLY=1, refuses any model provider that is not on the local machine and fails closed. It is off by default. The portfolio's status is "Work stopped; current runtime qualification not established."
+- The Universal Agent Runtime [shipped], release v1.2.3, with v1.4.0-rc.2 as the pre-release checked here: every tool call in a run is decided before it runs. A Cedar policy can deny it, and a tool, the host or the run policy can require human approval. An opt-in mode, UAR_LOCAL_ONLY=1, refuses any model provider that is not on the local machine and fails closed. It is off by default. The portfolio's status is "Work stopped; current runtime qualification not established."
 - Flint Forge, with Quarry [shipped], release v1.0.0: a typed request plan becomes SQL with bound parameters and validated identifiers, and Postgres row-level security is applied per request. Its input is REST request syntax, not natural language. The README's "v1.0-ready" is a source claim, not an audit.
 - Surreal Memory Server [tag only], v1.10.2: stores memories and records a history row for each change, with old content, new content, version, time and change type.
 - Prometheus Knowledge [tag only], v1.11.0: writes immutable, content-addressed knowledge snapshots. They are prompt context for coding sessions, not a record of which snapshot produced an answer.
 
-Source: Universal Agent Runtime v1.3.0 source: run manager tool decision, retrieved 2026-10-26.
-Source: Universal Agent Runtime v1.3.0 source: local-only inference mode, retrieved 2026-10-26.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: run manager tool decision, retrieved 2026-11-03.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: local-only inference mode, retrieved 2026-11-03.
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-26.
 Source: Flint Forge source: fdb-query request-to-SQL translator, retrieved 2026-10-26.
 Source: Flint Forge source: fdb-postgres backend and row-level security, retrieved 2026-10-26.
@@ -54,8 +54,8 @@ Parts that already exist and that you can use: the Universal Agent Runtime's per
 5. An audit trail you keep yourself, because the runtime does not keep a durable one.
 6. Your own decisions on regulation. See [Regulated industries](/solutions/regulated-industry-readiness.md).
 
-Source: Universal Agent Runtime v1.3.0 source: run manager tool decision, retrieved 2026-10-26.
-Source: Universal Agent Runtime v1.3.0 source: local-only inference mode, retrieved 2026-10-26.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: run manager tool decision, retrieved 2026-11-03.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: local-only inference mode, retrieved 2026-11-03.
 Source: Flint Forge source: fdb-postgres backend and row-level security, retrieved 2026-10-26.
 
 ## Answer questions over private data: what is not stated (Solutions)

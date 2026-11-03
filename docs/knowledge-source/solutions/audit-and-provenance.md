@@ -13,21 +13,21 @@ tags:
   - provenance
 sources:
   - id: uar-evidence
-    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/v1.3.0/src/uar/persistence/tool_admission.rs
-    title: "Universal Agent Runtime v1.3.0 source: tool admission evidence"
-    last_modified: "2026-10-26T00:00:00+00:00"
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/v1.4.0-rc.2/src/uar/persistence/tool_admission.rs
+    title: "Universal Agent Runtime v1.4.0-rc.2 source: tool admission evidence"
+    last_modified: "2026-11-03T00:00:00+00:00"
   - id: uar-approval-records
-    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/v1.3.0/src/uar/persistence/approval_decisions.rs
-    title: "Universal Agent Runtime v1.3.0 source: approval records"
-    last_modified: "2026-10-26T00:00:00+00:00"
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/v1.4.0-rc.2/src/uar/persistence/approval_decisions.rs
+    title: "Universal Agent Runtime v1.4.0-rc.2 source: approval records"
+    last_modified: "2026-11-03T00:00:00+00:00"
   - id: uar-run-events
-    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/v1.3.0/src/uar/api/run_events.rs
-    title: "Universal Agent Runtime v1.3.0 source: run events API"
-    last_modified: "2026-10-26T00:00:00+00:00"
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/v1.4.0-rc.2/src/uar/api/run_events.rs
+    title: "Universal Agent Runtime v1.4.0-rc.2 source: run events API"
+    last_modified: "2026-11-03T00:00:00+00:00"
   - id: uar-rag
-    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/v1.3.0/src/uar/rag/pipeline.rs
-    title: "Universal Agent Runtime v1.3.0 source: retrieval pipeline"
-    last_modified: "2026-10-26T00:00:00+00:00"
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/v1.4.0-rc.2/src/uar/rag/pipeline.rs
+    title: "Universal Agent Runtime v1.4.0-rc.2 source: retrieval pipeline"
+    last_modified: "2026-11-03T00:00:00+00:00"
   - id: mem-code
     resource: https://github.com/Prometheus-AGS/surreal-memory-server/blob/main/crates/surreal-memory/src/memory.rs
     title: "Surreal Memory Server source: memory history record"

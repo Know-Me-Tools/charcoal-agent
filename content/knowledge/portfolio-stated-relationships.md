@@ -10,7 +10,7 @@ Source: The Boss integration artifacts manifest, retrieved 2026-10-12.
 
 ## The Universal Agent Runtime and its users (KnowMe and Prometheus portfolio)
 
-- The portfolio calls the Universal Agent Runtime a shared runtime dependency used by multiple portfolio applications. It also says work on it stopped and its current qualification is not established. The repository lists release v1.2.3 and pre-release v1.3.0, and its changelog records functional acceptance of the Linux amd64 image within a defined scope. The repository is the newer record.
+- The portfolio calls the Universal Agent Runtime a shared runtime dependency used by multiple portfolio applications. It also says work on it stopped and its current qualification is not established. The repository lists release v1.2.3 and pre-release v1.4.0-rc.2, and its changelog records functional acceptance of the Linux amd64 image within a defined scope. The repository is the newer record.
 - The KnowMe Concierge README says the agent runs inside the Universal Agent Runtime and the client connects to it.
 - The Boss installers include the Universal Agent Runtime and BossFang as bundled programs that run beside The Boss.
 - BossFang connects to a Universal Agent Runtime instance that already exists and never starts it. That connection is implemented in source, not yet built or tested.

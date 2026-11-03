@@ -21,21 +21,21 @@ sources:
     title: "Universal Agent Runtime README"
     last_modified: "2026-10-26T00:00:00+00:00"
   - id: uar-manager
-    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/v1.3.0/src/uar/runtime/manager.rs
-    title: "Universal Agent Runtime v1.3.0 source: run manager tool decision"
-    last_modified: "2026-10-26T00:00:00+00:00"
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/v1.4.0-rc.2/src/uar/runtime/manager.rs
+    title: "Universal Agent Runtime v1.4.0-rc.2 source: run manager tool decision"
+    last_modified: "2026-11-03T00:00:00+00:00"
   - id: uar-registry
-    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/v1.3.0/src/mcp/registry.rs
-    title: "Universal Agent Runtime v1.3.0 source: tool registry and approval defaults"
-    last_modified: "2026-10-26T00:00:00+00:00"
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/v1.4.0-rc.2/src/mcp/registry.rs
+    title: "Universal Agent Runtime v1.4.0-rc.2 source: tool registry and approval defaults"
+    last_modified: "2026-11-03T00:00:00+00:00"
   - id: uar-approvals
-    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/v1.3.0/src/uar/runtime/thread/approvals.rs
-    title: "Universal Agent Runtime v1.3.0 source: pending approvals"
-    last_modified: "2026-10-26T00:00:00+00:00"
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/v1.4.0-rc.2/src/uar/runtime/thread/approvals.rs
+    title: "Universal Agent Runtime v1.4.0-rc.2 source: pending approvals"
+    last_modified: "2026-11-03T00:00:00+00:00"
   - id: uar-approval-records
-    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/v1.3.0/src/uar/persistence/approval_decisions.rs
-    title: "Universal Agent Runtime v1.3.0 source: approval records"
-    last_modified: "2026-10-26T00:00:00+00:00"
+    resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/v1.4.0-rc.2/src/uar/persistence/approval_decisions.rs
+    title: "Universal Agent Runtime v1.4.0-rc.2 source: approval records"
+    last_modified: "2026-11-03T00:00:00+00:00"
   - id: gate-readme
     resource: https://github.com/Know-Me-Tools/flint-gate/blob/main/README.md
     title: "Flint Gate README"

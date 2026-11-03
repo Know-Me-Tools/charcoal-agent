@@ -15,6 +15,10 @@ sources:
     resource: https://ipfs.prometheusags.ai/ipfs/bafybeidmp2shm6zpf7bj25iugtbylnzl5ms564lr3vsozuszbp23d63pie/
     title: "KnowMe and Prometheus portfolio, Edition 2"
     last_modified: "2026-10-24T00:00:00+00:00"
+  - id: pem-npm
+    resource: https://www.npmjs.com/package/@prometheus-ags/entity-graph-core/v/4.2.0
+    title: "@prometheus-ags/entity-graph-core 4.2.0 on npm"
+    last_modified: "2026-11-03T00:00:00+00:00"
   - id: pem-readme
     resource: https://github.com/Prometheus-AGS/prometheus-entity-management/blob/main/README.md
     title: "Prometheus Entity Management README"
@@ -27,12 +31,12 @@ Prometheus Entity Management, also called entity-graph, is a normalized, reactiv
 
 ## Prometheus Entity Management status and version
 
-The latest stable release is {{v:pem}}, dated {{v:pem:date}}.[^pem-readme] The portfolio warns that version records differ across snapshots and that its own figures are not a current release audit.[^pf] Check the project's releases for the current number.
+This site documents version {{v:pem}}, published on npm on {{v:pem:date}}.[^pem-npm] It has no git tag or GitHub release: the latest GitHub release is v4.1.1, and npm now also lists 4.3.0 (published 2026-10-28), tagged `latest`. The portfolio warns that version records differ across snapshots and that its own figures are not a current release audit.[^pf] Check npm and the project's releases for the current number.
 
 ## What Prometheus Entity Management states
 
 * Each entity lives once at a type and id address. Lists keep ordered ids, and views resolve the canonical entity plus a local patch, so one write updates every view of it.[^pem-readme]
-* The Prometheus Entity Management README says thirteen npm packages were published at 4.1.1 on 2026-10-08.[^pem-readme]
+* An earlier reading of the GitHub README, on 24 October 2026, recorded thirteen npm packages published at 4.1.1 on 2026-10-08. Later versions 4.2.0 and 4.3.0 are on npm.[^pem-readme][^pem-npm]
 * The 4.0.0 release moved the workspace to ESM-only output and published the React binding as its own package, with the older package name kept as an alias.[^pem-readme]
 * A Flutter 4.0.0 package is public on pub.dev, and a Chrome DevTools extension is available as a ZIP for developer-mode installation. It is not a Chrome Web Store listing.[^pem-readme]
 

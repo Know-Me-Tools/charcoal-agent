@@ -2,10 +2,10 @@
 
 ## What is the latest version of the Universal Agent Runtime, and is there a pre-release?
 
-The latest stable release of the Universal Agent Runtime (UAR) is v1.2.3. v1.3.0 is published as a pre-release, and its release notes mark verification as pending. UAR is MIT licensed and is made by Prometheus AGS.
+The latest stable release of the Universal Agent Runtime (UAR) is v1.2.3. v1.4.0-rc.2 is a release candidate: its release notes say it was validated on macOS and that 1.4.0 ships after a final checklist. The earlier v1.3.0 was published as a pre-release with verification pending. UAR is MIT licensed and is made by Prometheus AGS.
 
 Source: Universal Agent Runtime changelog, retrieved 2026-10-13.
-Source: Universal Agent Runtime releases, retrieved 2026-10-24.
+Source: Universal Agent Runtime releases, retrieved 2026-11-03.
 Source: Universal Agent Runtime LICENSE, retrieved 2026-10-13.
 
 ## Who makes the Universal Agent Runtime and what licence it uses
@@ -16,10 +16,10 @@ Source: Universal Agent Runtime LICENSE, retrieved 2026-10-13.
 
 ## Universal Agent Runtime version
 
-The latest stable release of UAR is v1.2.3, which its changelog dates 2026-10-22. The changelog records that functional acceptance of the published Linux amd64 image passed within a defined scope; arm64 acceptance is outside that scope. v1.3.0 is published as a pre-release, and its release notes mark verification as pending. The 1.x line began with 1.0.0 on 2026-07-12. UAR follows semantic versioning for the HTTP, event, configuration and artifact contracts that its support matrix marks Stable. Preview and Experimental features do not get that compatibility promise.
+The latest stable release of UAR is v1.2.3, which its changelog dates 2026-10-22. The changelog records that functional acceptance of the published Linux amd64 image passed within a defined scope; arm64 acceptance is outside that scope. v1.4.0-rc.2 is a release candidate: its release notes say it was validated on macOS and that 1.4.0 ships after a final checklist. The earlier v1.3.0 was published as a pre-release with verification pending. The 1.x line began with 1.0.0 on 2026-07-12. UAR follows semantic versioning for the HTTP, event, configuration and artifact contracts that its support matrix marks Stable. Preview and Experimental features do not get that compatibility promise.
 
 Source: Universal Agent Runtime changelog, retrieved 2026-10-13.
-Source: Universal Agent Runtime releases, retrieved 2026-10-24.
+Source: Universal Agent Runtime releases, retrieved 2026-11-03.
 
 ## What the Universal Agent Runtime support levels mean
 

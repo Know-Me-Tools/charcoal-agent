@@ -13,7 +13,7 @@ sources:
   - id: uar-releases
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/releases
     title: Universal Agent Runtime releases
-    last_modified: "2026-10-24T00:00:00+00:00"
+    last_modified: "2026-11-03T00:00:00+00:00"
   - id: uar-readme
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/README.md
     title: Universal Agent Runtime README
@@ -52,7 +52,7 @@ sources:
 
 ## What the Universal Agent Runtime is
 
-The Universal Agent Runtime (UAR) is a server that runs AI agents. It is written in Rust and does the work around the model: it picks and calls models, runs tools under a policy, searches documents, keeps memory, and streams results to a user interface.[^uar-readme] Tools can come from MCP (Model Context Protocol, the open standard agents use to call tools) servers or be built in.[^uar-arch] Its own operator interface is a React web app. The current stable release is {{v:uar}}, and {{v:uar:pre}} is published as a pre-release that its release notes mark as verification pending.[^uar-releases] The Universal Agent Runtime is made by Prometheus AGS.
+The Universal Agent Runtime (UAR) is a server that runs AI agents. It is written in Rust and does the work around the model: it picks and calls models, runs tools under a policy, searches documents, keeps memory, and streams results to a user interface.[^uar-readme] Tools can come from MCP (Model Context Protocol, the open standard agents use to call tools) servers or be built in.[^uar-arch] Its own operator interface is a React web app. The current stable release is {{v:uar}}, and {{v:uar:pre}} is a release candidate that its release notes say was validated on macOS, with 1.4.0 to follow a final checklist.[^uar-releases] The Universal Agent Runtime is made by Prometheus AGS.
 
 ## Who the Universal Agent Runtime is for
 

@@ -3,7 +3,7 @@
 This is a design pattern, not a shipped product, and none of the KnowMe or Prometheus products implements it end to end. The idea: a model never writes SQL. It proposes a typed query spec from the user's question, and deterministic code that you can test checks the spec against an allow-list and compiles a parameterised read-only query. The safety rests on a read-only database role, because Flint Forge's Quarry has no read-only mode and its REST surface includes writes. A Cedar policy that denies every tool except named read tools can be configured in the Universal Agent Runtime. No such policy ships.
 
 Source: Flint Forge source: fdb-query request-to-SQL translator, retrieved 2026-10-26.
-Source: Universal Agent Runtime v1.3.0 source: run manager tool decision, retrieved 2026-10-26.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: run manager tool decision, retrieved 2026-11-03.
 
 ## Constrained query pattern: the steps (Solutions)
 
@@ -23,7 +23,7 @@ Source: Universal Agent Runtime v1.3.0 source: run manager tool decision, retrie
 Source: Flint Forge source: fdb-query request-to-SQL translator, retrieved 2026-10-26.
 Source: Flint Forge README, retrieved 2026-10-26.
 Source: Flint Forge source: fdb-postgres backend and row-level security, retrieved 2026-10-26.
-Source: Universal Agent Runtime v1.3.0 source: run manager tool decision, retrieved 2026-10-26.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: run manager tool decision, retrieved 2026-11-03.
 
 ## Constrained query pattern: what does not exist (Solutions)
 
