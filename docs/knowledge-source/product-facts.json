@@ -285,10 +285,10 @@
       "repo": "Prometheus-AGS/prometheus-entity-management",
       "version": {
         "kind": "stable",
-        "value": "v4.2.0",
-        "date": "2026-10-10",
-        "source": "https://www.npmjs.com/package/@prometheus-ags/prometheus-entity-management/v/4.2.0",
-        "note": "operator-selected version, published on npm only; no git tag or GitHub release. npm latest is 4.3.0; the latest GitHub release is v4.1.1"
+        "value": "v4.3.0",
+        "date": "2026-10-28",
+        "source": "https://www.npmjs.com/package/@prometheus-ags/prometheus-entity-management/v/4.3.0",
+        "note": "operator-selected version, npm latest; a git tag v4.3.0 (2026-10-28) exists but no GitHub release was cut, and the latest GitHub release is v4.1.1"
       },
       "checked": "2026-11-03",
       "publication": "public"

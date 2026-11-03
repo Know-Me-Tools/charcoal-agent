@@ -518,7 +518,7 @@ export const DIRECTORY: Directory = {
 							"summary": "A reactive entity graph for web, mobile, desktop and local-first apps.",
 							"status": "released",
 							"versionLines": [
-								"v4.2.0 · 10 Oct 2026"
+								"v4.3.0 · 28 Oct 2026"
 							],
 							"versionKind": "stable",
 							"checked": "2026-11-03",

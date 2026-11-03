@@ -1,24 +1,24 @@
 # Code recipes taken from product READMEs (Solutions)
 
-Short answer for Prometheus Entity Management: this site documents version 4.2.0. Install it with `pnpm add @prometheus-ags/entity-graph-core@4.2.0`. A plain `pnpm add` without a version installs the version tagged `latest` on npm, which was 4.3.0 on 3 November 2026.
+Short answer for Prometheus Entity Management: this site documents version 4.3.0. Install it with `pnpm add @prometheus-ags/entity-graph-core@4.3.0`. A plain `pnpm add` without a version installs the version tagged `latest` on npm, which was 4.3.0 on 3 November 2026, so pinning keeps the install on this version after a newer one is published.
 
 A visitor asks: "Show me how to install and start these." Every snippet below is copied from the README named in its section, read on 25 October 2026. Nothing here is invented. Where a README gives no command, this page gives none. Check the README for changes before you rely on a command. Status tags on this page: [shipped] means the facts file records a published release or package. [planned] means source without a release, a prototype, a specification or a design, and is never described here as available.
 
 ## Recipe: Prometheus Entity Management, React install (Solutions)
 
-Status: [shipped], version v4.2.0. npm lists 4.2.0 of the core package (published 2026-10-09 UTC) and of the prometheus-entity-management package (published 2026-10-10 UTC); 4.2.0 has no git tag or GitHub release, and its npm README shows `pnpm add @prometheus-ags/entity-graph-core`. Pin the version with `@4.2.0` as shown below, because `latest` and `next` on npm both point at 4.3.0.
+Status: [shipped], version v4.3.0. npm lists 4.3.0 of the core package and of the prometheus-entity-management package, both published on 2026-10-28 UTC and tagged `latest` and `next`; its npm README shows `pnpm add @prometheus-ags/entity-graph-core`. A git tag v4.3.0 exists, but no GitHub release was cut for it. Pin the version with `@4.3.0` as shown below.
 
 ```bash
-pnpm add @prometheus-ags/entity-graph-core@4.2.0 \
-  @prometheus-ags/prometheus-entity-management@4.2.0 \
+pnpm add @prometheus-ags/entity-graph-core@4.3.0 \
+  @prometheus-ags/prometheus-entity-management@4.3.0 \
   react@19 react-dom@19
 ```
 
-Source: @prometheus-ags/entity-graph-core 4.2.0 on npm, retrieved 2026-11-03.
+Source: @prometheus-ags/entity-graph-core 4.3.0 on npm, retrieved 2026-11-03.
 
 ## Recipe: Prometheus Entity Management, DevTools in development only (Solutions)
 
-The 4.2.0 npm README says the DevTools runtime is isolated behind the `@prometheus-ags/entity-graph-core/devtools` export and that normal application imports do not expose the controller API. The `devtools/auto` entry in the snippet below is taken from the GitHub README as read on 25 October 2026 and was not re-checked against 4.2.0.
+The 4.3.0 npm README says the DevTools runtime is isolated behind the `@prometheus-ags/entity-graph-core/devtools` export and that normal application imports do not expose the controller API. The `devtools/auto` entry in the snippet below is taken from the GitHub README as read on 25 October 2026 and was not re-checked against 4.3.0.
 
 ```ts
 if (import.meta.env.DEV) {
@@ -26,7 +26,7 @@ if (import.meta.env.DEV) {
 }
 ```
 
-Source: @prometheus-ags/entity-graph-core 4.2.0 on npm, retrieved 2026-11-03.
+Source: @prometheus-ags/entity-graph-core 4.3.0 on npm, retrieved 2026-11-03.
 Source: Prometheus Entity Management README, retrieved 2026-10-25.
 
 ## Recipe: Prometheus Entity Management, Flutter install (Solutions)
@@ -39,9 +39,9 @@ flutter pub add entity_graph_flutter:^4.0.0
 
 Source: Prometheus Entity Management README, retrieved 2026-10-25.
 
-## Recipe: Prometheus Entity Management, what 4.2.0 means (Solutions)
+## Recipe: Prometheus Entity Management, which version this is (Solutions)
 
-npm lists 4.2.0 as published on 2026-10-09 (core) and 2026-10-10 (prometheus-entity-management), both UTC, and 4.3.0 as published on 2026-10-28 and tagged `latest` and `next`. The GitHub releases page still shows v4.1.1 as the latest release, and there is no v4.2.0 tag. This site uses 4.2.0 because the operator selected it; this page does not claim 4.2.0 is the newest version. The earlier 25 October reading of the GitHub README, which listed 4.2.0 as an unpublished candidate, is out of date.
+This site documents 4.3.0 because the operator selected it. npm lists 4.3.0 as published on 2026-10-28 UTC and tagged `latest` and `next`; 4.2.0 was published on 2026-10-09 (core) and 2026-10-10 (prometheus-entity-management), both UTC. The GitHub releases page still shows v4.1.1 as the latest release, so a version number from a GitHub release and one from npm can differ. The earlier 25 October reading of the GitHub README, which listed 4.2.0 as an unpublished candidate, is out of date.
 
 ## Recipe: Universal Agent Runtime, run locally (Solutions)
 

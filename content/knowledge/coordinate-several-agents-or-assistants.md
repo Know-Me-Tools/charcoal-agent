@@ -6,7 +6,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
 
 ## Coordinate agents: what ships [shipped] (Solutions)
 
-The Universal Agent Runtime, release v1.2.3, has an A2A endpoint for agent-to-agent calls, an MCP client with a governed tool bridge, an AG-UI event stream for clients and A2UI surfaces for validated declarative interfaces. Prometheus Entity Management (v4.2.0) lists an A2A reference server among its packages.
+The Universal Agent Runtime, release v1.2.3, has an A2A endpoint for agent-to-agent calls, an MCP client with a governed tool bridge, an AG-UI event stream for clients and A2UI surfaces for validated declarative interfaces. Prometheus Entity Management (v4.3.0) lists an A2A reference server among its packages.
 
 Source: Universal Agent Runtime README, retrieved 2026-10-25.
 Source: Prometheus Entity Management README, retrieved 2026-10-25.

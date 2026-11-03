@@ -90,7 +90,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 ## Developer tools and skills: documents, libraries and building blocks (KnowMe and Prometheus portfolio)
 
 - HTMX Doc Forge: existing document tools. Version: no tagged release (last commit 2026-10-13).
-- Prometheus Entity Management: published package family; version records differ across snapshots. Release v4.2.0.
+- Prometheus Entity Management: published package family; version records differ across snapshots. Release v4.3.0.
 - Prometheus Parking Lot: published on crates.io, v0.4.0; an earlier revision is used by the Candle-VLLM fork.
 - gen_ui: implemented modules plus architectural specification. No repository was identified.
 - Companion: tested local MVP; cloud deployment is blocked. No repository was identified.

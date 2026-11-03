@@ -24,7 +24,7 @@ Source: The Boss integration artifacts manifest, retrieved 2026-10-12.
 - Prometheus Skill Pack: release v1.13.0. Its README gives an install script for supported coding assistants.
 - Prometheus Skills Mini: release v1.12.1. Its README gives a setup check and a copy step.
 - Prometheus Parking Lot: v0.4.0 on crates.io, a Rust library. Registry publication is not runtime qualification.
-- Prometheus Entity Management: release v4.2.0. Its README says thirteen npm packages were published at that version.
+- Prometheus Entity Management: release v4.3.0. Its README says thirteen npm packages were published at that version.
 
 Source: Prometheus Skill Pack README, retrieved 2026-10-13.
 Source: Prometheus Skills Mini README, retrieved 2026-10-13.

@@ -44,7 +44,7 @@ Source: Universal Agent Runtime README, retrieved 2026-10-25.
 
 ## Combinations: libraries and inference [planned] (Solutions)
 
-- Prometheus Entity Management with Flint Realtime Fabric through the Flint adapter: the adapter ships in the v4.2.0 README, and Fabric has no release.
+- Prometheus Entity Management with Flint Realtime Fabric through the Flint adapter: the adapter ships in the v4.3.0 README, and Fabric has no release.
 - The Candle-VLLM fork with Prometheus Parking Lot: the fork submits completion and streaming work through a pool, but its lockfile pins an earlier revision than the published v0.4.0.
 - Numen with the Candle-VLLM fork and Numen Enclave: the portfolio calls the fork part of the intended inference infrastructure and says no live Numen integration is verified.
 

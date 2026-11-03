@@ -6,7 +6,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
 
 ## Local-first apps: Prometheus Entity Management [shipped] (Solutions)
 
-Prometheus Entity Management is a normalized, reactive entity graph. Each entity is stored once at a type and id address, so one write updates every list row and detail view. The latest stable release is v4.2.0. Its README lists React 19, Flutter with Riverpod 3, Svelte 5, Solid, Alpine, Web Components and HTMX bindings, plus Tauri 2 for desktop and mobile. Local-first support is PGlite persistence, Loro convergence, offline queues and reconnect recovery. The portfolio notes that version records differ across snapshots.
+Prometheus Entity Management is a normalized, reactive entity graph. Each entity is stored once at a type and id address, so one write updates every list row and detail view. The latest stable release is v4.3.0. Its README lists React 19, Flutter with Riverpod 3, Svelte 5, Solid, Alpine, Web Components and HTMX bindings, plus Tauri 2 for desktop and mobile. Local-first support is PGlite persistence, Loro convergence, offline queues and reconnect recovery. The portfolio notes that version records differ across snapshots.
 
 Source: Prometheus Entity Management README, retrieved 2026-10-25.
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.

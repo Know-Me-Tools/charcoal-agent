@@ -14,7 +14,7 @@ Source: Universal Agent Runtime README, retrieved 2026-10-25.
 
 - UAR includes SDK source packages for Rust, Python and TypeScript. The README says registry publication is release-ordered, so this page does not establish that they are published [planned].
 - A2UI renderers exist for React, Lit and Svelte.
-- Prometheus Entity Management lists an A2UI React renderer and an A2A reference server among its packages (v4.2.0).
+- Prometheus Entity Management lists an A2UI React renderer and an A2A reference server among its packages (v4.3.0).
 - The KnowMe Concierge client, the code behind this site's agent, streams UAR's replies, keeps threads locally and syncs skills to the runtime. It is an existing implementation, not a packaged library.
 
 Source: Universal Agent Runtime README, retrieved 2026-10-25.
