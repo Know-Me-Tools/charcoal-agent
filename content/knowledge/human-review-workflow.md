@@ -1,10 +1,10 @@
 # Human review workflow: who approves what before an agent acts (Solutions)
 
-A visitor asks: "Who approves an agent's action before it happens, and how long does the approval last?" In the Universal Agent Runtime (UAR), only tools marked read-only skip approval by default, and a pending approval expires after 300 seconds. Every tool call in a run is decided before it runs: a Cedar policy can deny it, and a tool, the host or the run policy can require a person to approve it. This page reads UAR at its v1.3.0 tag; the stable release is v1.2.3.
+A visitor asks: "Who approves an agent's action before it happens, and how long does the approval last?" In the Universal Agent Runtime (UAR), only tools marked read-only skip approval by default, and a pending approval expires after 300 seconds. Every tool call in a run is decided before it runs: a Cedar policy can deny it, and a tool, the host or the run policy can require a person to approve it. This page reads UAR at its v1.4.0-rc.2 tag; the stable release is v1.2.3.
 
-Source: Universal Agent Runtime v1.3.0 source: tool registry and approval defaults, retrieved 2026-10-26.
-Source: Universal Agent Runtime v1.3.0 source: pending approvals, retrieved 2026-10-26.
-Source: Universal Agent Runtime v1.3.0 source: run manager tool decision, retrieved 2026-10-26.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: tool registry and approval defaults, retrieved 2026-11-03.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: pending approvals, retrieved 2026-11-03.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: run manager tool decision, retrieved 2026-11-03.
 
 ## Human review workflow: the Universal Agent Runtime [shipped] (Solutions)
 
@@ -14,16 +14,16 @@ Source: Universal Agent Runtime v1.3.0 source: run manager tool decision, retrie
 - The record: an approval record keeps who decided, the decision and when, and the states pending, approved, denied, cancelled, expired, interrupted and invalidated.
 - The time limit: a pending approval that nobody answers within 300 seconds expires.
 
-Source: Universal Agent Runtime v1.3.0 source: tool registry and approval defaults, retrieved 2026-10-26.
-Source: Universal Agent Runtime v1.3.0 source: run manager tool decision, retrieved 2026-10-26.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: tool registry and approval defaults, retrieved 2026-11-03.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: run manager tool decision, retrieved 2026-11-03.
 Source: Universal Agent Runtime README, retrieved 2026-10-26.
-Source: Universal Agent Runtime v1.3.0 source: approval records, retrieved 2026-10-26.
-Source: Universal Agent Runtime v1.3.0 source: pending approvals, retrieved 2026-10-26.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: approval records, retrieved 2026-11-03.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: pending approvals, retrieved 2026-11-03.
 
 ## Human review workflow: Flint Gate and The Boss (Solutions)
 
 - Flint Gate [planned, source only], no tagged release (last commit 2026-10-23): a Cedar policy can mark a tool call for human approval. The call pauses, an operator approves or denies it, and an undecided request is denied when its limit passes (300 seconds by default). The README says pending approvals live in the memory of one replica, so a multi-replica setup is a stated limit. The portfolio status is "Existing implementation; production qualification not independently audited."
-- The Boss [shipped], release v2.2.42: agent sessions use MCP tools and skills with approval boundaries, and you supply your own model provider credentials.
+- The Boss [shipped], release v2.2.44: agent sessions use MCP tools and skills with approval boundaries, and you supply your own model provider credentials.
 
 Source: Flint Gate README, retrieved 2026-10-26.
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-26.

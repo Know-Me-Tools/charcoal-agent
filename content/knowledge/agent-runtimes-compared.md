@@ -108,7 +108,7 @@ Source: Universal Agent Runtime README, retrieved 2026-10-12.
 ## Where the Universal Agent Runtime is weaker: maturity (our minuses) (Landscape)
 
 - Several areas are Preview or Experimental in its own support matrix: desktop and native WASM are Preview, mobile is Experimental, and the Windows native archive is Experimental.
-- The 1.x line began on 2026-07-12 and the latest stable release is v1.2.3, with v1.3.0 published as a pre-release awaiting verification. The compatibility promise covers only rows the matrix marks Stable.
+- The 1.x line began on 2026-07-12 and the latest stable release is v1.2.3, with v1.4.0-rc.2 published as a pre-release awaiting verification. The compatibility promise covers only rows the matrix marks Stable.
 
 Source: Universal Agent Runtime product support matrix, retrieved 2026-10-12.
 Source: Universal Agent Runtime releases, retrieved 2026-10-24.

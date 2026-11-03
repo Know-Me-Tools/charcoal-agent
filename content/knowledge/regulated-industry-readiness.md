@@ -6,8 +6,8 @@ A visitor from a regulated industry asks whether this meets their health-privacy
 
 The products are designed to run on the customer's own hardware rather than in a shared service. The Universal Agent Runtime binds to 127.0.0.1 by default, and an opt-in mode, UAR_LOCAL_ONLY=1, refuses model providers that are not on the local machine. That is a design that keeps text on your machine when you turn it on and run a local model. It is not a statement that any rule is met. See [Private deployment checklist](/solutions/private-deployment-checklist.md).
 
-Source: Universal Agent Runtime v1.3.0 source: server configuration, retrieved 2026-10-26.
-Source: Universal Agent Runtime v1.3.0 source: local-only inference mode, retrieved 2026-10-26.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: server configuration, retrieved 2026-11-03.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: local-only inference mode, retrieved 2026-11-03.
 
 ## Regulated industries: the Google GKE option (Solutions)
 

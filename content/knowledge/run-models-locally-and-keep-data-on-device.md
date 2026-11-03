@@ -6,7 +6,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-25.
 
 ## Run local models: what works today [shipped] (Solutions)
 
-The Boss, release v2.2.42, holds conversations across cloud and local model providers. The Universal Agent Runtime, release v1.2.3, lists local FastEmbed embeddings as a Tier 1 path with named capability evidence. OpenAI-compatible and Anthropic execution paths are also Tier 1. Which provider you pick decides where your prompts go.
+The Boss, release v2.2.44, holds conversations across cloud and local model providers. The Universal Agent Runtime, release v1.2.3, lists local FastEmbed embeddings as a Tier 1 path with named capability evidence. OpenAI-compatible and Anthropic execution paths are also Tier 1. Which provider you pick decides where your prompts go.
 
 Source: The Boss README, retrieved 2026-10-25.
 Source: Universal Agent Runtime README, retrieved 2026-10-25.

@@ -14,7 +14,7 @@ sources:
   - id: uar-releases
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/releases
     title: Universal Agent Runtime releases
-    last_modified: "2026-10-24T00:00:00+00:00"
+    last_modified: "2026-11-03T00:00:00+00:00"
   - id: uar-readme
     resource: https://github.com/Prometheus-AGS/universal-agent-runtime/blob/main/README.md
     title: Universal Agent Runtime README
@@ -41,7 +41,7 @@ sources:
 
 ## What is the latest version of the Universal Agent Runtime, and is there a pre-release?
 
-The latest stable release of the Universal Agent Runtime (UAR) is {{v:uar}}.[^uar-changelog] {{v:uar:pre}} is published as a pre-release, and its release notes mark verification as pending.[^uar-releases] UAR is MIT licensed and is made by Prometheus AGS.[^uar-license]
+The latest stable release of the Universal Agent Runtime (UAR) is {{v:uar}}.[^uar-changelog] {{v:uar:pre}} is a release candidate: its release notes say it was validated on macOS and that 1.4.0 ships after a final checklist. The earlier v1.3.0 was published as a pre-release with verification pending.[^uar-releases] UAR is MIT licensed and is made by Prometheus AGS.[^uar-license]
 
 ## Who makes the Universal Agent Runtime and what licence it uses
 
@@ -49,7 +49,7 @@ Prometheus AGS makes the Universal Agent Runtime (UAR), and its LICENSE file nam
 
 ## Universal Agent Runtime version
 
-The latest stable release of UAR is {{v:uar}}, which its changelog dates 2026-10-22. The changelog records that functional acceptance of the published Linux amd64 image passed within a defined scope; arm64 acceptance is outside that scope.[^uar-changelog] {{v:uar:pre}} is published as a pre-release, and its release notes mark verification as pending.[^uar-releases] The 1.x line began with 1.0.0 on 2026-07-12. UAR follows semantic versioning for the HTTP, event, configuration and artifact contracts that its support matrix marks Stable. Preview and Experimental features do not get that compatibility promise.[^uar-changelog]
+The latest stable release of UAR is {{v:uar}}, which its changelog dates 2026-10-22. The changelog records that functional acceptance of the published Linux amd64 image passed within a defined scope; arm64 acceptance is outside that scope.[^uar-changelog] {{v:uar:pre}} is a release candidate: its release notes say it was validated on macOS and that 1.4.0 ships after a final checklist. The earlier v1.3.0 was published as a pre-release with verification pending.[^uar-releases] The 1.x line began with 1.0.0 on 2026-07-12. UAR follows semantic versioning for the HTTP, event, configuration and artifact contracts that its support matrix marks Stable. Preview and Experimental features do not get that compatibility promise.[^uar-changelog]
 
 ## What the Universal Agent Runtime support levels mean
 

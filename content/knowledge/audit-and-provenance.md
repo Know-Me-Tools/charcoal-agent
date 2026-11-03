@@ -1,9 +1,9 @@
 # Audit and provenance: what is recorded and what you must add (Solutions)
 
-A visitor asks: "Can I see what the agent did, and reproduce how it reached an answer?" The honest answer is partly. The Universal Agent Runtime (UAR) records evidence of each tool call and each approval decision. It has no durable audit log of tool calls and no export endpoint, and it does not record a tool call's arguments or result. Prometheus Knowledge does not record which snapshot produced a given answer, and no source shows a record that would let an answer be reproduced. This page reads UAR at its v1.3.0 tag; the stable release is v1.2.3.
+A visitor asks: "Can I see what the agent did, and reproduce how it reached an answer?" The honest answer is partly. The Universal Agent Runtime (UAR) records evidence of each tool call and each approval decision. It has no durable audit log of tool calls and no export endpoint, and it does not record a tool call's arguments or result. Prometheus Knowledge does not record which snapshot produced a given answer, and no source shows a record that would let an answer be reproduced. This page reads UAR at its v1.4.0-rc.2 tag; the stable release is v1.2.3.
 
-Source: Universal Agent Runtime v1.3.0 source: tool admission evidence, retrieved 2026-10-26.
-Source: Universal Agent Runtime v1.3.0 source: run events API, retrieved 2026-10-26.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: tool admission evidence, retrieved 2026-11-03.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: run events API, retrieved 2026-11-03.
 
 ## Audit and provenance: what UAR records [shipped] (Solutions)
 
@@ -13,10 +13,10 @@ Source: Universal Agent Runtime v1.3.0 source: run events API, retrieved 2026-10
 - UAR logs a retrieval decision as the event rag.retrieval.decision when it looks up its knowledge base. Whether that event is kept durably was not checked.
 - Which storage provider holds these records in a given deployment was not checked.
 
-Source: Universal Agent Runtime v1.3.0 source: tool admission evidence, retrieved 2026-10-26.
-Source: Universal Agent Runtime v1.3.0 source: approval records, retrieved 2026-10-26.
-Source: Universal Agent Runtime v1.3.0 source: run events API, retrieved 2026-10-26.
-Source: Universal Agent Runtime v1.3.0 source: retrieval pipeline, retrieved 2026-10-26.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: tool admission evidence, retrieved 2026-11-03.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: approval records, retrieved 2026-11-03.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: run events API, retrieved 2026-11-03.
+Source: Universal Agent Runtime v1.4.0-rc.2 source: retrieval pipeline, retrieved 2026-11-03.
 
 ## Audit and provenance: what the memory and knowledge products record (Solutions)
 

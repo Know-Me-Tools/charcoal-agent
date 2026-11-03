@@ -13,7 +13,7 @@ Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
 
 ## Use today: The Boss (KnowMe and Prometheus portfolio)
 
-The Boss is a free, open-source AI desktop workspace for macOS and Windows. You can download it from https://the-boss.know-me.tools with no account. The latest release is v2.2.42. The portfolio notes that current-source features are not automatically in released installers. The installers also include the Universal Agent Runtime and BossFang as bundled programs. BossFang has no separate release; it comes only with The Boss.
+The Boss is a free, open-source AI desktop workspace for macOS and Windows. You can download it from https://the-boss.know-me.tools with no account. The latest release is v2.2.44. The portfolio notes that current-source features are not automatically in released installers. The installers also include the Universal Agent Runtime and BossFang as bundled programs. BossFang has no separate release; it comes only with The Boss.
 
 Source: The Boss download page, retrieved 2026-10-12.
 Source: KnowMe and Prometheus portfolio, Edition 2, retrieved 2026-10-24.
@@ -24,7 +24,7 @@ Source: The Boss integration artifacts manifest, retrieved 2026-10-12.
 - Prometheus Skill Pack: release v1.13.0. Its README gives an install script for supported coding assistants.
 - Prometheus Skills Mini: release v1.12.1. Its README gives a setup check and a copy step.
 - Prometheus Parking Lot: v0.4.0 on crates.io, a Rust library. Registry publication is not runtime qualification.
-- Prometheus Entity Management: release v4.1.1. Its README says thirteen npm packages were published at that version.
+- Prometheus Entity Management: release v4.3.0. Its README says thirteen npm packages were published at that version.
 
 Source: Prometheus Skill Pack README, retrieved 2026-10-13.
 Source: Prometheus Skills Mini README, retrieved 2026-10-13.
@@ -33,7 +33,7 @@ Source: Prometheus Entity Management README, retrieved 2026-10-24.
 
 ## Published, with a stated caveat (KnowMe and Prometheus portfolio)
 
-- Universal Agent Runtime: The portfolio says work stopped and current runtime qualification is not established. The repository lists release v1.2.3 and pre-release v1.3.0. Its changelog records functional acceptance of the Linux amd64 image within a defined scope. The repository is the newer record.
+- Universal Agent Runtime: The portfolio says work stopped and current runtime qualification is not established. The repository lists release v1.2.3 and pre-release v1.4.0-rc.2. Its changelog records functional acceptance of the Linux amd64 image within a defined scope. The repository is the newer record.
 - Flint Forge: release v1.0.0 exists. The README reports v1.0-ready, which the portfolio treats as a source claim, not an audit.
 - IPFS Sync for Obsidian: pre-release v0.2.0, tested on fixture vaults only. The portfolio says wider deployment is unverified.
 
