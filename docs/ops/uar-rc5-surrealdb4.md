@@ -14,6 +14,6 @@ The previous memory-server image used SDK 3.3, which refuses the 4.0 server duri
 
 The newer memory server binds to loopback by default and requires verified JWTs on a network listener. Compose takes the issuer, audience and RSA public key from the `MEMORY_AUTH_JWT_*` settings. Kubernetes takes `AUTH_JWT_ISSUER`, `AUTH_JWT_AUDIENCE` and `AUTH_JWT_KEY` from the operator-provisioned `memory-api-auth` Secret. Supply the matching issuer's public verification key. Keep the private signing key with the issuer. The memory process refuses startup if these verifier settings are missing. Compose can still render and stage SurrealDB independently.
 
-Validate the intended clients with their trusted issuer and tenant claims. The server uses the verified tenant to select its database, so check access to existing memory data and qualify any required tenant data adoption before cutover. A healthy listener only proves the service started.
+Validate the intended clients with their trusted issuer and tenant claims. The server uses the verified tenant to select `memory_<tenant>/main`. Existing records in `memory/main` require a verified tenant mapping and data adoption before those clients can read them. A healthy listener only proves the service started.
 
 The previous Kubernetes UAR image was `ghcr.io/prometheus-ags/universal-agent-runtime:1.4.0-rc.2@sha256:08ff2c2f0d95320e785df77b13540576993642d3f8f304b5f467e8da4a09bb5b`. Retain the previous Compose and Kubernetes manifests with the database backup.
