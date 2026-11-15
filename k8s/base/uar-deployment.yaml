@@ -70,6 +70,8 @@
 # @sha256:e955789aa6aea70853d4e19ce95b5c5774750d232472c048bd4763c96e5513f5 (2cc9a182). The image has no vcs revision label; the
 # commit above comes from the CI run that published it. Renovate tracks this digest
 # going forward (renovate.json); bump deliberately.
+# Before RC5 rollout, complete the storage and rollback checks in
+# docs/ops/uar-rc5-surrealdb4.md. The preceding notes retain pin history.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -92,6 +94,8 @@ spec:
         app.kubernetes.io/component: app
         app.kubernetes.io/part-of: knowme-site
     spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
       securityContext:
         runAsNonRoot: true
         runAsUser: 65532
@@ -116,7 +120,7 @@ spec:
           # provider configuration and credential revision, so re-verify after any
           # provider edit or API key rotation. Builds before a42f23bb (the 2cc9a182
           # pin this replaced) have no gate, so the step only matters from this pin on.
-          image: ghcr.io/prometheus-ags/universal-agent-runtime:1.4.0-rc.2@sha256:08ff2c2f0d95320e785df77b13540576993642d3f8f304b5f467e8da4a09bb5b
+          image: ghcr.io/prometheus-ags/universal-agent-runtime:1.4.0-rc.5@sha256:ccbebdacc4cddef1d8f5cec3957a9eb142ef5d95a1bab1249deb0bf264976c69
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

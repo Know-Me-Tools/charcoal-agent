@@ -1,11 +1,8 @@
 # surreal-memory-server — ClusterIP only, no public route. Local embeddings
 # (bge-small) in the "memory" SurrealDB namespace/database, per plan.md's
 # decision to defer DashScope embeddings for the memory server.
-# Image pinned by digest (ci-supply-chain-pins): `main` as of 2026-10-03.
-# Verified: `docker buildx imagetools inspect
-# ghcr.io/prometheus-ags/surreal-memory-server:main` resolves a linux/amd64
-# + linux/arm64 index at this digest. Renovate tracks it going forward
-# (renovate.json); bump deliberately.
+# The pinned release source uses the SurrealDB SDK 4.0.0. See the
+# RC5 database rollout and rollback runbook before upgrading the stack.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -35,7 +32,7 @@ spec:
         fsGroup: 1001
       containers:
         - name: surreal-memory-server
-          image: ghcr.io/prometheus-ags/surreal-memory-server:main@sha256:6315ca4a0f5f6bc503b2e4f8aed9c00f3ee7acf6b8cc10dbd03c28ffc62a8647
+          image: ghcr.io/prometheus-ags/surreal-memory-server:sha-f74c53d8e5383eff833ebc8bc9ec6f9b0397bd11@sha256:87197bfb8c23a6df6dc48b10c66ffab5af5ba876fb83c1a3a9cd35ccb9a2713f
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -44,7 +41,16 @@ spec:
             - name: http
               containerPort: 3001
               protocol: TCP
+          envFrom:
+            - secretRef:
+                name: memory-api-auth
           env:
+            - name: API_HOST
+              value: "0.0.0.0"
+            - name: AUTH_MODE
+              value: jwt
+            - name: AUTH_JWT_ALGORITHM
+              value: RS256
             # No stdin in a pod: the stdio MCP transport would exit and take the
             # server down. The HTTP MCP endpoint on :3001 stays on.
             - name: MCP_STDIO

@@ -42,7 +42,7 @@ data:
   # extensions.budgets.max_tokens_per_turn) fails every run with "Run model
   # binding failed" (durable_accounting_unsupported), and durable ingestion is
   # off (KB uploads answer 503). The attestation is true here: surrealdb runs
-  # `rocksdb:/data/database.db` on the retained 20Gi PVC surrealdb-data
+  # `surrealkv:/data/database.db` on the retained 20Gi PVC surrealdb-data
   # (k8s/base/surrealdb-statefulset.yaml, storage class linode-block-storage-retain).
   # If that volume is ever replaced by emptyDir, remove this line first.
   UAR_REMOTE_SURREAL_DURABILITY_ATTESTED: "1"
