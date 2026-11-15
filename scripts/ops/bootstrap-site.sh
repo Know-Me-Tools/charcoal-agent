@@ -66,7 +66,7 @@ GATE_NS="flint-core"
 GATE_CLIENT_ID="knowme-site"
 GATE_AUDIENCE="uar"
 KILL_SWITCH_CM="site-chat-kill-switch"
-UAR_IMAGE="ghcr.io/prometheus-ags/universal-agent-runtime@sha256:e955789aa6aea70853d4e19ce95b5c5774750d232472c048bd4763c96e5513f5"
+UAR_IMAGE="ghcr.io/prometheus-ags/universal-agent-runtime:1.4.0-rc.5@sha256:ccbebdacc4cddef1d8f5cec3957a9eb142ef5d95a1bab1249deb0bf264976c69"
 
 log() { printf '[bootstrap-site] %s\n' "$*" >&2; }
 die() { printf '[bootstrap-site] ERROR: %s\n' "$*" >&2; exit 1; }
@@ -199,6 +199,8 @@ spec:
         app.kubernetes.io/name: site-meter-bootstrap
     spec:
       restartPolicy: Never
+      nodeSelector:
+        kubernetes.io/arch: amd64
       containers:
         - name: define-meter-user
           image: $UAR_IMAGE

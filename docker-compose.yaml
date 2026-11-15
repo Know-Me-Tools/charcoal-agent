@@ -2,7 +2,7 @@ services:
 
   # ── SurrealDB — shared persistence for UAR and the memory server ──────────
   surrealdb:
-    image: surrealdb/surrealdb:v3.3.0@sha256:681c6c22c287421b5c7d99e0fde79b6e0d32c36c1ddeaab2762a1661cb04cd20
+    image: surrealdb/surrealdb:v4.0.0@sha256:c35893410644e65fa90aa1bef446ac9cb0a0c2733b9d405ce3eb56754b85c330
     container_name: knowme-surrealdb
     user: root
     command:
@@ -11,12 +11,12 @@ services:
       - --user=root
       - --pass=${SURREALDB_ROOT_PASSWORD:?SURREALDB_ROOT_PASSWORD must be set}
       - --bind=0.0.0.0:8000
-      - rocksdb:/data/database.db
+      - surrealkv:/data/database.db
     volumes:
       - surrealdb_data:/data
     healthcheck:
       # Exec form: the SurrealDB image has no /bin/sh.
-      test: ["CMD", "/surreal", "isready", "--endpoint", "http://localhost:8000"]
+      test: ["CMD", "/surreal", "is-ready", "--endpoint", "http://localhost:8000"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -30,7 +30,8 @@ services:
   # password comes from .env; in the cluster the operator does this out of
   # band (site-spend-ceiling 1.1). Reuses the pinned UAR image for curl.
   meter-init:
-    image: ghcr.io/prometheus-ags/universal-agent-runtime:main@sha256:e955789aa6aea70853d4e19ce95b5c5774750d232472c048bd4763c96e5513f5
+    image: ghcr.io/prometheus-ags/universal-agent-runtime:1.4.0-rc.5@sha256:ccbebdacc4cddef1d8f5cec3957a9eb142ef5d95a1bab1249deb0bf264976c69
+    platform: linux/amd64
     container_name: knowme-meter-init
     entrypoint: ["curl"]
     command:
@@ -55,7 +56,8 @@ services:
   uar:
     # Pinned by digest (ci-supply-chain-pins); see k8s/base/uar-deployment.yaml
     # for the verification evidence. Bump deliberately, in step with the k8s pin.
-    image: ghcr.io/prometheus-ags/universal-agent-runtime:main@sha256:e955789aa6aea70853d4e19ce95b5c5774750d232472c048bd4763c96e5513f5
+    image: ghcr.io/prometheus-ags/universal-agent-runtime:1.4.0-rc.5@sha256:ccbebdacc4cddef1d8f5cec3957a9eb142ef5d95a1bab1249deb0bf264976c69
+    platform: linux/amd64
     container_name: knowme-uar
     ports:
       - "${UAR_PORT:-6565}:6565"
@@ -116,9 +118,9 @@ services:
 
   # ── Memory server — same SurrealDB, its own namespace, local embeddings ───
   surreal-memory-server:
-    # Pinned by digest (ci-supply-chain-pins); see
-    # k8s/base/memory-server-deployment.yaml for the verification evidence.
-    image: ghcr.io/prometheus-ags/surreal-memory-server:main@sha256:6315ca4a0f5f6bc503b2e4f8aed9c00f3ee7acf6b8cc10dbd03c28ffc62a8647
+    # This pinned source uses the SurrealDB SDK 4.0.0. See
+    # docs/ops/uar-rc5-surrealdb4.md for the shared database cutover.
+    image: ghcr.io/prometheus-ags/surreal-memory-server:sha-f74c53d8e5383eff833ebc8bc9ec6f9b0397bd11@sha256:87197bfb8c23a6df6dc48b10c66ffab5af5ba876fb83c1a3a9cd35ccb9a2713f
     container_name: knowme-memory-server
     ports:
       - "${MEMORY_SERVER_PORT:-3001}:3001"
@@ -126,6 +128,12 @@ services:
       # The stdio MCP transport exits when there is no stdin (a detached
       # container), taking the server down; the HTTP MCP endpoint stays on.
       MCP_STDIO: "false"
+      API_HOST: "0.0.0.0"
+      AUTH_MODE: jwt
+      AUTH_JWT_ISSUER: "${MEMORY_AUTH_JWT_ISSUER:-}"
+      AUTH_JWT_AUDIENCE: "${MEMORY_AUTH_JWT_AUDIENCE:-}"
+      AUTH_JWT_ALGORITHM: RS256
+      AUTH_JWT_KEY: "${MEMORY_AUTH_JWT_PUBLIC_KEY:-}"
       SURREAL_MODE: server
       SURREAL_ENDPOINT: ws://surrealdb:8000
       SURREAL_USERNAME: root

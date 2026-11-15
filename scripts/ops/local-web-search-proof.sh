@@ -187,6 +187,15 @@ preflight() {
   for c in curl jq openssl node cargo surreal; do
     command -v "$c" >/dev/null 2>&1 && pf_ok "$c" || pf_bad "$c not found on PATH"
   done
+  if command -v surreal >/dev/null 2>&1; then
+    local surreal_version
+    surreal_version="$(surreal --version 2>/dev/null || true)"
+    if [[ "$surreal_version" == "4.0.0 for "* ]]; then
+      pf_ok "SurrealDB 4.0.0"
+    else
+      pf_bad "the disposable SurrealKV proof requires the SurrealDB 4.0.0 CLI"
+    fi
+  fi
   if command -v node >/dev/null 2>&1; then
     local major
     major="$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0)"
@@ -236,7 +245,7 @@ PLAN (nothing is started in --dry-run)
   evidence dir    ${EVIDENCE#"$REPO_ROOT"/}
   ports           wrapper $PORT_WRAP, fixture stub $PORT_STUB, UAR $PORT_UAR, site server $PORT_SITE, SurrealDB $PORT_SURREAL
   1  build        cargo build --release for websearch/ and server/ (server with KNOWME_WEB_DIST_DIR=server/tests/fixtures/web)
-  2  start        SurrealDB (rocksdb in the temp dir), meter user, wrapper (daily cap 20, local bearer token)
+  2  start        SurrealDB (SurrealKV in the temp dir), meter user, wrapper (daily cap 20, local bearer token)
   3  start        UAR with mcp.json {websearch -> wrapper, preapproved_tools: ["search"]}
   4  seed         knowme-site, knowme-site-web (+ two budget variants), presentations, site API key, KB (best effort);
                   then verifies their model on the local UAR (POST /api/providers/<id>/test, a real tiny LLM call per
@@ -360,7 +369,7 @@ start_surreal() {
   (
     export SURREAL_USER=root SURREAL_PASS
     SURREAL_PASS="$(<"$SECRETS/surreal-root")"
-    exec surreal start --bind "127.0.0.1:$PORT_SURREAL" --log warn "rocksdb:$WORK/surreal.db"
+    exec surreal start --bind "127.0.0.1:$PORT_SURREAL" --log warn "surrealkv:$WORK/surreal.db"
   ) >"$LOGS/surreal.log" 2>&1 &
   PIDS+=($!)
 }
@@ -707,7 +716,7 @@ jq -n \
   --argjson kb_seeded "$KB_SEEDED" \
   --arg only "${ONLY:-all}" \
   --arg node "$(node -p process.versions.node)" \
-  --arg surreal "$(surreal version 2>/dev/null | head -n1 || echo unknown)" \
+  --arg surreal "$(surreal --version 2>/dev/null | head -n1 || echo unknown)" \
   --argjson ports "{\"wrapper\":$PORT_WRAP,\"stub\":$PORT_STUB,\"uar\":$PORT_UAR,\"site\":$PORT_SITE,\"surreal\":$PORT_SURREAL}" \
   '{date:$date, repo_commit:$repo_commit, uar_checkout_head_not_necessarily_the_binary:$uar_checkout_head, uar_binary_mtime:$uar_binary_mtime,
     llm_group:$llm_group, model:$model, agent_model_overridden_from_committed_file:$model_overridden, kb_seeded:($kb_seeded==1),
