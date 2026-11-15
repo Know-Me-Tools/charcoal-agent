@@ -12,7 +12,7 @@ The previous memory-server image used SDK 3.3, which refuses the 4.0 server duri
 
 ## Memory API cutover
 
-The newer memory server binds to loopback by default and requires verified JWTs on a network listener. Compose takes the issuer, audience and RSA public key from the `MEMORY_AUTH_JWT_*` settings. Kubernetes takes `AUTH_JWT_ISSUER`, `AUTH_JWT_AUDIENCE` and `AUTH_JWT_KEY` from the operator-provisioned `memory-api-auth` Secret. Supply the matching issuer's public verification key. Keep the private signing key with the issuer.
+The newer memory server binds to loopback by default and requires verified JWTs on a network listener. Compose takes the issuer, audience and RSA public key from the `MEMORY_AUTH_JWT_*` settings. Kubernetes takes `AUTH_JWT_ISSUER`, `AUTH_JWT_AUDIENCE` and `AUTH_JWT_KEY` from the operator-provisioned `memory-api-auth` Secret. Supply the matching issuer's public verification key. Keep the private signing key with the issuer. The memory process refuses startup if these verifier settings are missing. Compose can still render and stage SurrealDB independently.
 
 Validate the intended clients with their trusted issuer and tenant claims. The server uses the verified tenant to select its database, so check access to existing memory data and qualify any required tenant data adoption before cutover. A healthy listener only proves the service started.
 
